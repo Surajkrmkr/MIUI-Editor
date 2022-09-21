@@ -41,6 +41,8 @@ dependencies:
   screenshot: ^1.2.3
   path_provider: ^2.0.11
   flex_color_picker: ^2.6.1
+  color_palette_generator: ^2.0.0
+  palette_generator: ^0.3.3+2
 
 dev_dependencies:
   flutter_test:

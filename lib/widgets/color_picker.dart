@@ -41,6 +41,7 @@ class ColorsTab extends StatelessWidget {
             return TabBarView(children: [
               ColorPicker(
                 color: provider.bgColor!,
+                showRecentColors: true,
                 onColorChanged: (value) {
                   provider.setBgColor = value;
                 },

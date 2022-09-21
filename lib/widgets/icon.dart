@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 
 import '../data.dart';
+import '../provider/icon.dart';
 
 class IconWidget extends StatelessWidget {
   final double? margin;
@@ -37,8 +39,7 @@ class IconWidget extends StatelessWidget {
           decoration: BoxDecoration(
               border: Border.all(width: borderWidth!, color: borderColor!),
               borderRadius: BorderRadius.circular(radius!),
-              color: name == 'icon_border' ? Colors.transparent : bgColor
-              ),
+              color: name == 'icon_border' ? Colors.transparent : bgColor),
           child: !IconVectorData.extraIconList.contains(name)
               ? Center(
                   child: SvgPicture.asset(
@@ -48,6 +49,45 @@ class IconWidget extends StatelessWidget {
               : Container(),
         ),
       ),
+    );
+  }
+}
+
+class IconContainer extends StatelessWidget {
+  final String? name;
+  const IconContainer({
+    Key? key,
+    required this.name,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<IconProvider>(
+      builder: (context, provider, _) {
+        return SizedBox(
+          height: 45,
+          width: 45,
+          child: Container(
+            margin: EdgeInsets.all(provider.margin!),
+            child: Container(
+              padding: EdgeInsets.all(provider.padding!),
+              height: 130,
+              width: 130,
+              decoration: BoxDecoration(
+                  border: Border.all(
+                      width: provider.borderWidth!,
+                      color: provider.borderColor!),
+                  borderRadius: BorderRadius.circular(provider.radius!),
+                  color: provider.bgColor),
+              child: Center(
+                  child: SvgPicture.asset(
+                "assets/icons/$name.svg",
+                color: provider.iconColor,
+              )),
+            ),
+          ),
+        );
+      },
     );
   }
 }

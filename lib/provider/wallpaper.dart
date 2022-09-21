@@ -1,8 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:palette_generator/palette_generator.dart';
+import 'package:provider/provider.dart';
 
 import '../constants.dart';
+import 'icon.dart';
 
 class WallpaperProvider extends ChangeNotifier {
   bool? isLoading = true;
@@ -15,14 +18,21 @@ class WallpaperProvider extends ChangeNotifier {
 
   int? index = 0;
 
-  set setIndex(int n) {
+  void setIndex(int n, context) {
     index = n;
+    fetchColorPalette(context);
     notifyListeners();
   }
 
   List<String>? paths = [];
+  List<Color>? colorPalette = [];
 
-  void setTotalImage(String num) async {
+  set setColorPalette(List<Color> colors) {
+    colorPalette = colors;
+    notifyListeners();
+  }
+
+  void setTotalImage(String num, context) async {
     setIsLoading = true;
     final dir = Directory('${MIUIConstants.preLock}$num');
     folderNum = num;
@@ -32,6 +42,16 @@ class WallpaperProvider extends ChangeNotifier {
       paths!.add(file.path);
     }
     setIsLoading = false;
+    fetchColorPalette(context);
     notifyListeners();
+  }
+
+  void fetchColorPalette(context) async {
+    // ColorPalette.from(basicColors)
+    final list = await PaletteGenerator.fromImageProvider(
+        FileImage(File(paths![index!])));
+    setColorPalette = list.colors.toList();
+    Provider.of<IconProvider>(context, listen: false).setBgColor =
+        list.dominantColor!.color;
   }
 }
