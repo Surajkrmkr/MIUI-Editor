@@ -13,22 +13,29 @@ class ColorsTab extends StatelessWidget {
       height: 600,
       width: 400,
       child: DefaultTabController(
-        length: 2,
+        length: 3,
         child: Scaffold(
           appBar: AppBar(
-            automaticallyImplyLeading:false,
+              automaticallyImplyLeading: false,
               title: const Text("Color"),
               centerTitle: true,
-              bottom: const TabBar(labelColor: Colors.black, tabs: [
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text("BG"),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text("Icon"),
-                )
-              ])),
+              bottom: const TabBar(
+                  labelColor: Colors.black,
+                  indicatorColor: Colors.pinkAccent,
+                  tabs: [
+                    Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text("BG"),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text("Icon"),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text("Border"),
+                    )
+                  ])),
           body: Builder(builder: (context) {
             final provider = Provider.of<IconProvider>(context, listen: false);
             return TabBarView(children: [
@@ -44,6 +51,14 @@ class ColorsTab extends StatelessWidget {
                 color: provider.iconColor!,
                 onColorChanged: (value) {
                   provider.setIconColor = value;
+                },
+                enableOpacity: true,
+                pickersEnabled: const {ColorPickerType.wheel: true},
+              ),
+              ColorPicker(
+                color: provider.borderColor!,
+                onColorChanged: (value) {
+                  provider.setBorderColor = value;
                 },
                 enableOpacity: true,
                 pickersEnabled: const {ColorPickerType.wheel: true},

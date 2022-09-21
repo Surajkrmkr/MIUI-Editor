@@ -28,10 +28,25 @@ class IconProvider extends ChangeNotifier {
     bgColor = c;
     notifyListeners();
   }
+
   Color? iconColor = Colors.white;
 
   set setIconColor(Color c) {
     iconColor = c;
+    notifyListeners();
+  }
+
+  Color? borderColor = Colors.white.withOpacity(0.3);
+
+  set setBorderColor(Color c) {
+    borderColor = c;
+    notifyListeners();
+  }
+
+  double? borderWidth = 2;
+
+  set setBorderWidth(double r) {
+    borderWidth = r;
     notifyListeners();
   }
 }

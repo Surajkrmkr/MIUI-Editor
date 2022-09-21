@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:miui_icon_generator/provider/export.dart';
 import 'package:miui_icon_generator/provider/icon.dart';
 import 'package:miui_icon_generator/provider/wallpaper.dart';
-import 'package:miui_icon_generator/screen/home_page.dart';
 import 'package:provider/provider.dart';
 
 import 'screen/Landing_page.dart';
@@ -30,7 +29,9 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'Icon Generator',
-        theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
+        theme: ThemeData(
+            useMaterial3: true,
+            colorScheme: const ColorScheme.light(primary: Colors.pinkAccent)),
         home: const LandingPage(),
       ),
     );

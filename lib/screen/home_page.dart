@@ -61,6 +61,9 @@ class IconContainer extends StatelessWidget {
               height: 130,
               width: 130,
               decoration: BoxDecoration(
+                  border: Border.all(
+                      width: provider.borderWidth!,
+                      color: provider.borderColor!),
                   borderRadius: BorderRadius.circular(provider.radius!),
                   color: provider.bgColor),
               child: Center(
@@ -85,59 +88,82 @@ class ImageStack extends StatelessWidget {
       if (provider.isLoading!) {
         return const CircularProgressIndicator();
       }
-      return Row(
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(right: 20.0),
-            child: IconButton(
-                onPressed: () {
-                  final provider =
-                      Provider.of<WallpaperProvider>(context, listen: false);
-                  if (provider.index != 0) {
-                    provider.setIndex = provider.index! - 1;
-                  }
-                },
-                icon: const Icon(Icons.navigate_before)),
-          ),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(40),
-            child: SizedBox(
-              height: 600,
-              width: 276.92,
-              child: Stack(
-                children: [
-                  Image.file(
-                    File(provider.paths![provider.index!]),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 50.0),
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: List.generate(
-                                  4,
-                                  (index) => IconContainer(
-                                      name: IconVectorData.vectorList[index]))
-                              .toList()),
+          Row(
+            children: [
+              IconButton(
+                  onPressed: () {
+                    final provider =
+                        Provider.of<WallpaperProvider>(context, listen: false);
+                    if (provider.index != 0) {
+                      provider.setIndex = provider.index! - 1;
+                    }
+                  },
+                  icon: const Icon(Icons.navigate_before)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(40),
+                  child: SizedBox(
+                    height: 600,
+                    width: 276.92,
+                    child: Stack(
+                      children: [
+                        Image.file(
+                          File(provider.paths![provider.index!]),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              bottom: 50.0, left: 10, right: 10),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: List.generate(
+                                          4,
+                                          (index) => IconContainer(
+                                              name: IconVectorData
+                                                  .vectorList[index + 5]))
+                                      .toList()),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: List.generate(
+                                          4,
+                                          (index) => IconContainer(
+                                              name: IconVectorData
+                                                  .vectorList[index + 9]))
+                                      .toList()),
+                            ],
+                          ),
+                        )
+                      ],
                     ),
-                  )
-                ],
+                  ),
+                ),
               ),
-            ),
+              IconButton(
+                  onPressed: () {
+                    final provider =
+                        Provider.of<WallpaperProvider>(context, listen: false);
+                    if (provider.index != 25) {
+                      provider.setIndex = provider.index! + 1;
+                    }
+                  },
+                  icon: const Icon(Icons.navigate_next)),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 20.0),
-            child: IconButton(
-                onPressed: () {
-                  final provider =
-                      Provider.of<WallpaperProvider>(context, listen: false);
-                  if (provider.index != 25) {
-                    provider.setIndex = provider.index! + 1;
-                  }
-                },
-                icon: const Icon(Icons.navigate_next)),
-          ),
+          Text(
+            provider.paths![provider.index!].split("\\").last,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          )
         ],
       );
     });

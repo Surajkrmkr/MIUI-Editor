@@ -16,8 +16,9 @@ class TextFields extends StatelessWidget {
       final provider = Provider.of<IconProvider>(context, listen: false);
       return SizedBox(
         width: 200,
-        height: 400,
+        // height: 400,
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             buildTextField(
                 initialtext: provider.radius.toString(),
@@ -25,6 +26,17 @@ class TextFields extends StatelessWidget {
                 onChange: (e) {
                   if (e.isNotEmpty) {
                     provider.setRadius = double.parse(e);
+                  }
+                }),
+            const SizedBox(
+              height: 40,
+            ),
+            buildTextField(
+                initialtext: provider.borderWidth.toString(),
+                text: 'Border',
+                onChange: (e) {
+                  if (e.isNotEmpty) {
+                    provider.setBorderWidth = double.parse(e);
                   }
                 }),
             const SizedBox(
@@ -55,10 +67,18 @@ class TextFields extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         vertical: 23, horizontal: 35)),
                 onPressed: () {
-                  final wallNum = Provider.of<WallpaperProvider>(context,listen: false).index! +1;
-                  final folderNum = Provider.of<WallpaperProvider>(context,listen: false).folderNum;
+                  final wallNum =
+                      Provider.of<WallpaperProvider>(context, listen: false)
+                              .index! +
+                          1;
+                  final folderNum =
+                      Provider.of<WallpaperProvider>(context, listen: false)
+                          .folderNum;
                   Provider.of<ExportIconProvider>(context, listen: false)
-                      .export(provider:provider,folderNum: folderNum,wallNum: wallNum.toString());
+                      .export(
+                          provider: provider,
+                          folderNum: folderNum,
+                          wallNum: wallNum.toString());
                   showDialog(
                       barrierDismissible: false,
                       context: context,

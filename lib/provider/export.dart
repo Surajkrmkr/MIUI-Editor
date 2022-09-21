@@ -40,6 +40,8 @@ class ExportIconProvider extends ChangeNotifier {
                   margin: provider.margin,
                   padding: provider.padding,
                   radius: provider.radius,
+                  borderColor: provider.borderColor,
+                  borderWidth: provider.borderWidth,
                 ),
                 pixelRatio: 4)
             .then((value) async {
