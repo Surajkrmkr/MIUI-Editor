@@ -10,10 +10,10 @@ class ColorsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 600,
-      width: 400,
+      height: 550,
+      width: 500,
       child: DefaultTabController(
-        length: 3,
+        length: 4,
         child: Scaffold(
           appBar: AppBar(
               automaticallyImplyLeading: false,
@@ -34,6 +34,10 @@ class ColorsTab extends StatelessWidget {
                     Padding(
                       padding: EdgeInsets.all(8.0),
                       child: Text("Border"),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text("Accent"),
                     )
                   ])),
           body: Builder(builder: (context) {
@@ -60,6 +64,14 @@ class ColorsTab extends StatelessWidget {
                 color: provider.borderColor!,
                 onColorChanged: (value) {
                   provider.setBorderColor = value;
+                },
+                enableOpacity: true,
+                pickersEnabled: const {ColorPickerType.wheel: true},
+              ),
+              ColorPicker(
+                color: provider.accentColor!,
+                onColorChanged: (value) {
+                  provider.setAccentColor = value;
                 },
                 enableOpacity: true,
                 pickersEnabled: const {ColorPickerType.wheel: true},

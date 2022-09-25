@@ -66,7 +66,7 @@ class ImageStack extends StatelessWidget {
                                   children: List.generate(
                                           4,
                                           (index) => IconContainer(
-                                              name: IconVectorData
+                                              name: MIUIThemeData
                                                   .vectorList[index + 5]))
                                       .toList()),
                               const SizedBox(
@@ -78,7 +78,7 @@ class ImageStack extends StatelessWidget {
                                   children: List.generate(
                                           4,
                                           (index) => IconContainer(
-                                              name: IconVectorData
+                                              name: MIUIThemeData
                                                   .vectorList[index + 9]))
                                       .toList()),
                             ],

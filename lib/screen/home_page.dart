@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../provider/export.dart';
 import '../provider/icon.dart';
+import '../provider/module.dart';
 import '../provider/wallpaper.dart';
 import '../widgets/color_picker.dart';
 import '../widgets/image_stack.dart';
-import '../widgets/textfield.dart';
+import '../widgets/module.dart';
+import '../widgets/sliders.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key, required this.folderNum});
+  const HomePage({super.key, required this.folderNum, required this.weekNum});
   final String? folderNum;
+  final String? weekNum;
 
   @override
   Widget build(BuildContext context) {
     Future.delayed(Duration.zero, () {
       Provider.of<WallpaperProvider>(context, listen: false)
-          .setTotalImage(folderNum!,context);
+          .setTotalImage(folderNum!, weekNum!, context);
     });
     return Scaffold(
       backgroundColor: Colors.white,
@@ -32,9 +36,12 @@ class HomePage extends StatelessWidget {
                         child: MouseRegion(
                           cursor: SystemMouseCursors.click,
                           child: InkWell(
-                            onTap: () => Provider.of<IconProvider>(context,
-                                    listen: false)
-                                .setBgColor = e,
+                            onTap: () {
+                              Provider.of<IconProvider>(context, listen: false)
+                                  .setBgColor = e;
+                              Provider.of<IconProvider>(context, listen: false)
+                                  .setAccentColor = e;
+                            },
                             child: Container(
                               height: 40,
                               width: 40,
@@ -55,10 +62,29 @@ class HomePage extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: const [
-              ImageStack(),
-              TextFields(),
-              ColorsTab(),
+            children: [
+              const ImageStack(),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  const ModuleWidget(),
+                  Column(
+                    children: const [
+                      ExportIconsBtn(),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      ExportModuleBtn(),
+                    ],
+                  )
+                ],
+              ),
+              Column(
+                children: const [
+                  Sliders(),
+                  ColorsTab(),
+                ],
+              ),
             ],
           )),
     );

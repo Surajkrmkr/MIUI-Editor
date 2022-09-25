@@ -10,6 +10,7 @@ import 'icon.dart';
 class WallpaperProvider extends ChangeNotifier {
   bool? isLoading = true;
   String? folderNum = "1";
+  String? weekNum;
 
   set setIsLoading(val) {
     isLoading = val;
@@ -32,10 +33,11 @@ class WallpaperProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setTotalImage(String num, context) async {
+  void setTotalImage(String num, String week, context) async {
     setIsLoading = true;
     final dir = Directory('${MIUIConstants.preLock}$num');
     folderNum = num;
+    weekNum = week;
     final entities = await dir.list().toList();
     entities.map((e) => paths!.add(e.path));
     for (FileSystemEntity file in entities) {
@@ -52,6 +54,8 @@ class WallpaperProvider extends ChangeNotifier {
         FileImage(File(paths![index!])));
     setColorPalette = list.colors.toList();
     Provider.of<IconProvider>(context, listen: false).setBgColor =
+        list.dominantColor!.color;
+    Provider.of<IconProvider>(context, listen: false).setAccentColor =
         list.dominantColor!.color;
   }
 }

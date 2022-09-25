@@ -40,7 +40,7 @@ class IconWidget extends StatelessWidget {
               border: Border.all(width: borderWidth!, color: borderColor!),
               borderRadius: BorderRadius.circular(radius!),
               color: name == 'icon_border' ? Colors.transparent : bgColor),
-          child: !IconVectorData.extraIconList.contains(name)
+          child: !MIUIThemeData.extraIconList.contains(name)
               ? Center(
                   child: SvgPicture.asset(
                   "assets/icons/$name.svg",

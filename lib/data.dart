@@ -1,4 +1,6 @@
-class IconVectorData {
+class MIUIThemeData {
+  static String? rootPath = "E:\\Xiaomi Contract\\";
+
   static List<String?> vectorList = [
     "icon_folder",
     "icon_folder_light",
@@ -63,4 +65,17 @@ class IconVectorData {
     "icon_pattern",
     "icon_border",
   ];
+
+  static List<String?> moduleList = [
+    "com.android.contacts",
+    "com.android.mms",
+    "com.android.systemui"
+  ];
+
+  static List<String?> contactsPngs = [
+    "ic_contacts_tab_pressed_light",
+    "ic_dialer_tab_pressed_light"
+  ];
+
+  
 }

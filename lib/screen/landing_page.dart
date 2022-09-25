@@ -1,13 +1,13 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../constants.dart';
 import 'home_page.dart';
 
 class LandingPage extends StatelessWidget {
-  const LandingPage({super.key});
+  LandingPage({super.key});
+
+  final TextEditingController? folderNumController = TextEditingController();
+  final TextEditingController? weekNumController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -23,21 +23,46 @@ class LandingPage extends StatelessWidget {
             ),
             SizedBox(
                 width: 300,
-                child: TextField(
-                    keyboardType: TextInputType.number,
-                    controller: TextEditingController(),
-                    inputFormatters: <TextInputFormatter>[
-                      FilteringTextInputFormatter.digitsOnly
-                    ],
-                    onSubmitted: (e) async {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => HomePage(folderNum: e,)));
-                    },
-                    decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        label: Text("Folder Number")))),
+                height: 400,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TextField(
+                        keyboardType: TextInputType.number,
+                        controller: folderNumController,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
+                        decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            label: Text("Folder Number"))),
+                    TextField(
+                        keyboardType: TextInputType.number,
+                        controller: weekNumController,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
+                        decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            label: Text("Week Number"))),
+                    ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.pinkAccent,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 23, horizontal: 35)),
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => HomePage(
+                                        folderNum: folderNumController!.text,
+                                        weekNum: weekNumController!.text,
+                                      )));
+                        },
+                        child: const Text("Let's Go"))
+                  ],
+                )),
           ],
         ),
       ),

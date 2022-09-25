@@ -49,4 +49,11 @@ class IconProvider extends ChangeNotifier {
     borderWidth = r;
     notifyListeners();
   }
+
+  Color? accentColor = Colors.pinkAccent;
+
+  set setAccentColor(Color c) {
+    accentColor = c;
+    notifyListeners();
+  }
 }
