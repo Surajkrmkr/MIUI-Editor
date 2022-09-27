@@ -27,7 +27,7 @@ class HomePage extends StatelessWidget {
         actions: [
           Consumer<WallpaperProvider>(builder: (context, provider, child) {
             if (provider.isLoading!) {
-              return const CircularProgressIndicator();
+              return const Center(child: CircularProgressIndicator());
             }
             return Row(
               children: provider.colorPalette!

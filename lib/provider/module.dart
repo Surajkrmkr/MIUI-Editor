@@ -55,10 +55,10 @@ class ModuleProvider extends ChangeNotifier {
         "$themePath${MIUIThemeData.moduleList[0]}\\res\\drawable-xxhdpi",
         fileName: "${MIUIThemeData.contactsPngs[1]}.png",
         pixelRatio: 2);
-    final document = XmlDocument.parse(
+    final desc = XmlDocument.parse(
         ThemeDesc.getXmlString()!.replaceAll("Test", themeName));
-    await File("$themePath\\theme_values.xml")
-        .writeAsString(document.toXmlString(pretty: true, indent: '\t'));
+    await File("$themePath\\description.xml")
+        .writeAsString(desc.toXmlString(pretty: true, indent: '\t'));
     setIsCopying = false;
   }
 
