@@ -12,4 +12,18 @@ class ThemeDesc {
           </MIUI-Theme>
     ''';
   }
+
+  static String? pluginInfo() {
+    return '''
+        <?xml version="1.0" encoding="utf-8"?>
+        <PluginConfig>
+          <iconCalendar/>
+          <iconClock/>
+          <iconWeather/>
+          <lockscreen/>
+          <desktopClock/>
+          <desktopWallpaper/>
+        </PluginConfig>
+    ''';
+  }
 }

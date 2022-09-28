@@ -59,6 +59,10 @@ class ModuleProvider extends ChangeNotifier {
         ThemeDesc.getXmlString()!.replaceAll("Test", themeName));
     await File("$themePath\\description.xml")
         .writeAsString(desc.toXmlString(pretty: true, indent: '\t'));
+    final pluginInfo = XmlDocument.parse(
+        ThemeDesc.pluginInfo()!);
+    await File("$themePath\\plugin_config.xml")
+        .writeAsString(pluginInfo.toXmlString(pretty: true, indent: '\t'));
     setIsCopying = false;
   }
 
