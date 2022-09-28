@@ -44,6 +44,8 @@ dependencies:
   color_palette_generator: ^2.0.0
   palette_generator: ^0.3.3+2
   xml: ^6.1.0
+  dynamic_cached_fonts: ^1.0.0
+  flutter_font_picker: ^0.5.0
 
 dev_dependencies:
   flutter_test:

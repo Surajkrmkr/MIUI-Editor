@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:miui_icon_generator/provider/export.dart';
+import 'package:miui_icon_generator/provider/font.dart';
 import 'package:miui_icon_generator/provider/icon.dart';
 import 'package:miui_icon_generator/provider/module.dart';
 import 'package:miui_icon_generator/provider/wallpaper.dart';
@@ -29,6 +30,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (context) => ModuleProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => FontProvider(),
         ),
       ],
       child: MaterialApp(

@@ -4,10 +4,12 @@ import '../provider/export.dart';
 import '../provider/icon.dart';
 import '../provider/module.dart';
 import '../provider/wallpaper.dart';
+import '../widgets/accent_color_list.dart';
 import '../widgets/color_picker.dart';
 import '../widgets/image_stack.dart';
 import '../widgets/module.dart';
 import '../widgets/sliders.dart';
+import 'lockscreen_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key, required this.folderNum, required this.weekNum});
@@ -24,38 +26,7 @@ class HomePage extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text("Icon Generator"),
-        actions: [
-          Consumer<WallpaperProvider>(builder: (context, provider, child) {
-            if (provider.isLoading!) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            return Row(
-              children: provider.colorPalette!
-                  .map((e) => Padding(
-                        padding: const EdgeInsets.only(right: 3),
-                        child: MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: InkWell(
-                            onTap: () {
-                              Provider.of<IconProvider>(context, listen: false)
-                                  .setBgColor = e;
-                              Provider.of<IconProvider>(context, listen: false)
-                                  .setAccentColor = e;
-                            },
-                            child: Container(
-                              height: 40,
-                              width: 40,
-                              decoration: BoxDecoration(
-                                  color: e,
-                                  borderRadius: BorderRadius.circular(10)),
-                            ),
-                          ),
-                        ),
-                      ))
-                  .toList(),
-            );
-          })
-        ],
+        actions: [accentColorsList()],
       ),
       body: Padding(
           padding: const EdgeInsets.all(30),
@@ -63,18 +34,35 @@ class HomePage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const ImageStack(),
+              const ImageStack(isLockscreen: false),
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   const ModuleWidget(),
                   Column(
-                    children: const [
-                      ExportIconsBtn(),
-                      SizedBox(
+                    children: [
+                      const ExportIconsBtn(),
+                      const SizedBox(
                         height: 20,
                       ),
-                      ExportModuleBtn(),
+                      const ExportModuleBtn(),
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.pinkAccent,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 23, horizontal: 50)),
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const LockscreenPage()));
+                          },
+                          child: const Text("Lockscreen"))
                     ],
                   )
                 ],

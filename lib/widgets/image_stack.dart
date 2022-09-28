@@ -8,7 +8,9 @@ import '../provider/wallpaper.dart';
 import 'icon.dart';
 
 class ImageStack extends StatelessWidget {
-  const ImageStack({super.key});
+  const ImageStack({super.key, required this.isLockscreen});
+
+  final bool isLockscreen;
 
   @override
   Widget build(BuildContext context) {
@@ -54,36 +56,37 @@ class ImageStack extends StatelessWidget {
                         Image.file(
                           File(provider.paths![provider.index!]),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              bottom: 50.0, left: 10, right: 10),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: List.generate(
-                                          4,
-                                          (index) => IconContainer(
-                                              name: MIUIThemeData
-                                                  .vectorList[index + 5]))
-                                      .toList()),
-                              const SizedBox(
-                                height: 10,
-                              ),
-                              Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: List.generate(
-                                          4,
-                                          (index) => IconContainer(
-                                              name: MIUIThemeData
-                                                  .vectorList[index + 9]))
-                                      .toList()),
-                            ],
-                          ),
-                        )
+                        if (!isLockscreen)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                bottom: 50.0, left: 10, right: 10),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: List.generate(
+                                            4,
+                                            (index) => IconContainer(
+                                                name: MIUIThemeData
+                                                    .vectorList[index + 5]))
+                                        .toList()),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: List.generate(
+                                            4,
+                                            (index) => IconContainer(
+                                                name: MIUIThemeData
+                                                    .vectorList[index + 9]))
+                                        .toList()),
+                              ],
+                            ),
+                          )
                       ],
                     ),
                   ),
@@ -93,7 +96,7 @@ class ImageStack extends StatelessWidget {
                   onPressed: () {
                     final provider =
                         Provider.of<WallpaperProvider>(context, listen: false);
-                    if (provider.index != 25) {
+                    if (provider.index != 24) {
                       provider.setIndex(provider.index! + 1, context);
                     }
                   },
