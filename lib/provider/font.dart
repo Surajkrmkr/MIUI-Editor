@@ -1,11 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_font_picker/flutter_font_picker.dart';
+
+import '../api/font_api.dart';
+import '../model/font_model.dart';
 
 class FontProvider extends ChangeNotifier {
-  PickerFont? font = PickerFont.fromFontSpec('Roboto:700i');
-
-  set changeFont(PickerFont newFont) {
-    font = newFont;
+  bool? isLoading = true;
+  String? fontFamily = 'Roboto';
+  set setIsLoading(bool val) {
+    isLoading = val;
     notifyListeners();
+  }
+
+  List<Fonts> fonts = [];
+
+  set setFontFamily(String? newFont) {
+    fontFamily = newFont;
+    notifyListeners();
+  }
+
+
+  FontProvider() {
+    getFontsFromAPI();
+  }
+
+  getFontsFromAPI() async {
+    setIsLoading = true;
+    final FontModel model = await FontApi.fetchFontList();
+    fonts = model.fonts!;
+    notifyListeners();
+    setIsLoading = false;
   }
 }

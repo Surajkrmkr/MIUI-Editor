@@ -46,6 +46,8 @@ dependencies:
   xml: ^6.1.0
   dynamic_cached_fonts: ^1.0.0
   flutter_font_picker: ^0.5.0
+  http: ^0.13.5
+  window_manager: ^0.2.7
 
 dev_dependencies:
   flutter_test:

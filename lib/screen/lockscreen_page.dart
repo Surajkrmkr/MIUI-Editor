@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_font_picker/flutter_font_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../provider/font.dart';
@@ -23,29 +22,92 @@ class LockscreenPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const ImageStack(isLockscreen: true),
-              Consumer<FontProvider>(builder: (context, provider, _) {
-                return Row(
-                  children: [
-                    Text(
-                      "Hello World! 12345",
-                      style: provider.font!.toTextStyle(),
-                    ),
-                    // SizedBox(
-                    //   height: 600,
-                    //   width: 300,
-                    //   child: FontPicker(
-                    //     showInDialog: true,
-                    //     onFontChanged: (PickerFont font) {
-                    //       provider.changeFont = font;
-                    //     },
-                    //     initialFontFamily: 'Roboto',
-                    //   ),
-                    // ),
-                  ],
-                );
-              }),
+              Row(
+                children: const [
+                  FontPreview(),
+                  FontListWidget(),
+                ],
+              )
             ]),
       ),
     );
+  }
+}
+
+class FontListWidget extends StatelessWidget {
+  const FontListWidget({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<FontProvider>(builder: (context, provider, _) {
+      return SizedBox(
+        width: 200,
+        child: !provider.isLoading!
+            ? ListView.builder(
+                itemCount: provider.fonts.length,
+                itemBuilder: (context, i) {
+                  final font = provider.fonts[i];
+                  return ListTile(
+                    title: Text(
+                      font.name!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamily: font.name,
+                        fontSize: 25,
+                      ),
+                    ),
+                    trailing: const Icon(Icons.check),
+                    onTap: () {
+                      provider.setFontFamily =
+                          font.dynamicCachedFonts!.fontFamily;
+                    },
+                  );
+                })
+            : const Center(
+                child: CircularProgressIndicator(),
+              ),
+      );
+    });
+  }
+}
+
+class FontPreview extends StatelessWidget {
+  const FontPreview({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<FontProvider>(builder: (context, provider, _) {
+      return SizedBox(
+        width: 200,
+        child: Column(
+          children: [
+            Text(
+              "02",
+              style: TextStyle(
+                  fontFamily: provider.fontFamily, fontSize: 60, height: 1),
+            ),
+            Text(
+              "36",
+              style: TextStyle(
+                  fontFamily: provider.fontFamily, fontSize: 60, height: 1),
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            Text(
+              "Wednesday",
+              style: TextStyle(fontFamily: provider.fontFamily, fontSize: 30),
+            ),
+            Text(
+              "February",
+              style: TextStyle(fontFamily: provider.fontFamily, fontSize: 30),
+            ),
+          ],
+        ),
+      );
+    });
   }
 }
