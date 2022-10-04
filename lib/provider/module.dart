@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:xml/xml.dart';
 
-import '../data.dart';
+import '../data/miui_theme_data.dart';
 import '../resources/color_values.dart';
 import '../resources/description.dart';
 import 'icon.dart';

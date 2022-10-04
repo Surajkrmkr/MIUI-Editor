@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../provider/export.dart';
-import '../provider/icon.dart';
-import '../provider/module.dart';
-import '../provider/wallpaper.dart';
-import '../widgets/accent_color_list.dart';
-import '../widgets/color_picker.dart';
-import '../widgets/image_stack.dart';
-import '../widgets/module.dart';
-import '../widgets/sliders.dart';
-import 'lockscreen_page.dart';
+import '../../provider/export.dart';
+import '../../provider/icon.dart';
+import '../../provider/module.dart';
+import '../../provider/wallpaper.dart';
+import '../../widgets/accent_color_list.dart';
+import '../../widgets/color_picker.dart';
+import '../../widgets/image_stack.dart';
+import '../../widgets/module.dart';
+import '../../widgets/sliders.dart';
+import '../lockscreen/lockscreen_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key, required this.folderNum, required this.weekNum});

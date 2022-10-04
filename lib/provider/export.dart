@@ -5,7 +5,7 @@ import 'package:miui_icon_generator/provider/wallpaper.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 
-import '../data.dart';
+import '../data/miui_theme_data.dart';
 import '../widgets/icon.dart';
 import 'icon.dart';
 

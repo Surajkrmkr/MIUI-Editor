@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
-import '../data.dart';
+import '../data/miui_theme_data.dart';
 import '../provider/icon.dart';
 
 class IconWidget extends StatelessWidget {

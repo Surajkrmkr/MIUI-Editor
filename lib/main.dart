@@ -7,6 +7,7 @@ import 'package:miui_icon_generator/provider/wallpaper.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'provider/element.dart';
 import 'screen/Landing_page.dart';
 
 void main() async {
@@ -42,6 +43,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (context) => FontProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => ElementProvider(),
         ),
       ],
       child: MaterialApp(

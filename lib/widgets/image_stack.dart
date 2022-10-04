@@ -1,17 +1,17 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../data.dart';
+import '../constants.dart';
+import '../data/miui_theme_data.dart';
+import '../provider/element.dart';
 import '../provider/wallpaper.dart';
+import '../screen/homescreen/icon_preview.dart';
+import '../screen/lockscreen/element_widget_preview.dart';
 import 'icon.dart';
 
 class ImageStack extends StatelessWidget {
   const ImageStack({super.key, required this.isLockscreen});
-
-  final bool isLockscreen;
-
+  final bool? isLockscreen;
   @override
   Widget build(BuildContext context) {
     return Consumer<WallpaperProvider>(builder: (context, provider, _) {
@@ -35,8 +35,8 @@ class ImageStack extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Container(
-                  height: 600,
-                  width: 276.92,
+                  height: MIUIConstants.screenHeight,
+                  width: MIUIConstants.screenWidth,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(40),
                     boxShadow: [
@@ -51,44 +51,16 @@ class ImageStack extends StatelessWidget {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(40),
-                    child: Stack(
-                      children: [
-                        Image.file(
-                          File(provider.paths![provider.index!]),
-                        ),
-                        if (!isLockscreen)
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                bottom: 50.0, left: 10, right: 10),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: List.generate(
-                                            4,
-                                            (index) => IconContainer(
-                                                name: MIUIThemeData
-                                                    .vectorList[index + 5]))
-                                        .toList()),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: List.generate(
-                                            4,
-                                            (index) => IconContainer(
-                                                name: MIUIThemeData
-                                                    .vectorList[index + 9]))
-                                        .toList()),
-                              ],
-                            ),
-                          )
-                      ],
-                    ),
+                    child: Container(
+                        decoration: BoxDecoration(
+                            image: DecorationImage(
+                          image: FileImage(
+                            File(provider.paths![provider.index!]),
+                          ),
+                        )),
+                        child: !isLockscreen!
+                            ? const PreviewIcons()
+                            : const ElementWidgetPreview()),
                   ),
                 ),
               ),
@@ -112,3 +84,4 @@ class ImageStack extends StatelessWidget {
     });
   }
 }
+

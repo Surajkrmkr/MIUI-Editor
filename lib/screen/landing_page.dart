@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'home_page.dart';
+import 'homescreen/home_page.dart';
 
 class LandingPage extends StatelessWidget {
   LandingPage({super.key});
