@@ -23,7 +23,7 @@ class HomePage extends StatelessWidget {
           .setTotalImage(folderNum!, weekNum!, context);
     });
     return Scaffold(
-      backgroundColor: Colors.white,
+      
       appBar: AppBar(
         title: const Text("Icon Generator"),
         actions: [accentColorsList()],

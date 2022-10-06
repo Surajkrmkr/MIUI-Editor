@@ -56,6 +56,7 @@ class MyApp extends StatelessWidget {
         title: 'Icon Generator',
         theme: ThemeData(
             useMaterial3: true,
+            scaffoldBackgroundColor: Colors.white,
             sliderTheme: const SliderThemeData(
               showValueIndicator: ShowValueIndicator.always,
             ),

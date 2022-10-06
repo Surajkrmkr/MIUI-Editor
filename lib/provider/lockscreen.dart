@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:screenshot/screenshot.dart';
 import 'package:xml/xml.dart';
 
 import '../data/element_map_dart.dart';
@@ -75,15 +74,25 @@ class ExportLockscreenBtn extends StatelessWidget {
                           Center(
                               child: Column(
                             children: [
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 20.0),
-                                child: ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
-                                    child: const Text("OK")),
-                              )
+                              if (provider.isExporting!)
+                                const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              if (!provider.isExporting!)
+                                const Padding(
+                                    padding:
+                                        EdgeInsets.symmetric(vertical: 20.0),
+                                    child: Text("Lockscreen Exported...")),
+                              if (!provider.isExporting!)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 20.0),
+                                  child: ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text("OK")),
+                                )
                             ],
                           ))
                         ],
