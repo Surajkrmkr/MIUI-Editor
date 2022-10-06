@@ -5,5 +5,5 @@ class MIUIConstants {
 
   static double screenHeight = 600;
   static double screenWidth = 276.92;
-  static double ratio = 1080 / 600;
+  static double ratio = 2340 / 600;
 }

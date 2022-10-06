@@ -7,6 +7,7 @@ import 'package:screenshot/screenshot.dart';
 import 'package:xml/xml.dart';
 
 import '../data/miui_theme_data.dart';
+import '../functions/theme_path.dart';
 import '../resources/color_values.dart';
 import '../resources/description.dart';
 import 'icon.dart';
@@ -24,12 +25,7 @@ class ModuleProvider extends ChangeNotifier {
 
   void copyModule({context}) async {
     setIsCopying = true;
-    final provider = Provider.of<WallpaperProvider>(context, listen: false);
-    final weekNum = provider.weekNum;
-    final themeName =
-        provider.paths![provider.index!].split("\\").last.split('.').first;
-    final themePath =
-        "${MIUIThemeData.rootPath}THEMES\\Week$weekNum\\$themeName\\";
+    final themePath = CurrentTheme.getPath(context);
     for (var module in MIUIThemeData.moduleList) {
       await Directory("$themePath$module\\res\\drawable-xxhdpi\\")
           .create(recursive: true);
@@ -55,12 +51,19 @@ class ModuleProvider extends ChangeNotifier {
         "$themePath${MIUIThemeData.moduleList[0]}\\res\\drawable-xxhdpi",
         fileName: "${MIUIThemeData.contactsPngs[1]}.png",
         pixelRatio: 2);
-    final desc = XmlDocument.parse(
-        ThemeDesc.getXmlString()!.replaceAll("Test", themeName));
+
+    CurrentTheme.createWallpaperDirectory(themePath: themePath);
+    final wallpaperProvider =
+        Provider.of<WallpaperProvider>(context, listen: false);
+    await File(wallpaperProvider.paths![wallpaperProvider.index!])
+        .copy("$themePath\\wallpaper\\default_lock_wallpaper.jpg");
+    await File(wallpaperProvider.paths![wallpaperProvider.index!])
+        .copy("$themePath\\wallpaper\\default_wallpaper.jpg");
+    final desc = XmlDocument.parse(ThemeDesc.getXmlString()!
+        .replaceAll("Test", themePath!.split("\\").reversed.toList()[1]));
     await File("$themePath\\description.xml")
         .writeAsString(desc.toXmlString(pretty: true, indent: '\t'));
-    final pluginInfo = XmlDocument.parse(
-        ThemeDesc.pluginInfo()!);
+    final pluginInfo = XmlDocument.parse(ThemeDesc.pluginInfo()!);
     await File("$themePath\\plugin_config.xml")
         .writeAsString(pluginInfo.toXmlString(pretty: true, indent: '\t'));
     setIsCopying = false;

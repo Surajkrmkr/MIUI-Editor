@@ -6,7 +6,7 @@ class ElementProvider extends ChangeNotifier {
   List<ElementWidget> elementList = [];
 
   ElementType? activeType;
-  set setActiveType(ElementType type) {
+  set setActiveType(ElementType? type) {
     activeType = type;
     notifyListeners();
   }
@@ -16,6 +16,9 @@ class ElementProvider extends ChangeNotifier {
       elementList.add(ele);
     } else {
       elementList.remove(ele);
+      if (elementList.isEmpty) {
+        setActiveType = null;
+      }
     }
     notifyListeners();
   }

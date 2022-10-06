@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 
 import '../data/miui_theme_data.dart';
+import '../functions/theme_path.dart';
 import '../widgets/icon.dart';
 import 'icon.dart';
 
@@ -25,18 +26,14 @@ class ExportIconProvider extends ChangeNotifier {
 
   void export({BuildContext? context}) async {
     final provider = Provider.of<IconProvider>(context!, listen: false);
-    final wallProvider = Provider.of<WallpaperProvider>(context, listen: false);
-    final weekNum = wallProvider.weekNum;
-    final themeName = wallProvider.paths![wallProvider.index!]
-        .split("\\")
-        .last
-        .split('.')
-        .first;
+    final themePath = CurrentTheme.getPath(context);
 
     setIsExporting = true;
+    CurrentTheme.createIconDirectory(themePath: themePath);
     try {
       for (String? element in MIUIThemeData.vectorList) {
-        ScreenshotController().captureFromWidget(
+        ScreenshotController()
+            .captureFromWidget(
                 IconWidget(
                   name: element,
                   bgColor: provider.bgColor,
@@ -49,13 +46,11 @@ class ExportIconProvider extends ChangeNotifier {
                 ),
                 pixelRatio: 4)
             .then((value) async {
-          final imagePath = await File(
-                  '${MIUIThemeData.rootPath}THEMES\\Week$weekNum\\$themeName\\icons\\res\\drawable-xhdpi\\$element.png')
-              .create(recursive: true);
+          final imagePath = File(
+              '$themePath\\icons\\res\\drawable-xhdpi\\$element.png');
           await imagePath.writeAsBytes(value);
-          final imagePath2 = await File(
-                  '${MIUIThemeData.rootPath}THEMES\\Week$weekNum\\$themeName\\icons\\res\\drawable-xxhdpi\\$element.png')
-              .create(recursive: true);
+          final imagePath2 = File(
+              '$themePath\\icons\\res\\drawable-xxhdpi\\$element.png');
           await imagePath2.writeAsBytes(value);
           setProgress = progress! + 1;
           if (progress == MIUIThemeData.vectorList.length) {

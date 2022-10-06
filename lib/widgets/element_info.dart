@@ -13,7 +13,7 @@ class ElementInfo extends StatelessWidget {
     return Row(
       children: [
         Consumer<ElementProvider>(builder: (context, provider, _) {
-          if (provider.activeType == null) {
+          if (provider.elementList.isEmpty) {
             return Container(
               width: 300,
             );
@@ -54,7 +54,7 @@ class ElementInfo extends StatelessWidget {
 
 Widget elementList(context) {
   return SizedBox(
-      width: 200,
+      width: 250,
       child: Column(
         children: [
           Text(
@@ -91,8 +91,9 @@ Widget elementList(context) {
                             listen: false);
                         provider.addElementInList(ele);
                         provider
-                            .getElementFromList(ElementType.values[i])
-                            .child = elementWidgetMap[ElementType.values[i]];
+                                .getElementFromList(ElementType.values[i])
+                                .child =
+                            elementWidgetMap[ElementType.values[i]]!["widget"];
                         provider.setActiveType = ElementType.values[i];
                       } else {
                         Provider.of<ElementProvider>(context, listen: false)

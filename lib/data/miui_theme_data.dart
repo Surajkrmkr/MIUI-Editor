@@ -76,6 +76,4 @@ class MIUIThemeData {
     "ic_contacts_tab_pressed_light",
     "ic_dialer_tab_pressed_light"
   ];
-
-  
 }

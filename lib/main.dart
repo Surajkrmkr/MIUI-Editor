@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'provider/element.dart';
+import 'provider/lockscreen.dart';
 import 'screen/Landing_page.dart';
 
 void main() async {
@@ -46,6 +47,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (context) => ElementProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => LockscreenProvider(),
         ),
       ],
       child: MaterialApp(

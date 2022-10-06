@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../provider/lockscreen.dart';
 import '../../widgets/accent_color_list.dart';
 import '../../widgets/element_info.dart';
 import '../../widgets/font.dart';
@@ -23,10 +24,18 @@ class LockscreenPage extends StatelessWidget {
             children: [
               const ImageStack(isLockscreen: true),
               Row(
-                children: const [
-                  ElementInfo(),
-                  FontPreview(),
-                  FontListWidget(),
+                children: [
+                  const ElementInfo(),
+                  Column(
+                    children: const [
+                      FontPreview(),
+                      SizedBox(
+                        height: 50,
+                      ),
+                      ExportLockscreenBtn()
+                    ],
+                  ),
+                  const FontListWidget(),
                 ],
               )
             ]),
