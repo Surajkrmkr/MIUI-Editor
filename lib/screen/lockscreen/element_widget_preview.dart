@@ -1,3 +1,4 @@
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -11,37 +12,16 @@ class ElementWidgetPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ElementProvider>(
-        builder: (context, value, child) {
-        return Stack(
-            children: value.elementList
-                .map((e) => Positioned(
-                      left: e.dx!,
-                      top: e.dy!,
-                      child: Transform.scale(
-                        scale: e.scale,
-                        child: GestureDetector(
-                            onTap: () {
-                              value.setActiveType =
-                                  e.type!;
-                            },
-                            onPanUpdate: ((details) {
-                              value.setActiveType =
-                                  e.type!;
-                              value
-                                  .updateElementPositionInList(
-                                      e.type!,
-                                      e.dx! +
-                                          details
-                                              .delta.dx,
-                                      e.dy! +
-                                          details.delta
-                                              .dy);
-                            }),
-                            child: e.child!),
-                      ),
-                    ))
-                .toList());
-      });
+    return Consumer<ElementProvider>(builder: (context, value, child) {
+      return Stack(children: [
+        Image.file(
+          File(
+              "E:\\Xiaomi Contract\\THEMES\\Week98\\Dark Durga\\lockscreen\\advance\\hour\\hour_2.png"),
+          height: 2340,
+          width: 1080,
+        ),
+        ...(value.elementList.map((e) => e.child!).toList())
+      ]);
+    });
   }
 }

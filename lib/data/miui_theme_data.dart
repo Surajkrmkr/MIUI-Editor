@@ -76,4 +76,29 @@ class MIUIThemeData {
     "ic_contacts_tab_pressed_light",
     "ic_dialer_tab_pressed_light"
   ];
+
+  static List<String?> weekNames = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday"
+  ];
+
+  static List<String?> monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"
+  ];
 }

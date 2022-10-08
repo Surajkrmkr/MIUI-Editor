@@ -2,12 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants.dart';
-import '../data/miui_theme_data.dart';
-import '../provider/element.dart';
 import '../provider/wallpaper.dart';
 import '../screen/homescreen/icon_preview.dart';
 import '../screen/lockscreen/element_widget_preview.dart';
-import 'icon.dart';
 
 class ImageStack extends StatelessWidget {
   const ImageStack({super.key, required this.isLockscreen});
@@ -84,4 +81,3 @@ class ImageStack extends StatelessWidget {
     });
   }
 }
-

@@ -4,28 +4,32 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 
-import '../../constants.dart';
 import '../../functions/theme_path.dart';
 import '../../provider/element.dart';
+import '../bg_stack.dart';
 import '../element_map_dart.dart';
+import '../miui_theme_data.dart';
 
 class HourClock extends StatelessWidget {
   const HourClock({super.key, required this.num});
   final int? num;
 
-  static Widget getChild(ele, num) {
-    return Text(
-      num.toString().padLeft(2, '0'),
-      style: TextStyle(
-          fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
-    );
+  static Widget getChild({int? num, ElementProvider? value}) {
+    final ele = value!.getElementFromList(ElementType.hourClock);
+    return commonWidget(
+        child: Text(
+          num.toString().padLeft(2, '0'),
+          style: TextStyle(
+              fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
+        ),
+        type: ElementType.hourClock,
+        value: value);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ElementProvider>(builder: (context, provider, _) {
-      final ele = provider.getElementFromList(ElementType.hourClock);
-      return getChild(ele, num);
+    return Consumer<ElementProvider>(builder: (context, value, _) {
+      return getChild(num: num, value: value);
     });
   }
 }
@@ -34,19 +38,22 @@ class MinClock extends StatelessWidget {
   const MinClock({super.key, required this.num});
   final int? num;
 
-  static Widget getChild(ele, num) {
-    return Text(
-      num.toString().padLeft(2, '0'),
-      style: TextStyle(
-          fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
-    );
+  static Widget getChild({int? num, ElementProvider? value}) {
+    final ele = value!.getElementFromList(ElementType.minClock);
+    return commonWidget(
+        child: Text(
+          num.toString().padLeft(2, '0'),
+          style: TextStyle(
+              fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
+        ),
+        type: ElementType.minClock,
+        value: value);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ElementProvider>(builder: (context, provider, _) {
-      final ele = provider.getElementFromList(ElementType.minClock);
-      return getChild(ele, num);
+    return Consumer<ElementProvider>(builder: (context, value, _) {
+      return getChild(num: num, value: value);
     });
   }
 }
@@ -54,37 +61,106 @@ class MinClock extends StatelessWidget {
 class DotClock extends StatelessWidget {
   const DotClock({super.key});
 
-  static Widget getChild(ele) {
-    return Text(
-      ":",
-      style: TextStyle(
-          fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
-    );
+  static Widget getChild({ElementProvider? value}) {
+    final ele = value!.getElementFromList(ElementType.dotClock);
+    return commonWidget(
+        child: Text(
+          ":",
+          style: TextStyle(
+              fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
+        ),
+        type: ElementType.dotClock,
+        value: value);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ElementProvider>(builder: (context, provider, _) {
-      final ele = provider.getElementFromList(ElementType.dotClock);
-      return getChild(ele);
+    return Consumer<ElementProvider>(builder: (context, value, _) {
+      return getChild(value: value);
     });
   }
 }
 
-void exportHourPng(BuildContext context) {
-  final ele = Provider.of<ElementProvider>(context, listen: false)
-      .getElementFromList(ElementType.hourClock);
+class WeekClock extends StatelessWidget {
+  const WeekClock({super.key, required this.num});
+  final int? num;
+
+  static Widget getChild({int? num, ElementProvider? value}) {
+    final ele = value!.getElementFromList(ElementType.weekClock);
+    return commonWidget(
+        child: Text(
+          MIUIThemeData.weekNames[num!]!,
+          style: TextStyle(
+              fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
+        ),
+        type: ElementType.weekClock,
+        value: value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ElementProvider>(builder: (context, value, _) {
+      return getChild(num: num, value: value);
+    });
+  }
+}
+
+class MonthClock extends StatelessWidget {
+  const MonthClock({super.key, required this.num});
+  final int? num;
+
+  static Widget getChild({int? num, ElementProvider? value}) {
+    final ele = value!.getElementFromList(ElementType.monthClock);
+    return commonWidget(
+        child: Text(
+          MIUIThemeData.monthNames[num! - 1]!,
+          style: TextStyle(
+              fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
+        ),
+        type: ElementType.monthClock,
+        value: value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ElementProvider>(builder: (context, value, _) {
+      return getChild(num: num, value: value);
+    });
+  }
+}
+
+class DateClock extends StatelessWidget {
+  const DateClock({super.key, required this.num});
+  final int? num;
+
+  static Widget getChild({int? num, ElementProvider? value}) {
+    final ele = value!.getElementFromList(ElementType.dateClock);
+    return commonWidget(
+        child: Text(
+          num.toString().padLeft(2, '0'),
+          style: TextStyle(
+              fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
+        ),
+        type: ElementType.dateClock,
+        value: value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ElementProvider>(builder: (context, value, _) {
+      return getChild(num: num, value: value);
+    });
+  }
+}
+
+Future exportHourPng(BuildContext context) async {
+  final value = Provider.of<ElementProvider>(context, listen: false);
   final themePath = CurrentTheme.getPath(context);
   for (int i = 0; i <= 12; i++) {
-    ScreenshotController()
+    await ScreenshotController()
         .captureFromWidget(
-            getBGStack(
-                child: Positioned(
-                    left: ele.dx!,
-                    top: ele.dy!,
-                    child: Transform.scale(
-                        scale: ele.scale, child: HourClock.getChild(ele, i)))),
-            pixelRatio: 4)
+            getBGStack(child: HourClock.getChild(num: i, value: value)),
+            pixelRatio: 3)
         .then((value) async {
       final imagePath =
           File('$themePath\\lockscreen\\advance\\hour\\hour_$i.png');
@@ -93,20 +169,14 @@ void exportHourPng(BuildContext context) {
   }
 }
 
-void exportMinPng(BuildContext context) {
-  final ele = Provider.of<ElementProvider>(context, listen: false)
-      .getElementFromList(ElementType.minClock);
+Future exportMinPng(BuildContext context) async {
+  final value = Provider.of<ElementProvider>(context, listen: false);
   final themePath = CurrentTheme.getPath(context);
   for (int i = 0; i <= 59; i++) {
     ScreenshotController()
         .captureFromWidget(
-            getBGStack(
-                child: Positioned(
-                    left: ele.dx!,
-                    top: ele.dy!,
-                    child: Transform.scale(
-                        scale: ele.scale, child: MinClock.getChild(ele, i)))),
-            pixelRatio: 4)
+            getBGStack(child: MinClock.getChild(num: i, value: value)),
+            pixelRatio: 3)
         .then((value) async {
       final imagePath =
           File('$themePath\\lockscreen\\advance\\min\\min_$i.png');
@@ -115,33 +185,63 @@ void exportMinPng(BuildContext context) {
   }
 }
 
-void exportDotPng(BuildContext context) {
-  final ele = Provider.of<ElementProvider>(context, listen: false)
-      .getElementFromList(ElementType.dotClock);
+Future exportDotPng(BuildContext context) async {
+  final value = Provider.of<ElementProvider>(context, listen: false);
   final themePath = CurrentTheme.getPath(context);
+
   ScreenshotController()
-      .captureFromWidget(
-          getBGStack(
-              child: Positioned(
-                  left: ele.dx!,
-                  top: ele.dy!,
-                  child: Transform.scale(
-                      scale: ele.scale, child: DotClock.getChild(ele)))),
-          pixelRatio: 4)
+      .captureFromWidget(getBGStack(child: DotClock.getChild(value: value)),
+          pixelRatio: 3)
       .then((value) async {
     final imagePath = File('$themePath\\lockscreen\\advance\\dot\\dot.png');
     await imagePath.writeAsBytes(value);
   });
 }
 
-Widget getBGStack({required Widget child}) {
-  return SizedBox(
-    height: MIUIConstants.screenHeight,
-    width: MIUIConstants.screenWidth,
-    child: Stack(
-      children: [
-        child,
-      ],
-    ),
-  );
+Future exportWeekPng(BuildContext context) async {
+  final value = Provider.of<ElementProvider>(context, listen: false);
+  final themePath = CurrentTheme.getPath(context);
+  for (int i = 0; i <= 6; i++) {
+    ScreenshotController()
+        .captureFromWidget(
+            getBGStack(child: WeekClock.getChild(num: i, value: value)),
+            pixelRatio: 3)
+        .then((value) async {
+      final imagePath =
+          File('$themePath\\lockscreen\\advance\\week\\week_$i.png');
+      await imagePath.writeAsBytes(value);
+    });
+  }
+}
+
+Future exportMonthPng(BuildContext context) async {
+  final value = Provider.of<ElementProvider>(context, listen: false);
+  final themePath = CurrentTheme.getPath(context);
+  for (int i = 1; i <= 12; i++) {
+    ScreenshotController()
+        .captureFromWidget(
+            getBGStack(child: MonthClock.getChild(num: i, value: value)),
+            pixelRatio: 3)
+        .then((value) async {
+      final imagePath =
+          File('$themePath\\lockscreen\\advance\\month\\month_$i.png');
+      await imagePath.writeAsBytes(value);
+    });
+  }
+}
+
+Future exportDatePng(BuildContext context) async {
+  final value = Provider.of<ElementProvider>(context, listen: false);
+  final themePath = CurrentTheme.getPath(context);
+  for (int i = 1; i <= 31; i++) {
+    ScreenshotController()
+        .captureFromWidget(
+            getBGStack(child: DateClock.getChild(num: i, value: value)),
+            pixelRatio: 3)
+        .then((value) async {
+      final imagePath =
+          File('$themePath\\lockscreen\\advance\\date\\date_$i.png');
+      await imagePath.writeAsBytes(value);
+    });
+  }
 }

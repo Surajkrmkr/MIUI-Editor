@@ -52,7 +52,7 @@ class ModuleProvider extends ChangeNotifier {
         fileName: "${MIUIThemeData.contactsPngs[1]}.png",
         pixelRatio: 2);
 
-    CurrentTheme.createWallpaperDirectory(themePath: themePath);
+    await CurrentTheme.createWallpaperDirectory(themePath: themePath);
     final wallpaperProvider =
         Provider.of<WallpaperProvider>(context, listen: false);
     await File(wallpaperProvider.paths![wallpaperProvider.index!])

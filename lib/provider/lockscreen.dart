@@ -17,10 +17,11 @@ class LockscreenProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> export({BuildContext? context}) async {
+  void export({BuildContext? context}) async {
     isExporting = true;
     final lockscreen = lockscreenXml.copy();
     final themePath = CurrentTheme.getPath(context);
+    await Directory("$themePath\\lockscreen\\advance").create(recursive: true);
     final elementList =
         Provider.of<ElementProvider>(context!, listen: false).elementList;
     for (ElementWidget widget in elementList) {
@@ -35,13 +36,14 @@ class LockscreenProvider extends ChangeNotifier {
         await Directory(
                 "$themePath\\lockscreen\\advance\\${elementFromMap["png"]["path"]}")
             .create(recursive: true)
-            .then((value) => {elementFromMap["png"]["export"](context)});
+            .then((value) async {
+          await elementFromMap["png"]["export"](context);
+        });
       }
     }
     await File("$themePath\\lockscreen\\advance\\manifest.xml")
         .writeAsString(lockscreen.toXmlString(pretty: true, indent: '\t'));
-
-    isExporting = false;
+    setIsExporting = false;
   }
 }
 
