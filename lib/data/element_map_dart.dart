@@ -1,7 +1,7 @@
 import 'package:miui_icon_generator/data/unlock/unlock.dart';
 
 import '../xml data/swipe_up_unlock.dart';
-import '../xml data/clock/dateTime_clock.dart';
+import '../xml data/clock/date_time_clock.dart';
 import 'time/clock.dart';
 
 enum ElementType {

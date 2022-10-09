@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:xml/xml.dart';
 
+import '../copyright/pdf_widget.dart';
 import '../data/miui_theme_data.dart';
 import '../functions/theme_path.dart';
 import '../resources/color_values.dart';
@@ -66,6 +67,9 @@ class ModuleProvider extends ChangeNotifier {
     final pluginInfo = XmlDocument.parse(ThemeDesc.pluginInfo()!);
     await File("$themePath\\plugin_config.xml")
         .writeAsString(pluginInfo.toXmlString(pretty: true, indent: '\t'));
+    await createPdf(
+        imgPath: "$themePath\\wallpaper\\default_wallpaper.jpg",
+        themeName: themePath.split("\\").reversed.toList()[1]);
     setIsCopying = false;
   }
 
