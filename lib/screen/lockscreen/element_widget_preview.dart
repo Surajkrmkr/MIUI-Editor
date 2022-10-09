@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
+import '../../functions/theme_path.dart';
 import '../../provider/element.dart';
 
 class ElementWidgetPreview extends StatelessWidget {
@@ -11,13 +12,12 @@ class ElementWidgetPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<ElementProvider>(builder: (context, value, child) {
+      final themePath = CurrentTheme.getPath(context);
+      final bgPath = File("$themePath!\\lockscreen\\advance\\bg.png");
       return Stack(children: [
-        // Image.file(
-        //   File(
-        //       "E:\\Xiaomi Contract\\THEMES\\Week98\\Dark Durga\\lockscreen\\advance\\hour\\hour_2.png"),
-        //   height: 2340,
-        //   width: 1080,
-        // ),
+        Image.memory(
+          bgPath.readAsBytesSync(),
+        ),
         ...(value.elementList.map((e) => e.child!).toList())
       ]);
     });

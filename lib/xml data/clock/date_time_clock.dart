@@ -2,7 +2,6 @@ const hourClockXml = '''
 		<Image name="hour" scale="1.1" srcExp="'hour/hour_'+ int((#hour12)) +'.png'" width="#sw" height="#sh"/>
 ''';
 
-
 const minClockXml = '''
 		<Image name="min" scale="1.1" srcExp="'min/min_'+ int((#minute)) +'.png'" width="#sw" height="#sh"/>
 ''';
