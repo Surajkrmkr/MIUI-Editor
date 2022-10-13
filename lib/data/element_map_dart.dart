@@ -8,6 +8,7 @@ enum ElementType {
   hourClock,
   minClock,
   dotClock,
+  textLineClock,
   weekClock,
   monthClock,
   dateClock,
@@ -32,6 +33,11 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
     "exportable": true,
     "xml": dotClockXml,
     "png": {"export": exportDotPng, "path": "dot"}
+  },
+  ElementType.textLineClock: {
+    "widget": const TextLineClock(text:'8 feb, Tue'),
+    "exportable": false,
+    "xml": textLineClockXml,
   },
   ElementType.weekClock: {
     "widget": const WeekClock(

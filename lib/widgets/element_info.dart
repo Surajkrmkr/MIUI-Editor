@@ -42,6 +42,10 @@ class ElementInfo extends StatelessWidget {
                   min: 0,
                   max: 4,
                 ),
+                if(ele.type == ElementType.textLineClock)
+                TextFormField(
+                  initialValue: "8 feb,Tue",
+                )
               ],
             ),
           );

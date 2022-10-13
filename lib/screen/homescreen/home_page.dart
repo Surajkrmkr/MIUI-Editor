@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../constants.dart';
+import '../../functions/theme_path.dart';
 import '../../provider/export.dart';
 import '../../provider/module.dart';
 import '../../provider/wallpaper.dart';
@@ -54,11 +58,21 @@ class HomePage extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(
                                   vertical: 23, horizontal: 50)),
                           onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const LockscreenPage()));
+                            final themePath = CurrentTheme.getPath(context);
+                            CurrentTheme.createLockscreenDirectory(
+                                    themePath: themePath)
+                                .then((value) async {
+                              await File("${MIUIConstants.preLock!}\\bg.png")
+                                  .copy(
+                                      "$themePath\\lockscreen\\advance\\bg.png")
+                                  .then((value) {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const LockscreenPage()));
+                              });
+                            });
                           },
                           child: const Text("Lockscreen")),
                     ],

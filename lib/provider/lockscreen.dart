@@ -25,13 +25,20 @@ class LockscreenProvider extends ChangeNotifier {
     final elementList =
         Provider.of<ElementProvider>(context!, listen: false).elementList;
     for (ElementWidget widget in elementList) {
-      final elementFromMap = elementWidgetMap[widget.type]!;
+      final elementFromMap = elementWidgetMap[widget.type];
+      final dynamic elementXmlFromMap;
+      if (widget.type == ElementType.textLineClock) {
+        elementXmlFromMap = elementFromMap!["xml"]!(
+            textName: "d/E", color: "#ffffff", size: "60");
+      } else {
+        elementXmlFromMap = elementFromMap!["xml"]!;
+      }
       lockscreen
           .findAllElements("Group")
           .toList()
           .firstWhere(
               (element) => element.getAttribute("name") == widget.type!.name)
-          .innerXml = elementFromMap["xml"];
+          .innerXml = elementXmlFromMap;
       if (elementFromMap["exportable"]) {
         await Directory(
                 "$themePath\\lockscreen\\advance\\${elementFromMap["png"]["path"]}")

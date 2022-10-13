@@ -26,4 +26,8 @@ class CurrentTheme {
   static Future createWallpaperDirectory({String? themePath}) async {
     await Directory("$themePath\\wallpaper\\").create(recursive: true);
   }
+
+  static Future createLockscreenDirectory({String? themePath})async{
+    await Directory("$themePath\\lockscreen\\advance").create(recursive: true);
+  }
 }

@@ -13,11 +13,11 @@ class ElementWidgetPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ElementProvider>(builder: (context, value, child) {
       final themePath = CurrentTheme.getPath(context);
-      final bgPath = File("$themePath!\\lockscreen\\advance\\bg.png");
+      final bgPath = File("$themePath\\lockscreen\\advance\\bg.png");
       return Stack(children: [
-        // Image.memory(
-        //   bgPath.readAsBytesSync(),
-        // ),
+        Image.memory(
+          bgPath.readAsBytesSync(),
+        ),
         ...(value.elementList.map((e) => e.child!).toList())
       ]);
     });

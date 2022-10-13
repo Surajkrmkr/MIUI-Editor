@@ -81,6 +81,29 @@ class DotClock extends StatelessWidget {
   }
 }
 
+class TextLineClock extends StatelessWidget {
+  const TextLineClock({super.key,this.text});
+  final String? text;
+  static Widget getChild({ElementProvider? value,String? text}) {
+    final ele = value!.getElementFromList(ElementType.textLineClock);
+    return commonWidget(
+        child: Text(
+          text!,
+          style: TextStyle(
+              fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
+        ),
+        type: ElementType.textLineClock,
+        value: value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ElementProvider>(builder: (context, value, _) {
+      return getChild(value: value,text: text);
+    });
+  }
+}
+
 class WeekClock extends StatelessWidget {
   const WeekClock({super.key, required this.num});
   final int? num;
@@ -91,7 +114,7 @@ class WeekClock extends StatelessWidget {
         child: Text(
           MIUIThemeData.weekNames[num!]!,
           style: TextStyle(
-              fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
+              fontFamily: ele.font, fontSize: 30, height: 1, color: ele.color),
         ),
         type: ElementType.weekClock,
         value: value);
@@ -115,7 +138,7 @@ class MonthClock extends StatelessWidget {
         child: Text(
           MIUIThemeData.monthNames[num! - 1]!,
           style: TextStyle(
-              fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
+              fontFamily: ele.font, fontSize: 30, height: 1, color: ele.color),
         ),
         type: ElementType.monthClock,
         value: value);
@@ -139,7 +162,7 @@ class DateClock extends StatelessWidget {
         child: Text(
           num.toString().padLeft(2, '0'),
           style: TextStyle(
-              fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
+              fontFamily: ele.font, fontSize: 30, height: 1, color: ele.color),
         ),
         type: ElementType.dateClock,
         value: value);

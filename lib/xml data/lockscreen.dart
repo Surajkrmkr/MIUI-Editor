@@ -9,6 +9,7 @@ final lockscreenManifest = '''
 	    <Var expression="#screen_width" name="sw"/>
 	    <Var expression="#screen_height" name="sh"/>
 	    <Wallpaper/>
+      <Image name="bgLock" srcExp="'bg.png'" width="#sw" height="#sh"/>
       ${getGroupStrings()}
     <!--Don't COPY SURAJ's WORK-->
   </Lockscreen>
