@@ -36,6 +36,11 @@ class ImageStack extends StatelessWidget {
                   width: MIUIConstants.screenWidth,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(40),
+                    image: DecorationImage(
+                      image: FileImage(
+                        File(provider.paths![provider.index!]),
+                      ),
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.2),
@@ -46,19 +51,9 @@ class ImageStack extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(40),
-                    child: Container(
-                        decoration: BoxDecoration(
-                            image: DecorationImage(
-                          image: FileImage(
-                            File(provider.paths![provider.index!]),
-                          ),
-                        )),
-                        child: !isLockscreen!
-                            ? const PreviewIcons()
-                            : const ElementWidgetPreview()),
-                  ),
+                  child: !isLockscreen!
+                      ? const PreviewIcons()
+                      : const ElementWidgetPreview(),
                 ),
               ),
               IconButton(

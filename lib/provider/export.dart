@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:miui_icon_generator/provider/wallpaper.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 

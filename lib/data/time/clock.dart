@@ -159,8 +159,8 @@ Future exportHourPng(BuildContext context) async {
   for (int i = 0; i <= 12; i++) {
     ScreenshotController()
         .captureFromWidget(
-            getBGStack(
-                child: HourClock.getChild(num: i, value: value)),
+            getBGStack(child: HourClock.getChild(num: i, value: value)),
+            context: context,
             pixelRatio: 3)
         .then((value) async {
       final imagePath =
@@ -177,6 +177,7 @@ Future exportMinPng(BuildContext context) async {
     ScreenshotController()
         .captureFromWidget(
             getBGStack(child: MinClock.getChild(num: i, value: value)),
+            context: context,
             pixelRatio: 3)
         .then((value) async {
       final imagePath =
@@ -192,7 +193,7 @@ Future exportDotPng(BuildContext context) async {
 
   ScreenshotController()
       .captureFromWidget(getBGStack(child: DotClock.getChild(value: value)),
-          pixelRatio: 3)
+          context: context, pixelRatio: 3)
       .then((value) async {
     final imagePath = File('$themePath\\lockscreen\\advance\\dot\\dot.png');
     await imagePath.writeAsBytes(value);
@@ -206,6 +207,7 @@ Future exportWeekPng(BuildContext context) async {
     ScreenshotController()
         .captureFromWidget(
             getBGStack(child: WeekClock.getChild(num: i, value: value)),
+            context: context,
             pixelRatio: 3)
         .then((value) async {
       final imagePath =
@@ -222,6 +224,7 @@ Future exportMonthPng(BuildContext context) async {
     ScreenshotController()
         .captureFromWidget(
             getBGStack(child: MonthClock.getChild(num: i, value: value)),
+            context: context,
             pixelRatio: 3)
         .then((value) async {
       final imagePath =
@@ -238,6 +241,7 @@ Future exportDatePng(BuildContext context) async {
     ScreenshotController()
         .captureFromWidget(
             getBGStack(child: DateClock.getChild(num: i, value: value)),
+            context: context,
             pixelRatio: 3)
         .then((value) async {
       final imagePath =

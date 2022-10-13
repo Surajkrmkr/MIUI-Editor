@@ -35,7 +35,7 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
   },
   ElementType.weekClock: {
     "widget": const WeekClock(
-      num: 5,
+      num: 3,
     ),
     "exportable": true,
     "xml": weekClockXml,

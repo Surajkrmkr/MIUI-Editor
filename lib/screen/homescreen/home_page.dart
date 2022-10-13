@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../provider/export.dart';
-import '../../provider/icon.dart';
 import '../../provider/module.dart';
 import '../../provider/wallpaper.dart';
 import '../../widgets/accent_color_list.dart';
@@ -23,7 +22,6 @@ class HomePage extends StatelessWidget {
           .setTotalImage(folderNum!, weekNum!, context);
     });
     return Scaffold(
-      
       appBar: AppBar(
         title: const Text("Icon Generator"),
         actions: [accentColorsList()],
@@ -62,7 +60,7 @@ class HomePage extends StatelessWidget {
                                     builder: (context) =>
                                         const LockscreenPage()));
                           },
-                          child: const Text("Lockscreen"))
+                          child: const Text("Lockscreen")),
                     ],
                   )
                 ],
