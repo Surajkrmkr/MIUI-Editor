@@ -42,10 +42,10 @@ class ElementInfo extends StatelessWidget {
                   min: 0,
                   max: 4,
                 ),
-                if(ele.type == ElementType.textLineClock)
-                TextFormField(
-                  initialValue: "8 feb,Tue",
-                )
+                if (ele.type == ElementType.textLineClock)
+                  TextFormField(
+                    initialValue: "8 feb,Tue",
+                  )
               ],
             ),
           );
@@ -87,18 +87,7 @@ Widget elementList(context) {
                     trailing: Icon(!isAdded ? Icons.add : Icons.remove),
                     onTap: () {
                       if (!isAdded) {
-                        ElementWidget ele = ElementWidget(
-                          type: ElementType.values[i],
-                          name: ElementType.values[i].name,
-                        );
-                        final provider = Provider.of<ElementProvider>(context,
-                            listen: false);
-                        provider.addElementInList(ele);
-                        provider
-                                .getElementFromList(ElementType.values[i])
-                                .child =
-                            elementWidgetMap[ElementType.values[i]]!["widget"];
-                        provider.setActiveType = ElementType.values[i];
+                        addToList(context: context, i: i);
                       } else {
                         Provider.of<ElementProvider>(context, listen: false)
                             .removeElementFromList(ElementType.values[i]);
@@ -109,4 +98,14 @@ Widget elementList(context) {
           ),
         ],
       ));
+}
+
+void addToList({int? i, BuildContext? context}) {
+  ElementWidget ele = ElementWidget(
+      type: ElementType.values[i!],
+      name: ElementType.values[i].name,
+      child: elementWidgetMap[ElementType.values[i]]!["widget"]);
+  final provider = Provider.of<ElementProvider>(context!, listen: false);
+  provider.addElementInList(ele);
+  provider.setActiveType = ElementType.values[i];
 }

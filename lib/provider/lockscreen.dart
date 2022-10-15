@@ -110,7 +110,7 @@ class ExportLockscreenBtn extends StatelessWidget {
                   );
                 });
           },
-          child: const Text("Lockscreen")),
+          child: const Text("Export")),
     );
   }
 }

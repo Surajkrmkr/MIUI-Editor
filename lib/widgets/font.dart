@@ -12,6 +12,9 @@ class FontListWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<FontProvider>(builder: (context, provider, _) {
+      if (!provider.isLoading!) {
+        provider.fonts.sort(((a, b) => b.id!.compareTo(a.id!)));
+      }
       return SizedBox(
         width: 200,
         child: !provider.isLoading!

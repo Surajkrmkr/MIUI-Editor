@@ -27,8 +27,16 @@ class HomePage extends StatelessWidget {
     });
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Icon Generator"),
-        actions: [accentColorsList()],
+        title: Row(
+          children: [
+            const Text("Theme Generator"),
+            const SizedBox(
+              width: 20,
+            ),
+            getProgress()
+          ],
+        ),
+        actions: [accentColorsList(isLockscreen : false)],
       ),
       body: Padding(
           padding: const EdgeInsets.all(30),
@@ -51,30 +59,7 @@ class HomePage extends StatelessWidget {
                       const SizedBox(
                         height: 20,
                       ),
-                      ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.pinkAccent,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 23, horizontal: 50)),
-                          onPressed: () {
-                            final themePath = CurrentTheme.getPath(context);
-                            CurrentTheme.createLockscreenDirectory(
-                                    themePath: themePath)
-                                .then((value) async {
-                              await File("${MIUIConstants.preLock!}\\bg.png")
-                                  .copy(
-                                      "$themePath\\lockscreen\\advance\\bg.png")
-                                  .then((value) {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const LockscreenPage()));
-                              });
-                            });
-                          },
-                          child: const Text("Lockscreen")),
+                      buildLockscreenBtn(context: context)
                     ],
                   )
                 ],
@@ -89,4 +74,54 @@ class HomePage extends StatelessWidget {
           )),
     );
   }
+}
+
+Widget buildLockscreenBtn({BuildContext? context}) {
+  return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.pinkAccent,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 23, horizontal: 50)),
+      onPressed: () {
+        final themePath = CurrentTheme.getPath(context);
+        CurrentTheme.createLockscreenDirectory(themePath: themePath)
+            .then((value) async {
+          await File("${MIUIConstants.preLock!}\\bg.png")
+              .copy("$themePath\\lockscreen\\advance\\bg.png")
+              .then((value) {
+            Navigator.push(
+                context!,
+                MaterialPageRoute(
+                    builder: (context) => const LockscreenPage()));
+          });
+        });
+      },
+      child: const Text("Lockscreen"));
+}
+
+Widget getProgress() {
+  return Consumer<WallpaperProvider>(builder: (context, provider, _) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 200,
+          height: 10,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: provider.index! / 25,
+              backgroundColor: Colors.black12,
+            ),
+          ),
+        ),
+        const SizedBox(
+          width: 20,
+        ),
+        Text(
+          "${25 - provider.index!} left",
+          style: Theme.of(context).textTheme.bodyMedium,
+        )
+      ],
+    );
+  });
 }
