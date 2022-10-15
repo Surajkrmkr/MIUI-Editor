@@ -46,7 +46,7 @@ class LockscreenPage extends StatelessWidget {
                     children: const [
                       FontPreview(),
                       SizedBox(
-                        height: 50,
+                        height: 20,
                       ),
                       BGDropZone(),
                       SizedBox(

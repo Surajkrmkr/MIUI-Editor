@@ -12,6 +12,7 @@ import '../../widgets/color_picker.dart';
 import '../../widgets/image_stack.dart';
 import '../../widgets/module.dart';
 import '../../widgets/sliders.dart';
+import '../Landing_page.dart';
 import '../lockscreen/lockscreen_page.dart';
 
 class HomePage extends StatelessWidget {
@@ -36,7 +37,14 @@ class HomePage extends StatelessWidget {
             getProgress()
           ],
         ),
-        actions: [accentColorsList(isLockscreen : false)],
+        leading: IconButton(
+          icon: const Icon(Icons.home_rounded),
+          onPressed: () {
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => LandingPage()));
+          },
+        ),
+        actions: [accentColorsList(isLockscreen: false)],
       ),
       body: Padding(
           padding: const EdgeInsets.all(30),
