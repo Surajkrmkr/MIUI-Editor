@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 
-import '../../constants.dart';
 import '../../functions/theme_path.dart';
 import '../../provider/element.dart';
 import '../bg_stack.dart';
@@ -177,6 +176,52 @@ class DateClock extends StatelessWidget {
   }
 }
 
+class AmPmClock extends StatelessWidget {
+  const AmPmClock({super.key, required this.isAm});
+  final bool? isAm;
+
+  static Widget getChild({bool? isAm, ElementProvider? value}) {
+    final ele = value!.getElementFromList(ElementType.amPmClock);
+    return commonWidget(
+        child: Text(
+          isAm! ? 'AM' : 'PM',
+          style: TextStyle(
+              fontFamily: ele.font, fontSize: 30, height: 1, color: ele.color),
+        ),
+        type: ElementType.amPmClock,
+        value: value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ElementProvider>(builder: (context, value, _) {
+      return getChild(isAm: isAm, value: value);
+    });
+  }
+}
+
+class WeatherIconClock extends StatelessWidget {
+  const WeatherIconClock({super.key, required this.num});
+  final int? num;
+
+  static Widget getChild({int? num, ElementProvider? value}) {
+    return commonWidget(
+        child: Image.asset(
+          "assets/lockscreen/weatherIcon/weather_$num.png",
+          height: 40,
+        ),
+        type: ElementType.weatherIconClock,
+        value: value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ElementProvider>(builder: (context, value, _) {
+      return getChild(num: num, value: value);
+    });
+  }
+}
+
 Future exportHourPng(BuildContext context) async {
   final value = Provider.of<ElementProvider>(context, listen: false);
   final themePath = CurrentTheme.getPath(context);
@@ -270,6 +315,44 @@ Future exportDatePng(BuildContext context) async {
         .then((value) async {
       final imagePath =
           File('$themePath\\lockscreen\\advance\\date\\date_$i.png');
+      await imagePath.writeAsBytes(value);
+    });
+  }
+}
+
+Future exportWeatherIconPng(BuildContext context) async {
+  final value = Provider.of<ElementProvider>(context, listen: false);
+  final themePath = CurrentTheme.getPath(context);
+  for (int i = 0; i < MIUIThemeData.weatherPngs.length; i++) {
+    ScreenshotController()
+        .captureFromWidget(
+            getBGStack(
+                child: WeatherIconClock.getChild(
+                    num: MIUIThemeData.weatherPngs[i], value: value)),
+            context: context,
+            pixelRatio: 3)
+        .then((value) async {
+      final imagePath = File(
+          '$themePath\\lockscreen\\advance\\weather\\weather_${MIUIThemeData.weatherPngs[i]}.png');
+      await imagePath.writeAsBytes(value);
+    });
+  }
+}
+
+Future exportAmPmPng(BuildContext context) async {
+  final value = Provider.of<ElementProvider>(context, listen: false);
+  final themePath = CurrentTheme.getPath(context);
+  for (int i = 0; i <= 1; i++) {
+    ScreenshotController()
+        .captureFromWidget(
+            getBGStack(
+                child: AmPmClock.getChild(
+                    isAm: i == 1 ? true : false, value: value)),
+            context: context,
+            pixelRatio: 3)
+        .then((value) async {
+      final imagePath =
+          File('$themePath\\lockscreen\\advance\\ampm\\ampm_$i.png');
       await imagePath.writeAsBytes(value);
     });
   }

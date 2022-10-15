@@ -25,3 +25,11 @@ const monthClockXml = '''
 const dateClockXml = '''
 		<Image name="date" srcExp="'date/date_'+ int((#date)) +'.png'" width="#sw" height="#sh"/>
 ''';
+
+const amClockXml = '''
+		<Image name="ampm" srcExp="'ampm/ampm_'+ int((#ampm)) +'.png'" width="#sw" height="#sh"/>
+''';
+
+const weatherIconClockXml = '''
+		<Image name="weatherIcon" srcExp="'weather/weather_'+ int((#date)) +'.png'" width="#sw" height="#sh"/>
+''';

@@ -101,4 +101,5 @@ class MIUIThemeData {
     "November",
     "December"
   ];
+  static List<int?> weatherPngs = [0, 1, 2, 3, 4, 7, 12, 13, 18, 22, 24];
 }

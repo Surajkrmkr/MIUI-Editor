@@ -8,10 +8,12 @@ enum ElementType {
   hourClock,
   minClock,
   dotClock,
+  amPmClock,
   textLineClock,
   weekClock,
   monthClock,
   dateClock,
+  weatherIconClock,
   swipeUpUnlock
 }
 
@@ -35,7 +37,7 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
     "png": {"export": exportDotPng, "path": "dot"}
   },
   ElementType.textLineClock: {
-    "widget": const TextLineClock(text:'8 feb, Tue'),
+    "widget": const TextLineClock(text: '8 feb, Tue'),
     "exportable": false,
     "xml": textLineClockXml,
   },
@@ -62,6 +64,22 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
     "exportable": true,
     "xml": dateClockXml,
     "png": {"export": exportDatePng, "path": "date"}
+  },
+  ElementType.weatherIconClock: {
+    "widget": const WeatherIconClock(
+      num: 0,
+    ),
+    "exportable": true,
+    "xml": weatherIconClockXml,
+    "png": {"export": exportWeatherIconPng, "path": "weather"}
+  },
+  ElementType.amPmClock: {
+    "widget": const AmPmClock(
+      isAm: true,
+    ),
+    "exportable": true,
+    "xml": amClockXml,
+    "png": {"export": exportAmPmPng, "path": "ampm"}
   },
   ElementType.swipeUpUnlock: {
     "widget": const SwipeUpUnlock(),

@@ -20,6 +20,14 @@ void main() async {
     await windowManager.center();
     await windowManager.show();
   });
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Container(
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(25),color: Colors.white,),
+      alignment: Alignment.center,
+      
+      child: Text(details.exceptionAsString()),
+    );
+  };
   runApp(const MyApp());
 }
 

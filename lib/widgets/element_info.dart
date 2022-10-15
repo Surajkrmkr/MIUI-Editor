@@ -36,7 +36,7 @@ class ElementInfo extends StatelessWidget {
                   children: [
                     const Text("Scale"),
                     Slider(
-                      label: "Scale",
+                      label: "Scale : ${ele.scale!.toStringAsFixed(2)}",
                       value: ele.scale!,
                       onChanged: (val) {
                         provider.updateElementScaleInList(ele.type!, val);
@@ -65,7 +65,7 @@ class ElementInfo extends StatelessWidget {
                   children: [
                     const Text("Angle"),
                     Slider(
-                      label: "Angle",
+                      label: "Angle : ${ele.angle!.toStringAsFixed(2)}",
                       value: ele.angle!,
                       onChanged: (val) {
                         provider.updateElementAngleInList(ele.type!, val);
