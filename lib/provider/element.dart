@@ -32,7 +32,8 @@ class ElementProvider extends ChangeNotifier {
 
   ElementWidget getElementFromList(ElementType type) {
     return elementList.firstWhere((element) => element.type == type,
-        orElse: (() => ElementWidget(name: "default", type: null)));
+        orElse: (() =>
+            ElementWidget(name: "default", type: null, child: Container())));
   }
 
   void updateElementPositionInList(ElementType type, double dx, double dy) {
@@ -55,6 +56,16 @@ class ElementProvider extends ChangeNotifier {
     elementList.firstWhere((element) => element.type == type).scale = scale;
     notifyListeners();
   }
+
+  void updateElementAlignInList(ElementType type, AlignmentGeometry? align) {
+    elementList.firstWhere((element) => element.type == type).align = align;
+    notifyListeners();
+  }
+
+  void updateElementAngleInList(ElementType type, double? angle) {
+    elementList.firstWhere((element) => element.type == type).angle = angle;
+    notifyListeners();
+  }
 }
 
 class ElementWidget {
@@ -68,15 +79,19 @@ class ElementWidget {
   Widget? child;
   Color? color;
   String? font;
+  AlignmentGeometry? align;
+  double? angle;
   ElementWidget(
-      {this.child,
-      this.dx = 50,
-      this.dy = 50,
+      {required this.child,
+      this.dx = 0,
+      this.dy = 0,
       this.height = 200,
       required this.name,
       this.scale = 1,
       required this.type,
       this.width = 200,
       this.font = 'Roboto',
-      this.color = Colors.white});
+      this.color = Colors.white,
+      this.align = Alignment.center,
+      this.angle = 0});
 }

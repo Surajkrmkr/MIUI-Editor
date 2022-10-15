@@ -1,7 +1,6 @@
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../data/element_map_dart.dart';
 import '../provider/element.dart';
 
@@ -33,19 +32,49 @@ class ElementInfo extends StatelessWidget {
                   enableOpacity: true,
                   pickersEnabled: const {ColorPickerType.wheel: true},
                 ),
-                Slider(
-                  label: "Scale",
-                  value: ele.scale!,
-                  onChanged: (val) {
-                    provider.updateElementScaleInList(ele.type!, val);
-                  },
-                  min: 0,
-                  max: 4,
+                Column(
+                  children: [
+                    const Text("Scale"),
+                    Slider(
+                      label: "Scale",
+                      value: ele.scale!,
+                      onChanged: (val) {
+                        provider.updateElementScaleInList(ele.type!, val);
+                      },
+                      min: 0,
+                      max: 4,
+                    ),
+                  ],
                 ),
                 if (ele.type == ElementType.textLineClock)
                   TextFormField(
                     initialValue: "8 feb,Tue",
-                  )
+                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    buildChoiceChips(provider, ele, index: 0),
+                    buildChoiceChips(provider, ele, index: 1),
+                    buildChoiceChips(provider, ele, index: 2),
+                  ],
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                Column(
+                  children: [
+                    const Text("Angle"),
+                    Slider(
+                      label: "Angle",
+                      value: ele.angle!,
+                      onChanged: (val) {
+                        provider.updateElementAngleInList(ele.type!, val);
+                      },
+                      min: 0,
+                      max: 360,
+                    ),
+                  ],
+                ),
               ],
             ),
           );
@@ -54,11 +83,43 @@ class ElementInfo extends StatelessWidget {
       ],
     );
   }
+
+  ChoiceChip buildChoiceChips(ElementProvider provider, ElementWidget ele,
+      {required int? index}) {
+    String text;
+    AlignmentGeometry align;
+
+    switch (index) {
+      case 0:
+        text = "left";
+        align = Alignment.centerLeft;
+        break;
+      case 1:
+        text = "center";
+        align = Alignment.center;
+        break;
+      case 2:
+        text = "right";
+        align = Alignment.centerRight;
+        break;
+      default:
+        text = "center";
+        align = Alignment.center;
+    }
+    bool isSelected = ele.align == align;
+    return ChoiceChip(
+      label: Text(text),
+      selected: isSelected,
+      onSelected: (val) {
+        provider.updateElementAlignInList(ele.type!, align);
+      },
+    );
+  }
 }
 
 Widget elementList(context) {
   return SizedBox(
-      width: 250,
+      width: 200,
       child: Column(
         children: [
           Text(
@@ -79,12 +140,14 @@ Widget elementList(context) {
                           null;
 
                   return ListTile(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15)),
+                    selected: isAdded,
                     title: Text(
                       ElementType.values[i].name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    trailing: Icon(!isAdded ? Icons.add : Icons.remove),
                     onTap: () {
                       if (!isAdded) {
                         addToList(context: context, i: i);

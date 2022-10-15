@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../constants.dart';
@@ -31,5 +33,13 @@ Widget commonWidget(
             value.updateElementPositionInList(ele.type!,
                 ele.dx! + details.delta.dx, ele.dy! + details.delta.dy);
           }),
-          child: Transform.scale(scale: ele.scale!, child: child)));
+          child: Transform.scale(
+              scale: ele.scale!,
+              child: Transform.rotate(
+                angle: -ele.angle! * pi / 180,
+                child: Container(
+                    width: MIUIConstants.screenWidth,
+                    alignment: ele.align,
+                    child: child),
+              ))));
 }

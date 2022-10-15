@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:xml/xml.dart';
 
-import '../copyright/pdf_widget.dart';
 import '../data/miui_theme_data.dart';
 import '../functions/theme_path.dart';
 import '../resources/color_values.dart';
@@ -109,28 +108,33 @@ class ExportModuleBtn extends StatelessWidget {
                       title: const Center(child: Text("Get Set Go")),
                       children: [
                         Center(
-                            child: Column(
-                          children: [
-                            if (provider.isCopying!)
-                              const CircularProgressIndicator(),
-                            if (!provider.isCopying!)
-                              Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 20.0),
-                                  child: Column(
-                                    children: [
-                                      const Text("Module Export Completed..."),
-                                      const SizedBox(
-                                        height: 30,
-                                      ),
-                                      ElevatedButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                          child: const Text("OK")),
-                                    ],
-                                  )),
-                          ],
+                            child: SizedBox(
+                          height: 150,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              if (provider.isCopying!)
+                                const CircularProgressIndicator(),
+                              if (!provider.isCopying!)
+                                Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 20.0),
+                                    child: Column(
+                                      children: [
+                                        const Text(
+                                            "Module Export Completed..."),
+                                        const SizedBox(
+                                          height: 30,
+                                        ),
+                                        ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text("OK")),
+                                      ],
+                                    )),
+                            ],
+                          ),
                         ))
                       ],
                     );

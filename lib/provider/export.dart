@@ -45,11 +45,11 @@ class ExportIconProvider extends ChangeNotifier {
                 ),
                 pixelRatio: 4)
             .then((value) async {
-          final imagePath = File(
-              '$themePath\\icons\\res\\drawable-xhdpi\\$element.png');
+          final imagePath =
+              File('$themePath\\icons\\res\\drawable-xhdpi\\$element.png');
           await imagePath.writeAsBytes(value);
-          final imagePath2 = File(
-              '$themePath\\icons\\res\\drawable-xxhdpi\\$element.png');
+          final imagePath2 =
+              File('$themePath\\icons\\res\\drawable-xxhdpi\\$element.png');
           await imagePath2.writeAsBytes(value);
           setProgress = progress! + 1;
           if (progress == MIUIThemeData.vectorList.length) {
@@ -93,34 +93,38 @@ class ExportIconsBtn extends StatelessWidget {
                         title: const Center(child: Text("Get Set Go")),
                         children: [
                           Center(
-                              child: Column(
-                            children: [
-                              if (provider.isIconsExporting!)
-                                LinearProgressIndicator(
-                                  value: progress!.toDouble() / total,
-                                ),
-                              if (provider.isIconsExporting!)
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                      "${provider.progress.toString()}/$total"),
-                                ),
-                              if (!provider.isIconsExporting!)
-                                const Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(vertical: 20.0),
-                                    child: Text("Icons Export Completed...")),
-                              if (!provider.isIconsExporting!)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 20.0),
-                                  child: ElevatedButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text("OK")),
-                                )
-                            ],
+                              child: SizedBox(
+                            height: 150,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                if (provider.isIconsExporting!)
+                                  LinearProgressIndicator(
+                                    value: progress!.toDouble() / total,
+                                  ),
+                                if (provider.isIconsExporting!)
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                        "${provider.progress.toString()}/$total"),
+                                  ),
+                                if (!provider.isIconsExporting!)
+                                  const Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(vertical: 20.0),
+                                      child: Text("Icons Export Completed...")),
+                                if (!provider.isIconsExporting!)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 20.0),
+                                    child: ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text("OK")),
+                                  )
+                              ],
+                            ),
                           ))
                         ],
                       );

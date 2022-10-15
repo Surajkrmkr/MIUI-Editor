@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 
+import '../../constants.dart';
 import '../../functions/theme_path.dart';
 import '../../provider/element.dart';
 import '../bg_stack.dart';
@@ -82,9 +83,9 @@ class DotClock extends StatelessWidget {
 }
 
 class TextLineClock extends StatelessWidget {
-  const TextLineClock({super.key,this.text});
+  const TextLineClock({super.key, this.text});
   final String? text;
-  static Widget getChild({ElementProvider? value,String? text}) {
+  static Widget getChild({ElementProvider? value, String? text}) {
     final ele = value!.getElementFromList(ElementType.textLineClock);
     return commonWidget(
         child: Text(
@@ -99,7 +100,7 @@ class TextLineClock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<ElementProvider>(builder: (context, value, _) {
-      return getChild(value: value,text: text);
+      return getChild(value: value, text: text);
     });
   }
 }

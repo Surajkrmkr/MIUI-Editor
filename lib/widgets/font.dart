@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../data/element_map_dart.dart';
 import '../provider/element.dart';
 import '../provider/font.dart';
 
@@ -31,8 +32,18 @@ class FontListWidget extends StatelessWidget {
                     child: ListView.builder(
                         itemCount: provider.fonts.length,
                         itemBuilder: (context, i) {
+                          final eleProvider = Provider.of<ElementProvider>(
+                              context,
+                              listen: true);
                           final font = provider.fonts[i];
+                          final bool isSelected = eleProvider
+                                  .getElementFromList(eleProvider.activeType!)
+                                  .font ==
+                              font.dynamicCachedFonts!.fontFamily;
                           return ListTile(
+                            selected: isSelected,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15)),
                             title: Text(
                               font.name!,
                               maxLines: 1,
@@ -42,7 +53,6 @@ class FontListWidget extends StatelessWidget {
                                 fontSize: 25,
                               ),
                             ),
-                            trailing: const Icon(Icons.check),
                             onTap: () {
                               provider.setFontFamily =
                                   font.dynamicCachedFonts!.fontFamily;

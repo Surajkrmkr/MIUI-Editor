@@ -60,6 +60,13 @@ class MyApp extends StatelessWidget {
             sliderTheme: const SliderThemeData(
               showValueIndicator: ShowValueIndicator.always,
             ),
+            chipTheme: ChipThemeData(
+                checkmarkColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                side: BorderSide.none,
+                secondaryLabelStyle: const TextStyle(color: Colors.white),
+                selectedColor: Colors.pinkAccent),
             colorScheme: const ColorScheme.light(primary: Colors.pinkAccent)),
         home: LandingPage(),
       ),

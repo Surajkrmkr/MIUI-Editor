@@ -81,28 +81,32 @@ class ExportLockscreenBtn extends StatelessWidget {
                         title: const Center(child: Text("Get Set Go")),
                         children: [
                           Center(
-                              child: Column(
-                            children: [
-                              if (provider.isExporting!)
-                                const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              if (!provider.isExporting!)
-                                const Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(vertical: 20.0),
-                                    child: Text("Lockscreen Exported...")),
-                              if (!provider.isExporting!)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 20.0),
-                                  child: ElevatedButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text("OK")),
-                                )
-                            ],
+                              child: SizedBox(
+                            height: 150,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                if (provider.isExporting!)
+                                  const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                if (!provider.isExporting!)
+                                  const Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(vertical: 20.0),
+                                      child: Text("Lockscreen Exported...")),
+                                if (!provider.isExporting!)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 20.0),
+                                    child: ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text("OK")),
+                                  )
+                              ],
+                            ),
                           ))
                         ],
                       );
