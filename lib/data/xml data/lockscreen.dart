@@ -1,6 +1,6 @@
 import 'package:xml/xml.dart';
 
-import '../data/element_map_dart.dart';
+import '../element_map_dart.dart';
 
 final lockscreenManifest = '''
   <?xml version="1.0" encoding="utf-8"?>

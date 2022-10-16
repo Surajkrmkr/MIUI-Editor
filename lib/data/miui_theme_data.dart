@@ -72,6 +72,24 @@ class MIUIThemeData {
     "com.android.systemui"
   ];
 
+  static List<String?> directoryList = [
+    "\\wallpaper\\",
+    "\\icons\\res\\drawable-xxhdpi\\",
+    "\\icons\\res\\drawable-xhdpi\\",
+    "\\com.android.contacts\\res\\drawable-xxhdpi\\",
+    "\\com.android.mms\\res\\drawable-xxhdpi\\",
+    "\\com.android.systemui\\res\\drawable-xxhdpi\\",
+    "\\lockscreen\\advance\\icon"
+  ];
+
+  static List<String?> lockscreenPngList = [
+    "\\bg",
+    "\\icon\\camera",
+    "\\icon\\gallery",
+    "\\icon\\setting",
+    "\\icon\\theme",
+  ];
+
   static List<String?> contactsPngs = [
     "ic_contacts_tab_pressed_light",
     "ic_dialer_tab_pressed_light"

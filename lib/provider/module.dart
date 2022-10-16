@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:xml/xml.dart';
 
+import '../constants.dart';
 import '../data/miui_theme_data.dart';
 import '../functions/theme_path.dart';
 import '../resources/color_values.dart';
@@ -27,8 +28,6 @@ class ModuleProvider extends ChangeNotifier {
     setIsCopying = true;
     final themePath = CurrentTheme.getPath(context);
     for (var module in MIUIThemeData.moduleList) {
-      await Directory("$themePath$module\\res\\drawable-xxhdpi\\")
-          .create(recursive: true);
       final files = await getFiles(module!);
       for (var entity in files) {
         await File(entity.path).copy(
@@ -51,8 +50,6 @@ class ModuleProvider extends ChangeNotifier {
         "$themePath${MIUIThemeData.moduleList[0]}\\res\\drawable-xxhdpi",
         fileName: "${MIUIThemeData.contactsPngs[1]}.png",
         pixelRatio: 2);
-
-    await CurrentTheme.createWallpaperDirectory(themePath: themePath);
     final wallpaperProvider =
         Provider.of<WallpaperProvider>(context, listen: false);
     await File(wallpaperProvider.paths![wallpaperProvider.index!])
@@ -78,7 +75,7 @@ class ModuleProvider extends ChangeNotifier {
 
   Future<List<FileSystemEntity>> getFiles(String module) async {
     return await Directory(
-            "E:\\Xiaomi Contract\\Sample2\\$module\\res\\drawable-xxhdpi")
+            "${MIUIConstants.sample2}$module\\res\\drawable-xxhdpi")
         .list()
         .toList();
   }

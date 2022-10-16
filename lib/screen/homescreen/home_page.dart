@@ -1,10 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../constants.dart';
-import '../../functions/theme_path.dart';
-import '../../provider/export.dart';
+import '../../provider/directory.dart';
+import '../../provider/icon.dart';
+import '../../provider/lockscreen.dart';
 import '../../provider/module.dart';
 import '../../provider/wallpaper.dart';
 import '../../widgets/accent_color_list.dart';
@@ -34,7 +32,10 @@ class HomePage extends StatelessWidget {
             const SizedBox(
               width: 20,
             ),
-            getProgress()
+            getProgress(),const SizedBox(
+              width: 20,
+            ),
+            directoryCreatingLoading()
           ],
         ),
         leading: IconButton(
@@ -85,26 +86,27 @@ class HomePage extends StatelessWidget {
 }
 
 Widget buildLockscreenBtn({BuildContext? context}) {
-  return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.pinkAccent,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 23, horizontal: 50)),
-      onPressed: () {
-        final themePath = CurrentTheme.getPath(context);
-        CurrentTheme.createLockscreenDirectory(themePath: themePath)
-            .then((value) async {
-          await File("${MIUIConstants.preLock!}\\bg.png")
-              .copy("$themePath\\lockscreen\\advance\\bg.png")
-              .then((value) {
-            Navigator.push(
-                context!,
-                MaterialPageRoute(
-                    builder: (context) => const LockscreenPage()));
-          });
-        });
-      },
-      child: const Text("Lockscreen"));
+  return Consumer<LockscreenProvider>(builder: (context, provider, _) {
+    return ElevatedButton(
+        style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.pinkAccent,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 23, horizontal: 50)),
+        onPressed: () {
+          provider.copyDefaultPngs(context: context).then((value) =>
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const LockscreenPage())));
+        },
+        child: provider.isDefaultPngsCopying!
+            ? const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                ),
+              )
+            : const Text("Lockscreen"));
+  });
 }
 
 Widget getProgress() {
@@ -131,5 +133,26 @@ Widget getProgress() {
         )
       ],
     );
+  });
+}
+
+Widget directoryCreatingLoading() {
+  return Consumer<DirectoryProvider>(builder: (context, provider, _) {
+    if (provider.isCreating!) {
+      return Row(
+        children: [
+          const SizedBox(
+              width: 30, height: 30, child: CircularProgressIndicator()),
+          const SizedBox(
+            width: 20,
+          ),
+          Text(
+            "Creating Directory",
+            style: Theme.of(context).textTheme.bodyMedium,
+          )
+        ],
+      );
+    }
+    return Container();
   });
 }

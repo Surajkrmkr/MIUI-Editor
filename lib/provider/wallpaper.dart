@@ -5,6 +5,7 @@ import 'package:palette_generator/palette_generator.dart';
 import 'package:provider/provider.dart';
 
 import '../constants.dart';
+import 'directory.dart';
 import 'icon.dart';
 
 class WallpaperProvider extends ChangeNotifier {
@@ -22,6 +23,8 @@ class WallpaperProvider extends ChangeNotifier {
   void setIndex(int n, context) {
     index = n;
     fetchColorPalette(context);
+    Provider.of<DirectoryProvider>(context, listen: false)
+          .createThemeDirectory(context: context);
     notifyListeners();
   }
 
@@ -45,6 +48,8 @@ class WallpaperProvider extends ChangeNotifier {
     }
     setIsLoading = false;
     fetchColorPalette(context);
+    Provider.of<DirectoryProvider>(context, listen: false)
+          .createThemeDirectory(context: context);
     notifyListeners();
   }
 

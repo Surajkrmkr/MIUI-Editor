@@ -6,14 +6,14 @@ import 'package:flutter/material.dart';
 import '../functions/theme_path.dart';
 
 class BGDropZone extends StatelessWidget {
-  const BGDropZone({super.key});
-
+  const BGDropZone({super.key,this.path});
+  final String? path;
   @override
   Widget build(BuildContext context) {
     return DropTarget(
       onDragDone: (detail) async {
         final themePath = CurrentTheme.getPath(context);
-        final bgPath = File("$themePath\\lockscreen\\advance\\bg.png");
+        final bgPath = File("$themePath\\lockscreen\\advance\\$path.png");
         await detail.files.first.saveTo(bgPath.path);
       },
       child: Container(
@@ -25,7 +25,7 @@ class BGDropZone extends StatelessWidget {
         ),
         alignment: Alignment.center,
         child: Text(
-          "BG Drop",
+          "Drop",
           style: Theme.of(context)
               .textTheme
               .bodyMedium!

@@ -16,13 +16,6 @@ class CurrentTheme {
     return themePath;
   }
 
-  static Future createIconDirectory({String? themePath}) async {
-    await Directory("$themePath\\icons\\res\\drawable-xhdpi\\")
-        .create(recursive: true);
-    await Directory("$themePath\\icons\\res\\drawable-xxhdpi\\")
-        .create(recursive: true);
-  }
-
   static Future createWallpaperDirectory({String? themePath}) async {
     await Directory("$themePath\\wallpaper\\").create(recursive: true);
   }

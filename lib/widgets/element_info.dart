@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../data/element_map_dart.dart';
 import '../provider/element.dart';
+import 'bg_drop_zone.dart';
 
 class ElementInfo extends StatelessWidget {
   const ElementInfo({super.key});
@@ -19,19 +20,29 @@ class ElementInfo extends StatelessWidget {
           }
           final ElementWidget ele =
               provider.getElementFromList(provider.activeType!);
+          final isIconType =
+              elementWidgetMap[provider.activeType]!["isIconType"];
           return SizedBox(
             width: 300,
             child: Column(
               children: [
                 Text(ele.name!),
-                ColorPicker(
-                  color: ele.color!,
-                  onColorChanged: (value) {
-                    provider.updateElementColorInList(ele.type!, value);
-                  },
-                  enableOpacity: true,
-                  pickersEnabled: const {ColorPickerType.wheel: true},
-                ),
+                if (isIconType)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20.0),
+                    child: BGDropZone(
+                      path: ele.path,
+                    ),
+                  ),
+                if (!isIconType)
+                  ColorPicker(
+                    color: ele.color!,
+                    onColorChanged: (value) {
+                      provider.updateElementColorInList(ele.type!, value);
+                    },
+                    enableOpacity: true,
+                    pickersEnabled: const {ColorPickerType.wheel: true},
+                  ),
                 Column(
                   children: [
                     const Text("Scale"),
@@ -50,14 +61,15 @@ class ElementInfo extends StatelessWidget {
                   TextFormField(
                     initialValue: "8 feb,Tue",
                   ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    buildChoiceChips(provider, ele, index: 0),
-                    buildChoiceChips(provider, ele, index: 1),
-                    buildChoiceChips(provider, ele, index: 2),
-                  ],
-                ),
+                if (!isIconType)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      buildChoiceChips(provider, ele, index: 0),
+                      buildChoiceChips(provider, ele, index: 1),
+                      buildChoiceChips(provider, ele, index: 2),
+                    ],
+                  ),
                 const SizedBox(
                   height: 10,
                 ),
@@ -138,7 +150,6 @@ Widget elementList(context) {
                   final bool isAdded =
                       provider.getElementFromList(ElementType.values[i]).type !=
                           null;
-
                   return ListTile(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15)),
@@ -164,10 +175,16 @@ Widget elementList(context) {
 }
 
 void addToList({int? i, BuildContext? context}) {
+  final eleType = ElementType.values[i!];
+  final elementWidgetFromMap = elementWidgetMap[eleType];
   ElementWidget ele = ElementWidget(
-      type: ElementType.values[i!],
-      name: ElementType.values[i].name,
-      child: elementWidgetMap[ElementType.values[i]]!["widget"]);
+      type: eleType,
+      name: eleType.name,
+      child: elementWidgetFromMap!["widget"]);
+  final isIconType = elementWidgetFromMap["isIconType"];
+  if (isIconType) {
+    ele.path = elementWidgetFromMap["path"];
+  }
   final provider = Provider.of<ElementProvider>(context!, listen: false);
   provider.addElementInList(ele);
   provider.setActiveType = ElementType.values[i];

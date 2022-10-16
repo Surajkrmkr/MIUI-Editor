@@ -4,34 +4,57 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:xml/xml.dart';
 
+import '../constants.dart';
 import '../data/element_map_dart.dart';
+import '../data/miui_theme_data.dart';
 import '../functions/theme_path.dart';
-import '../xml data/lockscreen.dart';
+import '../data/xml data/lockscreen.dart';
 import 'element.dart';
 
 class LockscreenProvider extends ChangeNotifier {
   bool? isExporting = true;
+  bool? isDefaultPngsCopying = false;
 
   set setIsExporting(bool val) {
     isExporting = val;
     notifyListeners();
   }
 
+  set setIsDefaultPngsCopying(bool val) {
+    isDefaultPngsCopying = val;
+    notifyListeners();
+  }
+
+  Future copyDefaultPngs({BuildContext? context}) async {
+    setIsDefaultPngsCopying = true;
+    final themePath = CurrentTheme.getPath(context);
+    CurrentTheme.createLockscreenDirectory(themePath: themePath);
+    for (var png in MIUIThemeData.lockscreenPngList) {
+      await File("${MIUIConstants.sample2Lockscreen!}$png.png")
+          .copy("${themePath}lockscreen\\advance$png.png");
+    }
+    setIsDefaultPngsCopying = false;
+  }
+
   void export({BuildContext? context}) async {
-    isExporting = true;
+    setIsExporting = true;
     final lockscreen = lockscreenXml.copy();
     final themePath = CurrentTheme.getPath(context);
-    await Directory("$themePath\\lockscreen\\advance").create(recursive: true);
     final elementList =
         Provider.of<ElementProvider>(context!, listen: false).elementList;
     for (ElementWidget widget in elementList) {
       final elementFromMap = elementWidgetMap[widget.type];
-      final dynamic elementXmlFromMap;
-      if (widget.type == ElementType.textLineClock) {
-        elementXmlFromMap = elementFromMap!["xml"]!(
-            textName: "d/E", color: "#ffffff", size: "60");
+      dynamic elementXmlFromMap;
+      // if (widget.type == ElementType.textLineClock) {
+      //   elementXmlFromMap = elementFromMap!["xml"]!(
+      //       textName: "d/E", color: "#ffffff", size: "60");
+      // } else {
+      //   elementXmlFromMap = elementFromMap!["xml"]!;
+      // }
+      if (elementFromMap!["isIconType"]) {
+        elementXmlFromMap = elementFromMap["xml"]!(ele: widget);
       } else {
-        elementXmlFromMap = elementFromMap!["xml"]!;
+        elementXmlFromMap = elementFromMap["xml"]!;
       }
       lockscreen
           .findAllElements("Group")

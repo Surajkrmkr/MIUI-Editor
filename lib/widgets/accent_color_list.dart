@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../data/element_map_dart.dart';
 import '../provider/element.dart';
 import '../provider/icon.dart';
 import '../provider/wallpaper.dart';

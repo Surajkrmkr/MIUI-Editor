@@ -21,6 +21,8 @@ Widget getBGStack({required Widget child}) {
 Widget commonWidget(
     {ElementType? type, ElementProvider? value, Widget? child}) {
   final ele = value!.getElementFromList(type!);
+
+  bool? isIconType = elementWidgetMap[type]!["isIconType"];
   return Positioned(
       left: ele.dx!,
       top: ele.dy!,
@@ -40,6 +42,11 @@ Widget commonWidget(
                 child: Container(
                     width: MIUIConstants.screenWidth,
                     alignment: ele.align,
-                    child: child),
+                    child: isIconType!
+                        ? Container(
+                            height: MIUIConstants.screenHeight,
+                            alignment: ele.align,
+                            child: child)
+                        : child),
               ))));
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:miui_icon_generator/provider/export.dart';
 import 'package:miui_icon_generator/provider/font.dart';
 import 'package:miui_icon_generator/provider/icon.dart';
 import 'package:miui_icon_generator/provider/module.dart';
@@ -7,6 +6,7 @@ import 'package:miui_icon_generator/provider/wallpaper.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'provider/directory.dart';
 import 'provider/element.dart';
 import 'provider/lockscreen.dart';
 import 'screen/Landing_page.dart';
@@ -22,9 +22,11 @@ void main() async {
   });
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return Container(
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(25),color: Colors.white,),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(25),
+        color: Colors.white,
+      ),
       alignment: Alignment.center,
-      
       child: Text(details.exceptionAsString()),
     );
   };
@@ -39,13 +41,13 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
+          create: (context) => DirectoryProvider(),
+        ),
+        ChangeNotifierProvider(
           create: (context) => IconProvider(),
         ),
         ChangeNotifierProvider(
           create: (context) => WallpaperProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => ExportIconProvider(),
         ),
         ChangeNotifierProvider(
           create: (context) => ModuleProvider(),

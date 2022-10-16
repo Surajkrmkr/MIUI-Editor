@@ -48,7 +48,9 @@ class LockscreenPage extends StatelessWidget {
                       SizedBox(
                         height: 20,
                       ),
-                      BGDropZone(),
+                      BGDropZone(
+                        path: "bg",
+                      ),
                       SizedBox(
                         height: 20,
                       ),
