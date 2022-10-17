@@ -25,7 +25,7 @@ enum ElementType {
 
 final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
   ElementType.hourClock: {
-    "widget": const HourClock(num: 12),
+    "widget": const HourClock(num: 02),
     "xml": hourClockXml,
     "exportable": true,
     "png": {"export": exportHourPng, "path": "hour"},

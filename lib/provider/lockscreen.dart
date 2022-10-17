@@ -71,6 +71,7 @@ class LockscreenProvider extends ChangeNotifier {
         });
       }
     }
+    Future.delayed(const Duration(seconds: 5), () {});
     await File("$themePath\\lockscreen\\advance\\manifest.xml")
         .writeAsString(lockscreen.toXmlString(pretty: true, indent: '\t'));
     setIsExporting = false;

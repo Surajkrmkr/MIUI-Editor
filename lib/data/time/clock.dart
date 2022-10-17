@@ -226,7 +226,7 @@ Future exportHourPng(BuildContext context) async {
   final value = Provider.of<ElementProvider>(context, listen: false);
   final themePath = CurrentTheme.getPath(context);
   for (int i = 0; i <= 12; i++) {
-    await ScreenshotController()
+    ScreenshotController()
         .captureFromWidget(
             getBGStack(child: HourClock.getChild(num: i, value: value)),
             context: context,
