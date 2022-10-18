@@ -37,12 +37,29 @@ class ElementInfo extends StatelessWidget {
                 if (!isIconType)
                   ColorPicker(
                     color: ele.color!,
+                    enableShadesSelection: false,
+                    showColorCode: true,
+                    opacityTrackHeight: 30,
+                    opacityThumbRadius: 15,
+                    colorCodeHasColor: true,
                     onColorChanged: (value) {
                       provider.updateElementColorInList(ele.type!, value);
                     },
                     enableOpacity: true,
-                    pickersEnabled: const {ColorPickerType.wheel: true},
+                    pickersEnabled: const {
+                      ColorPickerType.wheel: true,
+                      ColorPickerType.primary: false,
+                      ColorPickerType.accent: false
+                    },
                   ),
+                if (!isIconType)
+                  SwitchListTile(
+                      value: ele.isShort!,
+                      activeColor: Colors.pinkAccent,
+                      title: const Text("Make Short"),
+                      onChanged: (value) {
+                        provider.updateElementIsShortInList(ele.type!, value);
+                      }),
                 Column(
                   children: [
                     const Text("Scale"),
@@ -150,23 +167,24 @@ Widget elementList(context) {
                   final bool isAdded =
                       provider.getElementFromList(ElementType.values[i]).type !=
                           null;
-                  return ListTile(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15)),
-                    selected: isAdded,
-                    title: Text(
-                      ElementType.values[i].name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: ListTile(
+                      selected: isAdded,
+                      title: Text(
+                        ElementType.values[i].name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      onTap: () {
+                        if (!isAdded) {
+                          addToList(context: context, i: i);
+                        } else {
+                          Provider.of<ElementProvider>(context, listen: false)
+                              .removeElementFromList(ElementType.values[i]);
+                        }
+                      },
                     ),
-                    onTap: () {
-                      if (!isAdded) {
-                        addToList(context: context, i: i);
-                      } else {
-                        Provider.of<ElementProvider>(context, listen: false)
-                            .removeElementFromList(ElementType.values[i]);
-                      }
-                    },
                   );
                 }),
           ),

@@ -60,6 +60,11 @@ class ElementProvider extends ChangeNotifier {
     elementList.firstWhere((element) => element.type == type).angle = angle;
     notifyListeners();
   }
+
+  void updateElementIsShortInList(ElementType type, bool? isShort) {
+    elementList.firstWhere((element) => element.type == type).isShort = isShort;
+    notifyListeners();
+  }
 }
 
 class ElementWidget {
@@ -76,6 +81,7 @@ class ElementWidget {
   AlignmentGeometry? align;
   double? angle;
   String? path;
+  bool? isShort;
   ElementWidget(
       {required this.child,
       this.dx = 0,
@@ -89,5 +95,6 @@ class ElementWidget {
       this.color = Colors.white,
       this.align = Alignment.center,
       this.angle = 0,
-      this.path = ""});
+      this.path = "",
+      this.isShort = false});
 }

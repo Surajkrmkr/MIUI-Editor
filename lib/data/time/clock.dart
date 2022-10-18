@@ -112,7 +112,7 @@ class WeekClock extends StatelessWidget {
     final ele = value!.getElementFromList(ElementType.weekClock);
     return commonWidget(
         child: Text(
-          MIUIThemeData.weekNames[num!]!,
+          ele.isShort! ?MIUIThemeData.weekNames[num!]!.substring(0,3):   MIUIThemeData.weekNames[num!]!,
           style: TextStyle(
               fontFamily: ele.font, fontSize: 30, height: 1, color: ele.color),
         ),
@@ -136,7 +136,7 @@ class MonthClock extends StatelessWidget {
     final ele = value!.getElementFromList(ElementType.monthClock);
     return commonWidget(
         child: Text(
-          MIUIThemeData.monthNames[num! - 1]!,
+          ele.isShort! ? MIUIThemeData.monthNames[num! - 1]!.substring(0,3) : MIUIThemeData.monthNames[num! - 1]!,
           style: TextStyle(
               fontFamily: ele.font, fontSize: 30, height: 1, color: ele.color),
         ),
