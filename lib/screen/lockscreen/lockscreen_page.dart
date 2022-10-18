@@ -45,16 +45,17 @@ class LockscreenPage extends StatelessWidget {
                   Column(
                     children: const [
                       FontPreview(),
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20.0),
+                        child: BGDropZone(
+                          path: "bg",
+                        ),
+                      ),
+                      BgAlpha(),
                       SizedBox(
-                        height: 20,
+                        height: 10,
                       ),
-                      BGDropZone(
-                        path: "bg",
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      ExportLockscreenBtn()
+                      ExportLockscreenBtn(),
                     ],
                   ),
                   const FontListWidget(),
@@ -73,5 +74,26 @@ class LockscreenPage extends StatelessWidget {
     final provider = Provider.of<ElementProvider>(context, listen: false);
     provider.addElementInList(ele);
     provider.setActiveType = ElementType.swipeUpUnlock;
+  }
+}
+
+class BgAlpha extends StatelessWidget {
+  const BgAlpha({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ElementProvider>(builder: (context, provider, _) {
+      return Slider(
+        value: provider.bgAlpha!,
+        onChanged: (val) {
+          provider.setBgAlpha = val;
+        },
+        min: 0,
+        max: 1,
+        divisions: 1 ~/ 0.05,
+      );
+    });
   }
 }

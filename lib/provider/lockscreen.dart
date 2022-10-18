@@ -40,8 +40,8 @@ class LockscreenProvider extends ChangeNotifier {
     setIsExporting = true;
     final lockscreen = lockscreenXml.copy();
     final themePath = CurrentTheme.getPath(context);
-    final elementList =
-        Provider.of<ElementProvider>(context!, listen: false).elementList;
+    final eleProvider = Provider.of<ElementProvider>(context!, listen: false);
+    final elementList = eleProvider.elementList;
     for (ElementWidget widget in elementList) {
       final elementFromMap = elementWidgetMap[widget.type];
       dynamic elementXmlFromMap;
@@ -71,7 +71,13 @@ class LockscreenProvider extends ChangeNotifier {
         });
       }
     }
-    Future.delayed(const Duration(seconds: 5), () {});
+    lockscreen
+          .findAllElements("Group")
+          .toList()
+          .firstWhere(
+              (element) => element.getAttribute("name") == "bgAlpha")
+          .innerXml = getBgAlphaString(alpha: eleProvider.bgAlpha! * 255)!;
+    await Future.delayed(const Duration(seconds: 5), () {});
     await File("$themePath\\lockscreen\\advance\\manifest.xml")
         .writeAsString(lockscreen.toXmlString(pretty: true, indent: '\t'));
     setIsExporting = false;

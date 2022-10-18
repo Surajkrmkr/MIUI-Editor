@@ -38,15 +38,11 @@ Widget commonWidget(
           child: Transform.scale(
               scale: ele.scale!,
               child: Transform.rotate(
-                angle: -ele.angle! * pi / 180,
-                child: Container(
-                    width: MIUIConstants.screenWidth,
-                    alignment: ele.align,
-                    child: isIconType!
-                        ? Container(
-                            height: MIUIConstants.screenHeight,
-                            alignment: ele.align,
-                            child: child)
-                        : child),
-              ))));
+                  angle: -ele.angle! * pi / 180,
+                  child: Container(
+                      height: MIUIConstants.screenHeight,
+                      width: MIUIConstants.screenWidth,
+                      alignment: ele.align,
+                      child: MouseRegion(
+                          cursor: SystemMouseCursors.click, child: child))))));
 }

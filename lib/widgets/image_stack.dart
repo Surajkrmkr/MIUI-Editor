@@ -20,15 +20,16 @@ class ImageStack extends StatelessWidget {
         children: [
           Row(
             children: [
-              IconButton(
-                  onPressed: () {
-                    final provider =
-                        Provider.of<WallpaperProvider>(context, listen: false);
-                    if (provider.index != 0) {
-                      provider.setIndex(provider.index! - 1, context);
-                    }
-                  },
-                  icon: const Icon(Icons.navigate_before)),
+              if (!isLockscreen!)
+                IconButton(
+                    onPressed: () {
+                      final provider = Provider.of<WallpaperProvider>(context,
+                          listen: false);
+                      if (provider.index != 0) {
+                        provider.setIndex(provider.index! - 1, context);
+                      }
+                    },
+                    icon: const Icon(Icons.navigate_before)),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Container(
@@ -56,15 +57,16 @@ class ImageStack extends StatelessWidget {
                       : const ElementWidgetPreview(),
                 ),
               ),
-              IconButton(
-                  onPressed: () {
-                    final provider =
-                        Provider.of<WallpaperProvider>(context, listen: false);
-                    if (provider.index != 24) {
-                      provider.setIndex(provider.index! + 1, context);
-                    }
-                  },
-                  icon: const Icon(Icons.navigate_next)),
+              if (!isLockscreen!)
+                IconButton(
+                    onPressed: () {
+                      final provider = Provider.of<WallpaperProvider>(context,
+                          listen: false);
+                      if (provider.index != 24) {
+                        provider.setIndex(provider.index! + 1, context);
+                      }
+                    },
+                    icon: const Icon(Icons.navigate_next)),
             ],
           ),
           Text(

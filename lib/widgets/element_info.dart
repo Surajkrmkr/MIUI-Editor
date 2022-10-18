@@ -56,21 +56,24 @@ class ElementInfo extends StatelessWidget {
                   SwitchListTile(
                       value: ele.isShort!,
                       activeColor: Colors.pinkAccent,
-                      title: const Text("Make Short"),
+                      title: Text(
+                        "Make Short",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                       onChanged: (value) {
                         provider.updateElementIsShortInList(ele.type!, value);
                       }),
                 Column(
                   children: [
-                    const Text("Scale"),
+                    Text("Scale : ${ele.scale!.toStringAsFixed(2)}"),
                     Slider(
-                      label: "Scale : ${ele.scale!.toStringAsFixed(2)}",
                       value: ele.scale!,
                       onChanged: (val) {
                         provider.updateElementScaleInList(ele.type!, val);
                       },
                       min: 0,
                       max: 4,
+                      divisions: 4 ~/ 0.05,
                     ),
                   ],
                 ),
@@ -92,16 +95,37 @@ class ElementInfo extends StatelessWidget {
                 ),
                 Column(
                   children: [
-                    const Text("Angle"),
+                    Text("Angle : ${ele.angle!.toStringAsFixed(0)}"),
                     Slider(
-                      label: "Angle : ${ele.angle!.toStringAsFixed(2)}",
                       value: ele.angle!,
                       onChanged: (val) {
                         provider.updateElementAngleInList(ele.type!, val);
                       },
+                      divisions: 360 ~/ 10,
                       min: 0,
                       max: 360,
                     ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                            color: Colors.pinkAccent,
+                            onPressed: () {
+                              provider.updateElementPositionInList(
+                                  ele.type!, 0, 0);
+                            },
+                            icon: const Icon(Icons.restore)),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        IconButton(
+                            color: Colors.pinkAccent,
+                            onPressed: () {
+                              provider.removeElementFromList(ele.type!);
+                            },
+                            icon: const Icon(Icons.delete)),
+                      ],
+                    )
                   ],
                 ),
               ],
@@ -153,7 +177,7 @@ Widget elementList(context) {
         children: [
           Text(
             "Widget Lists",
-            style: Theme.of(context).textTheme.bodyLarge,
+            style: Theme.of(context).textTheme.bodyLarge!,
           ),
           const SizedBox(
             height: 20,

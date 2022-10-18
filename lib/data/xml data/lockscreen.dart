@@ -9,6 +9,7 @@ final lockscreenManifest = '''
 	    <Var expression="#screen_width" name="sw"/>
 	    <Var expression="#screen_height" name="sh"/>
 	    <Wallpaper/>
+      <Group name="bgAlpha"></Group>
       <Image name="bgLock" srcExp="'bg.png'" width="#sw" height="#sh"/>
       ${getGroupStrings()}
     <!--Don't COPY SURAJ's WORK-->
@@ -25,3 +26,8 @@ String? getGroupStrings() {
 }
 
 final lockscreenXml = XmlDocument.parse(lockscreenManifest);
+
+
+String? getBgAlphaString({double? alpha}){
+  return '<Rectangle width="#sw" alpha="$alpha" height="#sh" fillColor="#ff000000"/>';
+}

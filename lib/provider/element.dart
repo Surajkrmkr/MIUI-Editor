@@ -4,10 +4,16 @@ import '../data/element_map_dart.dart';
 
 class ElementProvider extends ChangeNotifier {
   List<ElementWidget> elementList = [];
+  double? bgAlpha = 0;
 
   ElementType? activeType;
   set setActiveType(ElementType? type) {
     activeType = type;
+    notifyListeners();
+  }
+
+  set setBgAlpha(double? alpha) {
+    bgAlpha = alpha;
     notifyListeners();
   }
 

@@ -133,5 +133,5 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
     "xml": swipeUpUnlockXml,
     "exportable": false,
     "isIconType" : false,
-  }
+  },
 };
