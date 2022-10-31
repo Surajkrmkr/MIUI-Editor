@@ -22,7 +22,6 @@ Widget commonWidget(
     {ElementType? type, ElementProvider? value, Widget? child}) {
   final ele = value!.getElementFromList(type!);
 
-  bool? isIconType = elementWidgetMap[type]!["isIconType"];
   return Positioned(
       left: ele.dx!,
       top: ele.dy!,

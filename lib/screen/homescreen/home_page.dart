@@ -32,7 +32,8 @@ class HomePage extends StatelessWidget {
             const SizedBox(
               width: 20,
             ),
-            getProgress(),const SizedBox(
+            getProgress(),
+            const SizedBox(
               width: 20,
             ),
             directoryCreatingLoading()
@@ -128,7 +129,7 @@ Widget getProgress() {
           width: 20,
         ),
         Text(
-          "${25 - provider.index!} left",
+          "${25 - provider.index! + 1} left",
           style: Theme.of(context).textTheme.bodyMedium,
         )
       ],

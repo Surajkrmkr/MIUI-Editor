@@ -62,6 +62,7 @@ class LockscreenProvider extends ChangeNotifier {
           .firstWhere(
               (element) => element.getAttribute("name") == widget.type!.name)
           .innerXml = elementXmlFromMap;
+      await Future.delayed(const Duration(seconds: 5), () {});
       if (elementFromMap["exportable"]) {
         await Directory(
                 "$themePath\\lockscreen\\advance\\${elementFromMap["png"]["path"]}")
@@ -77,7 +78,6 @@ class LockscreenProvider extends ChangeNotifier {
           .firstWhere(
               (element) => element.getAttribute("name") == "bgAlpha")
           .innerXml = getBgAlphaString(alpha: eleProvider.bgAlpha! * 255)!;
-    await Future.delayed(const Duration(seconds: 5), () {});
     await File("$themePath\\lockscreen\\advance\\manifest.xml")
         .writeAsString(lockscreen.toXmlString(pretty: true, indent: '\t'));
     setIsExporting = false;
