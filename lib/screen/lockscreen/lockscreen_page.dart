@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../data/element_map_dart.dart';
 import '../../provider/element.dart';
 import '../../provider/lockscreen.dart';
+import '../../provider/mtz.dart';
 import '../../widgets/accent_color_list.dart';
 import '../../widgets/bg_drop_zone.dart';
 import '../../widgets/element_info.dart';
@@ -56,6 +57,10 @@ class LockscreenPage extends StatelessWidget {
                         height: 10,
                       ),
                       ExportLockscreenBtn(),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      ExportMTZBtn()
                     ],
                   ),
                   const FontListWidget(),

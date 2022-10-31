@@ -129,7 +129,7 @@ Widget getProgress() {
           width: 20,
         ),
         Text(
-          "${25 - provider.index! + 1} left",
+          "${25 - provider.index! - 1} left",
           style: Theme.of(context).textTheme.bodyMedium,
         )
       ],

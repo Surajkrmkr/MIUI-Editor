@@ -72,6 +72,7 @@ class LockscreenProvider extends ChangeNotifier {
         });
       }
     }
+    await Future.delayed(const Duration(seconds: 5), () {});
     lockscreen
           .findAllElements("Group")
           .toList()

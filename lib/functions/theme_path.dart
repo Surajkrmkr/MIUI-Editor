@@ -16,11 +16,18 @@ class CurrentTheme {
     return themePath;
   }
 
+  static String? getCurrentThemeName(context) {
+    final provider = Provider.of<WallpaperProvider>(context, listen: false);
+    final themeName =
+        provider.paths![provider.index!].split("\\").last.split('.').first;
+    return themeName;
+  }
+
   static Future createWallpaperDirectory({String? themePath}) async {
     await Directory("$themePath\\wallpaper\\").create(recursive: true);
   }
 
-  static Future createLockscreenDirectory({String? themePath})async{
+  static Future createLockscreenDirectory({String? themePath}) async {
     await Directory("$themePath\\lockscreen\\advance").create(recursive: true);
   }
 }

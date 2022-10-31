@@ -9,6 +9,7 @@ import 'package:window_manager/window_manager.dart';
 import 'provider/directory.dart';
 import 'provider/element.dart';
 import 'provider/lockscreen.dart';
+import 'provider/mtz.dart';
 import 'screen/Landing_page.dart';
 
 void main() async {
@@ -60,6 +61,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (context) => LockscreenProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => MTZProvider(),
         ),
       ],
       child: MaterialApp(

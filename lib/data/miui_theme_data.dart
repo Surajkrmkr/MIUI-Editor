@@ -72,6 +72,14 @@ class MIUIThemeData {
     "com.android.systemui"
   ];
 
+  static List<String?> mtzModuleList = [
+    "com.android.contacts",
+    "com.android.mms",
+    "com.android.systemui",
+    "icons",
+    "lockscreen"
+  ];
+
   static List<String?> directoryList = [
     "\\wallpaper\\",
     "\\icons\\res\\drawable-xxhdpi\\",
