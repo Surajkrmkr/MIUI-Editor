@@ -20,14 +20,18 @@ String? getGroupStrings() {
   String? str = "";
 
   for (var ele in ElementType.values) {
-    str = '${str!}<Group name="${ele.name}"></Group>';
+    if (ele == ElementType.musicBg) {
+      str =
+          '${str!}<MusicControl name="music_control" align="center" alignV="center" autoShow="true" defAlbumCover="music/bg.png" enableLyric="true" updateLyricInterval="100"></MusicControl>';
+    } else {
+      str = '${str!}<Group name="${ele.name}"></Group>';
+    }
   }
   return str;
 }
 
 final lockscreenXml = XmlDocument.parse(lockscreenManifest);
 
-
-String? getBgAlphaString({double? alpha}){
+String? getBgAlphaString({double? alpha}) {
   return '<Rectangle width="#sw" alpha="$alpha" height="#sh" fillColor="#ff000000"/>';
 }

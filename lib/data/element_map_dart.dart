@@ -1,5 +1,7 @@
 import 'package:miui_icon_generator/data/unlock/unlock.dart';
 
+import 'music/music.dart';
+import 'xml data/music/music.dart';
 import 'xml data/shortcuts/icons.dart';
 import 'xml data/swipe_up_unlock.dart';
 import 'xml data/clock/date_time_clock.dart';
@@ -16,6 +18,9 @@ enum ElementType {
   monthClock,
   dateClock,
   weatherIconClock,
+  musicBg,
+  musicNext,
+  musicPrev,
   cameraIcon,
   themeIcon,
   settingIcon,
@@ -29,27 +34,23 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
     "xml": hourClockXml,
     "exportable": true,
     "png": {"export": exportHourPng, "path": "hour"},
-    "isIconType" : false,
   },
   ElementType.minClock: {
     "widget": const MinClock(num: 36),
     "xml": minClockXml,
     "exportable": true,
     "png": {"export": exportMinPng, "path": "min"},
-    "isIconType" : false,
   },
   ElementType.dotClock: {
     "widget": const DotClock(),
     "exportable": true,
     "xml": dotClockXml,
     "png": {"export": exportDotPng, "path": "dot"},
-    "isIconType" : false,
   },
   ElementType.textLineClock: {
     "widget": const TextLineClock(text: '8 feb, Tue'),
     "exportable": false,
     "xml": textLineClockXml,
-    "isIconType" : false,
   },
   ElementType.weekClock: {
     "widget": const WeekClock(
@@ -58,7 +59,6 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
     "exportable": true,
     "xml": weekClockXml,
     "png": {"export": exportWeekPng, "path": "week"},
-    "isIconType" : false,
   },
   ElementType.monthClock: {
     "widget": const MonthClock(
@@ -67,7 +67,6 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
     "exportable": true,
     "xml": monthClockXml,
     "png": {"export": exportMonthPng, "path": "month"},
-    "isIconType" : false,
   },
   ElementType.dateClock: {
     "widget": const DateClock(
@@ -76,7 +75,6 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
     "exportable": true,
     "xml": dateClockXml,
     "png": {"export": exportDatePng, "path": "date"},
-    "isIconType" : false,
   },
   ElementType.weatherIconClock: {
     "widget": const WeatherIconClock(
@@ -85,7 +83,6 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
     "exportable": true,
     "xml": weatherIconClockXml,
     "png": {"export": exportWeatherIconPng, "path": "weather"},
-    "isIconType" : false,
   },
   ElementType.amPmClock: {
     "widget": const AmPmClock(
@@ -94,44 +91,59 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
     "exportable": true,
     "xml": amClockXml,
     "png": {"export": exportAmPmPng, "path": "ampm"},
-    "isIconType" : false,
+  },
+  ElementType.musicBg: {
+    "widget": const MusicBG(),
+    "exportable": false,
+    "xml": musicBgXml,
+    "isMusic": true,
+    "path": "music\\bg"
+  },
+  ElementType.musicNext: {
+    "widget": const MusicNext(),
+    "exportable": false,
+    "xml": musicNextXml,
+    "isMusic": true,
+    "path": "music\\next"
+  },
+  ElementType.musicPrev: {
+    "widget": const MusicPrev(),
+    "exportable": false,
+    "xml": musicPrevXml,
+    "isMusic": true,
+    "path": "music\\prev"
   },
   ElementType.cameraIcon: {
-    "widget": const CameraIcon(
-    ),
+    "widget": const CameraIcon(),
     "exportable": false,
     "xml": cameraIconXml,
-    "isIconType" : true,
-    "path" : "icon\\camera"
+    "isIconType": true,
+    "path": "icon\\camera"
   },
   ElementType.themeIcon: {
-    "widget": const ThemeIcon(
-    ),
+    "widget": const ThemeIcon(),
     "exportable": false,
     "xml": themeIconXml,
-    "isIconType" : true,
-    "path" : "icon\\theme"
+    "isIconType": true,
+    "path": "icon\\theme"
   },
   ElementType.settingIcon: {
-    "widget": const SettingIcon(
-    ),
+    "widget": const SettingIcon(),
     "exportable": false,
     "xml": settingIconXml,
-    "isIconType" : true,
-    "path" : "icon\\setting"
+    "isIconType": true,
+    "path": "icon\\setting"
   },
   ElementType.galleryIcon: {
-    "widget": const GalleryIcon(
-    ),
+    "widget": const GalleryIcon(),
     "exportable": false,
     "xml": galleryIconXml,
-    "isIconType" : true,
-    "path" : "icon\\gallery"
+    "isIconType": true,
+    "path": "icon\\gallery"
   },
   ElementType.swipeUpUnlock: {
     "widget": const SwipeUpUnlock(),
     "xml": swipeUpUnlockXml,
     "exportable": false,
-    "isIconType" : false,
   },
 };

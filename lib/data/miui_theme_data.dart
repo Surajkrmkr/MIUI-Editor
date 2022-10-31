@@ -87,7 +87,8 @@ class MIUIThemeData {
     "\\com.android.contacts\\res\\drawable-xxhdpi\\",
     "\\com.android.mms\\res\\drawable-xxhdpi\\",
     "\\com.android.systemui\\res\\drawable-xxhdpi\\",
-    "\\lockscreen\\advance\\icon"
+    "\\lockscreen\\advance\\icon\\",
+    "\\lockscreen\\advance\\music\\"
   ];
 
   static List<String?> lockscreenPngList = [
@@ -96,6 +97,9 @@ class MIUIThemeData {
     "\\icon\\gallery",
     "\\icon\\setting",
     "\\icon\\theme",
+    "\\music\\bg",
+    "\\music\\next",
+    "\\music\\prev"
   ];
 
   static List<String?> contactsPngs = [

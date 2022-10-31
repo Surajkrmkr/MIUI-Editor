@@ -51,17 +51,33 @@ class LockscreenProvider extends ChangeNotifier {
       // } else {
       //   elementXmlFromMap = elementFromMap!["xml"]!;
       // }
-      if (elementFromMap!["isIconType"]) {
+      if (elementFromMap!["isIconType"] ?? false) {
         elementXmlFromMap = elementFromMap["xml"]!(ele: widget);
+      } else if (elementFromMap["isMusic"] ?? false) {
+        elementXmlFromMap = elementFromMap["xml"]!(ele: widget);
+        final previousText = lockscreen
+            .findAllElements("MusicControl")
+            .toList()
+            .firstWhere(
+                (element) => element.getAttribute("name") == "music_control")
+            .innerXml;
+        lockscreen
+            .findAllElements("MusicControl")
+            .toList()
+            .firstWhere(
+                (element) => element.getAttribute("name") == "music_control")
+            .innerXml = previousText + elementXmlFromMap;
       } else {
         elementXmlFromMap = elementFromMap["xml"]!;
       }
-      lockscreen
-          .findAllElements("Group")
-          .toList()
-          .firstWhere(
-              (element) => element.getAttribute("name") == widget.type!.name)
-          .innerXml = elementXmlFromMap;
+      if (!(elementFromMap["isMusic"] ?? false)) {
+        lockscreen
+            .findAllElements("Group")
+            .toList()
+            .firstWhere(
+                (element) => element.getAttribute("name") == widget.type!.name)
+            .innerXml = elementXmlFromMap;
+      }
       await Future.delayed(const Duration(seconds: 5), () {});
       if (elementFromMap["exportable"]) {
         await Directory(
@@ -72,13 +88,11 @@ class LockscreenProvider extends ChangeNotifier {
         });
       }
     }
-    await Future.delayed(const Duration(seconds: 5), () {});
     lockscreen
-          .findAllElements("Group")
-          .toList()
-          .firstWhere(
-              (element) => element.getAttribute("name") == "bgAlpha")
-          .innerXml = getBgAlphaString(alpha: eleProvider.bgAlpha! * 255)!;
+        .findAllElements("Group")
+        .toList()
+        .firstWhere((element) => element.getAttribute("name") == "bgAlpha")
+        .innerXml = getBgAlphaString(alpha: eleProvider.bgAlpha! * 255)!;
     await File("$themePath\\lockscreen\\advance\\manifest.xml")
         .writeAsString(lockscreen.toXmlString(pretty: true, indent: '\t'));
     setIsExporting = false;

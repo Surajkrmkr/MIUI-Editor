@@ -21,7 +21,8 @@ class ElementInfo extends StatelessWidget {
           final ElementWidget ele =
               provider.getElementFromList(provider.activeType!);
           final isIconType =
-              elementWidgetMap[provider.activeType]!["isIconType"];
+              (elementWidgetMap[provider.activeType]!["isIconType"] ?? false) ||
+                  (elementWidgetMap[provider.activeType]!["isMusic"] ?? false);
           return SizedBox(
             width: 300,
             child: Column(
@@ -223,7 +224,7 @@ void addToList({int? i, BuildContext? context}) {
       type: eleType,
       name: eleType.name,
       child: elementWidgetFromMap!["widget"]);
-  final isIconType = elementWidgetFromMap["isIconType"];
+  final isIconType = elementWidgetFromMap["isIconType"] ?? false;
   if (isIconType) {
     ele.path = elementWidgetFromMap["path"];
   }
