@@ -24,7 +24,7 @@ class WallpaperProvider extends ChangeNotifier {
     index = n;
     fetchColorPalette(context);
     Provider.of<DirectoryProvider>(context, listen: false)
-          .createThemeDirectory(context: context);
+        .createThemeDirectory(context: context);
     notifyListeners();
   }
 
@@ -38,6 +38,7 @@ class WallpaperProvider extends ChangeNotifier {
 
   void setTotalImage(String num, String week, context) async {
     setIsLoading = true;
+    paths!.clear();
     final dir = Directory('${MIUIConstants.preLock}$num');
     folderNum = num;
     weekNum = week;
@@ -49,7 +50,7 @@ class WallpaperProvider extends ChangeNotifier {
     setIsLoading = false;
     fetchColorPalette(context);
     Provider.of<DirectoryProvider>(context, listen: false)
-          .createThemeDirectory(context: context);
+        .createThemeDirectory(context: context);
     notifyListeners();
   }
 

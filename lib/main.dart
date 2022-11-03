@@ -100,12 +100,17 @@ class MyApp extends StatelessWidget {
             sliderTheme: const SliderThemeData(
               showValueIndicator: ShowValueIndicator.always,
             ),
+            radioTheme: RadioThemeData(
+              fillColor: MaterialStateProperty.all(Colors.pinkAccent),
+            ),
             listTileTheme: ListTileThemeData(
               selectedColor: Colors.white,
               selectedTileColor: Colors.pinkAccent,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15)),
             ),
+            scrollbarTheme: ScrollbarThemeData(
+                thumbColor: MaterialStateProperty.all(Colors.pinkAccent)),
             chipTheme: ChipThemeData(
                 checkmarkColor: Colors.white,
                 shape: RoundedRectangleBorder(

@@ -140,19 +140,8 @@ Widget getProgress() {
 Widget directoryCreatingLoading() {
   return Consumer<DirectoryProvider>(builder: (context, provider, _) {
     if (provider.isCreating!) {
-      return Row(
-        children: [
-          const SizedBox(
-              width: 30, height: 30, child: CircularProgressIndicator()),
-          const SizedBox(
-            width: 20,
-          ),
-          Text(
-            "Creating Directory",
-            style: Theme.of(context).textTheme.bodyMedium,
-          )
-        ],
-      );
+      return const SizedBox(
+          width: 30, height: 30, child: CircularProgressIndicator());
     }
     return Container();
   });
