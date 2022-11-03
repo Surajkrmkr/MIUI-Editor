@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../data/miui_theme_data.dart';
 import '../functions/theme_path.dart';
+import '../widgets/banner.dart';
 
 class MTZProvider extends ChangeNotifier {
   bool? isExporting = true;
@@ -33,23 +34,15 @@ class MTZProvider extends ChangeNotifier {
             await compressModule(themePath, path!.replaceAll('\\', ''));
         await encoder.addFile(File(zipPath!));
       }
-      ScaffoldMessenger.of(context!).showMaterialBanner(
-          MaterialBanner(content: Text("$themeName.mtz exported"), actions: [
-        TextButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
-            },
-            child: const Text("Okay"))
-      ]));
+      MIUIBanners.getBanner(
+          content: "$themeName.mtz exported",
+          context: context,
+          hasError: false);
     } catch (e) {
-      ScaffoldMessenger.of(context!).showMaterialBanner(
-          MaterialBanner(content: Text(e.toString()), actions: [
-        TextButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
-            },
-            child: const Text("Okay"))
-      ]));
+      MIUIBanners.getBanner(
+          content: e.toString(),
+          context: context,
+          hasError: true);
     } finally {
       encoder.close();
       setIsExporting = false;
@@ -71,7 +64,6 @@ class MTZProvider extends ChangeNotifier {
     return zipPath;
   }
 }
-
 
 class ExportMTZBtn extends StatelessWidget {
   const ExportMTZBtn({super.key});

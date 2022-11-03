@@ -28,7 +28,7 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: Row(
           children: [
-            const Text("Theme Generator"),
+            const SizedBox(width: 220, child: Text("Theme Generator")),
             const SizedBox(
               width: 20,
             ),
@@ -120,7 +120,7 @@ Widget getProgress() {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
-              value: provider.index! / 25,
+              value: (provider.index!) / 24,
               backgroundColor: Colors.black12,
             ),
           ),
@@ -129,7 +129,7 @@ Widget getProgress() {
           width: 20,
         ),
         Text(
-          "${25 - provider.index! - 1} left",
+          provider.index == 24 ? "" : "${25 - provider.index! - 1} left",
           style: Theme.of(context).textTheme.bodyMedium,
         )
       ],

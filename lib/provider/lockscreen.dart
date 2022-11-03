@@ -42,6 +42,7 @@ class LockscreenProvider extends ChangeNotifier {
     final themePath = CurrentTheme.getPath(context);
     final eleProvider = Provider.of<ElementProvider>(context!, listen: false);
     final elementList = eleProvider.elementList;
+    await Future.delayed(const Duration(seconds: 2), () {});
     for (ElementWidget widget in elementList) {
       final elementFromMap = elementWidgetMap[widget.type];
       dynamic elementXmlFromMap;
@@ -78,7 +79,7 @@ class LockscreenProvider extends ChangeNotifier {
                 (element) => element.getAttribute("name") == widget.type!.name)
             .innerXml = elementXmlFromMap;
       }
-      await Future.delayed(const Duration(seconds: 5), () {});
+
       if (elementFromMap["exportable"]) {
         await Directory(
                 "$themePath\\lockscreen\\advance\\${elementFromMap["png"]["path"]}")
@@ -88,6 +89,7 @@ class LockscreenProvider extends ChangeNotifier {
         });
       }
     }
+    await Future.delayed(const Duration(seconds: 10), () {});
     lockscreen
         .findAllElements("Group")
         .toList()

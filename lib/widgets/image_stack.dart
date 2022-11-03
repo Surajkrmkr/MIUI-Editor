@@ -20,14 +20,16 @@ class ImageStack extends StatelessWidget {
         children: [
           Row(
             children: [
-              if (!isLockscreen!)
+              if (!(provider.index != 0))
+                const SizedBox(
+                  width: 40,
+                ),
+              if (!isLockscreen! && provider.index != 0)
                 IconButton(
                     onPressed: () {
                       final provider = Provider.of<WallpaperProvider>(context,
                           listen: false);
-                      if (provider.index != 0) {
-                        provider.setIndex(provider.index! - 1, context);
-                      }
+                      provider.setIndex(provider.index! - 1, context);
                     },
                     icon: const Icon(Icons.navigate_before)),
               Padding(
@@ -57,16 +59,18 @@ class ImageStack extends StatelessWidget {
                       : const ElementWidgetPreview(),
                 ),
               ),
-              if (!isLockscreen!)
+              if (!isLockscreen! && (provider.index != 24))
                 IconButton(
                     onPressed: () {
                       final provider = Provider.of<WallpaperProvider>(context,
                           listen: false);
-                      if (provider.index != 24) {
-                        provider.setIndex(provider.index! + 1, context);
-                      }
+                      provider.setIndex(provider.index! + 1, context);
                     },
                     icon: const Icon(Icons.navigate_next)),
+              if (!(provider.index != 24))
+                const SizedBox(
+                  width: 40,
+                )
             ],
           ),
           Text(

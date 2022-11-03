@@ -24,7 +24,7 @@ class LockscreenPage extends StatelessWidget {
       appBar: AppBar(
         title: Row(
           children: [
-            const Text("Lockscreen"),
+            const SizedBox(width: 220, child: Text("Lockscreen")),
             const SizedBox(
               width: 20,
             ),
