@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.miui_icon_generator">
+    package="com.suraj.miui_icon_generator">
    <application
-        android:label="miui_icon_generator"
+        android:label="MIUI Theme Creator"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

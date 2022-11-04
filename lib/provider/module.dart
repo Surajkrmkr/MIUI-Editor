@@ -56,6 +56,9 @@ class ModuleProvider extends ChangeNotifier {
         .copy("$themePath\\wallpaper\\default_lock_wallpaper.jpg");
     await File(wallpaperProvider.paths![wallpaperProvider.index!])
         .copy("$themePath\\wallpaper\\default_wallpaper.jpg");
+    await File("$themePath\\clock_2x4\\manifest.xml").writeAsString(
+        XmlDocument.parse(ThemeDesc.clockManifest()!)
+            .toXmlString(pretty: true, indent: '\t'));
     final desc = XmlDocument.parse(ThemeDesc.getXmlString()!
         .replaceAll("Test", themePath!.split("\\").reversed.toList()[1]));
     await File("$themePath\\description.xml")

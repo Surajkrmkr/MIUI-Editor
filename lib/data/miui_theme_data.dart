@@ -69,7 +69,7 @@ class MIUIThemeData {
   static List<String?> moduleList = [
     "com.android.contacts",
     "com.android.mms",
-    "com.android.systemui"
+    "com.android.systemui",
   ];
 
   static List<String?> mtzModuleList = [
@@ -77,6 +77,7 @@ class MIUIThemeData {
     "com.android.mms",
     "com.android.systemui",
     "icons",
+    "clock_2x4",
     "lockscreen"
   ];
 
@@ -87,6 +88,7 @@ class MIUIThemeData {
     "\\com.android.contacts\\res\\drawable-xxhdpi\\",
     "\\com.android.mms\\res\\drawable-xxhdpi\\",
     "\\com.android.systemui\\res\\drawable-xxhdpi\\",
+    "\\clock_2x4\\",
     "\\lockscreen\\advance\\icon\\",
     "\\lockscreen\\advance\\music\\"
   ];
