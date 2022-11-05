@@ -19,19 +19,19 @@ Widget getBGStack({required Widget child}) {
 }
 
 Widget commonWidget(
-    {ElementType? type, ElementProvider? value, Widget? child}) {
-  final ele = value!.getElementFromList(type!);
+    {String? id, ElementProvider? value, Widget? child}) {
+  final ele = value!.getElementFromList(id!);
 
   return Positioned(
       left: ele.dx!,
       top: ele.dy!,
       child: GestureDetector(
           onTap: () {
-            value.setActiveType = ele.type!;
+            value.setActiveWidget = ele.id!;
           },
           onPanUpdate: ((details) {
-            value.setActiveType = ele.type!;
-            value.updateElementPositionInList(ele.type!,
+            value.setActiveWidget = ele.id!;
+            value.updateElementPositionInList(ele.id!,
                 ele.dx! + details.delta.dx, ele.dy! + details.delta.dy);
           }),
           child: Transform.scale(

@@ -10,10 +10,11 @@ import '../bg_stack.dart';
 import '../element_map_dart.dart';
 
 class MusicBG extends StatelessWidget {
-  const MusicBG({super.key});
-
-  static Widget getChild({ElementProvider? value, String? themePath}) {
-    final ele = value!.getElementFromList(ElementType.musicBg);
+  const MusicBG({super.key, required this.id});
+  final String? id;
+  static Widget getChild(
+      {String? id, ElementProvider? value, String? themePath}) {
+    final ele = value!.getElementFromList(id!);
     return commonWidget(
         child: Image.memory(
           File("${themePath}lockscreen\\advance\\music\\bg.png")
@@ -22,7 +23,7 @@ class MusicBG extends StatelessWidget {
           height: ele.height! / MIUIConstants.ratio,
           width: ele.width! / MIUIConstants.ratio,
         ),
-        type: ElementType.musicBg,
+        id: id,
         value: value);
   }
 
@@ -30,16 +31,17 @@ class MusicBG extends StatelessWidget {
   Widget build(BuildContext context) {
     final themePath = CurrentTheme.getPath(context);
     return Consumer<ElementProvider>(builder: (context, value, _) {
-      return getChild(value: value, themePath: themePath);
+      return getChild(id:id,value: value, themePath: themePath);
     });
   }
 }
 
 class MusicNext extends StatelessWidget {
-  const MusicNext({super.key});
-
-  static Widget getChild({ElementProvider? value, String? themePath}) {
-    final ele = value!.getElementFromList(ElementType.musicNext);
+  const MusicNext({super.key, required this.id});
+  final String? id;
+  static Widget getChild(
+      {String? id, ElementProvider? value, String? themePath}) {
+    final ele = value!.getElementFromList(id!);
     return commonWidget(
         child: Image.memory(
           File("${themePath}lockscreen\\advance\\music\\next.png")
@@ -48,7 +50,7 @@ class MusicNext extends StatelessWidget {
           height: ele.height! / MIUIConstants.ratio,
           width: ele.width! / MIUIConstants.ratio,
         ),
-        type: ElementType.musicNext,
+        id: id,
         value: value);
   }
 
@@ -56,16 +58,17 @@ class MusicNext extends StatelessWidget {
   Widget build(BuildContext context) {
     final themePath = CurrentTheme.getPath(context);
     return Consumer<ElementProvider>(builder: (context, value, _) {
-      return getChild(value: value, themePath: themePath);
+      return getChild(id:id,value: value, themePath: themePath);
     });
   }
 }
 
 class MusicPrev extends StatelessWidget {
-  const MusicPrev({super.key});
-
-  static Widget getChild({ElementProvider? value, String? themePath}) {
-    final ele = value!.getElementFromList(ElementType.musicPrev);
+  const MusicPrev({super.key, required this.id});
+  final String? id;
+  static Widget getChild(
+      {String? id, ElementProvider? value, String? themePath}) {
+    final ele = value!.getElementFromList(id!);
     return commonWidget(
         child: Image.memory(
           File("${themePath}lockscreen\\advance\\music\\prev.png")
@@ -74,7 +77,7 @@ class MusicPrev extends StatelessWidget {
           height: ele.height! / MIUIConstants.ratio,
           width: ele.width! / MIUIConstants.ratio,
         ),
-        type: ElementType.musicPrev,
+        id: id,
         value: value);
   }
 
@@ -82,7 +85,7 @@ class MusicPrev extends StatelessWidget {
   Widget build(BuildContext context) {
     final themePath = CurrentTheme.getPath(context);
     return Consumer<ElementProvider>(builder: (context, value, _) {
-      return getChild(value: value, themePath: themePath);
+      return getChild(id:id,value: value, themePath: themePath);
     });
   }
 }

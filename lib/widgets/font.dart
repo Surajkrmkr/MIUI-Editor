@@ -36,7 +36,7 @@ class FontListWidget extends StatelessWidget {
                               listen: true);
                           final font = provider.fonts[i];
                           final bool isSelected = eleProvider
-                                  .getElementFromList(eleProvider.activeType!)
+                                  .getElementFromList(eleProvider.activeId!)
                                   .font ==
                               font.dynamicCachedFonts!.fontFamily;
                           return ListTile(
@@ -58,9 +58,11 @@ class FontListWidget extends StatelessWidget {
                               final eleProvider = Provider.of<ElementProvider>(
                                   context,
                                   listen: false);
+                              final String? id = eleProvider
+                                  .getElementFromList(eleProvider.activeId!)
+                                  .id;
                               eleProvider.updateElementFontInList(
-                                  eleProvider.activeType!,
-                                  font.dynamicCachedFonts!.fontFamily);
+                                  id!, font.dynamicCachedFonts!.fontFamily);
                             },
                           );
                         }),
@@ -74,4 +76,3 @@ class FontListWidget extends StatelessWidget {
     });
   }
 }
-

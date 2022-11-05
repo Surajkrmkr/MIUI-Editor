@@ -11,224 +11,234 @@ import '../element_map_dart.dart';
 import '../miui_theme_data.dart';
 
 class HourClock extends StatelessWidget {
-  const HourClock({super.key, required this.num});
+  const HourClock({super.key, required this.num, required this.id});
   final int? num;
+  final String? id;
 
-  static Widget getChild({int? num, ElementProvider? value}) {
-    final ele = value!.getElementFromList(ElementType.hourClock);
+  static Widget getChild({String? id, int? num, ElementProvider? value}) {
+    final ele = value!.getElementFromList(id!);
     return commonWidget(
         child: Text(
           num.toString().padLeft(2, '0'),
           style: TextStyle(
               fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
         ),
-        type: ElementType.hourClock,
+        id: id,
         value: value);
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ElementProvider>(builder: (context, value, _) {
-      return getChild(num: num, value: value);
+      return getChild(id: id, num: num, value: value);
     });
   }
 }
 
 class MinClock extends StatelessWidget {
-  const MinClock({super.key, required this.num});
+  const MinClock({super.key, required this.num, required this.id});
   final int? num;
+  final String? id;
 
-  static Widget getChild({int? num, ElementProvider? value}) {
-    final ele = value!.getElementFromList(ElementType.minClock);
+  static Widget getChild({String? id, int? num, ElementProvider? value}) {
+    final ele = value!.getElementFromList(id!);
     return commonWidget(
         child: Text(
           num.toString().padLeft(2, '0'),
           style: TextStyle(
               fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
         ),
-        type: ElementType.minClock,
+        id: id,
         value: value);
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ElementProvider>(builder: (context, value, _) {
-      return getChild(num: num, value: value);
+      return getChild(id: id, num: num, value: value);
     });
   }
 }
 
 class DotClock extends StatelessWidget {
-  const DotClock({super.key});
-
-  static Widget getChild({ElementProvider? value}) {
-    final ele = value!.getElementFromList(ElementType.dotClock);
+  const DotClock({super.key, required this.id});
+  final String? id;
+  static Widget getChild({String? id, ElementProvider? value}) {
+    final ele = value!.getElementFromList(id!);
     return commonWidget(
         child: Text(
           ":",
           style: TextStyle(
               fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
         ),
-        type: ElementType.dotClock,
+        id: id,
         value: value);
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ElementProvider>(builder: (context, value, _) {
-      return getChild(value: value);
+      return getChild(id: id, value: value);
     });
   }
 }
 
 class TextLineClock extends StatelessWidget {
-  const TextLineClock({super.key, this.text});
+  const TextLineClock({super.key, this.text, required this.id});
   final String? text;
-  static Widget getChild({ElementProvider? value, String? text}) {
-    final ele = value!.getElementFromList(ElementType.textLineClock);
+  final String? id;
+  static Widget getChild({String? id, ElementProvider? value, String? text}) {
+    final ele = value!.getElementFromList(id!);
     return commonWidget(
         child: Text(
           text!,
           style: TextStyle(
               fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
         ),
-        type: ElementType.textLineClock,
+        id: id,
         value: value);
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ElementProvider>(builder: (context, value, _) {
-      return getChild(value: value, text: text);
+      return getChild(id: id, value: value, text: text);
     });
   }
 }
 
 class WeekClock extends StatelessWidget {
-  const WeekClock({super.key, required this.num});
+  const WeekClock({super.key, required this.num, required this.id});
   final int? num;
-
-  static Widget getChild({int? num, ElementProvider? value}) {
-    final ele = value!.getElementFromList(ElementType.weekClock);
+  final String? id;
+  static Widget getChild({String? id, int? num, ElementProvider? value}) {
+    final ele = value!.getElementFromList(id!);
     return commonWidget(
         child: Text(
-          ele.isShort! ?MIUIThemeData.weekNames[num!]!.substring(0,3):   MIUIThemeData.weekNames[num!]!,
+          ele.isShort!
+              ? MIUIThemeData.weekNames[num!]!.substring(0, 3)
+              : MIUIThemeData.weekNames[num!]!,
           style: TextStyle(
               fontFamily: ele.font, fontSize: 30, height: 1, color: ele.color),
         ),
-        type: ElementType.weekClock,
+        id: id,
         value: value);
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ElementProvider>(builder: (context, value, _) {
-      return getChild(num: num, value: value);
+      return getChild(id: id, num: num, value: value);
     });
   }
 }
 
 class MonthClock extends StatelessWidget {
-  const MonthClock({super.key, required this.num});
+  const MonthClock({super.key, required this.num, required this.id});
   final int? num;
+  final String? id;
 
-  static Widget getChild({int? num, ElementProvider? value}) {
-    final ele = value!.getElementFromList(ElementType.monthClock);
+  static Widget getChild({String? id, int? num, ElementProvider? value}) {
+    final ele = value!.getElementFromList(id!);
     return commonWidget(
         child: Text(
-          ele.isShort! ? MIUIThemeData.monthNames[num! - 1]!.substring(0,3) : MIUIThemeData.monthNames[num! - 1]!,
+          ele.isShort!
+              ? MIUIThemeData.monthNames[num! - 1]!.substring(0, 3)
+              : MIUIThemeData.monthNames[num! - 1]!,
           style: TextStyle(
               fontFamily: ele.font, fontSize: 30, height: 1, color: ele.color),
         ),
-        type: ElementType.monthClock,
+        id: id,
         value: value);
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ElementProvider>(builder: (context, value, _) {
-      return getChild(num: num, value: value);
+      return getChild(id: id, num: num, value: value);
     });
   }
 }
 
 class DateClock extends StatelessWidget {
-  const DateClock({super.key, required this.num});
+  const DateClock({super.key, required this.num, required this.id});
   final int? num;
-
-  static Widget getChild({int? num, ElementProvider? value}) {
-    final ele = value!.getElementFromList(ElementType.dateClock);
+  final String? id;
+  static Widget getChild({String? id, int? num, ElementProvider? value}) {
+    final ele = value!.getElementFromList(id!);
     return commonWidget(
         child: Text(
           num.toString().padLeft(2, '0'),
           style: TextStyle(
               fontFamily: ele.font, fontSize: 30, height: 1, color: ele.color),
         ),
-        type: ElementType.dateClock,
+        id: id,
         value: value);
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ElementProvider>(builder: (context, value, _) {
-      return getChild(num: num, value: value);
+      return getChild(id: id, num: num, value: value);
     });
   }
 }
 
 class AmPmClock extends StatelessWidget {
-  const AmPmClock({super.key, required this.isAm});
+  const AmPmClock({super.key, required this.isAm, required this.id});
   final bool? isAm;
+  final String? id;
 
-  static Widget getChild({bool? isAm, ElementProvider? value}) {
-    final ele = value!.getElementFromList(ElementType.amPmClock);
+  static Widget getChild({String? id, bool? isAm, ElementProvider? value}) {
+    final ele = value!.getElementFromList(id!);
     return commonWidget(
         child: Text(
           isAm! ? 'AM' : 'PM',
           style: TextStyle(
               fontFamily: ele.font, fontSize: 30, height: 1, color: ele.color),
         ),
-        type: ElementType.amPmClock,
+        id: id,
         value: value);
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ElementProvider>(builder: (context, value, _) {
-      return getChild(isAm: isAm, value: value);
+      return getChild(id: id, isAm: isAm, value: value);
     });
   }
 }
 
 class WeatherIconClock extends StatelessWidget {
-  const WeatherIconClock({super.key, required this.num});
+  const WeatherIconClock({super.key, required this.num, required this.id});
   final int? num;
+  final String? id;
 
-  static Widget getChild({int? num, ElementProvider? value}) {
+  static Widget getChild({String? id, int? num, ElementProvider? value}) {
     return commonWidget(
         child: Image.asset(
           "assets/lockscreen/weatherIcon/weather_$num.png",
           height: 40,
         ),
-        type: ElementType.weatherIconClock,
+        id: id,
         value: value);
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ElementProvider>(builder: (context, value, _) {
-      return getChild(num: num, value: value);
+      return getChild(id: id, num: num, value: value);
     });
   }
 }
 
-Future exportHourPng(BuildContext context) async {
+Future exportHourPng(BuildContext context, String id) async {
   final value = Provider.of<ElementProvider>(context, listen: false);
   final themePath = CurrentTheme.getPath(context);
   for (int i = 0; i <= 12; i++) {
     ScreenshotController()
         .captureFromWidget(
-            getBGStack(child: HourClock.getChild(num: i, value: value)),
+            getBGStack(child: HourClock.getChild(id: id, num: i, value: value)),
             context: context,
             pixelRatio: 3)
         .then((value) async {
@@ -239,13 +249,13 @@ Future exportHourPng(BuildContext context) async {
   }
 }
 
-Future exportMinPng(BuildContext context) async {
+Future exportMinPng(BuildContext context, String id) async {
   final value = Provider.of<ElementProvider>(context, listen: false);
   final themePath = CurrentTheme.getPath(context);
   for (int i = 0; i <= 59; i++) {
     ScreenshotController()
         .captureFromWidget(
-            getBGStack(child: MinClock.getChild(num: i, value: value)),
+            getBGStack(child: MinClock.getChild(id: id, num: i, value: value)),
             context: context,
             pixelRatio: 3)
         .then((value) async {
@@ -256,26 +266,28 @@ Future exportMinPng(BuildContext context) async {
   }
 }
 
-Future exportDotPng(BuildContext context) async {
+Future exportDotPng(BuildContext context, String id) async {
   final value = Provider.of<ElementProvider>(context, listen: false);
   final themePath = CurrentTheme.getPath(context);
 
   ScreenshotController()
-      .captureFromWidget(getBGStack(child: DotClock.getChild(value: value)),
-          context: context, pixelRatio: 3)
+      .captureFromWidget(
+          getBGStack(child: DotClock.getChild(value: value, id: id)),
+          context: context,
+          pixelRatio: 3)
       .then((value) async {
     final imagePath = File('$themePath\\lockscreen\\advance\\dot\\dot.png');
     await imagePath.writeAsBytes(value);
   });
 }
 
-Future exportWeekPng(BuildContext context) async {
+Future exportWeekPng(BuildContext context, String id) async {
   final value = Provider.of<ElementProvider>(context, listen: false);
   final themePath = CurrentTheme.getPath(context);
   for (int i = 0; i <= 6; i++) {
     ScreenshotController()
         .captureFromWidget(
-            getBGStack(child: WeekClock.getChild(num: i, value: value)),
+            getBGStack(child: WeekClock.getChild(num: i, value: value, id: id)),
             context: context,
             pixelRatio: 3)
         .then((value) async {
@@ -286,13 +298,14 @@ Future exportWeekPng(BuildContext context) async {
   }
 }
 
-Future exportMonthPng(BuildContext context) async {
+Future exportMonthPng(BuildContext context, String id) async {
   final value = Provider.of<ElementProvider>(context, listen: false);
   final themePath = CurrentTheme.getPath(context);
   for (int i = 1; i <= 12; i++) {
     ScreenshotController()
         .captureFromWidget(
-            getBGStack(child: MonthClock.getChild(num: i, value: value)),
+            getBGStack(
+                child: MonthClock.getChild(num: i, value: value, id: id)),
             context: context,
             pixelRatio: 3)
         .then((value) async {
@@ -303,13 +316,13 @@ Future exportMonthPng(BuildContext context) async {
   }
 }
 
-Future exportDatePng(BuildContext context) async {
+Future exportDatePng(BuildContext context, String id) async {
   final value = Provider.of<ElementProvider>(context, listen: false);
   final themePath = CurrentTheme.getPath(context);
   for (int i = 1; i <= 31; i++) {
     ScreenshotController()
         .captureFromWidget(
-            getBGStack(child: DateClock.getChild(num: i, value: value)),
+            getBGStack(child: DateClock.getChild(num: i, value: value, id: id)),
             context: context,
             pixelRatio: 3)
         .then((value) async {
@@ -320,7 +333,7 @@ Future exportDatePng(BuildContext context) async {
   }
 }
 
-Future exportWeatherIconPng(BuildContext context) async {
+Future exportWeatherIconPng(BuildContext context, String id) async {
   final value = Provider.of<ElementProvider>(context, listen: false);
   final themePath = CurrentTheme.getPath(context);
   for (int i = 0; i < MIUIThemeData.weatherPngs.length; i++) {
@@ -328,7 +341,7 @@ Future exportWeatherIconPng(BuildContext context) async {
         .captureFromWidget(
             getBGStack(
                 child: WeatherIconClock.getChild(
-                    num: MIUIThemeData.weatherPngs[i], value: value)),
+                    num: MIUIThemeData.weatherPngs[i], value: value, id: id)),
             context: context,
             pixelRatio: 3)
         .then((value) async {
@@ -339,7 +352,7 @@ Future exportWeatherIconPng(BuildContext context) async {
   }
 }
 
-Future exportAmPmPng(BuildContext context) async {
+Future exportAmPmPng(BuildContext context, String id) async {
   final value = Provider.of<ElementProvider>(context, listen: false);
   final themePath = CurrentTheme.getPath(context);
   for (int i = 0; i <= 1; i++) {
@@ -347,7 +360,7 @@ Future exportAmPmPng(BuildContext context) async {
         .captureFromWidget(
             getBGStack(
                 child: AmPmClock.getChild(
-                    isAm: i == 1 ? true : false, value: value)),
+                    isAm: i == 1 ? true : false, value: value, id: id)),
             context: context,
             pixelRatio: 3)
         .then((value) async {

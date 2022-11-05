@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../data/element_map_dart.dart';
 import '../provider/element.dart';
+import '../utils/get_uid.dart';
 import 'bg_drop_zone.dart';
 
 class ElementInfo extends StatelessWidget {
@@ -19,10 +20,10 @@ class ElementInfo extends StatelessWidget {
             );
           }
           final ElementWidget ele =
-              provider.getElementFromList(provider.activeType!);
+              provider.getElementFromList(provider.activeId!);
           final isIconType =
-              (elementWidgetMap[provider.activeType]!["isIconType"] ?? false) ||
-                  (elementWidgetMap[provider.activeType]!["isMusic"] ?? false);
+              (elementWidgetMap[ele.type]!["isIconType"] ?? false) ||
+                  (elementWidgetMap[ele.type]!["isMusic"] ?? false);
           return SizedBox(
             width: 300,
             child: Column(
@@ -44,7 +45,7 @@ class ElementInfo extends StatelessWidget {
                     opacityThumbRadius: 15,
                     colorCodeHasColor: true,
                     onColorChanged: (value) {
-                      provider.updateElementColorInList(ele.type!, value);
+                      provider.updateElementColorInList(ele.id!, value);
                     },
                     enableOpacity: true,
                     pickersEnabled: const {
@@ -62,7 +63,7 @@ class ElementInfo extends StatelessWidget {
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       onChanged: (value) {
-                        provider.updateElementIsShortInList(ele.type!, value);
+                        provider.updateElementIsShortInList(ele.id!, value);
                       }),
                 Column(
                   children: [
@@ -70,7 +71,7 @@ class ElementInfo extends StatelessWidget {
                     Slider(
                       value: ele.scale!,
                       onChanged: (val) {
-                        provider.updateElementScaleInList(ele.type!, val);
+                        provider.updateElementScaleInList(ele.id!, val);
                       },
                       min: 0,
                       max: 4,
@@ -100,7 +101,7 @@ class ElementInfo extends StatelessWidget {
                     Slider(
                       value: ele.angle!,
                       onChanged: (val) {
-                        provider.updateElementAngleInList(ele.type!, val);
+                        provider.updateElementAngleInList(ele.id!, val);
                       },
                       divisions: 360 ~/ 10,
                       min: 0,
@@ -113,7 +114,7 @@ class ElementInfo extends StatelessWidget {
                             color: Colors.pinkAccent,
                             onPressed: () {
                               provider.updateElementPositionInList(
-                                  ele.type!, 0, 0);
+                                  ele.id!, 0, 0);
                             },
                             icon: const Icon(Icons.restore)),
                         const SizedBox(
@@ -122,7 +123,7 @@ class ElementInfo extends StatelessWidget {
                         IconButton(
                             color: Colors.pinkAccent,
                             onPressed: () {
-                              provider.removeElementFromList(ele.type!);
+                              provider.removeElementFromList(ele.id!);
                             },
                             icon: const Icon(Icons.delete)),
                       ],
@@ -165,7 +166,7 @@ class ElementInfo extends StatelessWidget {
       label: Text(text),
       selected: isSelected,
       onSelected: (val) {
-        provider.updateElementAlignInList(ele.type!, align);
+        provider.updateElementAlignInList(ele.id!, align);
       },
     );
   }
@@ -187,27 +188,27 @@ Widget elementList(context) {
             child: ListView.builder(
                 itemCount: ElementType.values.length,
                 itemBuilder: (context, i) {
-                  final provider =
-                      Provider.of<ElementProvider>(context, listen: true);
-                  final bool isAdded =
-                      provider.getElementFromList(ElementType.values[i]).type !=
-                          null;
+                  // final provider =
+                  //     Provider.of<ElementProvider>(context, listen: true);
+                  // final bool isAdded =
+                  //     provider.getElementFromList(ElementType.values[i]).type !=
+                  //         null;
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
                     child: ListTile(
-                      selected: isAdded,
+                      // selected: isAdded,
                       title: Text(
                         ElementType.values[i].name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       onTap: () {
-                        if (!isAdded) {
-                          addToList(context: context, i: i);
-                        } else {
-                          Provider.of<ElementProvider>(context, listen: false)
-                              .removeElementFromList(ElementType.values[i]);
-                        }
+                        // if (!isAdded) {
+                        addToList(context: context, i: i);
+                        // } else {
+                        //   Provider.of<ElementProvider>(context, listen: false)
+                        //       .removeElementFromList(ElementType.values[i]);
+                        // }
                       },
                     ),
                   );
@@ -220,10 +221,12 @@ Widget elementList(context) {
 void addToList({int? i, BuildContext? context}) {
   final eleType = ElementType.values[i!];
   final elementWidgetFromMap = elementWidgetMap[eleType];
+  final String id = idGenerator();
   ElementWidget ele = ElementWidget(
+      id: id,
       type: eleType,
       name: eleType.name,
-      child: elementWidgetFromMap!["widget"]);
+      child: elementWidgetFromMap!["widget"](id));
   final isIconType = (elementWidgetFromMap["isIconType"] ?? false) ||
       (elementWidgetFromMap["isMusic"] ?? false);
   if (isIconType) {
@@ -231,5 +234,5 @@ void addToList({int? i, BuildContext? context}) {
   }
   final provider = Provider.of<ElementProvider>(context!, listen: false);
   provider.addElementInList(ele);
-  provider.setActiveType = ElementType.values[i];
+  provider.setActiveWidget = ele.id;
 }

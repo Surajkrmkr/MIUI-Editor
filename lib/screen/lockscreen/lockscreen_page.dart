@@ -5,6 +5,7 @@ import '../../data/element_map_dart.dart';
 import '../../provider/element.dart';
 import '../../provider/lockscreen.dart';
 import '../../provider/mtz.dart';
+import '../../utils/get_uid.dart';
 import '../../widgets/accent_color_list.dart';
 import '../../widgets/bg_drop_zone.dart';
 import '../../widgets/element_info.dart';
@@ -44,22 +45,33 @@ class LockscreenPage extends StatelessWidget {
                 children: [
                   const ElementInfo(),
                   Column(
-                    children: const [
-                      Padding(
+                    children: [
+                      Text(
+                        "BG Section",
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const Padding(
                         padding: EdgeInsets.symmetric(vertical: 20.0),
                         child: BGDropZone(
                           path: "bg",
                         ),
                       ),
-                      BgAlpha(),
-                      SizedBox(
+                      const BgAlpha(),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20.0),
+                        child: Text(
+                          "Lockscreen",
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge!
+                              .copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      const ExportLockscreenBtn(),
+                      const SizedBox(
                         height: 10,
                       ),
-                      ExportLockscreenBtn(),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      ExportMTZBtn()
+                      const ExportMTZBtn()
                     ],
                   ),
                   const FontListWidget(),
@@ -71,13 +83,15 @@ class LockscreenPage extends StatelessWidget {
   }
 
   void addDefaultLock(context) {
+    final String id = idGenerator();
     ElementWidget ele = ElementWidget(
+        id: id,
         type: ElementType.swipeUpUnlock,
         name: ElementType.swipeUpUnlock.name,
-        child: elementWidgetMap[ElementType.swipeUpUnlock]!["widget"]);
+        child: elementWidgetMap[ElementType.swipeUpUnlock]!["widget"](id));
     final provider = Provider.of<ElementProvider>(context, listen: false);
     provider.addElementInList(ele);
-    provider.setActiveType = ElementType.swipeUpUnlock;
+    provider.setActiveWidget = ele.id;
   }
 }
 

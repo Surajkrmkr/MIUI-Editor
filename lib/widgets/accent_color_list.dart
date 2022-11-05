@@ -23,7 +23,7 @@ Consumer<WallpaperProvider> accentColorsList({required bool? isLockscreen}) {
                             Provider.of<ElementProvider>(context,
                                 listen: false);
                         provider.updateElementColorInList(
-                            provider.activeType!, e);
+                            provider.activeId!, e);
                       } else {
                         Provider.of<IconProvider>(context, listen: false)
                             .setBgColor = e;

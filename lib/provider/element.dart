@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../data/element_map_dart.dart';
+import '../utils/get_uid.dart';
 
 class ElementProvider extends ChangeNotifier {
   List<ElementWidget> elementList = [];
   double? bgAlpha = 0;
 
-  ElementType? activeType;
-  set setActiveType(ElementType? type) {
-    activeType = type;
+  String? activeId = "0";
+  set setActiveWidget(String? id) {
+    activeId = id;
     notifyListeners();
   }
 
@@ -22,58 +23,62 @@ class ElementProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void removeElementFromList(ElementType type) {
+  void removeElementFromList(String id) {
     elementList.removeWhere(
-      (element) => element.type == type,
+      (element) => element.id== id,
     );
-    if (elementList.isNotEmpty) setActiveType = elementList[0].type;
+    if (elementList.isNotEmpty) setActiveWidget = elementList[0].id;
     notifyListeners();
   }
 
-  ElementWidget getElementFromList(ElementType type) {
-    return elementList.firstWhere((element) => element.type == type,
-        orElse: (() =>
-            ElementWidget(name: "default", type: null, child: Container())));
+  ElementWidget getElementFromList(String id) {
+    return elementList.firstWhere((element) => element.id== id,
+        orElse: (() => ElementWidget(
+            id: idGenerator(),
+            name: "default",
+            type: null,
+            child: Container())));
   }
 
-  void updateElementPositionInList(ElementType type, double dx, double dy) {
-    elementList.firstWhere((element) => element.type == type).dx = dx;
-    elementList.firstWhere((element) => element.type == type).dy = dy;
+  void updateElementPositionInList(String id, double dx, double dy) {
+    elementList.firstWhere((element) => element.id== id).dx = dx;
+    elementList.firstWhere((element) => element.id== id).dy = dy;
     notifyListeners();
   }
 
-  void updateElementColorInList(ElementType type, Color? color) {
-    elementList.firstWhere((element) => element.type == type).color = color;
+  void updateElementColorInList(String id, Color? color) {
+    elementList.firstWhere((element) => element.id== id).color = color;
     notifyListeners();
   }
 
-  void updateElementFontInList(ElementType type, String? font) {
-    elementList.firstWhere((element) => element.type == type).font = font;
+  void updateElementFontInList(String id, String? font) {
+    elementList.firstWhere((element) => element.id== id).font = font;
     notifyListeners();
   }
 
-  void updateElementScaleInList(ElementType type, double? scale) {
-    elementList.firstWhere((element) => element.type == type).scale = scale;
+  void updateElementScaleInList(String id, double? scale) {
+    elementList.firstWhere((element) => element.id== id).scale = scale;
     notifyListeners();
   }
 
-  void updateElementAlignInList(ElementType type, AlignmentGeometry? align) {
-    elementList.firstWhere((element) => element.type == type).align = align;
+  void updateElementAlignInList(String id, AlignmentGeometry? align) {
+    elementList.firstWhere((element) => element.id== id).align = align;
     notifyListeners();
   }
 
-  void updateElementAngleInList(ElementType type, double? angle) {
-    elementList.firstWhere((element) => element.type == type).angle = angle;
+  void updateElementAngleInList(String id, double? angle) {
+    elementList.firstWhere((element) => element.id== id).angle = angle;
     notifyListeners();
   }
 
-  void updateElementIsShortInList(ElementType type, bool? isShort) {
-    elementList.firstWhere((element) => element.type == type).isShort = isShort;
+  void updateElementIsShortInList(String id, bool? isShort) {
+    elementList.firstWhere((element) => element.id== id).isShort = isShort;
     notifyListeners();
   }
 }
 
 class ElementWidget {
+  String? id;
   String? name;
   double? dx;
   double? dy;
@@ -90,6 +95,7 @@ class ElementWidget {
   bool? isShort;
   ElementWidget(
       {required this.child,
+      required this.id,
       this.dx = 0,
       this.dy = 0,
       this.height = 200,

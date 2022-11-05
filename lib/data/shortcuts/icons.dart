@@ -10,10 +10,12 @@ import '../bg_stack.dart';
 import '../element_map_dart.dart';
 
 class CameraIcon extends StatelessWidget {
-  const CameraIcon({super.key});
+  const CameraIcon({super.key, required this.id});
+  final String? id;
 
-  static Widget getChild({ElementProvider? value, String? themePath}) {
-    final ele = value!.getElementFromList(ElementType.cameraIcon);
+  static Widget getChild(
+      {String? id, ElementProvider? value, String? themePath}) {
+    final ele = value!.getElementFromList(id!);
     return commonWidget(
         child: Image.memory(
           File("${themePath}lockscreen\\advance\\icon\\camera.png")
@@ -22,7 +24,7 @@ class CameraIcon extends StatelessWidget {
           height: ele.height! / MIUIConstants.ratio,
           width: ele.width! / MIUIConstants.ratio,
         ),
-        type: ElementType.cameraIcon,
+        id: id,
         value: value);
   }
 
@@ -30,15 +32,17 @@ class CameraIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final themePath = CurrentTheme.getPath(context);
     return Consumer<ElementProvider>(builder: (context, value, _) {
-      return getChild(value: value, themePath: themePath);
+      return getChild(id:id,value: value, themePath: themePath);
     });
   }
 }
-class ThemeIcon extends StatelessWidget {
-  const ThemeIcon({super.key});
 
-  static Widget getChild({ElementProvider? value, String? themePath}) {
-    final ele = value!.getElementFromList(ElementType.themeIcon);
+class ThemeIcon extends StatelessWidget {
+  const ThemeIcon({super.key, required this.id});
+  final String? id;
+  static Widget getChild(
+      {String? id, ElementProvider? value, String? themePath}) {
+    final ele = value!.getElementFromList(id!);
     return commonWidget(
         child: Image.memory(
           File("${themePath}lockscreen\\advance\\icon\\theme.png")
@@ -47,7 +51,7 @@ class ThemeIcon extends StatelessWidget {
           height: ele.height! / MIUIConstants.ratio,
           width: ele.width! / MIUIConstants.ratio,
         ),
-        type: ElementType.themeIcon,
+        id: id,
         value: value);
   }
 
@@ -55,15 +59,17 @@ class ThemeIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final themePath = CurrentTheme.getPath(context);
     return Consumer<ElementProvider>(builder: (context, value, _) {
-      return getChild(value: value, themePath: themePath);
+      return getChild(id:id,value: value, themePath: themePath);
     });
   }
 }
-class SettingIcon extends StatelessWidget {
-  const SettingIcon({super.key});
 
-  static Widget getChild({ElementProvider? value, String? themePath}) {
-    final ele = value!.getElementFromList(ElementType.settingIcon);
+class SettingIcon extends StatelessWidget {
+  const SettingIcon({super.key, required this.id});
+  final String? id;
+  static Widget getChild(
+      {String? id, ElementProvider? value, String? themePath}) {
+    final ele = value!.getElementFromList(id!);
     return commonWidget(
         child: Image.memory(
           File("${themePath}lockscreen\\advance\\icon\\setting.png")
@@ -72,7 +78,7 @@ class SettingIcon extends StatelessWidget {
           height: ele.height! / MIUIConstants.ratio,
           width: ele.width! / MIUIConstants.ratio,
         ),
-        type: ElementType.settingIcon,
+        id: id,
         value: value);
   }
 
@@ -80,15 +86,17 @@ class SettingIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final themePath = CurrentTheme.getPath(context);
     return Consumer<ElementProvider>(builder: (context, value, _) {
-      return getChild(value: value, themePath: themePath);
+      return getChild(id:id,value: value, themePath: themePath);
     });
   }
 }
-class GalleryIcon extends StatelessWidget {
-  const GalleryIcon({super.key});
 
-  static Widget getChild({ElementProvider? value, String? themePath}) {
-    final ele = value!.getElementFromList(ElementType.galleryIcon);
+class GalleryIcon extends StatelessWidget {
+  const GalleryIcon({super.key, required this.id});
+  final String? id;
+  static Widget getChild(
+      {String? id, ElementProvider? value, String? themePath}) {
+    final ele = value!.getElementFromList(id!);
     return commonWidget(
         child: Image.memory(
           File("${themePath}lockscreen\\advance\\icon\\gallery.png")
@@ -97,7 +105,7 @@ class GalleryIcon extends StatelessWidget {
           height: ele.height! / MIUIConstants.ratio,
           width: ele.width! / MIUIConstants.ratio,
         ),
-        type: ElementType.galleryIcon,
+        id: id,
         value: value);
   }
 
@@ -105,7 +113,7 @@ class GalleryIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final themePath = CurrentTheme.getPath(context);
     return Consumer<ElementProvider>(builder: (context, value, _) {
-      return getChild(value: value, themePath: themePath);
+      return getChild(id:id,value: value, themePath: themePath);
     });
   }
 }
