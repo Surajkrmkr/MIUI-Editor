@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import '../functions/theme_path.dart';
 
 class BGDropZone extends StatelessWidget {
-  const BGDropZone({super.key,this.path});
+  const BGDropZone({super.key, this.path});
   final String? path;
   @override
   Widget build(BuildContext context) {

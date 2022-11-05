@@ -224,7 +224,8 @@ void addToList({int? i, BuildContext? context}) {
       type: eleType,
       name: eleType.name,
       child: elementWidgetFromMap!["widget"]);
-  final isIconType = elementWidgetFromMap["isIconType"] ?? false;
+  final isIconType = (elementWidgetFromMap["isIconType"] ?? false) ||
+      (elementWidgetFromMap["isMusic"] ?? false);
   if (isIconType) {
     ele.path = elementWidgetFromMap["path"];
   }
