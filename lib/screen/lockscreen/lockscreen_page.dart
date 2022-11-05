@@ -45,7 +45,6 @@ class LockscreenPage extends StatelessWidget {
                   const ElementInfo(),
                   Column(
                     children: const [
-                      FontPreview(),
                       Padding(
                         padding: EdgeInsets.symmetric(vertical: 20.0),
                         child: BGDropZone(
