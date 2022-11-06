@@ -9,6 +9,24 @@ final lockscreenManifest = '''
 	    <Var expression="#screen_width" name="sw"/>
 	    <Var expression="#screen_height" name="sh"/>
 	    <Wallpaper/>
+      <VariableBinders>
+        <ContentProviderBinder name="WeatherService" uri="content://weather/actualWeatherData/1" columns="city_id,city_name,weather_type,aqilevel,description,temperature,forecast_type,tmphighs,tmplows,wind,humidity" countName="hasweather">
+          <Variable name="cityName" type="string" column="city_name"/>
+          <Variable name="typeID" type="int" column="weather_type"/>
+          <Variable name="descriPtion" type="string" column="description"/>
+          <Variable name="temp" type="int" column="temperature"/>
+          <Variable name="aqi" type="int" column="aqilevel"/>
+          <Variable name="tmpLows" type="string" column="tmplows"/>
+          <Variable name="tmpHighs" type="string" column="tmphighs"/>
+          <Trigger>
+            <VariableCommand name="airQuality" expression="ifelse(#aqi}=0**#aqi{50,'Good', #aqi}=50**#aqi{100,'Moderate', #aqi}=100**#aqi{150,'Slightly Polluted', #aqi}=150**#aqi{200,'Moderately Polluted', #aqi}=200**#aqi{300,'Heavily Polluted', #aqi}=300**#aqi{=500,'Severely Polluted', 'N/A')" type="string"/>
+            <VariableCommand name="w_outID" expression="ifelse(#typeID}25||#typeID{0,0, (#ID}=4**#typeID{=6||#typeID}=8**#typeID{=11||#typeID==25),4,#typeID}=13**#typeID{=17,13 ,#ID}=18**#typeID{=21||#typeID==23,18,#typeID)"/>
+          </Trigger>
+        </ContentProviderBinder>
+        <ContentProviderBinder name="data" uri="content://keyguard.notification/notifications" columns="icon,title,content,time,info,subtext,key" countName="hasnotifications">
+          <List name="notification_list"/>
+        </ContentProviderBinder>
+      </VariableBinders>
       <Group name="bgAlpha"></Group>
       <Image name="bgLock" srcExp="'bg.png'" width="#sw" height="#sh"/>
       ${getGroupStrings()}

@@ -32,6 +32,14 @@ enum ElementType {
   musicPrev,
   cameraIcon,
   themeIcon,
+  musicIcon,
+  dialerIcon,
+  mmsIcon,
+  contactIcon,
+  whatsAppIcon,
+  telegramIcon,
+  instagramIcon,
+  spotifyIcon,
   settingIcon,
   galleryIcon,
   swipeUpUnlock
@@ -118,32 +126,101 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
     "path": "music\\prev"
   },
   ElementType.cameraIcon: {
-    "widget": const CameraIcon(),
+    "widget":
+        const ShortcutIcon(path: "icon\\camera", type: ElementType.cameraIcon),
     "exportable": false,
     "xml": cameraIconXml,
     "isIconType": true,
     "path": "icon\\camera"
   },
   ElementType.themeIcon: {
-    "widget": const ThemeIcon(),
+    "widget": const ShortcutIcon(
+      path: "icon\\theme",
+      type: ElementType.themeIcon,
+    ),
     "exportable": false,
     "xml": themeIconXml,
     "isIconType": true,
     "path": "icon\\theme"
   },
   ElementType.settingIcon: {
-    "widget": const SettingIcon(),
+    "widget": const ShortcutIcon(
+        path: "icon\\setting", type: ElementType.settingIcon),
     "exportable": false,
     "xml": settingIconXml,
     "isIconType": true,
     "path": "icon\\setting"
   },
   ElementType.galleryIcon: {
-    "widget": const GalleryIcon(),
+    "widget": const ShortcutIcon(
+        path: "icon\\gallery", type: ElementType.galleryIcon),
     "exportable": false,
     "xml": galleryIconXml,
     "isIconType": true,
     "path": "icon\\gallery"
+  },
+  ElementType.musicIcon: {
+    "widget":
+        const ShortcutIcon(path: "icon\\music", type: ElementType.musicIcon),
+    "exportable": false,
+    "xml": musicIconXml,
+    "isIconType": true,
+    "path": "icon\\music"
+  },
+  ElementType.dialerIcon: {
+    "widget":
+        const ShortcutIcon(path: "icon\\dialer", type: ElementType.dialerIcon),
+    "exportable": false,
+    "xml": dialerIconXml,
+    "isIconType": true,
+    "path": "icon\\dialer"
+  },
+  ElementType.mmsIcon: {
+    "widget": const ShortcutIcon(path: "icon\\mms", type: ElementType.mmsIcon),
+    "exportable": false,
+    "xml": mmsIconXml,
+    "isIconType": true,
+    "path": "icon\\mms"
+  },
+  ElementType.contactIcon: {
+    "widget": const ShortcutIcon(
+        path: "icon\\contact", type: ElementType.contactIcon),
+    "exportable": false,
+    "xml": cameraIconXml,
+    "isIconType": true,
+    "path": "icon\\contact"
+  },
+  ElementType.whatsAppIcon: {
+    "widget": const ShortcutIcon(
+        path: "icon\\whatsApp", type: ElementType.whatsAppIcon),
+    "exportable": false,
+    "xml": whatsAppIconXml,
+    "isIconType": true,
+    "path": "icon\\whatsApp"
+  },
+  ElementType.instagramIcon: {
+    "widget": const ShortcutIcon(
+        path: "icon\\instagram", type: ElementType.instagramIcon),
+    "exportable": false,
+    "xml": instagramIconXml,
+    "isIconType": true,
+    "path": "icon\\instagram"
+  },
+  ElementType.telegramIcon: {
+    "widget": const ShortcutIcon(
+        path: "icon\\telegram", type: ElementType.telegramIcon),
+    "exportable": false,
+    "xml": telegramIconXml,
+    "isIconType": true,
+    "path": "icon\\telegram"
+  },
+  ElementType.spotifyIcon: {
+    "widget": const ShortcutIcon(
+        path: "icon\\spotify", type: ElementType.spotifyIcon),
+    "exportable": false,
+    "xml": spotifyIconXml,
+    "isIconType": true,
+    "path": "icon\\spotify"
   },
   ElementType.swipeUpUnlock: {
     "widget": const SwipeUpUnlock(),
