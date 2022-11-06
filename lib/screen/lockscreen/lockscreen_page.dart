@@ -3,13 +3,11 @@ import 'package:provider/provider.dart';
 
 import '../../data/element_map_dart.dart';
 import '../../provider/element.dart';
-import '../../provider/lockscreen.dart';
-import '../../provider/mtz.dart';
 import '../../widgets/accent_color_list.dart';
-import '../../widgets/bg_drop_zone.dart';
 import '../../widgets/element_info.dart';
 import '../../widgets/font.dart';
 import '../../widgets/image_stack.dart';
+import '../../widgets/lockscreen_function.dart';
 import '../homescreen/home_page.dart';
 
 class LockscreenPage extends StatelessWidget {
@@ -41,28 +39,10 @@ class LockscreenPage extends StatelessWidget {
             children: [
               const ImageStack(isLockscreen: true),
               Row(
-                children: [
-                  const ElementInfo(),
-                  Column(
-                    children: const [
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20.0),
-                        child: BGDropZone(
-                          path: "bg",
-                        ),
-                      ),
-                      BgAlpha(),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      ExportLockscreenBtn(),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      ExportMTZBtn()
-                    ],
-                  ),
-                  const FontListWidget(),
+                children: const [
+                  ElementInfo(),
+                  LockscreenFunctions(),
+                  FontListWidget(),
                 ],
               )
             ]),
