@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.suraj.miui_icon_generator">
+    package="com.example.miui_icon_generator">
    <application
         android:label="MIUI Theme Creator"
         android:name="${applicationName}"

@@ -20,22 +20,25 @@ class ElementInfo extends StatelessWidget {
           }
           final ElementWidget ele =
               provider.getElementFromList(provider.activeType!);
-          final isIconType =
-              (elementWidgetMap[provider.activeType]!["isIconType"] ?? false) ||
-                  (elementWidgetMap[provider.activeType]!["isMusic"] ?? false);
+          final isIcon =
+              elementWidgetMap[provider.activeType]!["isIconType"] ?? false;
+          final isMusic =
+              elementWidgetMap[provider.activeType]!["isMusic"] ?? false;
+          final isText =
+              elementWidgetMap[provider.activeType]!["isTextType"] ?? false;
           return SizedBox(
             width: 300,
             child: Column(
               children: [
                 Text(ele.name!),
-                if (isIconType)
+                if (isIcon || isMusic)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 20.0),
                     child: BGDropZone(
                       path: ele.path,
                     ),
                   ),
-                if (!isIconType)
+                if (!isIcon && !isMusic)
                   ColorPicker(
                     color: ele.color!,
                     enableShadesSelection: false,
@@ -53,7 +56,7 @@ class ElementInfo extends StatelessWidget {
                       ColorPickerType.accent: false
                     },
                   ),
-                if (!isIconType)
+                if (!isIcon && !isMusic && !isText)
                   SwitchListTile(
                       value: ele.isShort!,
                       activeColor: Colors.pinkAccent,
@@ -66,23 +69,53 @@ class ElementInfo extends StatelessWidget {
                       }),
                 Column(
                   children: [
-                    Text("Scale : ${ele.scale!.toStringAsFixed(2)}"),
+                    Text(
+                        "Scale : ${isText ? ele.fontSize! : ele.scale!.toStringAsFixed(2)}"),
                     Slider(
-                      value: ele.scale!,
+                      value: isText ? ele.fontSize! : ele.scale!,
                       onChanged: (val) {
-                        provider.updateElementScaleInList(ele.type!, val);
+                        isText
+                            ? provider.updateElementFontSizeInList(
+                                ele.type!, val)
+                            : provider.updateElementScaleInList(ele.type!, val);
                       },
-                      min: 0,
-                      max: 4,
-                      divisions: 4 ~/ 0.05,
+                      min: isText ? 20 : 0,
+                      max: isText ? 100 : 4,
+                      divisions: isText ? 100 ~/ 0.05 : 4 ~/ 0.05,
                     ),
                   ],
                 ),
-                if (ele.type == ElementType.textLineClock)
-                  TextFormField(
-                    initialValue: "8 feb,Tue",
+                if (isText)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 20.0),
+                    child: TextFormField(
+                        initialValue: ele.text,
+                        onChanged: (str) {
+                          provider.updateElementTextInList(ele.type!, str);
+                        },
+                        decoration: InputDecoration(
+                            border: const OutlineInputBorder(),
+                            suffixIcon: PopupMenuButton(
+                              tooltip: 'Font Weight',
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                    child: const Text("Normal"),
+                                    onTap: () {
+                                      provider.updateElementFontWeightInList(
+                                          ele.type!, FontWeight.normal);
+                                    }),
+                                PopupMenuItem(
+                                    child: const Text("bold"),
+                                    onTap: () {
+                                      provider.updateElementFontWeightInList(
+                                          ele.type!, FontWeight.bold);
+                                    })
+                              ],
+                              child: const Icon(Icons.more_vert),
+                            ),
+                            label: const Text("Text Expression"))),
                   ),
-                if (!isIconType)
+                if (!isIcon && !isMusic)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -231,5 +264,5 @@ void addToList({int? i, BuildContext? context}) {
   }
   final provider = Provider.of<ElementProvider>(context!, listen: false);
   provider.addElementInList(ele);
-  provider.setActiveType = ElementType.values[i];
+  provider.setActiveType = eleType;
 }

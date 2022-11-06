@@ -6,7 +6,7 @@ class ElementProvider extends ChangeNotifier {
   List<ElementWidget> elementList = [];
   double? bgAlpha = 0;
 
-  ElementType? activeType;
+  ElementType? activeType = ElementType.swipeUpUnlock;
   set setActiveType(ElementType? type) {
     activeType = type;
     notifyListeners();
@@ -67,6 +67,23 @@ class ElementProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateElementTextInList(ElementType type, String? text) {
+    elementList.firstWhere((element) => element.type == type).text = text;
+    notifyListeners();
+  }
+
+  void updateElementFontSizeInList(ElementType type, double? fontSize) {
+    elementList.firstWhere((element) => element.type == type).fontSize =
+        fontSize;
+    notifyListeners();
+  }
+
+  void updateElementFontWeightInList(ElementType type, FontWeight? fontWeight) {
+    elementList.firstWhere((element) => element.type == type).fontWeight =
+        fontWeight;
+    notifyListeners();
+  }
+
   void updateElementIsShortInList(ElementType type, bool? isShort) {
     elementList.firstWhere((element) => element.type == type).isShort = isShort;
     notifyListeners();
@@ -87,6 +104,9 @@ class ElementWidget {
   AlignmentGeometry? align;
   double? angle;
   String? path;
+  String? text;
+  double? fontSize;
+  FontWeight? fontWeight;
   bool? isShort;
   ElementWidget(
       {required this.child,
@@ -102,5 +122,8 @@ class ElementWidget {
       this.align = Alignment.center,
       this.angle = 0,
       this.path = "",
+      this.fontWeight = FontWeight.normal,
+      this.text = "Text",
+      this.fontSize = 20,
       this.isShort = false});
 }

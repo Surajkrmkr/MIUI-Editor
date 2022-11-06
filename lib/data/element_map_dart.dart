@@ -1,23 +1,32 @@
 import 'package:miui_icon_generator/data/unlock/unlock.dart';
 
 import 'music/music.dart';
+import 'text/text.dart';
 import 'xml data/music/music.dart';
 import 'xml data/shortcuts/icons.dart';
 import 'xml data/swipe_up_unlock.dart';
 import 'xml data/clock/date_time_clock.dart';
 import 'shortcuts/icons.dart';
 import 'time/clock.dart';
+import 'xml data/text/text.dart';
 
 enum ElementType {
   hourClock,
   minClock,
   dotClock,
   amPmClock,
-  textLineClock,
   weekClock,
   monthClock,
   dateClock,
   weatherIconClock,
+  dateTimeText1,
+  dateTimeText2,
+  dateTimeText3,
+  normalText1,
+  normalText2,
+  normalText3,
+  normalText4,
+  normalText5,
   musicBg,
   musicNext,
   musicPrev,
@@ -46,11 +55,6 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
     "exportable": true,
     "xml": dotClockXml,
     "png": {"export": exportDotPng, "path": "dot"},
-  },
-  ElementType.textLineClock: {
-    "widget": const TextLineClock(text: '8 feb, Tue'),
-    "exportable": false,
-    "xml": textLineClockXml,
   },
   ElementType.weekClock: {
     "widget": const WeekClock(
@@ -144,6 +148,54 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
   ElementType.swipeUpUnlock: {
     "widget": const SwipeUpUnlock(),
     "xml": swipeUpUnlockXml,
+    "exportable": false,
+  },
+  ElementType.dateTimeText1: {
+    "widget": const DateTimeText(type: ElementType.dateTimeText1),
+    "xml": dateTimeTextXml,
+    "isTextType": true,
+    "exportable": false,
+  },
+  ElementType.dateTimeText2: {
+    "widget": const DateTimeText(type: ElementType.dateTimeText2),
+    "xml": dateTimeTextXml,
+    "isTextType": true,
+    "exportable": false,
+  },
+  ElementType.dateTimeText3: {
+    "widget": const DateTimeText(type: ElementType.dateTimeText3),
+    "xml": dateTimeTextXml,
+    "isTextType": true,
+    "exportable": false,
+  },
+  ElementType.normalText1: {
+    "widget": const NormalText(type: ElementType.normalText1),
+    "xml": normalTextXml,
+    "isTextType": true,
+    "exportable": false,
+  },
+  ElementType.normalText2: {
+    "widget": const NormalText(type: ElementType.normalText2),
+    "xml": normalTextXml,
+    "isTextType": true,
+    "exportable": false,
+  },
+  ElementType.normalText3: {
+    "widget": const NormalText(type: ElementType.normalText3),
+    "xml": normalTextXml,
+    "isTextType": true,
+    "exportable": false,
+  },
+  ElementType.normalText4: {
+    "widget": const NormalText(type: ElementType.normalText4),
+    "xml": normalTextXml,
+    "isTextType": true,
+    "exportable": false,
+  },
+  ElementType.normalText5: {
+    "widget": const NormalText(type: ElementType.normalText5),
+    "xml": normalTextXml,
+    "isTextType": true,
     "exportable": false,
   },
 };

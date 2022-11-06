@@ -10,10 +10,6 @@ const dotClockXml = '''
 		<Image name="dot" srcExp="'dot/dot.png'" width="#sw" height="#sh"/>
 ''';
 
-textLineClockXml({String? textName, String? color, String? size}) => '''
-		<DateTime x="#sw/2" y="#sh/2" align="center" alignV="center" size="$size" color="$color" formatExp="'$textName'" fontFamily="mitype-light" />
-''';
-
 const weekClockXml = '''
 		<Image name="week" srcExp="'week/week_'+ int((#day_of_week-1)) +'.png'" width="#sw" height="#sh"/>
 ''';
