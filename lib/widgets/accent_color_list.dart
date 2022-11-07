@@ -18,39 +18,41 @@ Consumer<WallpaperProvider> accentColorsList({required bool? isLockscreen}) {
           : EdgeInsets.zero,
       child: SizedBox(
         height: 40,
-        child: ListView(
+        child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          children: provider.colorPalette!
-              .map((e) => Padding(
-                    padding: const EdgeInsets.only(right: 3),
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      child: InkWell(
-                        onTap: () {
-                          if (isLockscreen!) {
-                            final ElementProvider provider =
-                                Provider.of<ElementProvider>(context,
-                                    listen: false);
-                            provider.updateElementColorInList(
-                                provider.activeType!, e);
-                          } else {
-                            Provider.of<IconProvider>(context, listen: false)
-                                .setBgColor = e;
-                            Provider.of<IconProvider>(context, listen: false)
-                                .setAccentColor = e;
-                          }
-                        },
-                        child: Container(
-                          height: 40,
-                          width: 40,
-                          decoration: BoxDecoration(
-                              color: e,
-                              borderRadius: BorderRadius.circular(10)),
+          child: Row(
+            children: provider.colorPalette!
+                .map((e) => Padding(
+                      padding: const EdgeInsets.only(right: 3),
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: InkWell(
+                          onTap: () {
+                            if (isLockscreen!) {
+                              final ElementProvider provider =
+                                  Provider.of<ElementProvider>(context,
+                                      listen: false);
+                              provider.updateElementColorInList(
+                                  provider.activeType!, e);
+                            } else {
+                              Provider.of<IconProvider>(context, listen: false)
+                                  .setBgColor = e;
+                              Provider.of<IconProvider>(context, listen: false)
+                                  .setAccentColor = e;
+                            }
+                          },
+                          child: Container(
+                            height: 40,
+                            width: 40,
+                            decoration: BoxDecoration(
+                                color: e,
+                                borderRadius: BorderRadius.circular(10)),
+                          ),
                         ),
                       ),
-                    ),
-                  ))
-              .toList(),
+                    ))
+                .toList(),
+          ),
         ),
       ),
     );
