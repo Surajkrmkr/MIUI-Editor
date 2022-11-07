@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -8,6 +10,7 @@ import '../../widgets/element_info.dart';
 import '../../widgets/font.dart';
 import '../../widgets/image_stack.dart';
 import '../../widgets/lockscreen_function.dart';
+import '../../widgets/ui_widgets.dart';
 import '../homescreen/home_page.dart';
 
 class LockscreenPage extends StatelessWidget {
@@ -20,32 +23,74 @@ class LockscreenPage extends StatelessWidget {
     });
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            const SizedBox(width: 220, child: Text("Lockscreen")),
-            const SizedBox(
-              width: 20,
-            ),
-            getProgress()
-          ],
-        ),
-        actions: [accentColorsList(isLockscreen: true)],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(30),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const ImageStack(isLockscreen: true),
-              Row(
-                children: const [
-                  ElementInfo(),
-                  LockscreenFunctions(),
-                  FontListWidget(),
+        title: Platform.isWindows
+            ? Row(
+                children: [
+                  const SizedBox(width: 220, child: Text("Lockscreen")),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  getProgress()
                 ],
               )
-            ]),
+            : Container(),
+        actions: [
+          if (Platform.isWindows) accentColorsList(isLockscreen: true),
+          if (Platform.isAndroid)
+            Row(
+              children: [
+                UIWidgets.getIconButton(
+                  context: context,
+                  icon: Icons.layers,
+                  widget: const ElementList(),
+                ),
+                UIWidgets.getIconButton(
+                  context: context,
+                  icon: Icons.build,
+                  widget: const ElementInfo(),
+                ),
+                UIWidgets.getIconButton(
+                  context: context,
+                  icon: Icons.lock,
+                  widget: const LockscreenFunctions(),
+                ),
+                UIWidgets.getIconButton(
+                  context: context,
+                  icon: Icons.format_size,
+                  widget: const FontListWidget(),
+                )
+              ],
+            )
+        ],
+      ),
+      body: Padding(
+        padding:
+            Platform.isAndroid ? EdgeInsets.zero : const EdgeInsets.all(30),
+        child: Platform.isAndroid
+            ? SingleChildScrollView(
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const ImageStack(isLockscreen: true),
+                      accentColorsList(isLockscreen: true),
+                    ]),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                    const ImageStack(isLockscreen: true),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        ElementInfo(),
+                        ElementList(),
+                        LockscreenFunctions(),
+                        FontListWidget(),
+                      ],
+                    )
+                  ]),
       ),
     );
   }

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../provider/directory.dart';
@@ -10,6 +12,7 @@ import '../../widgets/color_picker.dart';
 import '../../widgets/image_stack.dart';
 import '../../widgets/module.dart';
 import '../../widgets/sliders.dart';
+import '../../widgets/ui_widgets.dart';
 import '../Landing_page.dart';
 import '../lockscreen/lockscreen_page.dart';
 
@@ -28,13 +31,12 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: Row(
           children: [
-            const SizedBox(width: 220, child: Text("Theme Generator")),
-            const SizedBox(
-              width: 20,
-            ),
-            getProgress(),
-            const SizedBox(
-              width: 20,
+            if (Platform.isWindows)
+              const SizedBox(width: 220, child: Text("Theme Generator")),
+            Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: Platform.isWindows ? 20.0 : 5),
+              child: getProgress(),
             ),
             directoryCreatingLoading()
           ],
@@ -46,67 +48,104 @@ class HomePage extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => LandingPage()));
           },
         ),
-        actions: [accentColorsList(isLockscreen: false)],
+        actions: [
+          if (Platform.isWindows) accentColorsList(isLockscreen: false)
+        ],
       ),
       body: Padding(
-          padding: const EdgeInsets.all(30),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const ImageStack(isLockscreen: false),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  const ModuleWidget(),
-                  Column(
+          padding:
+              Platform.isAndroid ? EdgeInsets.zero : const EdgeInsets.all(30),
+          child: Platform.isAndroid
+              ? SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const ExportIconsBtn(),
+                      const ImageStack(isLockscreen: false),
                       const SizedBox(
                         height: 20,
                       ),
-                      const ExportModuleBtn(),
-                      const SizedBox(
-                        height: 20,
+                      if (Platform.isAndroid)
+                        accentColorsList(isLockscreen: false),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          const ModuleWidget(),
+                          Column(
+                            children: [
+                              const ExportIconsBtn(),
+                              const SizedBox(
+                                height: 5,
+                              ),
+                              const ExportModuleBtn(),
+                              const SizedBox(
+                                height: 5,
+                              ),
+                              buildLockscreenBtn(context: context)
+                            ],
+                          )
+                        ],
                       ),
-                      buildLockscreenBtn(context: context)
+                      Column(
+                        children: const [
+                          Sliders(),
+                          ColorsTab(),
+                        ],
+                      ),
                     ],
-                  )
-                ],
-              ),
-              Column(
-                children: const [
-                  Sliders(),
-                  ColorsTab(),
-                ],
-              ),
-            ],
-          )),
+                  ),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const ImageStack(isLockscreen: false),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        const ModuleWidget(),
+                        Column(
+                          children: [
+                            const ExportIconsBtn(),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                            const ExportModuleBtn(),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                            buildLockscreenBtn(context: context)
+                          ],
+                        )
+                      ],
+                    ),
+                    Column(
+                      children: const [
+                        Sliders(),
+                        ColorsTab(),
+                      ],
+                    ),
+                  ],
+                )),
     );
   }
 }
 
 Widget buildLockscreenBtn({BuildContext? context}) {
   return Consumer<LockscreenProvider>(builder: (context, provider, _) {
-    return ElevatedButton(
-        style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.pinkAccent,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 23, horizontal: 50)),
-        onPressed: () {
-          provider.copyDefaultPngs(context: context).then((value) =>
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const LockscreenPage())));
-        },
-        child: provider.isDefaultPngsCopying!
-            ? const Center(
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                ),
-              )
-            : const Text("Lockscreen"));
+    if (provider.isDefaultPngsCopying!) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+    return UIWidgets.getElevatedButton(
+        text: "Lockscreen",
+        icon: const Icon(Icons.lock),
+        onTap: () => provider.copyDefaultPngs(context: context).then((value) =>
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const LockscreenPage()))));
   });
 }
 
@@ -115,7 +154,7 @@ Widget getProgress() {
     return Row(
       children: [
         SizedBox(
-          width: 200,
+          width: Platform.isWindows ? 200 : 100,
           height: 10,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10),

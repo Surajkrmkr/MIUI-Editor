@@ -6,7 +6,9 @@ import 'package:screenshot/screenshot.dart';
 
 import '../data/miui_theme_data.dart';
 import '../functions/theme_path.dart';
+import '../functions/windows_utils.dart';
 import '../widgets/icon.dart';
+import '../widgets/ui_widgets.dart';
 
 class IconProvider extends ChangeNotifier {
   double? margin = 4;
@@ -97,11 +99,11 @@ class IconProvider extends ChangeNotifier {
                 ),
                 pixelRatio: 4)
             .then((value) async {
-          final imagePath =
-              File('$themePath\\icons\\res\\drawable-xhdpi\\$element.png');
+          final imagePath = File(platformBasedPath(
+              '$themePath\\icons\\res\\drawable-xhdpi\\$element.png'));
           await imagePath.writeAsBytes(value);
           final imagePath2 =
-              File('$themePath\\icons\\res\\drawable-xxhdpi\\$element.png');
+              File(platformBasedPath('$themePath\\icons\\res\\drawable-xxhdpi\\$element.png'));
           await imagePath2.writeAsBytes(value);
           setProgress = progress! + 1;
           if (progress == MIUIThemeData.vectorList.length) {
@@ -119,72 +121,64 @@ class IconProvider extends ChangeNotifier {
 class ExportIconsBtn extends StatelessWidget {
   const ExportIconsBtn({super.key});
 
+  void onTap(context) {
+    Provider.of<IconProvider>(context, listen: false).export(context: context);
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) {
+          return Consumer<IconProvider>(
+            builder: (context, provider, _) {
+              final progress = provider.progress;
+              final total = MIUIThemeData.vectorList.length;
+              return SimpleDialog(
+                contentPadding: const EdgeInsets.all(20),
+                title: const Center(child: Text("Get Set Go")),
+                children: [
+                  Center(
+                      child: SizedBox(
+                    height: 150,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        if (provider.isIconsExporting!)
+                          LinearProgressIndicator(
+                            value: progress!.toDouble() / total,
+                          ),
+                        if (provider.isIconsExporting!)
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child:
+                                Text("${provider.progress.toString()}/$total"),
+                          ),
+                        if (!provider.isIconsExporting!)
+                          const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20.0),
+                              child: Text("Icons Export Completed...")),
+                        if (!provider.isIconsExporting!)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 20.0),
+                            child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text("OK")),
+                          )
+                      ],
+                    ),
+                  ))
+                ],
+              );
+            },
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 190,
-      child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.pinkAccent,
-              foregroundColor: Colors.white,
-              padding:
-                  const EdgeInsets.symmetric(vertical: 23, horizontal: 35)),
-          onPressed: () {
-            Provider.of<IconProvider>(context, listen: false)
-                .export(context: context);
-            showDialog(
-                barrierDismissible: false,
-                context: context,
-                builder: (context) {
-                  return Consumer<IconProvider>(
-                    builder: (context, provider, _) {
-                      final progress = provider.progress;
-                      final total = MIUIThemeData.vectorList.length;
-                      return SimpleDialog(
-                        contentPadding: const EdgeInsets.all(20),
-                        title: const Center(child: Text("Get Set Go")),
-                        children: [
-                          Center(
-                              child: SizedBox(
-                            height: 150,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                if (provider.isIconsExporting!)
-                                  LinearProgressIndicator(
-                                    value: progress!.toDouble() / total,
-                                  ),
-                                if (provider.isIconsExporting!)
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                        "${provider.progress.toString()}/$total"),
-                                  ),
-                                if (!provider.isIconsExporting!)
-                                  const Padding(
-                                      padding:
-                                          EdgeInsets.symmetric(vertical: 20.0),
-                                      child: Text("Icons Export Completed...")),
-                                if (!provider.isIconsExporting!)
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 20.0),
-                                    child: ElevatedButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                        },
-                                        child: const Text("OK")),
-                                  )
-                              ],
-                            ),
-                          ))
-                        ],
-                      );
-                    },
-                  );
-                });
-          },
-          child: const Text("Icon Export")),
-    );
+    return UIWidgets.getElevatedButton(
+        text: "Icon Export",
+        icon: const Icon(Icons.android),
+        onTap: () => onTap(context));
   }
 }

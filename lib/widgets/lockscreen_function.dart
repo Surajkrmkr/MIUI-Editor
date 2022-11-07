@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:miui_icon_generator/widgets/bg_drop_zone.dart';
 
@@ -11,30 +13,32 @@ class LockscreenFunctions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: const [
-        Text("BG"),
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 20.0),
-          child: BGDropZone(
-            path: "bg",
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          if (Platform.isWindows) const Text("BG"),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20.0),
+            child: BGDropZone(
+              path: "bg",
+            ),
           ),
-        ),
-        BgAlpha(),
-        GlobalVarDetailsDialog(),
-        SizedBox(
-          height: 10,
-        ),
-        Text("Lockscreen"),
-        SizedBox(
-          height: 20,
-        ),
-        ExportLockscreenBtn(),
-        SizedBox(
-          height: 10,
-        ),
-        ExportMTZBtn()
-      ],
+          const BgAlpha(),
+          const GlobalVarDetailsDialog(),
+          const SizedBox(
+            height: 10,
+          ),
+          const Text("Lockscreen"),
+          const SizedBox(
+            height: 20,
+          ),
+          const ExportLockscreenBtn(),
+          const SizedBox(
+            height: 10,
+          ),
+          const ExportMTZBtn()
+        ],
+      ),
     );
   }
 }

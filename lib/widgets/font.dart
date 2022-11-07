@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -20,13 +22,15 @@ class FontListWidget extends StatelessWidget {
         child: !provider.isLoading!
             ? Column(
                 children: [
-                  Text(
-                    "Font Lists",
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  if (Platform.isWindows)
+                    Text(
+                      "Font Lists",
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  if (Platform.isWindows)
+                    const SizedBox(
+                      height: 20,
+                    ),
                   Expanded(
                     child: ListView.builder(
                         itemCount: provider.fonts.length,
@@ -74,5 +78,3 @@ class FontListWidget extends StatelessWidget {
     });
   }
 }
-
-
