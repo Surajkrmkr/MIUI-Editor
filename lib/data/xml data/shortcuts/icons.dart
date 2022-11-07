@@ -1,13 +1,11 @@
 import '../../../constants.dart';
 import '../../../provider/element.dart';
 
-String cameraIconXml({required ElementWidget ele}) {
-  return getIconXml(
-      ele: ele,
-      path: "icon/camera",
-      package: "com.android.camera",
-      className: "com.android.camera.Camera");
-}
+String cameraIconXml({required ElementWidget ele}) => getIconXml(
+    ele: ele,
+    path: "icon/camera",
+    package: "com.android.camera",
+    className: "com.android.camera.Camera");
 
 String musicIconXml({required ElementWidget ele}) {
   return getIconXml(

@@ -70,7 +70,7 @@ class ElementInfo extends StatelessWidget {
                 Column(
                   children: [
                     Text(
-                        "Scale : ${isText ? ele.fontSize! : ele.scale!.toStringAsFixed(2)}"),
+                        "Scale : ${isText ? ele.fontSize!.toStringAsFixed(2) : ele.scale!.toStringAsFixed(2)}"),
                     Slider(
                       value: isText ? ele.fontSize! : ele.scale!,
                       onChanged: (val) {
@@ -79,9 +79,9 @@ class ElementInfo extends StatelessWidget {
                                 ele.type!, val)
                             : provider.updateElementScaleInList(ele.type!, val);
                       },
-                      min: isText ? 20 : 0,
+                      min: isText ? 0 : 0,
                       max: isText ? 100 : 4,
-                      divisions: isText ? 100 ~/ 0.05 : 4 ~/ 0.05,
+                      divisions: isText ? 100 : 4 ~/ 0.05,
                     ),
                   ],
                 ),

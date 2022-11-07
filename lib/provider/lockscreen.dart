@@ -69,7 +69,7 @@ class LockscreenProvider extends ChangeNotifier {
                 (element) => element.getAttribute("name") == "music_control")
             .innerXml = previousText + elementXmlFromMap;
       }
-      if (elementFromMap["isTextType"] ?? false) {
+      else if (elementFromMap["isTextType"] ?? false) {
         elementXmlFromMap = elementFromMap["xml"]!(ele: widget);
       } else {
         elementXmlFromMap = elementFromMap["xml"]!;

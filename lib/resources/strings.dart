@@ -17,10 +17,10 @@ class MIUIString {
     "#battery_level": "100",
     "#temp": "24",
     "@cityName": "Cuttack",
-    "@airQuality": "Good",
+    "@airQuality": "Moderately Polluted",
     "#sms_unread_count": "2",
     "#call_missed_count": "5",
-    "@next_alarm_time": "Alarm time",
+    "@next_alarm_time": "Mon, 12:00 am",
     "'": "",
     "+": ""
   };
