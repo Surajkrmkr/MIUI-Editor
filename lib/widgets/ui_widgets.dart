@@ -40,4 +40,29 @@ class UIWidgets {
             onPressed: onTap,
             label: Text(text!)),
       );
+
+  static Widget getIconButton(
+      {IconData? icon, Widget? widget, BuildContext? context}) {
+    return IconButton(
+        onPressed: () {
+          showModalBottomSheet(
+              barrierColor: Colors.transparent,
+              context: context!,
+              elevation: 10,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30.0),
+              ),
+              builder: ((context) => Wrap(
+                    alignment: WrapAlignment.center,
+                    children: [
+                      Container(
+                          height: MediaQuery.of(context).size.height * 0.35,
+                          width: MediaQuery.of(context).size.width * 0.7,
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: widget!),
+                    ],
+                  )));
+        },
+        icon: Icon(icon!));
+  }
 }

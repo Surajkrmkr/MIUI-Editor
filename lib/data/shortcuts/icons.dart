@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../constants.dart';
 import '../../functions/theme_path.dart';
+import '../../functions/windows_utils.dart';
 import '../../provider/element.dart';
 import '../bg_stack.dart';
 import '../element_map_dart.dart';
@@ -23,7 +24,8 @@ class ShortcutIcon extends StatelessWidget {
     final ele = value!.getElementFromList(type!);
     return commonWidget(
         child: Image.memory(
-          File("${themePath}lockscreen\\advance\\$path.png").readAsBytesSync(),
+          File(platformBasedPath("${themePath}lockscreen\\advance\\$path.png"))
+              .readAsBytesSync(),
           gaplessPlayback: true,
           height: ele.height! / MIUIConstants.ratio,
           width: ele.width! / MIUIConstants.ratio,

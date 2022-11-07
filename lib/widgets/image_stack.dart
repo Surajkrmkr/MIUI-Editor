@@ -21,7 +21,7 @@ class ImageStack extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              if (!(provider.index != 0))
+              if (!(provider.index != 0) && Platform.isWindows)
                 const SizedBox(
                   width: 40,
                 ),
@@ -70,7 +70,7 @@ class ImageStack extends StatelessWidget {
                       provider.setIndex(provider.index! + 1, context);
                     },
                     icon: const Icon(Icons.navigate_next)),
-              if (!(provider.index != 24))
+              if (!(provider.index != 24) && Platform.isWindows)
                 const SizedBox(
                   width: 40,
                 )
@@ -80,12 +80,13 @@ class ImageStack extends StatelessWidget {
             const SizedBox(
               height: 20,
             ),
-          Text(
-            provider.paths![provider.index!]
-                .split(Platform.isWindows ? "\\" : "/")
-                .last,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          )
+          if (isLockscreen! && Platform.isWindows)
+            Text(
+              provider.paths![provider.index!]
+                  .split(Platform.isWindows ? "\\" : "/")
+                  .last,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            )
         ],
       );
     });

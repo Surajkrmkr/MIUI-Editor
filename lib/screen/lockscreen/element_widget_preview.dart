@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'dart:io';
 import '../../constants.dart';
 import '../../functions/theme_path.dart';
+import '../../functions/windows_utils.dart';
 import '../../provider/element.dart';
 
 class ElementWidgetPreview extends StatelessWidget {
@@ -14,7 +15,8 @@ class ElementWidgetPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ElementProvider>(builder: (context, value, child) {
       final themePath = CurrentTheme.getPath(context);
-      final bgPath = File("$themePath\\lockscreen\\advance\\bg.png");
+      final bgPath =
+          File(platformBasedPath("${themePath}lockscreen\\advance\\bg.png"));
       return Stack(children: [
         Container(
           decoration: BoxDecoration(

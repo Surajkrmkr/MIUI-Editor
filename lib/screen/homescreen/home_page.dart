@@ -33,12 +33,10 @@ class HomePage extends StatelessWidget {
           children: [
             if (Platform.isWindows)
               const SizedBox(width: 220, child: Text("Theme Generator")),
-            const SizedBox(
-              width: 20,
-            ),
-            getProgress(),
-            const SizedBox(
-              width: 20,
+            Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: Platform.isWindows ? 20.0 : 5),
+              child: getProgress(),
             ),
             directoryCreatingLoading()
           ],
@@ -156,7 +154,7 @@ Widget getProgress() {
     return Row(
       children: [
         SizedBox(
-          width: 200,
+          width: Platform.isWindows ? 200 : 100,
           height: 10,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10),

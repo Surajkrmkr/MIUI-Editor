@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 
 import '../../functions/theme_path.dart';
+import '../../functions/windows_utils.dart';
 import '../../provider/element.dart';
 import '../bg_stack.dart';
 import '../element_map_dart.dart';
@@ -89,7 +90,9 @@ class WeekClock extends StatelessWidget {
     final ele = value!.getElementFromList(ElementType.weekClock);
     return commonWidget(
         child: Text(
-          ele.isShort! ?MIUIThemeData.weekNames[num!]!.substring(0,3):   MIUIThemeData.weekNames[num!]!,
+          ele.isShort!
+              ? MIUIThemeData.weekNames[num!]!.substring(0, 3)
+              : MIUIThemeData.weekNames[num!]!,
           style: TextStyle(
               fontFamily: ele.font, fontSize: 30, height: 1, color: ele.color),
         ),
@@ -113,7 +116,9 @@ class MonthClock extends StatelessWidget {
     final ele = value!.getElementFromList(ElementType.monthClock);
     return commonWidget(
         child: Text(
-          ele.isShort! ? MIUIThemeData.monthNames[num! - 1]!.substring(0,3) : MIUIThemeData.monthNames[num! - 1]!,
+          ele.isShort!
+              ? MIUIThemeData.monthNames[num! - 1]!.substring(0, 3)
+              : MIUIThemeData.monthNames[num! - 1]!,
           style: TextStyle(
               fontFamily: ele.font, fontSize: 30, height: 1, color: ele.color),
         ),
@@ -209,8 +214,8 @@ Future exportHourPng(BuildContext context) async {
             context: context,
             pixelRatio: 3)
         .then((value) async {
-      final imagePath =
-          File('$themePath\\lockscreen\\advance\\hour\\hour_$i.png');
+      final imagePath = File(platformBasedPath(
+          '$themePath\\lockscreen\\advance\\hour\\hour_$i.png'));
       await imagePath.writeAsBytes(value);
     });
   }
@@ -241,7 +246,8 @@ Future exportDotPng(BuildContext context) async {
       .captureFromWidget(getBGStack(child: DotClock.getChild(value: value)),
           context: context, pixelRatio: 3)
       .then((value) async {
-    final imagePath = File('$themePath\\lockscreen\\advance\\dot\\dot.png');
+    final imagePath = File(
+        platformBasedPath('$themePath\\lockscreen\\advance\\dot\\dot.png'));
     await imagePath.writeAsBytes(value);
   });
 }
@@ -256,8 +262,8 @@ Future exportWeekPng(BuildContext context) async {
             context: context,
             pixelRatio: 3)
         .then((value) async {
-      final imagePath =
-          File('$themePath\\lockscreen\\advance\\week\\week_$i.png');
+      final imagePath = File(platformBasedPath(
+          '$themePath\\lockscreen\\advance\\week\\week_$i.png'));
       await imagePath.writeAsBytes(value);
     });
   }
@@ -273,8 +279,8 @@ Future exportMonthPng(BuildContext context) async {
             context: context,
             pixelRatio: 3)
         .then((value) async {
-      final imagePath =
-          File('$themePath\\lockscreen\\advance\\month\\month_$i.png');
+      final imagePath = File(platformBasedPath(
+          '$themePath\\lockscreen\\advance\\month\\month_$i.png'));
       await imagePath.writeAsBytes(value);
     });
   }
@@ -290,8 +296,8 @@ Future exportDatePng(BuildContext context) async {
             context: context,
             pixelRatio: 3)
         .then((value) async {
-      final imagePath =
-          File('$themePath\\lockscreen\\advance\\date\\date_$i.png');
+      final imagePath = File(platformBasedPath(
+          '$themePath\\lockscreen\\advance\\date\\date_$i.png'));
       await imagePath.writeAsBytes(value);
     });
   }
@@ -309,8 +315,8 @@ Future exportWeatherIconPng(BuildContext context) async {
             context: context,
             pixelRatio: 3)
         .then((value) async {
-      final imagePath = File(
-          '$themePath\\lockscreen\\advance\\weather\\weather_${MIUIThemeData.weatherPngs[i]}.png');
+      final imagePath = File(platformBasedPath(
+          '$themePath\\lockscreen\\advance\\weather\\weather_${MIUIThemeData.weatherPngs[i]}.png'));
       await imagePath.writeAsBytes(value);
     });
   }
@@ -328,8 +334,8 @@ Future exportAmPmPng(BuildContext context) async {
             context: context,
             pixelRatio: 3)
         .then((value) async {
-      final imagePath =
-          File('$themePath\\lockscreen\\advance\\ampm\\ampm_$i.png');
+      final imagePath = File(platformBasedPath(
+          '$themePath\\lockscreen\\advance\\ampm\\ampm_$i.png'));
       await imagePath.writeAsBytes(value);
     });
   }

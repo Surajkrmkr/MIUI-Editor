@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../constants.dart';
 import '../../functions/theme_path.dart';
+import '../../functions/windows_utils.dart';
 import '../../provider/element.dart';
 import '../bg_stack.dart';
 import '../element_map_dart.dart';
@@ -16,7 +17,8 @@ class MusicBG extends StatelessWidget {
     final ele = value!.getElementFromList(ElementType.musicBg);
     return commonWidget(
         child: Image.memory(
-          File("${themePath}lockscreen\\advance\\music\\bg.png")
+          File(platformBasedPath(
+                  "${themePath}lockscreen\\advance\\music\\bg.png"))
               .readAsBytesSync(),
           gaplessPlayback: true,
           height: ele.height! / MIUIConstants.ratio,
@@ -42,7 +44,8 @@ class MusicNext extends StatelessWidget {
     final ele = value!.getElementFromList(ElementType.musicNext);
     return commonWidget(
         child: Image.memory(
-          File("${themePath}lockscreen\\advance\\music\\next.png")
+          File(platformBasedPath(
+                  "${themePath}lockscreen\\advance\\music\\next.png"))
               .readAsBytesSync(),
           gaplessPlayback: true,
           height: ele.height! / MIUIConstants.ratio,
@@ -68,7 +71,8 @@ class MusicPrev extends StatelessWidget {
     final ele = value!.getElementFromList(ElementType.musicPrev);
     return commonWidget(
         child: Image.memory(
-          File("${themePath}lockscreen\\advance\\music\\prev.png")
+          File(platformBasedPath(
+                  "${themePath}lockscreen\\advance\\music\\prev.png"))
               .readAsBytesSync(),
           gaplessPlayback: true,
           height: ele.height! / MIUIConstants.ratio,
