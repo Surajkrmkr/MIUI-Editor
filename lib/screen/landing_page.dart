@@ -125,7 +125,7 @@ class LandingPage extends StatelessWidget {
                         height: 600,
                         width: 350,
                         child: provider.isLoadingPreviewWallPath!
-                            ? const CircularProgressIndicator()
+                            ? const Center(child: CircularProgressIndicator())
                             : ClipRRect(
                                 borderRadius: BorderRadius.circular(30),
                                 child: GridView.builder(
