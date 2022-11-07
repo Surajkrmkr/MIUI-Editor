@@ -1,5 +1,4 @@
 class MIUIThemeData {
-  static String? rootPath = "E:\\Xiaomi Contract\\";
 
   static List<String?> vectorList = [
     "icon_folder",

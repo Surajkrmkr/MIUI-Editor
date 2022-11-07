@@ -19,6 +19,7 @@ class ImageStack extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               if (!(provider.index != 0))
                 const SizedBox(
@@ -33,7 +34,9 @@ class ImageStack extends StatelessWidget {
                     },
                     icon: const Icon(Icons.navigate_before)),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                padding: Platform.isAndroid
+                    ? EdgeInsets.zero
+                    : const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Container(
                   height: MIUIConstants.screenHeight,
                   width: MIUIConstants.screenWidth,
@@ -73,8 +76,14 @@ class ImageStack extends StatelessWidget {
                 )
             ],
           ),
+          if (Platform.isAndroid)
+            const SizedBox(
+              height: 20,
+            ),
           Text(
-            provider.paths![provider.index!].split("\\").last,
+            provider.paths![provider.index!]
+                .split(Platform.isWindows ? "\\" : "/")
+                .last,
             style: const TextStyle(fontWeight: FontWeight.bold),
           )
         ],

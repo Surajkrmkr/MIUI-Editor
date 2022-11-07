@@ -9,6 +9,7 @@ import '../data/element_map_dart.dart';
 import '../data/miui_theme_data.dart';
 import '../functions/theme_path.dart';
 import '../data/xml data/lockscreen.dart';
+import '../functions/windows_utils.dart';
 import 'element.dart';
 
 class LockscreenProvider extends ChangeNotifier {
@@ -30,7 +31,8 @@ class LockscreenProvider extends ChangeNotifier {
     final themePath = CurrentTheme.getPath(context);
     CurrentTheme.createLockscreenDirectory(themePath: themePath);
     for (var png in MIUIThemeData.lockscreenPngList) {
-      await File("${MIUIConstants.sample2Lockscreen!}$png.png")
+      await File(
+              platformBasedPath("${MIUIConstants.sample2Lockscreen!}$png.png"))
           .copy("${themePath}lockscreen\\advance$png.png");
     }
     setIsDefaultPngsCopying = false;
@@ -68,8 +70,7 @@ class LockscreenProvider extends ChangeNotifier {
             .firstWhere(
                 (element) => element.getAttribute("name") == "music_control")
             .innerXml = previousText + elementXmlFromMap;
-      }
-      else if (elementFromMap["isTextType"] ?? false) {
+      } else if (elementFromMap["isTextType"] ?? false) {
         elementXmlFromMap = elementFromMap["xml"]!(ele: widget);
       } else {
         elementXmlFromMap = elementFromMap["xml"]!;

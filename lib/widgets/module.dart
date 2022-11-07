@@ -50,9 +50,11 @@ class ModuleWidget extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 20.0),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Screenshot(
-                controller : Provider.of<ModuleProvider>(context, listen: false).dialerPngController!,
+                controller: Provider.of<ModuleProvider>(context, listen: false)
+                    .dialerPngController!,
                 child: CircleAvatar(
                     backgroundColor:
                         Provider.of<IconProvider>(context, listen: true)
@@ -66,7 +68,8 @@ class ModuleWidget extends StatelessWidget {
                 width: 20,
               ),
               Screenshot(
-                controller: Provider.of<ModuleProvider>(context, listen: false).contactPngController!,
+                controller: Provider.of<ModuleProvider>(context, listen: false)
+                    .contactPngController!,
                 child: CircleAvatar(
                     backgroundColor:
                         Provider.of<IconProvider>(context, listen: true)

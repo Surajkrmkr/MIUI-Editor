@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../constants.dart';
 import '../data/miui_theme_data.dart';
 import '../functions/theme_path.dart';
+import '../functions/windows_utils.dart';
 
 class DirectoryProvider extends ChangeNotifier {
   bool? isCreating = false;
@@ -55,18 +56,22 @@ class DirectoryProvider extends ChangeNotifier {
     setIsCreating = true;
     final themePath = CurrentTheme.getPath(context);
     for (String? path in MIUIThemeData.directoryList) {
-      await Directory("$themePath$path").create(recursive: true);
+      await Directory(platformBasedPath("$themePath$path")).create(recursive: true);
     }
     setIsCreating = false;
   }
 
   Future getPreLockCount() async {
     setIsLoadingPrelockCount = true;
+    if (Platform.isAndroid) {
+      await Directory(MIUIConstants.preLock!).create(recursive: true);
+    }
     final folders = await Directory("${MIUIConstants.preLock}").list().toList();
     preLockPaths.clear();
     for (var fileEntity in folders) {
       if (fileEntity is! File) {
-        addPrelockFolderToList(path: fileEntity.path.split("\\").last);
+        final path = fileEntity.path.split(platformBasedPath("\\")).last;
+        addPrelockFolderToList(path: path);
       }
     }
     setIsLoadingPrelockCount = false;
@@ -77,7 +82,7 @@ class DirectoryProvider extends ChangeNotifier {
     setStatus(newStatus: "Analyzing...🤨🤨🤨");
     previewWallsPath.clear();
     final folders =
-        await Directory("${MIUIConstants.preLock}\\$folderNum").list().toList();
+        await Directory(platformBasedPath("${MIUIConstants.preLock}\\$folderNum")).list().toList();
     bool isAllInJPGFormat = true;
     for (var fileEntity in folders) {
       if (fileEntity is File) {

@@ -52,6 +52,8 @@ dependencies:
   desktop_drop: ^0.3.3
   archive: ^3.3.2
   icons_launcher: ^2.0.5
+  permission_handler: ^10.2.0
+  android_path_provider: ^0.3.0
 
 dev_dependencies:
   flutter_test:

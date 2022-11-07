@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../data/miui_theme_data.dart';
 import '../functions/theme_path.dart';
-import '../widgets/banner.dart';
+import '../widgets/ui_widgets.dart';
 
 class MTZProvider extends ChangeNotifier {
   bool? isExporting = true;
@@ -34,15 +34,13 @@ class MTZProvider extends ChangeNotifier {
             await compressModule(themePath, path!.replaceAll('\\', ''));
         await encoder.addFile(File(zipPath!));
       }
-      MIUIBanners.getBanner(
+      UIWidgets.getBanner(
           content: "$themeName.mtz exported",
           context: context,
           hasError: false);
     } catch (e) {
-      MIUIBanners.getBanner(
-          content: e.toString(),
-          context: context,
-          hasError: true);
+      UIWidgets.getBanner(
+          content: e.toString(), context: context, hasError: true);
     } finally {
       encoder.close();
       setIsExporting = false;
