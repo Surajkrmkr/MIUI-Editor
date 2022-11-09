@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../data/miui_theme_data.dart';
 import '../functions/theme_path.dart';
+import '../functions/windows_utils.dart';
 import '../widgets/ui_widgets.dart';
 
 class MTZProvider extends ChangeNotifier {
@@ -20,18 +21,19 @@ class MTZProvider extends ChangeNotifier {
     setIsExporting = true;
     final themePath = CurrentTheme.getPath(context);
     final themeName = CurrentTheme.getCurrentThemeName(context);
-    final descFile = "${themePath!}\\description.xml";
-    final pluginInfoFile = "$themePath\\plugin_config.xml";
-    final wallDir = Directory("$themePath\\wallpaper");
+    final descFile = platformBasedPath("${themePath!}\\description.xml");
+    final pluginInfoFile = platformBasedPath("$themePath\\plugin_config.xml");
+    final wallDir = Directory(platformBasedPath("$themePath\\wallpaper"));
     var encoder = ZipFileEncoder();
     try {
-      encoder.create("${Directory(themePath).parent.path}\\$themeName.mtz");
+      encoder.create(platformBasedPath(
+          "${Directory(themePath).parent.path}\\$themeName.mtz"));
       encoder.addFile(File(descFile));
       encoder.addFile(File(pluginInfoFile));
       encoder.addDirectory(wallDir);
       for (String? path in MIUIThemeData.mtzModuleList) {
-        final zipPath =
-            await compressModule(themePath, path!.replaceAll('\\', ''));
+        final zipPath = await compressModule(
+            themePath, path!.replaceAll(Platform.isWindows ? '\\' : "/", ''));
         await encoder.addFile(File(zipPath!));
       }
       UIWidgets.getBanner(
@@ -44,9 +46,10 @@ class MTZProvider extends ChangeNotifier {
     } finally {
       encoder.close();
       setIsExporting = false;
-      Directory("$themePath\\temp").exists().then((value) {
+      Directory(platformBasedPath("$themePath\\temp")).exists().then((value) {
         if (value) {
-          Directory("$themePath\\temp").delete(recursive: true);
+          Directory(platformBasedPath("$themePath\\temp"))
+              .delete(recursive: true);
         }
       });
     }
@@ -54,8 +57,9 @@ class MTZProvider extends ChangeNotifier {
 
   Future<String?> compressModule(String? path, String? moduleName) async {
     var encoder = ZipFileEncoder();
-    encoder.create("${path!}\\temp\\$moduleName");
-    await encoder.addDirectory(Directory("$path\\$moduleName"),
+    encoder.create(platformBasedPath("${path!}\\temp\\$moduleName"));
+    await encoder.addDirectory(
+        Directory(platformBasedPath("$path\\$moduleName")),
         includeDirName: false);
     final zipPath = encoder.zipPath;
     encoder.close();
@@ -68,19 +72,10 @@ class ExportMTZBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 190,
-      child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.pinkAccent,
-              foregroundColor: Colors.white,
-              padding:
-                  const EdgeInsets.symmetric(vertical: 23, horizontal: 35)),
-          onPressed: () {
-            Provider.of<MTZProvider>(context, listen: false)
-                .export(context: context);
-          },
-          child: const Text("MTZ")),
-    );
+    return UIWidgets.getElevatedButton(
+        icon: const Icon(Icons.archive),
+        onTap: () => Provider.of<MTZProvider>(context, listen: false)
+            .export(context: context),
+        text: "MTZ");
   }
 }
