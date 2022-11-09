@@ -46,9 +46,10 @@ class MTZProvider extends ChangeNotifier {
     } finally {
       encoder.close();
       setIsExporting = false;
-      Directory("$themePath\\temp").exists().then((value) {
+      Directory(platformBasedPath("$themePath\\temp")).exists().then((value) {
         if (value) {
-          Directory("$themePath\\temp").delete(recursive: true);
+          Directory(platformBasedPath("$themePath\\temp"))
+              .delete(recursive: true);
         }
       });
     }
