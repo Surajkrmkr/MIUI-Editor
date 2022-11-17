@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: MIUIProvider.getProviders(context),
       child: MaterialApp(
-        title: 'Icon Generator',
+        title: 'MIUI Theme Creator',
         themeMode: ThemeMode.light,
         darkTheme: AppThemeData.getDarkTheme(),
         theme: AppThemeData.getLightTheme(),
