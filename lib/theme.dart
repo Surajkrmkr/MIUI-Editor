@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 class AppThemeData {
   static ThemeData getLightTheme() => ThemeData(
       useMaterial3: true,
-      backgroundColor: Colors.white,
       scaffoldBackgroundColor: Colors.white,
       sliderTheme: const SliderThemeData(
         showValueIndicator: ShowValueIndicator.always,
@@ -11,6 +10,8 @@ class AppThemeData {
       radioTheme: RadioThemeData(
         fillColor: MaterialStateProperty.all(Colors.pinkAccent),
       ),
+      dialogTheme: const DialogTheme(
+          backgroundColor: Colors.white, surfaceTintColor: Colors.transparent),
       listTileTheme: ListTileThemeData(
         selectedColor: Colors.white,
         selectedTileColor: Colors.pinkAccent,
@@ -32,7 +33,6 @@ class AppThemeData {
       appBarTheme: const AppBarTheme(
           backgroundColor: Color.fromARGB(255, 30, 30, 30),
           foregroundColor: Colors.white),
-      backgroundColor: const Color.fromARGB(255, 30, 30, 30),
       scaffoldBackgroundColor: const Color.fromARGB(255, 30, 30, 30),
       sliderTheme: const SliderThemeData(
         showValueIndicator: ShowValueIndicator.always,

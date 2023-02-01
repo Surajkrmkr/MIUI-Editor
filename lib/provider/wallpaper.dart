@@ -1,10 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:miui_icon_generator/functions/theme_path.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:provider/provider.dart';
 
 import '../constants.dart';
+import '../functions/windows_utils.dart';
+import '../widgets/ui_widgets.dart';
 import 'directory.dart';
 import 'icon.dart';
 
@@ -63,5 +67,16 @@ class WallpaperProvider extends ChangeNotifier {
         list.dominantColor!.color;
     Provider.of<IconProvider>(context, listen: false).setAccentColor =
         list.dominantColor!.color;
+  }
+
+  void exportScreenShot(context, screenshotController) {
+    final themeName = CurrentTheme.getCurrentThemeName(context);
+    screenshotController.capture().then((Uint8List? image) async {
+      final imagePath = File(platformBasedPath(
+          '${MIUIConstants.basePath}THEMES\\Week$weekNum\\$themeName.png'));
+      await imagePath.writeAsBytes(image!);
+      UIWidgets.getBanner(
+          content: "Screenshot Generated", context: context, hasError: false);
+    });
   }
 }

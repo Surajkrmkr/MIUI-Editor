@@ -72,7 +72,7 @@ class LockscreenPage extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const ImageStack(isLockscreen: true),
+                      ImageStack(isLockscreen: true),
                       accentColorsList(isLockscreen: true),
                     ]),
               )
@@ -80,7 +80,7 @@ class LockscreenPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                    const ImageStack(isLockscreen: true),
+                    ImageStack(isLockscreen: true),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: const [

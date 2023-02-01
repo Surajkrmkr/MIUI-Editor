@@ -1,14 +1,16 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:screenshot/screenshot.dart';
 import '../constants.dart';
 import '../provider/wallpaper.dart';
 import '../screen/homescreen/icon_preview.dart';
 import '../screen/lockscreen/element_widget_preview.dart';
 
 class ImageStack extends StatelessWidget {
-  const ImageStack({super.key, required this.isLockscreen});
+  ImageStack({super.key, required this.isLockscreen});
   final bool? isLockscreen;
+  final ScreenshotController screenshotController = ScreenshotController();
   @override
   Widget build(BuildContext context) {
     return Consumer<WallpaperProvider>(builder: (context, provider, _) {
@@ -28,8 +30,6 @@ class ImageStack extends StatelessWidget {
               if (!isLockscreen! && provider.index != 0)
                 IconButton(
                     onPressed: () {
-                      final provider = Provider.of<WallpaperProvider>(context,
-                          listen: false);
                       provider.setIndex(provider.index! - 1, context);
                     },
                     icon: const Icon(Icons.navigate_before)),
@@ -37,36 +37,37 @@ class ImageStack extends StatelessWidget {
                 padding: Platform.isAndroid
                     ? EdgeInsets.zero
                     : const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Container(
-                  height: MIUIConstants.screenHeight,
-                  width: MIUIConstants.screenWidth,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(40),
-                    image: DecorationImage(
-                      image: FileImage(
-                        File(provider.paths![provider.index!]),
+                child: Screenshot(
+                  controller: screenshotController,
+                  child: Container(
+                    height: MIUIConstants.screenHeight,
+                    width: MIUIConstants.screenWidth,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(40),
+                      image: DecorationImage(
+                        image: FileImage(
+                          File(provider.paths![provider.index!]),
+                        ),
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          spreadRadius: 2,
+                          blurRadius: 9,
+                          offset:
+                              const Offset(5, 5), // changes position of shadow
+                        ),
+                      ],
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        spreadRadius: 2,
-                        blurRadius: 9,
-                        offset:
-                            const Offset(5, 5), // changes position of shadow
-                      ),
-                    ],
+                    child: !isLockscreen!
+                        ? const PreviewIcons()
+                        : const ElementWidgetPreview(),
                   ),
-                  child: !isLockscreen!
-                      ? const PreviewIcons()
-                      : const ElementWidgetPreview(),
                 ),
               ),
               if (!isLockscreen! && (provider.index != 24))
                 IconButton(
                     onPressed: () {
-                      final provider = Provider.of<WallpaperProvider>(context,
-                          listen: false);
                       provider.setIndex(provider.index! + 1, context);
                     },
                     icon: const Icon(Icons.navigate_next)),
@@ -81,11 +82,21 @@ class ImageStack extends StatelessWidget {
               height: 20,
             ),
           if (isLockscreen! && Platform.isWindows)
-            Text(
-              provider.paths![provider.index!]
-                  .split(Platform.isWindows ? "\\" : "/")
-                  .last,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                Text(
+                  provider.paths![provider.index!]
+                      .split(Platform.isWindows ? "\\" : "/")
+                      .last,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(width: 20),
+                FilledButton(
+                    onPressed: () =>
+                        Provider.of<WallpaperProvider>(context, listen: false)
+                            .exportScreenShot(context, screenshotController),
+                    child: const Icon(Icons.send)),
+              ],
             )
         ],
       );

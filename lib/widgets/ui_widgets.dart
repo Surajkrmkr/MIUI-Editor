@@ -1,26 +1,21 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:m_toast/m_toast.dart';
 
 class UIWidgets {
   static void getBanner(
       {String? content, bool? hasError, BuildContext? context}) {
-    ScaffoldMessenger.of(context!).showMaterialBanner(MaterialBanner(
-        backgroundColor: hasError! ? Colors.redAccent : Colors.pinkAccent,
-        leading: const Icon(
-          Icons.done,
-          color: Colors.white,
-        ),
-        content: Text(
-          content!,
-          style: const TextStyle(color: Colors.white),
-        ),
-        actions: [
-          ElevatedButton(onPressed: () {}, child: const Text("Okay"))
-        ]));
-    Future.delayed(const Duration(seconds: 3), () {
-      ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
-    });
+    final ShowMToast toast = ShowMToast();
+    !hasError!
+        ? toast.successToast(context!,
+            backgroundColor: Colors.pinkAccent,
+            iconColor: Colors.white,
+            message: content!,
+            textColor: Colors.white,
+            alignment: Alignment.bottomCenter)
+        : toast.errorToast(context!,
+            message: content!, alignment: Alignment.bottomCenter);
   }
 
   static Widget getElevatedButton(

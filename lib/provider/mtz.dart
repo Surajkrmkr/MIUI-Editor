@@ -21,25 +21,33 @@ class MTZProvider extends ChangeNotifier {
     setIsExporting = true;
     final themePath = CurrentTheme.getPath(context);
     final themeName = CurrentTheme.getCurrentThemeName(context);
-    final descFile = platformBasedPath("${themePath!}\\description.xml");
-    final pluginInfoFile = platformBasedPath("$themePath\\plugin_config.xml");
-    final wallDir = Directory(platformBasedPath("$themePath\\wallpaper"));
     var encoder = ZipFileEncoder();
     try {
+      final descFile = platformBasedPath("${themePath!}\\description.xml");
+      final pluginInfoFile = platformBasedPath("$themePath\\plugin_config.xml");
+      final wallDir = Directory(platformBasedPath("$themePath\\wallpaper"));
+
       encoder.create(platformBasedPath(
           "${Directory(themePath).parent.path}\\$themeName.mtz"));
       encoder.addFile(File(descFile));
       encoder.addFile(File(pluginInfoFile));
       encoder.addDirectory(wallDir);
+
       for (String? path in MIUIThemeData.mtzModuleList) {
         final zipPath = await compressModule(
             themePath, path!.replaceAll(Platform.isWindows ? '\\' : "/", ''));
-        await encoder.addFile(File(zipPath!));
+        if (zipPath!.isEmpty) {
+          throw Exception("error occured");
+        }
+        await encoder.addFile(File(zipPath));
       }
-      UIWidgets.getBanner(
-          content: "$themeName.mtz exported",
-          context: context,
-          hasError: false);
+
+      Future.delayed(const Duration(milliseconds: 500), () {
+        UIWidgets.getBanner(
+            content: "$themeName.mtz exported",
+            context: context,
+            hasError: false);
+      });
     } catch (e) {
       UIWidgets.getBanner(
           content: e.toString(), context: context, hasError: true);

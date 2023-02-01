@@ -27,7 +27,7 @@ class LandingPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 const Text(
-                  "Welcome to MIUI World \n by Suraj",
+                  "Welcome to MIUI World",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 30),
                 ),
@@ -86,7 +86,7 @@ class PreviewWeekWalls extends StatelessWidget {
     return Column(
       children: [
         if (Platform.isWindows)
-          Text("Previews", style: Theme.of(context).textTheme.headline5),
+          Text("Previews", style: Theme.of(context).textTheme.headlineLarge),
         if (Platform.isWindows)
           const SizedBox(
             height: 20,
@@ -156,7 +156,8 @@ class FolderWeekOptions extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("Choose Folder", style: Theme.of(context).textTheme.headline5),
+            Text("Choose Folder",
+                style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(
               height: 20,
             ),

@@ -55,6 +55,13 @@ class MIUIThemeData {
     "com.google.android.dialer",
     "com.google.android.contacts",
     "com.google.android.apps.messaging",
+    "com.google.android.apps.googleassistant",
+    "com.mi.globalminusscreen",
+    "com.mipay.wallet.in",
+    "com.miui.cleaner",
+    "com.netflix.mediaclient",
+    "com.xiaomi.mipicks",
+    "com.android.vending",
   ];
 
   static List<String?> extraIconList = [

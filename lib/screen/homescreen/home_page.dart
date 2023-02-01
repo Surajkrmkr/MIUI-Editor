@@ -61,7 +61,7 @@ class HomePage extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const ImageStack(isLockscreen: false),
+                      ImageStack(isLockscreen: false),
                       const SizedBox(
                         height: 20,
                       ),
@@ -99,7 +99,7 @@ class HomePage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const ImageStack(isLockscreen: false),
+                    ImageStack(isLockscreen: false),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
