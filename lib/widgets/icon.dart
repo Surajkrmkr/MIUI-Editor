@@ -31,22 +31,25 @@ class IconWidget extends StatelessWidget {
       height: 45,
       width: 45,
       child: Container(
-        margin: EdgeInsets.all(margin!),
-        child: Container(
-          padding: EdgeInsets.all(padding!),
-          height: 130,
-          width: 130,
-          decoration: BoxDecoration(
-              border: Border.all(width: borderWidth!, color: borderColor!),
-              borderRadius: BorderRadius.circular(radius!),
-              color: name == 'icon_border' ? Colors.transparent : bgColor),
-          child: !MIUIThemeData.extraIconList.contains(name)
-              ? Center(
-                  child: SvgPicture.asset(
-                  "assets/icons/$name.svg",
-                  color: iconColor,
-                ))
-              : Container(),
+        margin: EdgeInsets.all(name == 'icon_mask' ? 10 : margin!),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(name == 'icon_mask' ? 200 : 0),
+          child: Container(
+            padding: EdgeInsets.all(padding!),
+            height: 130,
+            width: 130,
+            decoration: BoxDecoration(
+                border: Border.all(width: borderWidth!, color: borderColor!),
+                borderRadius: BorderRadius.circular(radius!),
+                color: name == 'icon_border' ? Colors.transparent : bgColor),
+            child: !MIUIThemeData.extraIconList.contains(name)
+                ? Center(
+                    child: SvgPicture.asset(
+                    "assets/icons/$name.svg",
+                    color: iconColor,
+                  ))
+                : Container(),
+          ),
         ),
       ),
     );
