@@ -33,6 +33,11 @@ Future requestPermission() async {
   if (!isGranted) {
     await permission.request();
   }
+  const managePermission = Permission.manageExternalStorage;
+  final grant = await managePermission.isGranted;
+  if (!grant) {
+    await managePermission.request();
+  }
 }
 
 String platformBasedPath(String path) {
