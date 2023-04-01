@@ -7,7 +7,7 @@ import 'package:window_manager/window_manager.dart';
 Future startUpWindowsUtils() async {
   await windowManager.ensureInitialized();
   windowManager.waitUntilReadyToShow().then((_) async {
-    await windowManager.setSize(const Size(1500, 900));
+    await windowManager.maximize();
     await windowManager.setMinimumSize(const Size(1500, 900));
     await windowManager.center();
     await windowManager.show();

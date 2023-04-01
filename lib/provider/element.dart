@@ -57,6 +57,16 @@ class ElementProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateElementHeightInList(ElementType type, double? height) {
+    elementList.firstWhere((element) => element.type == type).height = height;
+    notifyListeners();
+  }
+
+  void updateElementWidthInList(ElementType type, double? width) {
+    elementList.firstWhere((element) => element.type == type).width = width;
+    notifyListeners();
+  }
+
   void updateElementAlignInList(ElementType type, AlignmentGeometry? align) {
     elementList.firstWhere((element) => element.type == type).align = align;
     notifyListeners();
@@ -64,6 +74,23 @@ class ElementProvider extends ChangeNotifier {
 
   void updateElementAngleInList(ElementType type, double? angle) {
     elementList.firstWhere((element) => element.type == type).angle = angle;
+    notifyListeners();
+  }
+
+  void updateElementRadiusInList(ElementType type, double? radius) {
+    elementList.firstWhere((element) => element.type == type).radius = radius;
+    notifyListeners();
+  }
+
+  void updateElementBorderWidthInList(ElementType type, double? width) {
+    elementList.firstWhere((element) => element.type == type).borderWidth =
+        width;
+    notifyListeners();
+  }
+
+  void updateElementBorderColorInList(ElementType type, Color? color) {
+    elementList.firstWhere((element) => element.type == type).borderColor =
+        color;
     notifyListeners();
   }
 
@@ -97,6 +124,9 @@ class ElementWidget {
   double? scale;
   double? height;
   double? width;
+  double? radius;
+  double? borderWidth;
+  Color? borderColor;
   ElementType? type;
   Widget? child;
   Color? color;
@@ -115,6 +145,9 @@ class ElementWidget {
       this.height = 200,
       required this.name,
       this.scale = 1,
+      this.radius = 10,
+      this.borderWidth = 0,
+      this.borderColor = Colors.white,
       required this.type,
       this.width = 200,
       this.font = 'Roboto',

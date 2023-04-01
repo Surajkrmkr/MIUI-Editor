@@ -1,7 +1,9 @@
 import 'package:miui_icon_generator/data/unlock/unlock.dart';
 
+import 'container/container_bg.dart';
 import 'music/music.dart';
 import 'text/text.dart';
+import 'xml data/container/container_bg.dart';
 import 'xml data/music/music.dart';
 import 'xml data/shortcuts/icons.dart';
 import 'xml data/swipe_up_unlock.dart';
@@ -11,6 +13,11 @@ import 'time/clock.dart';
 import 'xml data/text/text.dart';
 
 enum ElementType {
+  containerBG1,
+  containerBG2,
+  containerBG3,
+  containerBG4,
+  containerBG5,
   hourClock,
   minClock,
   dotClock,
@@ -46,6 +53,41 @@ enum ElementType {
 }
 
 final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
+  ElementType.containerBG1: {
+    "widget": const ContainerBG(type: ElementType.containerBG1),
+    "xml": containerBGXml,
+    "exportable": true,
+    "isContainerType": true,
+    "png": {"export": exportContainerBG1Png, "path": "container"},
+  },
+  ElementType.containerBG2: {
+    "widget": const ContainerBG(type: ElementType.containerBG2),
+    "xml": containerBGXml,
+    "exportable": true,
+    "isContainerType": true,
+    "png": {"export": exportContainerBG2Png, "path": "container"},
+  },
+  ElementType.containerBG3: {
+    "widget": const ContainerBG(type: ElementType.containerBG3),
+    "xml": containerBGXml,
+    "exportable": true,
+    "isContainerType": true,
+    "png": {"export": exportContainerBG3Png, "path": "container"},
+  },
+  ElementType.containerBG4: {
+    "widget": const ContainerBG(type: ElementType.containerBG4),
+    "xml": containerBGXml,
+    "exportable": true,
+    "isContainerType": true,
+    "png": {"export": exportContainerBG4Png, "path": "container"},
+  },
+  ElementType.containerBG5: {
+    "widget": const ContainerBG(type: ElementType.containerBG5),
+    "xml": containerBGXml,
+    "exportable": true,
+    "isContainerType": true,
+    "png": {"export": exportContainerBG5Png, "path": "container"},
+  },
   ElementType.hourClock: {
     "widget": const HourClock(num: 02),
     "xml": hourClockXml,

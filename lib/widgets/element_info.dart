@@ -20,6 +20,8 @@ class ElementInfo extends StatelessWidget {
       }
       final ElementWidget ele =
           provider.getElementFromList(provider.activeType!);
+      final isContainer =
+          elementWidgetMap[provider.activeType]!["isContainerType"] ?? false;
       final isIcon =
           elementWidgetMap[provider.activeType]!["isIconType"] ?? false;
       final isMusic =
@@ -57,7 +59,7 @@ class ElementInfo extends StatelessWidget {
                     ColorPickerType.accent: false
                   },
                 ),
-              if (!isIcon && !isMusic && !isText)
+              if (!isIcon && !isMusic && !isText && !isContainer)
                 SwitchListTile(
                     value: ele.isShort!,
                     activeColor: Colors.pinkAccent,
@@ -85,6 +87,7 @@ class ElementInfo extends StatelessWidget {
                   ),
                 ],
               ),
+              if (isContainer) buildHeightWidthUI(ele, provider),
               if (isText)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 20.0),
@@ -115,7 +118,7 @@ class ElementInfo extends StatelessWidget {
                           ),
                           label: const Text("Text Expression"))),
                 ),
-              if (!isIcon && !isMusic)
+              if (!isIcon && !isMusic && !isContainer)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -124,9 +127,52 @@ class ElementInfo extends StatelessWidget {
                     buildChoiceChips(provider, ele, index: 2),
                   ],
                 ),
-              const SizedBox(
-                height: 10,
-              ),
+              const SizedBox(height: 10),
+              if (isContainer)
+                Column(
+                  children: [
+                    Text("Border Radius : ${ele.radius!.toStringAsFixed(0)}"),
+                    Slider(
+                      value: ele.radius!,
+                      onChanged: (val) {
+                        provider.updateElementRadiusInList(ele.type!, val);
+                      },
+                      divisions: 200,
+                      min: 0,
+                      max: 200,
+                    ),
+                    Text(
+                        "Border Width : ${ele.borderWidth!.toStringAsFixed(0)}"),
+                    Slider(
+                      value: ele.borderWidth!,
+                      onChanged: (val) {
+                        provider.updateElementBorderWidthInList(ele.type!, val);
+                      },
+                      divisions: 10,
+                      min: 0,
+                      max: 10,
+                    ),
+                    const Text("Border Color "),
+                    ColorPicker(
+                      color: ele.borderColor!,
+                      enableShadesSelection: false,
+                      showColorCode: true,
+                      opacityTrackHeight: 30,
+                      opacityThumbRadius: 15,
+                      colorCodeHasColor: true,
+                      onColorChanged: (value) {
+                        provider.updateElementBorderColorInList(
+                            ele.type!, value);
+                      },
+                      enableOpacity: true,
+                      pickersEnabled: const {
+                        ColorPickerType.wheel: true,
+                        ColorPickerType.primary: false,
+                        ColorPickerType.accent: false
+                      },
+                    ),
+                  ],
+                ),
               Column(
                 children: [
                   Text("Angle : ${ele.angle!.toStringAsFixed(0)}"),
@@ -167,6 +213,45 @@ class ElementInfo extends StatelessWidget {
         ),
       );
     });
+  }
+
+  Row buildHeightWidthUI(ElementWidget ele, ElementProvider provider) {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            children: [
+              Text("Height : ${ele.height!.toStringAsFixed(2)}"),
+              Slider(
+                value: ele.height!,
+                onChanged: (val) {
+                  provider.updateElementHeightInList(ele.type!, val);
+                },
+                min: 0,
+                max: 800,
+                divisions: 100 ~/ 0.05,
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Column(
+            children: [
+              Text("Width : ${ele.width!.toStringAsFixed(2)}"),
+              Slider(
+                value: ele.width!,
+                onChanged: (val) {
+                  provider.updateElementWidthInList(ele.type!, val);
+                },
+                min: 0,
+                max: 400,
+                divisions: 100 ~/ 0.05,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   ChoiceChip buildChoiceChips(ElementProvider provider, ElementWidget ele,
@@ -216,9 +301,7 @@ class ElementList extends StatelessWidget {
                 "Widget Lists",
                 style: Theme.of(context).textTheme.bodyLarge!,
               ),
-            if (Platform.isWindows) const SizedBox(
-              height: 20,
-            ),
+            if (Platform.isWindows) const SizedBox(height: 20),
             Expanded(
               child: ListView.builder(
                   itemCount: ElementType.values.length,
