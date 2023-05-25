@@ -1,11 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../constants.dart';
 import '../data/miui_theme_data.dart';
 import '../functions/theme_path.dart';
 import '../functions/windows_utils.dart';
+import 'tag.dart';
 
 class DirectoryProvider extends ChangeNotifier {
   bool? isCreating = false;
@@ -56,9 +58,27 @@ class DirectoryProvider extends ChangeNotifier {
     setIsCreating = true;
     final themePath = CurrentTheme.getPath(context);
     for (String? path in MIUIThemeData.directoryList) {
-      await Directory(platformBasedPath("$themePath$path")).create(recursive: true);
+      await Directory(platformBasedPath("$themePath$path"))
+          .create(recursive: true);
     }
+    await createTagDirectory(context: context);
     setIsCreating = false;
+  }
+
+  Future createTagDirectory(
+      {BuildContext? context, bool saveFile = false}) async {
+    final tagPath = CurrentTheme.getTagDirectory(context);
+    final tagDir =
+        await Directory(platformBasedPath(tagPath)).create(recursive: true);
+    final String tagFilePath =
+        "${tagDir.path}${CurrentTheme.getCurrentThemeName(context)!}.txt";
+    if (!await File(tagFilePath).exists() || saveFile) {
+      final File tagFile = await File(tagFilePath).create();
+      await tagFile.writeAsString(
+          Provider.of<TagProvider>(context!, listen: false)
+              .appliedTags
+              .join(","));
+    }
   }
 
   Future getPreLockCount() async {
@@ -81,8 +101,10 @@ class DirectoryProvider extends ChangeNotifier {
     isLoadingPreviewWallPath = true;
     setStatus(newStatus: "Analyzing...🤨🤨🤨");
     previewWallsPath.clear();
-    final folders =
-        await Directory(platformBasedPath("${MIUIConstants.preLock}\\$folderNum")).list().toList();
+    final folders = await Directory(
+            platformBasedPath("${MIUIConstants.preLock}\\$folderNum"))
+        .list()
+        .toList();
     bool isAllInJPGFormat = true;
     for (var fileEntity in folders) {
       if (fileEntity is File) {

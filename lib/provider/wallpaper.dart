@@ -11,6 +11,7 @@ import '../functions/windows_utils.dart';
 import '../widgets/ui_widgets.dart';
 import 'directory.dart';
 import 'icon.dart';
+import 'tag.dart';
 
 class WallpaperProvider extends ChangeNotifier {
   bool? isLoading = true;
@@ -29,6 +30,7 @@ class WallpaperProvider extends ChangeNotifier {
     fetchColorPalette(context);
     Provider.of<DirectoryProvider>(context, listen: false)
         .createThemeDirectory(context: context);
+    Provider.of<TagProvider>(context, listen: false).getTagsFromFile(context);
     notifyListeners();
   }
 

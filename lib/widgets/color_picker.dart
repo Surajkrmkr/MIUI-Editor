@@ -17,27 +17,24 @@ class ColorsTab extends StatelessWidget {
             automaticallyImplyLeading: false,
             title: const Text("Color"),
             centerTitle: true,
-            bottom: TabBar(
-                labelColor: Colors.black,
-                indicatorColor: Colors.pinkAccent,
-                tabs: [
-                  Padding(
-                    padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
-                    child: const Text("BG"),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
-                    child: const Text("Icon"),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
-                    child: const Text("Border"),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
-                    child: const Text("Accent"),
-                  )
-                ])),
+            bottom: TabBar(indicatorColor: Colors.pinkAccent, tabs: [
+              Padding(
+                padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
+                child: const Text("BG"),
+              ),
+              Padding(
+                padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
+                child: const Text("Icon"),
+              ),
+              Padding(
+                padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
+                child: const Text("Border"),
+              ),
+              Padding(
+                padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
+                child: const Text("Accent"),
+              )
+            ])),
         body: Builder(builder: (context) {
           final provider = Provider.of<IconProvider>(context, listen: false);
           return TabBarView(children: [

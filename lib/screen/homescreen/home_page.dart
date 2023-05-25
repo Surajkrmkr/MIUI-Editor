@@ -6,12 +6,14 @@ import '../../provider/directory.dart';
 import '../../provider/icon.dart';
 import '../../provider/lockscreen.dart';
 import '../../provider/module.dart';
+import '../../provider/tag.dart';
 import '../../provider/wallpaper.dart';
 import '../../widgets/accent_color_list.dart';
 import '../../widgets/color_picker.dart';
 import '../../widgets/image_stack.dart';
 import '../../widgets/module.dart';
 import '../../widgets/sliders.dart';
+import '../../widgets/tags.dart';
 import '../../widgets/ui_widgets.dart';
 import '../Landing_page.dart';
 import '../lockscreen/lockscreen_page.dart';
@@ -86,11 +88,8 @@ class HomePage extends StatelessWidget {
                           )
                         ],
                       ),
-                      const Column(
-                        children: [
-                          Sliders(),
-                          ColorsTab(),
-                        ],
+                      Column(
+                        children: [const Sliders(), const ColorsTab(), Tags()],
                       ),
                     ],
                   ),
@@ -106,14 +105,21 @@ class HomePage extends StatelessWidget {
                         const ModuleWidget(),
                         Column(
                           children: [
+                            Consumer<TagProvider>(
+                                builder: (context, provider, _) => Visibility(
+                                    visible: provider.appliedTags.length != 6,
+                                    child: Text(
+                                      "Please Select 6 Tags",
+                                      style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .error),
+                                    ))),
+                            const SizedBox(height: 20),
                             const ExportIconsBtn(),
-                            const SizedBox(
-                              height: 20,
-                            ),
+                            const SizedBox(height: 20),
                             const ExportModuleBtn(),
-                            const SizedBox(
-                              height: 20,
-                            ),
+                            const SizedBox(height: 20),
                             buildLockscreenBtn(context: context)
                           ],
                         )
@@ -125,6 +131,7 @@ class HomePage extends StatelessWidget {
                         ColorsTab(),
                       ],
                     ),
+                    Tags()
                   ],
                 )),
     );

@@ -87,6 +87,7 @@ flutter:
     - assets/icons/
     - assets/systemui/
     - assets/pdf/
+    - assets/tags/
     - assets/lockscreen/weatherIcon/
   #   - images/a_dot_ham.jpeg
 
