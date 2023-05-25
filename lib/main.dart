@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
       providers: MIUIProvider.getProviders(context),
       child: MaterialApp(
         title: 'MIUI Theme Creator',
-        themeMode: ThemeMode.light,
+        themeMode: ThemeMode.dark,
         darkTheme: AppThemeData.getDarkTheme(),
         theme: AppThemeData.getLightTheme(),
         home: LandingPage(),

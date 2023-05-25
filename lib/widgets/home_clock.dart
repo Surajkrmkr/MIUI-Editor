@@ -15,10 +15,10 @@ class HomeClockWidget extends StatelessWidget {
           children: [
             InkWell(
               onTap: () {},
-              child: SizedBox(
+              child: const SizedBox(
                 width: 200,
                 child: Column(
-                  children: const [
+                  children: [
                     Text(
                       "02:36",
                       style: TextStyle(

@@ -19,10 +19,10 @@ class ModuleWidget extends StatelessWidget {
               color:
                   Provider.of<IconProvider>(context, listen: true).accentColor,
               borderRadius: BorderRadius.circular(20)),
-          child: Row(
+          child: const Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              const Icon(
+              Icon(
                 Icons.wifi,
                 color: Colors.white,
                 size: 30,
@@ -30,7 +30,7 @@ class ModuleWidget extends StatelessWidget {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
                     "Suraj Fiber",
                     style: TextStyle(

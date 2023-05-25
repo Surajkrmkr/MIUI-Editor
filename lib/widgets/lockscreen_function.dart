@@ -2,14 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:miui_icon_generator/widgets/bg_drop_zone.dart';
-import 'package:provider/provider.dart';
 
 import '../provider/lockscreen.dart';
 import '../provider/mtz.dart';
-import '../provider/wallpaper.dart';
 import '../resources/strings.dart';
 import '../screen/lockscreen/lockscreen_page.dart';
-import 'ui_widgets.dart';
 
 class LockscreenFunctions extends StatelessWidget {
   const LockscreenFunctions({super.key});

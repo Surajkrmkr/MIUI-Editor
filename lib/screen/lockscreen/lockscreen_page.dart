@@ -81,9 +81,9 @@ class LockscreenPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                     ImageStack(isLockscreen: true),
-                    Row(
+                    const Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         ElementInfo(),
                         ElementList(),
                         LockscreenFunctions(),

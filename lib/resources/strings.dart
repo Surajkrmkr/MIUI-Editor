@@ -93,7 +93,7 @@ class GlobalVarDetailsDialog extends StatelessWidget {
                                     onTap: () {
                                       Navigator.pop(context);
                                       Clipboard.setData(
-                                          ClipboardData(text: keys[i]));
+                                          ClipboardData(text: keys[i]!));
                                     },
                                   );
                                 }),
@@ -126,7 +126,7 @@ class GlobalVarDetailsDialog extends StatelessWidget {
                                     onTap: () {
                                       Navigator.pop(context);
                                       Clipboard.setData(
-                                          ClipboardData(text: keys[i]));
+                                          ClipboardData(text: keys[i]!));
                                     },
                                   );
                                 }),

@@ -46,7 +46,7 @@ class IconWidget extends StatelessWidget {
                 ? Center(
                     child: SvgPicture.asset(
                     "assets/icons/$name.svg",
-                    color: iconColor,
+                    colorFilter: ColorFilter.mode(iconColor!, BlendMode.srcIn),
                   ))
                 : Container(),
           ),
@@ -85,7 +85,8 @@ class IconContainer extends StatelessWidget {
               child: Center(
                   child: SvgPicture.asset(
                 "assets/icons/$name.svg",
-                color: provider.iconColor,
+                colorFilter:
+                    ColorFilter.mode(provider.iconColor!, BlendMode.srcIn),
               )),
             ),
           ),

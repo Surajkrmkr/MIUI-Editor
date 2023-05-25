@@ -49,5 +49,5 @@ class AppThemeData {
           side: BorderSide.none,
           secondaryLabelStyle: const TextStyle(color: Colors.white),
           selectedColor: Colors.pinkAccent),
-      colorScheme: const ColorScheme.light(primary: Colors.pinkAccent));
+      colorScheme: const ColorScheme.dark(primary: Colors.pinkAccent));
 }
