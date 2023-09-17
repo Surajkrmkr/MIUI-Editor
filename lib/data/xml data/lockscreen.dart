@@ -8,7 +8,12 @@ final lockscreenManifest = '''
 	  <!--Don't COPY SURAJ's WORK-->
 	    <Var expression="#screen_width" name="sw"/>
 	    <Var expression="#screen_height" name="sh"/>
-	    <Wallpaper/>
+	    <Wallpaper name="wall" pivotX="#wall.bmp_width/2" pivotY="#wall.bmp_height/2">
+        <ScaleAnimation loop="false">
+          <Item value="1.3" time="0" easeType="ExpoEaseOut" />
+          <Item value="1" time="1000" />
+        </ScaleAnimation>
+	    </Wallpaper>
       <VariableBinders>
         <ContentProviderBinder name="WeatherService" uri="content://weather/actualWeatherData/1" columns="city_id,city_name,weather_type,aqilevel,description,temperature,forecast_type,tmphighs,tmplows,wind,humidity" countName="hasweather">
           <Variable name="cityName" type="string" column="city_name"/>

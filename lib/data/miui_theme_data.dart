@@ -1,5 +1,4 @@
 class MIUIThemeData {
-
   static List<String?> vectorList = [
     "icon_folder",
     "icon_folder_light",
@@ -62,6 +61,28 @@ class MIUIThemeData {
     "com.netflix.mediaclient",
     "com.xiaomi.mipicks",
     "com.android.vending",
+    "com.amazon.avod.thirdpartyclient",
+    "com.android.stk",
+    "com.duokan.phone.remotecontroller",
+    "com.google.android.apps.maps",
+    "com.google.android.apps.nbu.paisa.user",
+    "com.google.android.apps.subscriptions.red",
+    "com.google.android.gm",
+    "com.google.android.googlequicksearchbox",
+    "com.linkedin.android",
+    "com.miui.compass",
+    "com.miui.miservice",
+    "com.xiaomi.midrop",
+    "status_bar_toggle_bluetooth_off",
+    "status_bar_toggle_bluetooth_on",
+    "status_bar_toggle_data_off",
+    "status_bar_toggle_data_on",
+    "status_bar_toggle_flight_mode_off",
+    "status_bar_toggle_flight_mode_on",
+    "status_bar_toggle_lock",
+    "status_bar_toggle_lock_on",
+    "status_bar_toggle_wifi_ap_off",
+    "status_bar_toggle_wifi_ap_on",
   ];
 
   static List<String?> extraIconList = [
