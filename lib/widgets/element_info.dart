@@ -62,7 +62,7 @@ class ElementInfo extends StatelessWidget {
               if (!isIcon && !isMusic && !isText && !isContainer)
                 SwitchListTile(
                     value: ele.isShort!,
-                    activeColor: Colors.pinkAccent,
+                    activeColor: Theme.of(context).colorScheme.primary,
                     title: Text(
                       "Make Short",
                       style: Theme.of(context).textTheme.bodyMedium,
@@ -189,7 +189,7 @@ class ElementInfo extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                          color: Colors.pinkAccent,
+                          color: Theme.of(context).colorScheme.primary,
                           onPressed: () {
                             provider.updateElementPositionInList(
                                 ele.type!, 0, 0);
@@ -199,7 +199,7 @@ class ElementInfo extends StatelessWidget {
                         width: 10,
                       ),
                       IconButton(
-                          color: Colors.pinkAccent,
+                          color: Theme.of(context).colorScheme.primary,
                           onPressed: () {
                             provider.removeElementFromList(ele.type!);
                           },

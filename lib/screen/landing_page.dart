@@ -182,7 +182,8 @@ class FolderWeekOptions extends StatelessWidget {
             Text(
               provider.status!,
               style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                  color: Colors.pinkAccent, fontWeight: FontWeight.bold),
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold),
             ),
             const SizedBox(
               height: 40,

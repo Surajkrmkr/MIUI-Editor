@@ -31,23 +31,27 @@ class AppThemeData {
   static ThemeData getDarkTheme() => ThemeData.dark().copyWith(
       useMaterial3: true,
       appBarTheme: const AppBarTheme(
-          backgroundColor: Color.fromARGB(255, 30, 30, 30),
-          foregroundColor: Colors.white),
-      scaffoldBackgroundColor: const Color.fromARGB(255, 30, 30, 30),
+          backgroundColor: Color(0xFF404258), foregroundColor: Colors.white),
+      scaffoldBackgroundColor: const Color(0xFF282A3A),
       sliderTheme: const SliderThemeData(
         showValueIndicator: ShowValueIndicator.always,
       ),
       listTileTheme: ListTileThemeData(
         selectedColor: Colors.white,
-        selectedTileColor: Colors.pinkAccent,
+        selectedTileColor: const Color(0xFF6B728E),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       ),
+      dialogBackgroundColor: const Color(0xFF404258),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6B728E),
+              foregroundColor: Colors.white)),
       chipTheme: ChipThemeData(
           checkmarkColor: Colors.white,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           side: BorderSide.none,
           secondaryLabelStyle: const TextStyle(color: Colors.white),
-          selectedColor: Colors.pinkAccent),
-      colorScheme: const ColorScheme.dark(primary: Colors.pinkAccent));
+          selectedColor: const Color(0xFF6B728E)),
+      colorScheme: const ColorScheme.dark(primary: Color(0xFF6B728E)));
 }

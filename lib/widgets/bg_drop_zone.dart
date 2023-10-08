@@ -21,7 +21,7 @@ class BGDropZone extends StatelessWidget {
         width: 100,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(25),
-          color: Colors.pinkAccent,
+          color: Theme.of(context).colorScheme.primary,
         ),
         alignment: Alignment.center,
         child: Text(

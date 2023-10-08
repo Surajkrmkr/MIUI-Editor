@@ -17,24 +17,29 @@ class ColorsTab extends StatelessWidget {
             automaticallyImplyLeading: false,
             title: const Text("Color"),
             centerTitle: true,
-            bottom: TabBar(indicatorColor: Colors.pinkAccent, tabs: [
-              Padding(
-                padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
-                child: const Text("BG"),
-              ),
-              Padding(
-                padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
-                child: const Text("Icon"),
-              ),
-              Padding(
-                padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
-                child: const Text("Border"),
-              ),
-              Padding(
-                padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
-                child: const Text("Accent"),
-              )
-            ])),
+            backgroundColor: Colors.transparent,
+            bottom: TabBar(
+                indicatorColor: Theme.of(context).colorScheme.primary,
+                dividerColor: Colors.transparent,
+                splashBorderRadius: BorderRadius.circular(25),
+                tabs: [
+                  Padding(
+                    padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
+                    child: const Text("BG"),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
+                    child: const Text("Icon"),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
+                    child: const Text("Border"),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
+                    child: const Text("Accent"),
+                  )
+                ])),
         body: Builder(builder: (context) {
           final provider = Provider.of<IconProvider>(context, listen: false);
           return TabBarView(children: [

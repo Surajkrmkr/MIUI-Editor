@@ -1,21 +1,17 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:m_toast/m_toast.dart';
 
 class UIWidgets {
   static void getBanner(
       {String? content, bool? hasError, BuildContext? context}) {
-    final ShowMToast toast = ShowMToast();
-    !hasError!
-        ? toast.successToast(context!,
-            backgroundColor: Colors.pinkAccent,
-            iconColor: Colors.white,
-            message: content!,
-            textColor: Colors.white,
-            alignment: Alignment.bottomCenter)
-        : toast.errorToast(context!,
-            message: content!, alignment: Alignment.bottomCenter);
+    ScaffoldMessenger.of(context!).showSnackBar(SnackBar(
+      content: Text(content!, style: const TextStyle(color: Colors.white)),
+      backgroundColor: Theme.of(context).colorScheme.primary,
+      showCloseIcon: true,
+      closeIconColor: Colors.white,
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(milliseconds: 500),
+    ));
   }
 
   static Widget getElevatedButton(
@@ -27,8 +23,6 @@ class UIWidgets {
         child: ElevatedButton.icon(
             icon: icon,
             style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pinkAccent,
-                foregroundColor: Colors.white,
                 padding: Platform.isWindows
                     ? const EdgeInsets.symmetric(vertical: 23)
                     : EdgeInsets.zero),
