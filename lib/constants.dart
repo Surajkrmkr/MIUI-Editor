@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 class MIUIConstants {
   static String? basePath = getBasePath;
   static String? preLock = getPrelock;
-  static String? prePare = "E:\\Xiaomi Contract\\Prepare\\";
   static String? sample2Lockscreen = getSampleLockscreen;
   static String? sample2 = getSample;
 
@@ -23,6 +22,8 @@ class MIUIConstants {
       return "/storage/emulated/0/Xiaomi Contract/";
     } else if (Platform.isMacOS) {
       return "/Users/surajkrmkr/Storage/Xiaomi Contract/";
+    } else if (Platform.isIOS) {
+      return "On My iPad/Xiaomi Contract/";
     }
     return "";
   }
@@ -30,9 +31,7 @@ class MIUIConstants {
   static String get getPrelock {
     if (Platform.isWindows) {
       return "${getBasePath}Wall\\";
-    } else if (Platform.isAndroid) {
-      return "${getBasePath}Wall/";
-    } else if (Platform.isMacOS) {
+    } else if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) {
       return "${getBasePath}Wall/";
     }
     return "";
@@ -41,9 +40,7 @@ class MIUIConstants {
   static String get getSample {
     if (Platform.isWindows) {
       return "${getBasePath}Sample2\\";
-    } else if (Platform.isAndroid) {
-      return "${getBasePath}Sample2/";
-    } else if (Platform.isMacOS) {
+    } else if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) {
       return "${getBasePath}Sample2/";
     }
     return "";
@@ -52,9 +49,7 @@ class MIUIConstants {
   static String get getSampleLockscreen {
     if (Platform.isWindows) {
       return "${getSample}lockscreen\\advance\\";
-    } else if (Platform.isAndroid) {
-      return "${getSample}lockscreen/advance/";
-    } else if (Platform.isMacOS) {
+    } else if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) {
       return "${getSample}lockscreen/advance/";
     }
     return "";
