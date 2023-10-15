@@ -1,19 +1,71 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
+
 class MIUIConstants {
-  static String? basePath = Platform.isWindows ? "E:\\Xiaomi Contract\\" :"/storage/emulated/0/Xiaomi Contract/";
-  static String? preLock = Platform.isWindows
-      ? "E:\\Xiaomi Contract\\PreLock\\"
-      : "/storage/emulated/0/Xiaomi Contract/PreLock/";
+  static String? basePath = getBasePath;
+  static String? preLock = getPrelock;
   static String? prePare = "E:\\Xiaomi Contract\\Prepare\\";
-  static String? sample2Lockscreen = Platform.isWindows
-      ? "E:\\Xiaomi Contract\\Sample2\\lockscreen\\advance"
-      : "/storage/emulated/0/Xiaomi Contract/Sample2/lockscreen/advance";
-  static String? sample2 = Platform.isWindows
-      ? "E:\\Xiaomi Contract\\Sample2\\"
-      : "/storage/emulated/0/Xiaomi Contract/Sample2/";
+  static String? sample2Lockscreen = getSampleLockscreen;
+  static String? sample2 = getSample;
 
   static double screenHeight = 600;
   static double screenWidth = 276.92;
   static double ratio = 2340 / 600;
+  static Size windowSize = getWindowSize;
+
+  static bool isDesktop = Platform.isWindows || Platform.isMacOS;
+
+  static String get getBasePath {
+    if (Platform.isWindows) {
+      return "E:\\Xiaomi Contract\\";
+    } else if (Platform.isAndroid) {
+      return "/storage/emulated/0/Xiaomi Contract/";
+    } else if (Platform.isMacOS) {
+      return "/Users/surajkrmkr/Storage/Xiaomi Contract/";
+    }
+    return "";
+  }
+
+  static String get getPrelock {
+    if (Platform.isWindows) {
+      return "${getBasePath}Wall\\";
+    } else if (Platform.isAndroid) {
+      return "${getBasePath}Wall/";
+    } else if (Platform.isMacOS) {
+      return "${getBasePath}Wall/";
+    }
+    return "";
+  }
+
+  static String get getSample {
+    if (Platform.isWindows) {
+      return "${getBasePath}Sample2\\";
+    } else if (Platform.isAndroid) {
+      return "${getBasePath}Sample2/";
+    } else if (Platform.isMacOS) {
+      return "${getBasePath}Sample2/";
+    }
+    return "";
+  }
+
+  static String get getSampleLockscreen {
+    if (Platform.isWindows) {
+      return "${getSample}lockscreen\\advance\\";
+    } else if (Platform.isAndroid) {
+      return "${getSample}lockscreen/advance/";
+    } else if (Platform.isMacOS) {
+      return "${getSample}lockscreen/advance/";
+    }
+    return "";
+  }
+
+  static Size get getWindowSize {
+    if (Platform.isWindows) {
+      return const Size(1500, 900);
+    } else if (Platform.isMacOS) {
+      return const Size(1300, 900);
+    }
+    return Size.zero;
+  }
 }

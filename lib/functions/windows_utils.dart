@@ -1,14 +1,16 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/constants.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future startUpWindowsUtils() async {
   await windowManager.ensureInitialized();
   windowManager.waitUntilReadyToShow().then((_) async {
+    await windowManager.setTitle("MIUI Theme Editor");
     await windowManager.maximize();
-    await windowManager.setMinimumSize(const Size(1500, 900));
+    await windowManager.setMinimumSize(MIUIConstants.windowSize);
     await windowManager.center();
     await windowManager.show();
   });
@@ -42,7 +44,7 @@ Future requestPermission() async {
 
 String platformBasedPath(String path) {
   String newPath = path;
-  if (Platform.isAndroid) {
+  if (Platform.isAndroid || Platform.isMacOS) {
     newPath = path.replaceAll("\\", "/");
   }
   return newPath;

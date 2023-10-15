@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/constants.dart';
 import 'package:provider/provider.dart';
 
 import '../provider/tag.dart';
@@ -18,12 +19,13 @@ class Tags extends StatelessWidget {
         child: !provider.isLoading
             ? Column(
                 children: [
-                  if (Platform.isWindows)
+                  if (MIUIConstants.isDesktop) ...[
                     Text(
                       "Tags",
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
-                  if (Platform.isWindows) const SizedBox(height: 20),
+                    const SizedBox(height: 20),
+                  ],
                   TextField(
                       keyboardType: TextInputType.number,
                       controller: searchController,
@@ -84,9 +86,10 @@ class Tags extends StatelessWidget {
                                                         .isTagSelected(tag),
                                                     onTap: () => provider
                                                             .isTagSelected(tag)
-                                                        ? provider
-                                                            .removeTag(context,tag)
-                                                        : provider.addTag(context,tag),
+                                                        ? provider.removeTag(
+                                                            context, tag)
+                                                        : provider.addTag(
+                                                            context, tag),
                                                   ))
                                               .toList(),
                                         );
@@ -104,7 +107,8 @@ class Tags extends StatelessWidget {
                                     label: Text(tag),
                                     avatar: const Icon(Icons.close,
                                         color: Colors.white),
-                                    onPressed: () => provider.removeTag(context,tag),
+                                    onPressed: () =>
+                                        provider.removeTag(context, tag),
                                   ))
                               .toList(),
                         )

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/constants.dart';
 import 'package:provider/provider.dart';
 import '../data/element_map_dart.dart';
 import '../provider/element.dart';
@@ -296,12 +297,12 @@ class ElementList extends StatelessWidget {
         width: 200,
         child: Column(
           children: [
-            if (Platform.isWindows)
+            if (MIUIConstants.isDesktop)
               Text(
                 "Widget Lists",
                 style: Theme.of(context).textTheme.bodyLarge!,
               ),
-            if (Platform.isWindows) const SizedBox(height: 20),
+            if (MIUIConstants.isDesktop) const SizedBox(height: 20),
             Expanded(
               child: ListView.builder(
                   itemCount: ElementType.values.length,

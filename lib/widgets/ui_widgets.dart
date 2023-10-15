@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/constants.dart';
 
 class UIWidgets {
   static void getBanner(
@@ -19,11 +20,11 @@ class UIWidgets {
           required Icon icon,
           required Function()? onTap}) =>
       SizedBox(
-        width: Platform.isWindows ? 190 : 150,
+        width: MIUIConstants.isDesktop ? 190 : 150,
         child: ElevatedButton.icon(
             icon: icon,
             style: ElevatedButton.styleFrom(
-                padding: Platform.isWindows
+                padding: MIUIConstants.isDesktop
                     ? const EdgeInsets.symmetric(vertical: 23)
                     : EdgeInsets.zero),
             onPressed: onTap,

@@ -23,7 +23,7 @@ class ImageStack extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              if (!(provider.index != 0) && Platform.isWindows)
+              if (!(provider.index != 0) && MIUIConstants.isDesktop)
                 const SizedBox(
                   width: 40,
                 ),
@@ -71,7 +71,7 @@ class ImageStack extends StatelessWidget {
                       provider.setIndex(provider.index! + 1, context);
                     },
                     icon: const Icon(Icons.navigate_next)),
-              if (!(provider.index != 24) && Platform.isWindows)
+              if (!(provider.index != 24) && MIUIConstants.isDesktop)
                 const SizedBox(
                   width: 40,
                 )
@@ -81,7 +81,7 @@ class ImageStack extends StatelessWidget {
             const SizedBox(
               height: 20,
             ),
-          if (isLockscreen! && Platform.isWindows)
+          if (isLockscreen! && MIUIConstants.isDesktop)
             Row(
               children: [
                 Text(

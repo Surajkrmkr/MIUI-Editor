@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/constants.dart';
 import 'package:provider/provider.dart';
 
 import 'functions/windows_utils.dart';
@@ -10,7 +11,7 @@ import 'theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (Platform.isWindows) await startUpWindowsUtils();
+  if (MIUIConstants.isDesktop) await startUpWindowsUtils();
   if (Platform.isAndroid) await requestPermission();
   errorBuilder();
   runApp(const MyApp());
