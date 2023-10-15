@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/constants.dart';
 import 'package:provider/provider.dart';
 
 import '../provider/icon.dart';
@@ -24,19 +25,19 @@ class ColorsTab extends StatelessWidget {
                 splashBorderRadius: BorderRadius.circular(25),
                 tabs: [
                   Padding(
-                    padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
+                    padding: EdgeInsets.all(MIUIConstants.isDesktop ? 8.0 : 6.0),
                     child: const Text("BG"),
                   ),
                   Padding(
-                    padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
+                    padding: EdgeInsets.all(MIUIConstants.isDesktop ? 8.0 : 6.0),
                     child: const Text("Icon"),
                   ),
                   Padding(
-                    padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
+                    padding: EdgeInsets.all(MIUIConstants.isDesktop ? 8.0 : 6.0),
                     child: const Text("Border"),
                   ),
                   Padding(
-                    padding: EdgeInsets.all(Platform.isWindows ? 8.0 : 6.0),
+                    padding: EdgeInsets.all(MIUIConstants.isDesktop ? 8.0 : 6.0),
                     child: const Text("Accent"),
                   )
                 ])),
@@ -84,7 +85,7 @@ class ColorsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Platform.isWindows
+    return MIUIConstants.isDesktop
         ? SizedBox(height: 550, width: 500, child: child(context))
         : SizedBox(height: 650, child: child(context));
   }

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:miui_icon_generator/constants.dart';
 import 'package:provider/provider.dart';
 
 import '../provider/directory.dart';
@@ -85,12 +86,12 @@ class PreviewWeekWalls extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        if (Platform.isWindows)
+        if (MIUIConstants.isDesktop) ...[
           Text("Previews", style: Theme.of(context).textTheme.headlineLarge),
-        if (Platform.isWindows)
           const SizedBox(
             height: 20,
           ),
+        ],
         SizedBox(
           height: Platform.isAndroid ? 200 : 600,
           width: 350,
@@ -128,6 +129,12 @@ class PreviewWeekWalls extends StatelessWidget {
                                 File(provider.previewWallsPath[i]!),
                               ),
                             ),
+                          ),
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Text(provider.previewWallsPath[i]!
+                                .split(Platform.pathSeparator)
+                                .last),
                           ),
                         );
                       }),

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/constants.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/element_map_dart.dart';
@@ -23,7 +24,7 @@ class LockscreenPage extends StatelessWidget {
     });
     return Scaffold(
       appBar: AppBar(
-        title: Platform.isWindows
+        title: MIUIConstants.isDesktop
             ? Row(
                 children: [
                   const SizedBox(width: 220, child: Text("Lockscreen")),
@@ -35,7 +36,7 @@ class LockscreenPage extends StatelessWidget {
               )
             : Container(),
         actions: [
-          if (Platform.isWindows) accentColorsList(isLockscreen: true),
+          if (MIUIConstants.isDesktop) accentColorsList(isLockscreen: true),
           if (Platform.isAndroid)
             Row(
               children: [

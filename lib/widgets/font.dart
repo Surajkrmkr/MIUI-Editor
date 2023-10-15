@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/constants.dart';
 import 'package:provider/provider.dart';
 
 import '../provider/element.dart';
@@ -22,12 +23,12 @@ class FontListWidget extends StatelessWidget {
         child: !provider.isLoading!
             ? Column(
                 children: [
-                  if (Platform.isWindows)
+                  if (MIUIConstants.isDesktop)
                     Text(
                       "Font Lists",
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
-                  if (Platform.isWindows)
+                  if (MIUIConstants.isDesktop)
                     const SizedBox(
                       height: 20,
                     ),

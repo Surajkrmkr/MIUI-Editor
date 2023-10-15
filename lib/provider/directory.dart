@@ -108,9 +108,12 @@ class DirectoryProvider extends ChangeNotifier {
     bool isAllInJPGFormat = true;
     for (var fileEntity in folders) {
       if (fileEntity is File) {
-        addPreviewWallPathsToList(path: fileEntity.path);
-        if (!fileEntity.path.endsWith(".jpg")) {
-          isAllInJPGFormat = false;
+        if (fileEntity.path.endsWith(".jpg") ||
+            fileEntity.path.endsWith(".png")) {
+          addPreviewWallPathsToList(path: fileEntity.path);
+          if (!fileEntity.path.endsWith(".jpg")) {
+            isAllInJPGFormat = false;
+          }
         }
       }
     }

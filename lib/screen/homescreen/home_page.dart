@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/constants.dart';
 import 'package:provider/provider.dart';
 import '../../provider/directory.dart';
 import '../../provider/icon.dart';
@@ -33,11 +34,11 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: Row(
           children: [
-            if (Platform.isWindows)
+            if (MIUIConstants.isDesktop)
               const SizedBox(width: 220, child: Text("Theme Generator")),
             Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: Platform.isWindows ? 20.0 : 5),
+                  horizontal: MIUIConstants.isDesktop ? 20.0 : 5),
               child: getProgress(),
             ),
             directoryCreatingLoading()
@@ -51,7 +52,7 @@ class HomePage extends StatelessWidget {
           },
         ),
         actions: [
-          if (Platform.isWindows) accentColorsList(isLockscreen: false)
+          if (MIUIConstants.isDesktop) accentColorsList(isLockscreen: false)
         ],
       ),
       body: Padding(
@@ -161,7 +162,7 @@ Widget getProgress() {
     return Row(
       children: [
         SizedBox(
-          width: Platform.isWindows ? 200 : 100,
+          width: MIUIConstants.isDesktop ? 200 : 100,
           height: 10,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10),

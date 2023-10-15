@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/constants.dart';
 import 'package:miui_icon_generator/widgets/bg_drop_zone.dart';
 
 import '../provider/lockscreen.dart';
@@ -16,7 +17,7 @@ class LockscreenFunctions extends StatelessWidget {
     return SingleChildScrollView(
       child: Column(
         children: [
-          if (Platform.isWindows) const Text("BG"),
+          if (MIUIConstants.isDesktop) const Text("BG"),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 20.0),
             child: BGDropZone(

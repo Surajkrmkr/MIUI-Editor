@@ -231,8 +231,8 @@ Future exportMinPng(BuildContext context) async {
             context: context,
             pixelRatio: 3)
         .then((value) async {
-      final imagePath =
-          File('$themePath\\lockscreen\\advance\\min\\min_$i.png');
+      final imagePath = File(platformBasedPath(
+          '$themePath\\lockscreen\\advance\\min\\min_$i.png'));
       await imagePath.writeAsBytes(value);
     });
   }

@@ -40,7 +40,7 @@ class ModuleProvider extends ChangeNotifier {
           Provider.of<IconProvider>(context, listen: false).accentColor;
       final document = XmlDocument.parse(ColorValues.getXmlString![module]!
           .replaceAll("#ffff8cee", colorToHexString(accentColor)));
-      await File("$themePath$module\\theme_values.xml")
+      await File(platformBasedPath("$themePath$module\\theme_values.xml"))
           .writeAsString(document.toXmlString(pretty: true, indent: '\t'));
     }
 
