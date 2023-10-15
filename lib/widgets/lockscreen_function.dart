@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:miui_icon_generator/constants.dart';
 import 'package:miui_icon_generator/widgets/bg_drop_zone.dart';
