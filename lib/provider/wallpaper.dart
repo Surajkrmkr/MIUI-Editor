@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:miui_icon_generator/functions/theme_path.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:provider/provider.dart';
+import 'package:screenshot/screenshot.dart';
 
 import '../constants.dart';
 import '../functions/shared_prefs.dart';
@@ -12,6 +13,7 @@ import '../functions/windows_utils.dart';
 import '../widgets/ui_widgets.dart';
 import 'directory.dart';
 import 'icon.dart';
+import 'module.dart';
 import 'tag.dart';
 
 class WallpaperProvider extends ChangeNotifier {
@@ -33,6 +35,7 @@ class WallpaperProvider extends ChangeNotifier {
     Provider.of<DirectoryProvider>(context, listen: false)
         .createThemeDirectory(context: context);
     Provider.of<TagProvider>(context, listen: false).getTagsFromFile(context);
+    checkExported(context);
     notifyListeners();
   }
 
@@ -54,12 +57,13 @@ class WallpaperProvider extends ChangeNotifier {
     final entities = await dir.list().toList();
     entities.map((e) => paths!.add(e.path));
     for (FileSystemEntity file in entities) {
-      paths!.add(file.path);
+      if (file.path.endsWith(".jpg")) paths!.add(file.path);
     }
     setIsLoading = false;
     fetchColorPalette(context);
     Provider.of<DirectoryProvider>(context, listen: false)
         .createThemeDirectory(context: context);
+    checkExported(context);
     notifyListeners();
   }
 
@@ -74,7 +78,14 @@ class WallpaperProvider extends ChangeNotifier {
         list.dominantColor!.color;
   }
 
-  void exportScreenShot(context, screenshotController) {
+  void checkExported(context) async {
+    Provider.of<IconProvider>(context, listen: false)
+        .checkAlreadyExport(context: context);
+    Provider.of<ModuleProvider>(context, listen: false)
+        .checkAlreadyExport(context: context);
+  }
+
+  void exportScreenShot(context, ScreenshotController screenshotController) {
     final themeName = CurrentTheme.getCurrentThemeName(context);
     screenshotController.capture().then((Uint8List? image) async {
       final imagePath = File(platformBasedPath(

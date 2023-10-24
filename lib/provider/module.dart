@@ -16,13 +16,19 @@ import '../widgets/ui_widgets.dart';
 import 'icon.dart';
 
 class ModuleProvider extends ChangeNotifier {
-  bool? isCopying = true;
+  bool? isCopying = false;
+  bool isCopied = false;
   ScreenshotController? contactPngController = ScreenshotController();
   ScreenshotController? dialerPngController = ScreenshotController();
   ScreenshotController? qsBigTileController = ScreenshotController();
 
   set setIsCopying(val) {
     isCopying = val;
+    notifyListeners();
+  }
+
+  set setIsCopied(val) {
+    isCopied = val;
     notifyListeners();
   }
 
@@ -70,9 +76,8 @@ class ModuleProvider extends ChangeNotifier {
     final pluginInfo = XmlDocument.parse(ThemeDesc.pluginInfo()!);
     await File(platformBasedPath("$themePath\\plugin_config.xml"))
         .writeAsString(pluginInfo.toXmlString(pretty: true, indent: '\t'));
-    // await createPdf(
-    //     imgPath: "$themePath\\wallpaper\\default_wallpaper.jpg",
-    //     themeName: themePath.split("\\").reversed.toList()[1]);
+
+    checkAlreadyExport(context: context);
     setIsCopying = false;
   }
 
@@ -86,64 +91,27 @@ class ModuleProvider extends ChangeNotifier {
         .list()
         .toList();
   }
+
+  void checkAlreadyExport({required BuildContext context}) async {
+    final themePath = CurrentTheme.getPath(context);
+    final isExist = await File(platformBasedPath(
+            "$themePath${MIUIThemeData.moduleList.last}\\theme_values.xml"))
+        .exists();
+    setIsCopied = isExist;
+  }
 }
 
 class ExportModuleBtn extends StatelessWidget {
   const ExportModuleBtn({super.key});
 
-  void onTap(context) {
-    Provider.of<ModuleProvider>(context, listen: false)
-        .copyModule(context: context);
-    showDialog(
-        barrierDismissible: false,
-        context: context,
-        builder: (context) {
-          return Consumer<ModuleProvider>(
-            builder: (context, provider, _) {
-              return SimpleDialog(
-                contentPadding: const EdgeInsets.all(20),
-                title: const Center(child: Text("Get Set Go")),
-                children: [
-                  Center(
-                      child: SizedBox(
-                    height: 150,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        if (provider.isCopying!)
-                          const CircularProgressIndicator(),
-                        if (!provider.isCopying!)
-                          Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 20.0),
-                              child: Column(
-                                children: [
-                                  const Text("Module Export Completed..."),
-                                  const SizedBox(
-                                    height: 30,
-                                  ),
-                                  ElevatedButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text("OK")),
-                                ],
-                              )),
-                      ],
-                    ),
-                  ))
-                ],
-              );
-            },
-          );
-        });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return UIWidgets.getElevatedButton(
-        text: "Module Export",
-        icon: const Icon(Icons.smart_toy),
-        onTap: () => onTap(context));
+    return Consumer<ModuleProvider>(builder: (context, provider, _) {
+      return UIWidgets.getElevatedButton(
+          text: "Module Export",
+          icon: Icon(provider.isCopied ? Icons.check : Icons.smart_toy),
+          isLoading: provider.isCopying!,
+          onTap: () => provider.copyModule(context: context));
+    });
   }
 }
