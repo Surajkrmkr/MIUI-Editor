@@ -7,6 +7,7 @@ import 'package:palette_generator/palette_generator.dart';
 import 'package:provider/provider.dart';
 
 import '../constants.dart';
+import '../functions/shared_prefs.dart';
 import '../functions/windows_utils.dart';
 import '../widgets/ui_widgets.dart';
 import 'directory.dart';
@@ -17,6 +18,7 @@ class WallpaperProvider extends ChangeNotifier {
   bool? isLoading = true;
   String? folderNum = "1";
   String? weekNum;
+  int totalThemeCount = 25;
 
   set setIsLoading(val) {
     isLoading = val;
@@ -48,6 +50,7 @@ class WallpaperProvider extends ChangeNotifier {
     final dir = Directory('${MIUIConstants.preLock}$num');
     folderNum = num;
     weekNum = week;
+    totalThemeCount = SharedPrefs.getDataFromSF().themeCount;
     final entities = await dir.list().toList();
     entities.map((e) => paths!.add(e.path));
     for (FileSystemEntity file in entities) {

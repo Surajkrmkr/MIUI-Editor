@@ -54,4 +54,16 @@ class UIWidgets {
         },
         icon: Icon(icon!));
   }
+
+  static iconButton({required Function() onPressed, required IconData icon}) {
+    return IconButton(onPressed: onPressed, icon: Icon(icon));
+  }
+
+  static void dialog({required BuildContext context, required Widget child}) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return child;
+        });
+  }
 }

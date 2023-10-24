@@ -2,15 +2,17 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:miui_icon_generator/constants.dart';
+import 'package:miui_icon_generator/screen/landing/export.dart';
 import 'package:provider/provider.dart';
 
+import 'functions/shared_prefs.dart';
 import 'functions/windows_utils.dart';
 import 'providers.dart';
-import 'screen/Landing_page.dart';
 import 'theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SharedPrefs().init();
   if (MIUIConstants.isDesktop) await startUpWindowsUtils();
   if (Platform.isAndroid) await requestPermission();
   errorBuilder();
@@ -29,7 +31,8 @@ class MyApp extends StatelessWidget {
         themeMode: ThemeMode.dark,
         darkTheme: AppThemeData.getDarkTheme(),
         theme: AppThemeData.getLightTheme(),
-        home: LandingPage(),
+        debugShowCheckedModeBanner: false,
+        home: const LandingPage(),
       ),
     );
   }
