@@ -32,14 +32,13 @@ class PreviewWeekWalls extends StatelessWidget {
                           Platform.isAndroid ? Axis.horizontal : Axis.vertical,
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                              childAspectRatio: 1,
+                              childAspectRatio: 0.5,
                               crossAxisCount: 2,
                               crossAxisSpacing: 20,
                               mainAxisSpacing: 20),
                       itemCount: provider.previewWallsPath.length,
                       itemBuilder: (context, i) {
                         return Container(
-                          height: 200,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(30),
                             boxShadow: [

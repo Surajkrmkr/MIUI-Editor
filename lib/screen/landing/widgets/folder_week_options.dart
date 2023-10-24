@@ -3,14 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:miui_icon_generator/provider/directory.dart';
 import 'package:miui_icon_generator/screen/homescreen/home_page.dart';
 
+import '../../../widgets/ui_widgets.dart';
+
 class FolderWeekOptions extends StatelessWidget {
-  const FolderWeekOptions({
+  FolderWeekOptions({
     Key? key,
-    required this.weekNumController,
     required this.provider,
   }) : super(key: key);
 
-  final TextEditingController? weekNumController;
+  final TextEditingController weekNumController = TextEditingController();
   final DirectoryProvider provider;
 
   @override
@@ -61,23 +62,27 @@ class FolderWeekOptions extends StatelessWidget {
                   inputFormatters: <TextInputFormatter>[
                     FilteringTextInputFormatter.digitsOnly
                   ],
-                  onSubmitted: ((value) {
-                    if (value.isNotEmpty) {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => HomePage(
-                                    folderNum: provider.preLockFolderNum!,
-                                    weekNum: weekNumController!.text,
-                                  )));
-                    }
-                  }),
-                  decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      suffixIcon: Icon(Icons.navigate_next),
-                      label: Text("Week Number"))),
+                  onSubmitted: (value) => _onSubmit(context),
+                  decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      suffixIcon: UIWidgets.iconButton(
+                          onPressed: () => _onSubmit(context),
+                          icon: Icons.navigate_next),
+                      label: const Text("Week Number"))),
             ),
           ],
         ));
+  }
+
+  void _onSubmit(context) {
+    if (weekNumController.text.isNotEmpty) {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => HomePage(
+                    folderNum: provider.preLockFolderNum!,
+                    weekNum: weekNumController.text,
+                  )));
+    }
   }
 }

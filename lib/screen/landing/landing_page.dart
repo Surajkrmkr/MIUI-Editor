@@ -15,8 +15,6 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
-  final TextEditingController weekNumController = TextEditingController();
-
   @override
   void initState() {
     Future.delayed(Duration.zero, () {
@@ -57,17 +55,13 @@ class _LandingPageState extends State<LandingPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             PreviewWeekWalls(provider: provider),
-                            FolderWeekOptions(
-                                weekNumController: weekNumController,
-                                provider: provider),
+                            FolderWeekOptions(provider: provider),
                           ],
                         )
                       : Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            FolderWeekOptions(
-                                weekNumController: weekNumController,
-                                provider: provider),
+                            FolderWeekOptions(provider: provider),
                             PreviewWeekWalls(provider: provider)
                           ],
                         );
