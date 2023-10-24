@@ -30,18 +30,23 @@ class ModuleProvider extends ChangeNotifier {
     setIsCopying = true;
     final themePath = CurrentTheme.getPath(context);
     for (var module in MIUIThemeData.moduleList) {
-      final files = await getFiles(module!);
-      for (var entity in files) {
-        await File(entity.path).copy(platformBasedPath(
-            "$themePath$module\\res\\drawable-xxhdpi\\${entity.path.split(Platform.isWindows ? "\\" : "/").last}"));
-      }
+      for (var subDir in MIUIThemeData.subDirectoryList) {
+        final files = await getFiles(module, subDir);
+        for (var entity in files) {
+          await File(entity.path).copy(platformBasedPath(
+              "$themePath$module\\$subDir\\${entity.path.split(Platform.isWindows ? "\\" : "/").last}"));
+        }
+        await File(platformBasedPath(
+                "${MIUIConstants.sample2}$module\\theme_fallback.xml"))
+            .copy(platformBasedPath("$themePath$module\\theme_fallback.xml"));
 
-      final accentColor =
-          Provider.of<IconProvider>(context, listen: false).accentColor;
-      final document = XmlDocument.parse(ColorValues.getXmlString![module]!
-          .replaceAll("#ffff8cee", colorToHexString(accentColor)));
-      await File(platformBasedPath("$themePath$module\\theme_values.xml"))
-          .writeAsString(document.toXmlString(pretty: true, indent: '\t'));
+        final accentColor =
+            Provider.of<IconProvider>(context, listen: false).accentColor;
+        final document = XmlDocument.parse(ColorValues.getXmlString![module]!
+            .replaceAll("#ffff8cee", colorToHexString(accentColor)));
+        await File(platformBasedPath("$themePath$module\\theme_values.xml"))
+            .writeAsString(document.toXmlString(pretty: true, indent: '\t'));
+      }
     }
 
     await contactPngController!.captureAndSave(
@@ -80,9 +85,9 @@ class ModuleProvider extends ChangeNotifier {
     return '#FF${color!.value.toRadixString(16).substring(2, 8)}';
   }
 
-  Future<List<FileSystemEntity>> getFiles(String module) async {
-    return await Directory(platformBasedPath(
-            "${MIUIConstants.sample2}$module\\res\\drawable-xxhdpi"))
+  Future<List<FileSystemEntity>> getFiles(String module, String subDir) async {
+    return await Directory(
+            platformBasedPath("${MIUIConstants.sample2}$module\\$subDir"))
         .list()
         .toList();
   }

@@ -93,31 +93,50 @@ class MIUIThemeData {
     "icon_border",
   ];
 
-  static List<String?> moduleList = [
+  static List<String> moduleList = [
     "com.android.contacts",
     "com.android.mms",
     "com.android.systemui",
+    "com.android.settings",
   ];
 
-  static List<String?> mtzModuleList = [
+  static List<String> mtzModuleList = [
     "com.android.contacts",
     "com.android.mms",
     "com.android.systemui",
+    "com.android.settings",
     "icons",
     "clock_2x4",
     "lockscreen"
   ];
 
-  static List<String?> directoryList = [
+  static List<String> directoryList = [
     "\\wallpaper\\",
     "\\icons\\res\\drawable-xxhdpi\\",
     "\\icons\\res\\drawable-xhdpi\\",
     "\\com.android.contacts\\res\\drawable-xxhdpi\\",
+    "\\com.android.contacts\\res\\drawable-nxhdpi\\",
+    "\\com.android.contacts\\framework-miui-res\\res\\drawable-nxhdpi\\",
+    "\\com.android.contacts\\framework-miui-res\\res\\drawable-xxhdpi\\",
     "\\com.android.mms\\res\\drawable-xxhdpi\\",
+    "\\com.android.mms\\res\\drawable-nxhdpi\\",
+    "\\com.android.mms\\framework-miui-res\\res\\drawable-nxhdpi\\",
+    "\\com.android.mms\\framework-miui-res\\res\\drawable-xxhdpi\\",
     "\\com.android.systemui\\res\\drawable-xxhdpi\\",
+    "\\com.android.settings\\res\\drawable-xxhdpi\\",
+    "\\com.android.settings\\res\\drawable-nxhdpi\\",
+    "\\com.android.settings\\framework-miui-res\\res\\drawable-nxhdpi\\",
+    "\\com.android.settings\\framework-miui-res\\res\\drawable-xxhdpi\\",
     "\\clock_2x4\\",
     "\\lockscreen\\advance\\icon\\",
     "\\lockscreen\\advance\\music\\"
+  ];
+
+  static List<String> subDirectoryList = [
+    "res\\drawable-xxhdpi\\",
+    "res\\drawable-nxhdpi\\",
+    "framework-miui-res\\res\\drawable-nxhdpi\\",
+    "framework-miui-res\\res\\drawable-xxhdpi\\"
   ];
 
   static List<String?> lockscreenPngList = [
