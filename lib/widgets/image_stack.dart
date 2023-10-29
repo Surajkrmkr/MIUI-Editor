@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import '../constants.dart';
 import '../provider/wallpaper.dart';
-import '../screen/homescreen/icon_preview.dart';
+import '../screen/homescreen/widgets/icon_preview.dart';
 import '../screen/lockscreen/element_widget_preview.dart';
 
 class ImageStack extends StatelessWidget {

@@ -12,13 +12,20 @@ import '../data/xml data/lockscreen.dart';
 import '../functions/windows_utils.dart';
 import '../widgets/ui_widgets.dart';
 import 'element.dart';
+import 'mtz.dart';
 
 class LockscreenProvider extends ChangeNotifier {
-  bool? isExporting = true;
+  bool? isExporting = false;
+  bool isExported = false;
   bool? isDefaultPngsCopying = false;
 
   set setIsExporting(bool val) {
     isExporting = val;
+    notifyListeners();
+  }
+
+  set setIsExported(bool val) {
+    isExported = val;
     notifyListeners();
   }
 
@@ -29,12 +36,17 @@ class LockscreenProvider extends ChangeNotifier {
 
   Future copyDefaultPngs({BuildContext? context}) async {
     setIsDefaultPngsCopying = true;
-    final themePath = CurrentTheme.getPath(context);
-    CurrentTheme.createLockscreenDirectory(themePath: themePath);
-    for (var png in MIUIThemeData.lockscreenPngList) {
-      await File(
-              platformBasedPath("${MIUIConstants.sample2Lockscreen!}$png.png"))
-          .copy(platformBasedPath("${themePath}lockscreen\\advance$png.png"));
+    await checkAlreadyExport(context: context!);
+    Provider.of<MTZProvider>(context, listen: false)
+        .checkAlreadyExport(context: context);
+    if (!isExported) {
+      final themePath = CurrentTheme.getPath(context);
+      CurrentTheme.createLockscreenDirectory(themePath: themePath);
+      for (var png in MIUIThemeData.lockscreenPngList) {
+        await File(platformBasedPath(
+                "${MIUIConstants.sample2Lockscreen!}$png.png"))
+            .copy(platformBasedPath("${themePath}lockscreen\\advance$png.png"));
+      }
     }
     setIsDefaultPngsCopying = false;
   }
@@ -104,63 +116,30 @@ class LockscreenProvider extends ChangeNotifier {
     await File(
             platformBasedPath("$themePath\\lockscreen\\advance\\manifest.xml"))
         .writeAsString(lockscreen.toXmlString(pretty: true, indent: '\t'));
+    checkAlreadyExport(context: context);
     setIsExporting = false;
+  }
+
+  Future<void> checkAlreadyExport({required BuildContext context}) async {
+    final themePath = CurrentTheme.getPath(context);
+    final isExist = await File(
+            platformBasedPath("$themePath\\lockscreen\\advance\\manifest.xml"))
+        .exists();
+    setIsExported = isExist;
   }
 }
 
 class ExportLockscreenBtn extends StatelessWidget {
   const ExportLockscreenBtn({super.key});
-  void onTap(context) {
-    Provider.of<LockscreenProvider>(context, listen: false)
-        .export(context: context);
-    showDialog(
-        barrierDismissible: false,
-        context: context,
-        builder: (context) {
-          return Consumer<LockscreenProvider>(
-            builder: (context, provider, _) {
-              return SimpleDialog(
-                contentPadding: const EdgeInsets.all(20),
-                title: const Center(child: Text("Get Set Go")),
-                children: [
-                  Center(
-                      child: SizedBox(
-                    height: 150,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        if (provider.isExporting!)
-                          const Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        if (!provider.isExporting!)
-                          const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 20.0),
-                              child: Text("Lockscreen Exported...")),
-                        if (!provider.isExporting!)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 20.0),
-                            child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: const Text("OK")),
-                          )
-                      ],
-                    ),
-                  ))
-                ],
-              );
-            },
-          );
-        });
-  }
 
   @override
   Widget build(BuildContext context) {
-    return UIWidgets.getElevatedButton(
-        text: "Export",
-        icon: const Icon(Icons.lock),
-        onTap: () => onTap(context));
+    return Consumer<LockscreenProvider>(builder: (context, provider, _) {
+      return UIWidgets.getElevatedButton(
+          text: "Export",
+          icon: Icon(provider.isExported ? Icons.check : Icons.lock),
+          isLoading: provider.isExporting!,
+          onTap: () => provider.export(context: context));
+    });
   }
 }

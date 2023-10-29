@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:miui_icon_generator/constants.dart';
+import 'package:miui_icon_generator/screen/landing/export.dart';
 import 'package:provider/provider.dart';
 import '../../provider/directory.dart';
 import '../../provider/icon.dart';
@@ -16,19 +17,18 @@ import '../../widgets/module.dart';
 import '../../widgets/sliders.dart';
 import '../../widgets/tags.dart';
 import '../../widgets/ui_widgets.dart';
-import '../Landing_page.dart';
 import '../lockscreen/lockscreen_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key, required this.folderNum, required this.weekNum});
-  final String? folderNum;
-  final String? weekNum;
+  final String folderNum;
+  final String weekNum;
 
   @override
   Widget build(BuildContext context) {
     Future.delayed(Duration.zero, () {
       Provider.of<WallpaperProvider>(context, listen: false)
-          .setTotalImage(folderNum!, weekNum!, context);
+          .setTotalImage(folderNum, weekNum, context);
     });
     return Scaffold(
       appBar: AppBar(
@@ -48,7 +48,7 @@ class HomePage extends StatelessWidget {
           icon: const Icon(Icons.home_rounded),
           onPressed: () {
             Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (context) => LandingPage()));
+                MaterialPageRoute(builder: (context) => const LandingPage()));
           },
         ),
         actions: [
@@ -176,7 +176,9 @@ Widget getProgress() {
           width: 20,
         ),
         Text(
-          provider.index == 24 ? "" : "${25 - provider.index! - 1} left",
+          provider.index == (provider.totalThemeCount - 1)
+              ? ""
+              : "${provider.totalThemeCount - provider.index! - 1} left",
           style: Theme.of(context).textTheme.bodyMedium,
         )
       ],

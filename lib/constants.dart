@@ -59,7 +59,7 @@ class MIUIConstants {
     if (Platform.isWindows) {
       return const Size(1500, 900);
     } else if (Platform.isMacOS) {
-      return const Size(1300, 900);
+      return const Size(1400, 900);
     }
     return Size.zero;
   }
