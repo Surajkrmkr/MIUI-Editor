@@ -12,6 +12,7 @@ import '../functions/theme_path.dart';
 import '../functions/windows_utils.dart';
 import '../resources/color_values.dart';
 import '../resources/description.dart';
+import '../resources/nine_svg.dart';
 import '../widgets/ui_widgets.dart';
 import 'icon.dart';
 
@@ -39,7 +40,6 @@ class ModuleProvider extends ChangeNotifier {
         await File(platformBasedPath(
                 "${MIUIConstants.sample2}$module\\theme_fallback.xml"))
             .copy(platformBasedPath("$themePath$module\\theme_fallback.xml"));
-
         final accentColor =
             Provider.of<IconProvider>(context, listen: false).accentColor;
         final document = XmlDocument.parse(ColorValues.getXmlString![module]!
@@ -47,6 +47,21 @@ class ModuleProvider extends ChangeNotifier {
         await File(platformBasedPath("$themePath$module\\theme_values.xml"))
             .writeAsString(document.toXmlString(pretty: true, indent: '\t'));
       }
+    }
+
+    for (var patch in NineSvg.patches) {
+      ScreenshotController()
+          .captureFromWidget(patch(context)["widget"],
+              pixelRatio: 4, context: context)
+          .then((value) async {
+        for (var png in patch(context)["list"]) {
+          for (var dir in png["path"]) {
+            final imagePath =
+                File(platformBasedPath('$themePath$dir${png["name"]}.png'));
+            await imagePath.writeAsBytes(value);
+          }
+        }
+      });
     }
 
     await contactPngController!.captureAndSave(
