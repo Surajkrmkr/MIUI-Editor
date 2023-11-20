@@ -523,7 +523,7 @@ class ColorValues {
               <color name="miuix_appcompat_svg_icon_color_red_disable_light" >#4dffffff</color>
               <color name="miuix_appcompat_button_bg_primary_color_disabled_light" >#15ffffff</color>
               <color name="miuix_appcompat_search_action_mode_cancel_text_color_pressed" >#ff1a9adb</color>
-              <color name="miuix_appcompat_svg_icon_color_blue_selected_light" >#ff9148C3</color>
+              <color name="miuix_appcompat_svg_icon_color_blue_selected_light" >#ffff8cee</color>
               <color name="ic_contact_card_arrow_right_color" >#66ffffff</color>
               <color name="miuix_preference_secondary_text_color_light" >#66ffffff</color>
               <color name="progressbar_indeterminate_circle_color_light" package="miui">#e6ffffff</color>
@@ -592,8 +592,8 @@ class ColorValues {
               <color name="list_item_bg_color_pressed_light" package="miui">#0dffffff</color>
               <color name="miuix_appcompat_dialog_default_singleChoice_checked_text_light" >#ff1a9adb</color>
               <color name="miuix_appcompat_bright_foreground_light" >#e6ffffff</color>
-              <color name="svg_icon_color_blue_normal_light" package="miui">#ff9148C3</color>
-              <color name="miuix_appcompat_svg_icon_color_blue_normal_light" >#ff9148C3</color>
+              <color name="svg_icon_color_blue_normal_light" package="miui">#ffff8cee</color>
+              <color name="miuix_appcompat_svg_icon_color_blue_normal_light" >#ffff8cee</color>
               <color name="miuix_appcompat_menu_list_text_color_normal_light" >#e6ffffff</color>
               <color name="action_button_text_color_disable_light" package="miui">#4dffffff</color>
               <color name="svg_icon_color_disable" >#4dffffff</color>
@@ -701,7 +701,7 @@ class ColorValues {
               <color name="miuix_appcompat_button_bg_primary_color_pressed_light" >#ff1a9adb</color>
               <color name="text_color_message_out_mx" >#e6ffffff</color>
               <color name="edit_text_search_hint_color_light" package="miui">#66ffffff</color>
-              <color name="fab_bg_color" >#ff9148C3</color>
+              <color name="fab_bg_color" >#ffff8cee</color>
               <color name="train_card_action_text_primary" >#ff1a9adb</color>
               <color name="miuix_appcompat_svg_icon_color_normal_light" >#e6ffffff</color>
               <color name="miuix_appcompat_dropdown_popup_list_item_bg_pressed_light" >#0dffffff</color>
@@ -717,7 +717,7 @@ class ColorValues {
               <color name="menu_list_text_color_disabled_light" package="miui">#4dffffff</color>
               <color name="card_original_text_primary" >#e6ffffff</color>
               <color name="list_secondary_text_color_disable_light" package="miui">#4dffffff</color>
-              <color name="miuix_appcompat_action_button_text_color_selected_light" >#ff9148C3</color>
+              <color name="miuix_appcompat_action_button_text_color_selected_light" >#ffff8cee</color>
               <color name="miuix_appcompat_action_button_text_color_normal_light" >#e6ffffff</color>
               <color name="action_bar_tab_text_color_pressed_light" package="miui">#ccffffff</color>
               <color name="button_bg_primary_color_normal_light" package="miui">#ff1a9adb</color>
@@ -754,7 +754,7 @@ class ColorValues {
               <color name="dropdown_popup_list_text_color_checked_light" package="miui">#ff1a9adb</color>
               <color name="dialog_list_text_color_disabled_light" package="miui">#4dffffff</color>
               <color name="recipient_text_color" >#e6ffffff</color>
-              <color name="action_mode_button_text_color_selected_light" package="miui">#ff9148C3</color>
+              <color name="action_mode_button_text_color_selected_light" package="miui">#ffff8cee</color>
               <color name="text_color_message_out_mx_pressed" >#e6ffffff</color>
               <color name="miuix_preference_primary_text_color_disable_light" >#4dffffff</color>
               <color name="miuix_appcompat_dialog_default_message_text_color_light" >#99ffffff</color>
@@ -819,7 +819,7 @@ class ColorValues {
               <color name="list_secondary_text_color_normal_light_message" >#99ffffff</color>
               <color name="conversation_date_color" >#66ffffff</color>
               <color name="border_color" >#26ffffff</color>
-              <color name="svg_icon_color_blue_selected_light" package="miui">#ff9148C3</color>
+              <color name="svg_icon_color_blue_selected_light" package="miui">#ffff8cee</color>
               <color name="miuix_appcompat_checkbox_btn_on_background_color_light" >#ff1a9adb</color>
               <color name="edit_text_dialog_color_normal_light" package="miui">#e6ffffff</color>
               <color name="miuix_appcompat_list_text_color_disable_light" >#4dffffff</color>
@@ -841,7 +841,7 @@ class ColorValues {
               <color name="tab_list_header_date" >#4dffffff</color>
               <color name="list_secondary_text_color_normal_light" package="miui">#99ffffff</color>
               <color name="svg_icon_color_red_pressed_light" package="miui">#99ffffff</color>
-              <color name="miuix_appcompat_action_mode_button_text_color_selected_light" >#ff9148C3</color>
+              <color name="miuix_appcompat_action_mode_button_text_color_selected_light" >#ffff8cee</color>
               <color name="miuix_appcompat_text_edit_action_popup_title_normal_light" >#e6ffffff</color>
               <color name="miuix_appcompat_menu_list_text_color_disabled_light" >#4dffffff</color>
               <color name="text_color_black" >#e6ffffff</color>
@@ -853,7 +853,7 @@ class ColorValues {
               <color name="highlight_pressed_light" package="miui">#ff1a9adb</color>
               <color name="audio_progress_title_normal" >#e6ffffff</color>
               <color name="miuix_appcompat_edit_text_bg_color_light" >#ffff8cee</color>
-              <color name="action_button_text_color_selected_light" package="miui">#ff9148C3</color>
+              <color name="action_button_text_color_selected_light" package="miui">#ffff8cee</color>
               <color name="edit_text_bg_color_light" package="miui">#ffff8cee</color>
               <color name="miuix_appcompat_bright_foreground_light_disabled" >#4dffffff</color>
               <color name="menu_list_text_color_normal_light" package="miui">#e6ffffff</color>
