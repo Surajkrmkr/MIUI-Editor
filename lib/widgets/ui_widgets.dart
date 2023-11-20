@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:miui_icon_generator/constants.dart';
+import 'package:shimmer/shimmer.dart';
+
+import '../theme.dart';
 
 class UIWidgets {
   static void getBanner(
@@ -15,19 +18,28 @@ class UIWidgets {
   }
 
   static Widget getElevatedButton(
-          {required String? text,
+          {required String text,
           required Icon icon,
+          bool isLoading = false,
           required Function()? onTap}) =>
       SizedBox(
         width: MIUIConstants.isDesktop ? 190 : 150,
-        child: ElevatedButton.icon(
-            icon: icon,
-            style: ElevatedButton.styleFrom(
-                padding: MIUIConstants.isDesktop
-                    ? const EdgeInsets.symmetric(vertical: 23)
-                    : EdgeInsets.zero),
-            onPressed: onTap,
-            label: Text(text!)),
+        child: isLoading
+            ? Shimmer.fromColors(
+                baseColor: AppThemeData.accentColor,
+                highlightColor: Colors.white,
+                direction: ShimmerDirection.ltr,
+                child: UIWidgets.getElevatedButton(
+                    text: text, icon: icon, onTap: null),
+              )
+            : ElevatedButton.icon(
+                icon: icon,
+                style: ElevatedButton.styleFrom(
+                    padding: MIUIConstants.isDesktop
+                        ? const EdgeInsets.symmetric(vertical: 23)
+                        : EdgeInsets.zero),
+                onPressed: onTap,
+                label: Text(text)),
       );
 
   static Widget getIconButton(
@@ -53,5 +65,17 @@ class UIWidgets {
                   )));
         },
         icon: Icon(icon!));
+  }
+
+  static iconButton({required Function() onPressed, required IconData icon}) {
+    return IconButton(onPressed: onPressed, icon: Icon(icon));
+  }
+
+  static void dialog({required BuildContext context, required Widget child}) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return child;
+        });
   }
 }

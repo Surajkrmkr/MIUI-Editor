@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../constants.dart';
 import '../data/miui_theme_data.dart';
+import '../functions/shared_prefs.dart';
 import '../functions/theme_path.dart';
 import '../functions/windows_utils.dart';
 import 'tag.dart';
@@ -121,7 +122,8 @@ class DirectoryProvider extends ChangeNotifier {
         newStatus: isAllInJPGFormat
             ? "Superb All Looks Fine...😍😍😍"
             : "Nahh All Walls are not in JPG...😥😰🥴");
-    if (previewWallsPath.length != 25) {
+    final settings = SharedPrefs.getDataFromSF();
+    if (previewWallsPath.length != settings.themeCount) {
       setStatus(newStatus: "Walls are missing in counts...😶‍🌫️😕🤕");
     }
     isLoadingPreviewWallPath = false;

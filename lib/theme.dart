@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppThemeData {
+  static Color accentColor = const Color(0xFF6B728E);
+  static Color accentColorDark = const Color(0xFF404258);
   static ThemeData getLightTheme() => ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: Colors.white,

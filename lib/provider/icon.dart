@@ -12,7 +12,8 @@ import '../widgets/ui_widgets.dart';
 
 class IconProvider extends ChangeNotifier {
   double? margin = 4;
-  bool? isIconsExporting = true;
+  bool? isIconsExporting = false;
+  bool isExported = false;
   int? progress = 0;
 
   set setMargin(double m) {
@@ -79,6 +80,19 @@ class IconProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  set setIsExported(bool val) {
+    isExported = val;
+    notifyListeners();
+  }
+
+  void checkAlreadyExport({required BuildContext context}) async {
+    final themePath = CurrentTheme.getPath(context);
+    final isExist = await File(platformBasedPath(
+            '$themePath\\icons\\res\\drawable-xhdpi\\${MIUIThemeData.vectorList[1]}.png'))
+        .exists();
+    setIsExported = isExist;
+  }
+
   void export({BuildContext? context}) async {
     final provider = Provider.of<IconProvider>(context!, listen: false);
     final themePath = CurrentTheme.getPath(context);
@@ -102,11 +116,12 @@ class IconProvider extends ChangeNotifier {
           final imagePath = File(platformBasedPath(
               '$themePath\\icons\\res\\drawable-xhdpi\\$element.png'));
           await imagePath.writeAsBytes(value);
-          final imagePath2 =
-              File(platformBasedPath('$themePath\\icons\\res\\drawable-xxhdpi\\$element.png'));
+          final imagePath2 = File(platformBasedPath(
+              '$themePath\\icons\\res\\drawable-xxhdpi\\$element.png'));
           await imagePath2.writeAsBytes(value);
           setProgress = progress! + 1;
           if (progress == MIUIThemeData.vectorList.length) {
+            checkAlreadyExport(context: context);
             setIsExporting = false;
             setProgress = 0;
           }
@@ -121,64 +136,14 @@ class IconProvider extends ChangeNotifier {
 class ExportIconsBtn extends StatelessWidget {
   const ExportIconsBtn({super.key});
 
-  void onTap(context) {
-    Provider.of<IconProvider>(context, listen: false).export(context: context);
-    showDialog(
-        barrierDismissible: false,
-        context: context,
-        builder: (context) {
-          return Consumer<IconProvider>(
-            builder: (context, provider, _) {
-              final progress = provider.progress;
-              final total = MIUIThemeData.vectorList.length;
-              return SimpleDialog(
-                contentPadding: const EdgeInsets.all(20),
-                title: const Center(child: Text("Get Set Go")),
-                children: [
-                  Center(
-                      child: SizedBox(
-                    height: 150,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        if (provider.isIconsExporting!)
-                          LinearProgressIndicator(
-                            value: progress!.toDouble() / total,
-                          ),
-                        if (provider.isIconsExporting!)
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child:
-                                Text("${provider.progress.toString()}/$total"),
-                          ),
-                        if (!provider.isIconsExporting!)
-                          const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 20.0),
-                              child: Text("Icons Export Completed...")),
-                        if (!provider.isIconsExporting!)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 20.0),
-                            child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: const Text("OK")),
-                          )
-                      ],
-                    ),
-                  ))
-                ],
-              );
-            },
-          );
-        });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return UIWidgets.getElevatedButton(
-        text: "Icon Export",
-        icon: const Icon(Icons.android),
-        onTap: () => onTap(context));
+    return Consumer<IconProvider>(builder: (context, provider, _) {
+      return UIWidgets.getElevatedButton(
+          text: "Icon Export",
+          icon: Icon(provider.isExported ? Icons.check : Icons.android),
+          isLoading: provider.isIconsExporting!,
+          onTap: () => provider.export(context: context));
+    });
   }
 }

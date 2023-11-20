@@ -10,10 +10,16 @@ import '../functions/windows_utils.dart';
 import '../widgets/ui_widgets.dart';
 
 class MTZProvider extends ChangeNotifier {
-  bool? isExporting = true;
+  bool? isExporting = false;
+  bool isExported = false;
 
   set setIsExporting(bool val) {
     isExporting = val;
+    notifyListeners();
+  }
+
+  set setIsExported(bool val) {
+    isExported = val;
     notifyListeners();
   }
 
@@ -47,6 +53,7 @@ class MTZProvider extends ChangeNotifier {
             content: "$themeName.mtz exported",
             context: context,
             hasError: false);
+        checkAlreadyExport(context: context!);
       });
     } catch (e) {
       UIWidgets.getBanner(
@@ -73,6 +80,15 @@ class MTZProvider extends ChangeNotifier {
     encoder.close();
     return zipPath;
   }
+
+  Future<void> checkAlreadyExport({required BuildContext context}) async {
+    final themePath = CurrentTheme.getPath(context);
+    final themeName = CurrentTheme.getCurrentThemeName(context);
+    final isExist = await File(platformBasedPath(
+            "${Directory(themePath!).parent.path}\\$themeName.mtz"))
+        .exists();
+    setIsExported = isExist;
+  }
 }
 
 class ExportMTZBtn extends StatelessWidget {
@@ -80,10 +96,11 @@ class ExportMTZBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return UIWidgets.getElevatedButton(
-        icon: const Icon(Icons.archive),
-        onTap: () => Provider.of<MTZProvider>(context, listen: false)
-            .export(context: context),
-        text: "MTZ");
+    return Consumer<MTZProvider>(builder: (context, provider, _) {
+      return UIWidgets.getElevatedButton(
+          icon: Icon(provider.isExported ? Icons.check : Icons.archive),
+          onTap: () => provider.export(context: context),
+          text: "MTZ");
+    });
   }
 }

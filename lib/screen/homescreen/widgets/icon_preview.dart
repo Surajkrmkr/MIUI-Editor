@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../data/miui_theme_data.dart';
-import '../../widgets/home_clock.dart';
-import '../../widgets/icon.dart';
+import '../../../data/miui_theme_data.dart';
+import '../../../widgets/home_clock.dart';
+import '../../../widgets/icon.dart';
 
 class PreviewIcons extends StatelessWidget {
   const PreviewIcons({
