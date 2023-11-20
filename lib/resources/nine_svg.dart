@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import '../data/module/module.dart';
 
 class NineSvg {
@@ -11,6 +13,7 @@ class NineSvg {
   static Map dialogNinePngs(context) => {
         "widget":
             ninePatchSvg(context: context, svgPath: NineSvg.getDialogSvg()),
+        "size": const Size(155, 155),
         "list": [
           {
             "name": "dialog_bg_light.9",
@@ -39,6 +42,7 @@ class NineSvg {
 
   static Map baseNinePngs(context) => {
         "widget": ninePatchSvg(context: context, svgPath: NineSvg.getBaseSvg()),
+        "size": const Size(30, 30),
         "list": [
           {
             "name": "search_mode_input_bg_light.9",
@@ -93,6 +97,7 @@ class NineSvg {
   static Map dialerNinePngs(context) => {
         "widget":
             ninePatchSvg(context: context, svgPath: NineSvg.getDialerSvg()),
+        "size": const Size(254, 265),
         "list": [
           {
             "name": "dialerpad_background.9",
@@ -106,6 +111,7 @@ class NineSvg {
   static Map bgNinePngs(context) => {
         "widget":
             ninePatchPng(context: context, pngPath: "assets/9pngs/wall.png"),
+        "size": const Size(1080, 2340),
         "list": [
           {
             "name": "window_bg_light.9",

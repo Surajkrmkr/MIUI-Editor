@@ -52,7 +52,7 @@ class ModuleProvider extends ChangeNotifier {
     for (var patch in NineSvg.patches) {
       ScreenshotController()
           .captureFromWidget(patch(context)["widget"],
-              pixelRatio: 4, context: context)
+              pixelRatio: 1, targetSize: patch(context)["size"])
           .then((value) async {
         for (var png in patch(context)["list"]) {
           for (var dir in png["path"]) {
