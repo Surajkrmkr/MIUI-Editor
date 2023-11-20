@@ -20,8 +20,8 @@ class NineSvg {
             "path": [
               directoryList[2],
               directoryList[3],
+              directoryList[6],
               directoryList[7],
-              directoryList[8],
               directoryList[11],
               directoryList[12],
             ]
@@ -31,8 +31,8 @@ class NineSvg {
             "path": [
               directoryList[2],
               directoryList[3],
+              directoryList[6],
               directoryList[7],
-              directoryList[8],
               directoryList[11],
               directoryList[12],
             ],
@@ -49,33 +49,33 @@ class NineSvg {
             "path": [
               directoryList[2],
               directoryList[3],
+              directoryList[6],
               directoryList[7],
-              directoryList[8],
               directoryList[11],
               directoryList[12],
             ]
           },
-          {
-            "name": "action_bar_bg_light.9",
-            "path": [
-              directoryList[3],
-              directoryList[8],
-              directoryList[12],
-            ]
-          },
-          {
-            "name": "action_bar_split_bg_light.9",
-            "path": [
-              directoryList[3],
-              directoryList[8],
-              directoryList[12],
-            ]
-          },
+          // {
+          //   "name": "action_bar_bg_light.9",
+          //   "path": [
+          //     directoryList[3],
+          //     directoryList[7],
+          //     directoryList[12],
+          //   ]
+          // },
+          // {
+          //   "name": "action_bar_split_bg_light.9",
+          //   "path": [
+          //     directoryList[3],
+          //     directoryList[7],
+          //     directoryList[12],
+          //   ]
+          // },
           {
             "name": "action_mode_bg_light.9",
             "path": [
               directoryList[3],
-              directoryList[8],
+              directoryList[7],
               directoryList[12],
             ]
           },
@@ -118,8 +118,8 @@ class NineSvg {
             "path": [
               directoryList[2],
               directoryList[3],
+              directoryList[6],
               directoryList[7],
-              directoryList[8],
               directoryList[11],
               directoryList[12],
             ]

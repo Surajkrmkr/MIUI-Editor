@@ -17,8 +17,8 @@ Widget ninePatchSvg({required BuildContext context, required String svgPath}) {
 
 Widget ninePatchPng({required BuildContext context, required String pngPath}) {
   return Container(
-    height: MIUIConstants.screenHeight,
-    width: MIUIConstants.screenWidth,
+    height: 2340,
+    width: 1080,
     decoration: BoxDecoration(
       image: DecorationImage(image: AssetImage(pngPath), fit: BoxFit.fill),
     ),
@@ -27,8 +27,8 @@ Widget ninePatchPng({required BuildContext context, required String pngPath}) {
         child: Image.file(
           File(Provider.of<WallpaperProvider>(context, listen: false).paths![
               Provider.of<WallpaperProvider>(context, listen: false).index!]),
-          height: MIUIConstants.screenHeight - 2,
-          width: MIUIConstants.screenWidth - 2,
+          height: 2340 - 2,
+          width: 1080 - 2,
           color: Colors.black54,
           colorBlendMode: BlendMode.srcATop,
         )),

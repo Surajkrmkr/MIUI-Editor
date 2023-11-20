@@ -90,9 +90,6 @@ class ModuleProvider extends ChangeNotifier {
     final pluginInfo = XmlDocument.parse(ThemeDesc.pluginInfo()!);
     await File(platformBasedPath("$themePath\\plugin_config.xml"))
         .writeAsString(pluginInfo.toXmlString(pretty: true, indent: '\t'));
-    // await createPdf(
-    //     imgPath: "$themePath\\wallpaper\\default_wallpaper.jpg",
-    //     themeName: themePath.split("\\").reversed.toList()[1]);
     setIsCopying = false;
   }
 
