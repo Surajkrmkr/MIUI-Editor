@@ -9,9 +9,10 @@ Future startUpWindowsUtils() async {
   await windowManager.ensureInitialized();
   windowManager.waitUntilReadyToShow().then((_) async {
     await windowManager.setTitle("MIUI Theme Editor");
-    await windowManager.setSize(MIUIConstants.windowSize);
-    await windowManager.setMinimumSize(MIUIConstants.windowSize);
+    //await windowManager.setSize(MIUIConstants.windowSize);
+    //await windowManager.setMinimumSize(MIUIConstants.windowSize);
     await windowManager.center();
+    await windowManager.maximize();
     await windowManager.show();
   });
 }
