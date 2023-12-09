@@ -56,10 +56,10 @@ class ModuleProvider extends ChangeNotifier {
     }
 
     for (var patch in NineSvg.patches) {
-      ScreenshotController()
+     final value = await ScreenshotController()
           .captureFromWidget(patch(context)["widget"],
-              pixelRatio: 1, targetSize: patch(context)["size"])
-          .then((value) async {
+              pixelRatio: 1, targetSize: patch(context)["size"]);
+          //.then((value) async {
         for (var png in patch(context)["list"]) {
           for (var dir in png["path"]) {
             final imagePath =
@@ -67,19 +67,19 @@ class ModuleProvider extends ChangeNotifier {
             await imagePath.writeAsBytes(value);
           }
         }
-      });
+      //});
     }
 
-    await contactPngController!.captureAndSave(
-        platformBasedPath(
-            "$themePath${MIUIThemeData.moduleList[0]}\\res\\drawable-xxhdpi"),
-        fileName: "${MIUIThemeData.contactsPngs[0]}.png",
-        pixelRatio: 2);
-    await dialerPngController!.captureAndSave(
-        platformBasedPath(
-            "$themePath${MIUIThemeData.moduleList[0]}\\res\\drawable-xxhdpi"),
-        fileName: "${MIUIThemeData.contactsPngs[1]}.png",
-        pixelRatio: 2);
+    // await contactPngController!.captureAndSave(
+    //     platformBasedPath(
+    //         "$themePath${MIUIThemeData.moduleList[0]}\\res\\drawable-xxhdpi"),
+    //     fileName: "${MIUIThemeData.contactsPngs[0]}.png",
+    //     pixelRatio: 2);
+    // await dialerPngController!.captureAndSave(
+    //     platformBasedPath(
+    //         "$themePath${MIUIThemeData.moduleList[0]}\\res\\drawable-xxhdpi"),
+    //     fileName: "${MIUIThemeData.contactsPngs[1]}.png",
+    //     pixelRatio: 2);
     final wallpaperProvider =
         Provider.of<WallpaperProvider>(context, listen: false);
     await File(wallpaperProvider.paths![wallpaperProvider.index!]).copy(

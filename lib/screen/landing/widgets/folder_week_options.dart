@@ -18,7 +18,7 @@ class FolderWeekOptions extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
         width: 600,
-        height: 400,
+        height: 600,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -27,21 +27,26 @@ class FolderWeekOptions extends StatelessWidget {
             const SizedBox(
               height: 20,
             ),
-            Wrap(
-                alignment: WrapAlignment.center,
-                children: provider.preLockPaths
-                    .map((path) => SizedBox(
-                          width: 100,
-                          child: RadioListTile(
-                              title: Text(path!),
-                              value: path,
-                              groupValue: provider.preLockFolderNum,
-                              onChanged: (val) {
-                                provider.setPreLockFolderNum = val!;
-                                provider.setPreviewWallsPath(folderNum: val);
-                              }),
-                        ))
-                    .toList()),
+            SizedBox(
+              height: 200,
+              child: SingleChildScrollView(
+                child: Wrap(
+                    alignment: WrapAlignment.center,
+                    children: provider.preLockPaths
+                        .map((path) => SizedBox(
+                              width: 150,
+                              child: RadioListTile(
+                                  title: Text(path!),
+                                  value: path,
+                                  groupValue: provider.preLockFolderNum,
+                                  onChanged: (val) {
+                                    provider.setPreLockFolderNum = val!;
+                                    provider.setPreviewWallsPath(folderNum: val);
+                                  }),
+                            ))
+                        .toList()),
+              ),
+            ),
             const SizedBox(
               height: 20,
             ),
