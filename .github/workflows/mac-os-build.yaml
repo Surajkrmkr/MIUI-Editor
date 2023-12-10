@@ -23,7 +23,7 @@ jobs:
       - name: Enable mac os support
         run: flutter config --enable-macos-desktop
       - name: Flutter Build Release for Mac OS
-        run: flutter build macos --release
+        run: flutter build macos
       - name: Archive Release
         uses: thedoctor0/zip-release@master
         with:
