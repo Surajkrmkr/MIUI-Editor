@@ -1,8 +1,8 @@
-name: Miui Theme Editor Build Generation
+name: Miui Theme Editor Build Generation For Windows
 
 on:
   push:
-    tags: ["suraj-build"]
+    tags: ["build-windows-vs", "build-windows-vp"]
 
 permissions:
   contents: write
@@ -10,9 +10,6 @@ permissions:
 jobs:
   build-and-release-windows:
     runs-on: windows-latest
-
-    #   build-and-release-macos:
-    #     runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -23,9 +20,9 @@ jobs:
         run: flutter pub get
       - name: Generate intermediates
         run: flutter pub run build_runner build --delete-conflicting-outputs
-      - name: Enable windows build
+      - name: Enable windows support
         run: flutter config --enable-windows-desktop
-      - name: Build artifacts
+      - name: Flutter Build Release for Windows
         run: flutter build windows --release
       - name: Archive Release
         uses: thedoctor0/zip-release@master
