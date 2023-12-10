@@ -5,12 +5,15 @@ on:
     branches:
       - suraj/build
 
+permissions:
+  contents: write
+
 jobs:
   build-and-release-windows:
     runs-on: windows-latest
 
-#   build-and-release-macos:
-#     runs-on: macos-latest
+    #   build-and-release-macos:
+    #     runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v2
