@@ -3,8 +3,6 @@ name: Miui Theme Editor Build Generation
 on:
   push:
     tags: ["suraj-build"]
-    branches:
-      - suraj/build
 
 permissions:
   contents: write
