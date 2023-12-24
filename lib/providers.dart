@@ -8,6 +8,7 @@ import 'provider/directory.dart';
 import 'provider/element.dart';
 import 'provider/lockscreen.dart';
 import 'provider/mtz.dart';
+import 'provider/pick_wall.dart';
 import 'provider/tag.dart';
 
 class MIUIProvider {
@@ -26,6 +27,9 @@ class MIUIProvider {
         ),
         ChangeNotifierProvider(
           create: (context) => FontProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => PickWallProvider(),
         ),
         ChangeNotifierProvider(
           create: (context) => TagProvider(),
