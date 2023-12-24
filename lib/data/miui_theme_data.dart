@@ -94,17 +94,17 @@ class MIUIThemeData {
   ];
 
   static List<String> moduleList = [
-    "com.android.contacts",
-    "com.android.mms",
-    "com.android.systemui",
-    "com.android.settings",
+    // "com.android.contacts",
+    // "com.android.mms",
+    // "com.android.systemui",
+    // "com.android.settings",
   ];
 
   static List<String> mtzModuleList = [
-    "com.android.contacts",
-    "com.android.mms",
-    "com.android.systemui",
-    "com.android.settings",
+    // "com.android.contacts",
+    // "com.android.mms",
+    // "com.android.systemui",
+    // "com.android.settings",
     "icons",
     "clock_2x4",
     "lockscreen"

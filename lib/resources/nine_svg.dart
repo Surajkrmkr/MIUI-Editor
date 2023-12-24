@@ -4,10 +4,10 @@ import '../data/module/module.dart';
 
 class NineSvg {
   static List<Function> patches = [
-    dialogNinePngs,
-    baseNinePngs,
-    dialerNinePngs,
-    bgNinePngs
+    // dialogNinePngs,
+    // baseNinePngs,
+    // dialerNinePngs,
+    // bgNinePngs
   ];
 
   static Map dialogNinePngs(context) => {
