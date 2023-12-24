@@ -31,7 +31,6 @@ class AppThemeData {
       colorScheme: const ColorScheme.light(primary: Colors.pinkAccent));
 
   static ThemeData getDarkTheme() => ThemeData.dark().copyWith(
-      useMaterial3: true,
       appBarTheme: const AppBarTheme(
           backgroundColor: Color(0xFF404258), foregroundColor: Colors.white),
       scaffoldBackgroundColor: const Color(0xFF282A3A),
