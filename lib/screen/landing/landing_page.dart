@@ -5,6 +5,7 @@ import 'package:miui_icon_generator/screen/landing/widgets/folder_week_options.d
 import 'package:provider/provider.dart';
 
 import '../../provider/directory.dart';
+import '../../provider/tag.dart';
 import '../../widgets/ui_widgets.dart';
 
 class LandingPage extends StatefulWidget {
@@ -22,6 +23,7 @@ class _LandingPageState extends State<LandingPage> {
       provider
         ..getPreLockCount()
         ..setPreviewWallsPath(folderNum: "1");
+      Provider.of<TagProvider>(context, listen: false).getTagsFromJson();
     });
     super.initState();
   }

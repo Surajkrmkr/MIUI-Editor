@@ -29,8 +29,9 @@ class TagProvider extends ChangeNotifier {
     "Slide"
   ];
 
-  TagProvider() {
-    getTagsFromJson();
+  void setTags(List<String> tags) {
+    appliedTags = tags;
+    notifyListeners();
   }
 
   void searchTags(String query) {
@@ -50,23 +51,23 @@ class TagProvider extends ChangeNotifier {
     return appliedTags.contains(tag);
   }
 
-  void addTag(BuildContext context, String tag) {
+  void addTag(BuildContext context, String tag, String? themeName) {
     if (!appliedTags.contains(tag) && appliedTags.length != 6) {
       appliedTags.add(tag);
-      updateTagFile(context);
+      updateTagFile(context, themeName);
       notifyListeners();
     }
   }
 
-  void removeTag(BuildContext context, String tag) {
+  void removeTag(BuildContext context, String tag, String? themeName) {
     appliedTags.remove(tag);
-    updateTagFile(context);
+    updateTagFile(context, themeName);
     notifyListeners();
   }
 
-  void updateTagFile(BuildContext context) {
-    Provider.of<DirectoryProvider>(context, listen: false)
-        .createTagDirectory(context: context, saveFile: true);
+  void updateTagFile(BuildContext context, String? themeName) {
+    Provider.of<DirectoryProvider>(context, listen: false).createTagDirectory(
+        context: context, saveFile: true, themeName: themeName);
   }
 
   void getTagsFromFile(BuildContext context) async {
@@ -82,7 +83,7 @@ class TagProvider extends ChangeNotifier {
     }
   }
 
-  void getTagsFromJson() async {
+  Future<void> getTagsFromJson() async {
     setIsLoading = true;
     final String data = await rootBundle.loadString('assets/tags/tags.json');
     final jsonData = await json.decode(data);

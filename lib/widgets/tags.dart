@@ -5,7 +5,8 @@ import 'package:provider/provider.dart';
 import '../provider/tag.dart';
 
 class Tags extends StatelessWidget {
-  Tags({super.key});
+  Tags({super.key, required this.themeName});
+  final String? themeName;
 
   final TextEditingController searchController = TextEditingController();
 
@@ -61,10 +62,14 @@ class Tags extends StatelessWidget {
                                               "${provider.searchedTags!.indexOf(provider.searchedTags![i]) + 1}. ${provider.searchedTags![i]}"),
                                           onTap: () => provider.isTagSelected(
                                                   provider.searchedTags![i])
-                                              ? provider.removeTag(context,
-                                                  provider.searchedTags![i])
-                                              : provider.addTag(context,
-                                                  provider.searchedTags![i]),
+                                              ? provider.removeTag(
+                                                  context,
+                                                  provider.searchedTags![i],
+                                                  themeName)
+                                              : provider.addTag(
+                                                  context,
+                                                  provider.searchedTags![i],
+                                                  themeName),
                                           selected: provider.isTagSelected(
                                               provider.searchedTags![i]))
                                       : ExpansionTile(
@@ -85,9 +90,13 @@ class Tags extends StatelessWidget {
                                                     onTap: () => provider
                                                             .isTagSelected(tag)
                                                         ? provider.removeTag(
-                                                            context, tag)
+                                                            context,
+                                                            tag,
+                                                            themeName)
                                                         : provider.addTag(
-                                                            context, tag),
+                                                            context,
+                                                            tag,
+                                                            themeName),
                                                   ))
                                               .toList(),
                                         );
@@ -105,8 +114,8 @@ class Tags extends StatelessWidget {
                                     label: Text(tag),
                                     avatar: const Icon(Icons.close,
                                         color: Colors.white),
-                                    onPressed: () =>
-                                        provider.removeTag(context, tag),
+                                    onPressed: () => provider.removeTag(
+                                        context, tag, themeName),
                                   ))
                               .toList(),
                         )

@@ -47,4 +47,12 @@ class CurrentTheme {
     await Directory(platformBasedPath("$themePath\\lockscreen\\advance"))
         .create(recursive: true);
   }
+
+  static String getCurrentCopyrightDirectory(context) {
+    final provider = Provider.of<WallpaperProvider>(context, listen: false);
+    final weekNum = provider.weekNum;
+    final copyrightPath = platformBasedPath(
+        "${MIUIConstants.basePath}THEMES\\Week$weekNum\\1copyright\\");
+    return copyrightPath;
+  }
 }
