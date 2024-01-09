@@ -5,8 +5,8 @@ import 'package:miui_icon_generator/screen/landing/widgets/folder_week_options.d
 import 'package:provider/provider.dart';
 
 import '../../provider/directory.dart';
+import '../../provider/tag.dart';
 import '../../widgets/ui_widgets.dart';
-import 'widgets/pick_walls.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
@@ -23,18 +23,13 @@ class _LandingPageState extends State<LandingPage> {
       provider
         ..getPreLockCount()
         ..setPreviewWallsPath(folderNum: "1");
+      Provider.of<TagProvider>(context, listen: false).getTagsFromJson();
     });
     super.initState();
   }
 
   void showSettingsDialog(BuildContext context) {
     UIWidgets.dialog(context: context, child: const Settings());
-  }
-
-  void onWallPickClicked(BuildContext context) {
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (context) => const PickWalls(),
-    ));
   }
 
   @override
@@ -88,9 +83,6 @@ class _LandingPageState extends State<LandingPage> {
           UIWidgets.iconButton(
               onPressed: () => showSettingsDialog(context),
               icon: Icons.settings),
-          UIWidgets.iconButton(
-              onPressed: () => onWallPickClicked(context),
-              icon: Icons.wallpaper),
           const SizedBox(width: 20)
         ]);
   }

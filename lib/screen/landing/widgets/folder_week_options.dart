@@ -4,6 +4,7 @@ import 'package:miui_icon_generator/provider/directory.dart';
 import 'package:miui_icon_generator/screen/homescreen/home_page.dart';
 
 import '../../../widgets/ui_widgets.dart';
+import 'pick_walls.dart';
 
 class FolderWeekOptions extends StatelessWidget {
   FolderWeekOptions({
@@ -13,6 +14,15 @@ class FolderWeekOptions extends StatelessWidget {
 
   final TextEditingController weekNumController = TextEditingController();
   final DirectoryProvider provider;
+
+  void onWallPickClicked(BuildContext context) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => PickWalls(
+        folderNum: provider.preLockFolderNum!,
+        weekNum: weekNumController.text,
+      ),
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +51,8 @@ class FolderWeekOptions extends StatelessWidget {
                                   groupValue: provider.preLockFolderNum,
                                   onChanged: (val) {
                                     provider.setPreLockFolderNum = val!;
-                                    provider.setPreviewWallsPath(folderNum: val);
+                                    provider.setPreviewWallsPath(
+                                        folderNum: val);
                                   }),
                             ))
                         .toList()),
@@ -68,13 +79,30 @@ class FolderWeekOptions extends StatelessWidget {
                     FilteringTextInputFormatter.digitsOnly
                   ],
                   onSubmitted: (value) => _onSubmit(context),
-                  decoration: InputDecoration(
-                      border: const OutlineInputBorder(),
-                      suffixIcon: UIWidgets.iconButton(
-                          onPressed: () => _onSubmit(context),
-                          icon: Icons.navigate_next),
-                      label: const Text("Week Number"))),
+                  decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      // suffixIcon: UIWidgets.iconButton(
+                      //     onPressed: () => _onSubmit(context),
+                      //     icon: Icons.navigate_next),
+                      label: Text("Week Number"))),
             ),
+            Padding(
+              padding: const EdgeInsets.only(top: 35.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  UIWidgets.getElevatedButton(
+                      onTap: () => onWallPickClicked(context),
+                      icon: const Icon(Icons.wallpaper),
+                      text: "Get Walls"),
+                  const SizedBox(width: 20),
+                  UIWidgets.getElevatedButton(
+                      onTap: () => _onSubmit(context),
+                      text: 'Lockscreen',
+                      icon: const Icon(Icons.chevron_right_rounded)),
+                ],
+              ),
+            )
           ],
         ));
   }

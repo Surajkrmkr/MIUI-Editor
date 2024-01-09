@@ -55,24 +55,25 @@ class DirectoryProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future createThemeDirectory({BuildContext? context}) async {
+  Future createThemeDirectory(
+      {BuildContext? context, String? themeName}) async {
     setIsCreating = true;
     final themePath = CurrentTheme.getPath(context);
     for (String? path in MIUIThemeData.directoryList) {
       await Directory(platformBasedPath("$themePath$path"))
           .create(recursive: true);
     }
-    await createTagDirectory(context: context);
+    await createTagDirectory(context: context, themeName: themeName);
     setIsCreating = false;
   }
 
   Future createTagDirectory(
-      {BuildContext? context, bool saveFile = false}) async {
+      {BuildContext? context, bool saveFile = false, String? themeName}) async {
     final tagPath = CurrentTheme.getTagDirectory(context);
     final tagDir =
         await Directory(platformBasedPath(tagPath)).create(recursive: true);
     final String tagFilePath =
-        "${tagDir.path}${CurrentTheme.getCurrentThemeName(context)!}.txt";
+        "${tagDir.path}${themeName ?? CurrentTheme.getCurrentThemeName(context)!}.txt";
     if (!await File(tagFilePath).exists() || saveFile) {
       final File tagFile = await File(tagFilePath).create();
       await tagFile.writeAsString(

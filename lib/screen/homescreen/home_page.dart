@@ -90,7 +90,11 @@ class HomePage extends StatelessWidget {
                         ],
                       ),
                       Column(
-                        children: [const Sliders(), const ColorsTab(), Tags()],
+                        children: [
+                          const Sliders(),
+                          const ColorsTab(),
+                          Tags(themeName: null)
+                        ],
                       ),
                     ],
                   ),
@@ -132,7 +136,7 @@ class HomePage extends StatelessWidget {
                         ColorsTab(),
                       ],
                     ),
-                    Tags()
+                    Tags(themeName: null)
                   ],
                 )),
     );
