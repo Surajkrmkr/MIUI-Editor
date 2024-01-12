@@ -103,7 +103,7 @@ class _RenameWallState extends State<RenameWall> {
       }
     }
     if (tags.isEmpty) {
-     tags = ["Simple", "Abstract", "Clock", "cool", "Regular", "Slide"];
+      tags = ["Simple", "Abstract", "Clock", "cool", "Regular", "Slide"];
     }
   }
 
@@ -115,15 +115,18 @@ class _RenameWallState extends State<RenameWall> {
     Provider.of<WallpaperProvider>(context, listen: false)
         .task!
         .events
-        .listen((event) {
+        .listen((event) async {
       if (event.state == TaskState.success) {
+        final file =
+            Provider.of<WallpaperProvider>(context, listen: false).task!.file;
+        if (widget.downloadUrl.endsWith(".png")) {
+          final image = img.decodeImage(await file.readAsBytes())!;
+          await File(file.path).writeAsBytes(img.encodeJpg(image));
+        }
         Provider.of<WallpaperProvider>(context, listen: false)
             .setIsDownloading = false;
         Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return CropWalls(
-              file: Provider.of<WallpaperProvider>(context, listen: false)
-                  .task!
-                  .file);
+          return CropWalls(file: file);
         }));
       }
     });
@@ -194,6 +197,7 @@ class _RenameWallState extends State<RenameWall> {
                           padding: const EdgeInsets.only(top: 8.0),
                           child: TextField(
                               controller: controller,
+                              autofocus: true,
                               decoration: const InputDecoration(
                                   border: OutlineInputBorder(),
                                   label: Text("Wall Name"))),
@@ -202,7 +206,7 @@ class _RenameWallState extends State<RenameWall> {
                       Step(
                           title: const Text("Tags"),
                           content: SizedBox(
-                              height: 400,
+                              height: 350,
                               child: Tags(
                                 themeName: controller.text,
                               )))

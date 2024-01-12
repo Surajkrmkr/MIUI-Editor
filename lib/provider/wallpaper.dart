@@ -116,10 +116,6 @@ class WallpaperProvider extends ChangeNotifier {
     final path = '${MIUIConstants.preLock}$folderNum/$name.jpg';
     task = await DownloadTask.download(Uri.parse(url), file: File(path));
     setIsDownloading = true;
-    if (url.endsWith(".png")) {
-      final image = img.decodeImage(await task!.file.readAsBytes())!;
-      await File(path).writeAsBytes(img.encodePng(image));
-    }
     return task!;
   }
 
