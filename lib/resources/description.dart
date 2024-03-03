@@ -7,7 +7,7 @@ class ThemeDesc {
             <designer>Suraj</designer>
             <author>Sj</author>
             <version>1.0</version>
-            <uiVersion>10</uiVersion>
+            <uiVersion>15</uiVersion>
             <keywords>MIUIThemeEditor;40.7.10_1594360719;</keywords>
           </MIUI-Theme>
     ''';
