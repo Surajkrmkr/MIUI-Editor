@@ -43,7 +43,7 @@ class ImageStack extends StatelessWidget {
                     height: MIUIConstants.screenHeight,
                     width: MIUIConstants.screenWidth,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(40),
+                      borderRadius: BorderRadius.circular(20),
                       image: DecorationImage(
                         image: FileImage(
                           File(provider.paths![provider.index!]),

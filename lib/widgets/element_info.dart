@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../data/element_map_dart.dart';
 import '../provider/element.dart';
 import 'bg_drop_zone.dart';
+import 'text_field.dart';
 
 class ElementInfo extends StatelessWidget {
   const ElementInfo({super.key});
@@ -71,6 +72,40 @@ class ElementInfo extends StatelessWidget {
                     }),
               Column(
                 children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        SizedBox(
+                          width: 100,
+                          child: BuffyTextField(
+                            onChanged: (String val) {
+                              if (val.isNotEmpty) {
+                                provider.updateElementPositionInList(
+                                    ele.type!, double.parse(val), ele.dy!);
+                              }
+                            },
+                            title: 'X',
+                            value: ele.dx!.toString(),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 100,
+                          child: BuffyTextField(
+                            onChanged: (String val) {
+                              if (val.isNotEmpty) {
+                                provider.updateElementPositionInList(
+                                    ele.type!, ele.dx!, double.parse(val));
+                              }
+                            },
+                            title: 'Y',
+                            value: ele.dy!.toString(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   Text(
                       "Scale : ${isText ? ele.fontSize!.toStringAsFixed(2) : ele.scale!.toStringAsFixed(2)}"),
                   Slider(
