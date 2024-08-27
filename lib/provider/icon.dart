@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
+import 'package:xml/xml.dart';
 
 import '../data/miui_theme_data.dart';
+import '../data/xml data/lockscreen.dart';
 import '../functions/theme_path.dart';
 import '../functions/windows_utils.dart';
 import '../widgets/icon.dart';
@@ -151,11 +153,16 @@ class IconProvider extends ChangeNotifier {
           }
         });
       }
+      await File(platformBasedPath("$themePath\\icons\\transform_config.xml"))
+          .writeAsString(
+              transformConfig.toXmlString(pretty: true, indent: '\t'));
     } on Exception catch (e) {
       debugPrint(e.toString());
     }
   }
 }
+
+final transformConfig = XmlDocument.parse(iconTransformConfig);
 
 class ExportIconsBtn extends StatelessWidget {
   const ExportIconsBtn({super.key});

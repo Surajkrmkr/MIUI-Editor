@@ -58,3 +58,15 @@ final lockscreenXml = XmlDocument.parse(lockscreenManifest);
 String? getBgAlphaString({double? alpha}) {
   return '<Rectangle width="#sw" alpha="$alpha" height="#sh" fillColor="#ff000000"/>';
 }
+
+const iconTransformConfig = '''
+<?xml version="1.0" encoding="UTF-8"?>
+<IconTransform>
+    <PointsMapping>
+        <Point fromX="0" fromY="0" toX="22" toY="22"/>
+        <Point fromX="0" fromY="90" toX="22" toY="68"/>
+        <Point fromX="90" fromY="90" toX="68" toY="68"/>
+        <Point fromX="90" fromY="0" toX="68" toY="22"/>
+    </PointsMapping>
+</IconTransform>
+''';
