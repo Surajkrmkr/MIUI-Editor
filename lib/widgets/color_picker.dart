@@ -64,10 +64,14 @@ class ColorsTab extends StatelessWidget {
                   provider.setbgGradAlign = value;
                   provider.setbgGradAlign2 = value2;
                 },
-                color1: provider.bgColor!,
-                color2: provider.bgColor2!,
-                align1: provider.bgGradAlign!,
-                align2: provider.bgGradAlign2!),
+                color1:
+                    Provider.of<IconProvider>(context, listen: true).bgColor!,
+                color2:
+                    Provider.of<IconProvider>(context, listen: true).bgColor2!,
+                align1: Provider.of<IconProvider>(context, listen: true)
+                    .bgGradAlign!,
+                align2: Provider.of<IconProvider>(context, listen: true)
+                    .bgGradAlign2!),
             ColorPicker(
               color: provider.iconColor!,
               onColorChanged: (value) {

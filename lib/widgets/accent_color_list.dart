@@ -40,6 +40,8 @@ Consumer<WallpaperProvider> accentColorsList({required bool? isLockscreen}) {
                               Provider.of<IconProvider>(context, listen: false)
                                   .setBgColor = e;
                               Provider.of<IconProvider>(context, listen: false)
+                                  .setBgColor2 = e;
+                              Provider.of<IconProvider>(context, listen: false)
                                   .setAccentColor = e;
                             }
                           },
