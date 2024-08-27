@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppThemeData {
-  static Color accentColor = const Color(0xFF6B728E);
-  static Color accentColorDark = const Color(0xFF404258);
+  static Color accentColor = const Color(0xFFD27685);
+  static Color accentColorDark = const Color(0xFF6D5D6E);
   static ThemeData getLightTheme() => ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: Colors.white,
@@ -32,20 +32,20 @@ class AppThemeData {
 
   static ThemeData getDarkTheme() => ThemeData.dark().copyWith(
       appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF404258), foregroundColor: Colors.white),
+          backgroundColor: Color(0xFF6D5D6E), foregroundColor: Colors.white),
       scaffoldBackgroundColor: const Color(0xFF282A3A),
       sliderTheme: const SliderThemeData(
         showValueIndicator: ShowValueIndicator.always,
       ),
       listTileTheme: ListTileThemeData(
         selectedColor: Colors.white,
-        selectedTileColor: const Color(0xFF6B728E),
+        selectedTileColor: const Color(0xFFD27685),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(200)),
       ),
-      dialogBackgroundColor: const Color(0xFF404258),
+      dialogBackgroundColor: const Color(0xFF6D5D6E),
       elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6B728E),
+              backgroundColor: const Color(0xFFD27685),
               foregroundColor: Colors.white)),
       chipTheme: ChipThemeData(
           checkmarkColor: Colors.white,
@@ -53,6 +53,6 @@ class AppThemeData {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           side: BorderSide.none,
           secondaryLabelStyle: const TextStyle(color: Colors.white),
-          selectedColor: const Color(0xFF6B728E)),
-      colorScheme: const ColorScheme.dark(primary: Color(0xFF6B728E)));
+          selectedColor: const Color(0xFFD27685)),
+      colorScheme: const ColorScheme.dark(primary: Color(0xFFD27685)));
 }

@@ -135,6 +135,13 @@ class ElementProvider extends ChangeNotifier {
     elementList.firstWhere((element) => element.type == type).isShort = isShort;
     notifyListeners();
   }
+
+  void updateElementShowGuideLinesInList(
+      ElementType type, bool? showGuideLines) {
+    elementList.firstWhere((element) => element.type == type).showGuideLines =
+        showGuideLines;
+    notifyListeners();
+  }
 }
 
 class ElementWidget {
@@ -162,6 +169,7 @@ class ElementWidget {
   double? fontSize;
   FontWeight? fontWeight;
   bool? isShort;
+  bool? showGuideLines;
   ElementWidget(
       {required this.child,
       this.dx = 0,
@@ -186,7 +194,8 @@ class ElementWidget {
       this.fontWeight = FontWeight.normal,
       this.text = "Text",
       this.fontSize = 20,
-      this.isShort = false});
+      this.isShort = false,
+      this.showGuideLines = false});
 }
 
 enum GradientType {

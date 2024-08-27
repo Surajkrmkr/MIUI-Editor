@@ -40,10 +40,6 @@ class ImageStack extends StatelessWidget {
                     : const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Row(
                   children: [
-                    if (isLockscreen!) ...[
-                      const RulerWidget(),
-                      const SizedBox(width: 20),
-                    ],
                     Screenshot(
                       controller: screenshotController,
                       child: Container(
@@ -71,6 +67,13 @@ class ImageStack extends StatelessWidget {
                             : const ElementWidgetPreview(),
                       ),
                     ),
+                    if (isLockscreen!) ...[
+                      const Padding(
+                        padding: EdgeInsets.only(top: 2),
+                        child: RulerWidget(),
+                      ),
+                      const SizedBox(width: 20),
+                    ],
                   ],
                 ),
               ),
