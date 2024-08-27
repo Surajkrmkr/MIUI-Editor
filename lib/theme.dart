@@ -10,7 +10,7 @@ class AppThemeData {
         showValueIndicator: ShowValueIndicator.always,
       ),
       radioTheme: RadioThemeData(
-        fillColor: MaterialStateProperty.all(Colors.pinkAccent),
+        fillColor: WidgetStateProperty.all(Colors.pinkAccent),
       ),
       dialogTheme: const DialogTheme(
           backgroundColor: Colors.white, surfaceTintColor: Colors.transparent),
@@ -20,7 +20,7 @@ class AppThemeData {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       ),
       scrollbarTheme: ScrollbarThemeData(
-          thumbColor: MaterialStateProperty.all(Colors.pinkAccent)),
+          thumbColor: WidgetStateProperty.all(Colors.pinkAccent)),
       chipTheme: ChipThemeData(
           checkmarkColor: Colors.white,
           shape:
@@ -40,7 +40,7 @@ class AppThemeData {
       listTileTheme: ListTileThemeData(
         selectedColor: Colors.white,
         selectedTileColor: const Color(0xFF6B728E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(200)),
       ),
       dialogBackgroundColor: const Color(0xFF404258),
       elevatedButtonTheme: ElevatedButtonThemeData(

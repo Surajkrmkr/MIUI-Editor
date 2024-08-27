@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/widgets/text.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 
@@ -18,8 +19,12 @@ class HourClock extends StatelessWidget {
   static Widget getChild({int? num, ElementProvider? value}) {
     final ele = value!.getElementFromList(ElementType.hourClock);
     return commonWidget(
-        child: Text(
+        child: GradientText(
           num.toString().padLeft(2, '0'),
+          gradient: getGradient(colors: [
+            ele.color!,
+            ele.colorSecondary!,
+          ], ele: ele),
           style: TextStyle(
               fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
         ),
@@ -42,8 +47,12 @@ class MinClock extends StatelessWidget {
   static Widget getChild({int? num, ElementProvider? value}) {
     final ele = value!.getElementFromList(ElementType.minClock);
     return commonWidget(
-        child: Text(
+        child: GradientText(
           num.toString().padLeft(2, '0'),
+          gradient: getGradient(colors: [
+            ele.color!,
+            ele.colorSecondary!,
+          ], ele: ele),
           style: TextStyle(
               fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
         ),
@@ -65,8 +74,12 @@ class DotClock extends StatelessWidget {
   static Widget getChild({ElementProvider? value}) {
     final ele = value!.getElementFromList(ElementType.dotClock);
     return commonWidget(
-        child: Text(
+        child: GradientText(
           ":",
+          gradient: getGradient(colors: [
+            ele.color!,
+            ele.colorSecondary!,
+          ], ele: ele),
           style: TextStyle(
               fontFamily: ele.font, fontSize: 60, height: 1, color: ele.color),
         ),
@@ -89,10 +102,14 @@ class WeekClock extends StatelessWidget {
   static Widget getChild({int? num, ElementProvider? value}) {
     final ele = value!.getElementFromList(ElementType.weekClock);
     return commonWidget(
-        child: Text(
+        child: GradientText(
           ele.isShort!
               ? MIUIThemeData.weekNames[num!]!.substring(0, 3)
               : MIUIThemeData.weekNames[num!]!,
+          gradient: getGradient(colors: [
+            ele.color!,
+            ele.colorSecondary!,
+          ], ele: ele),
           style: TextStyle(
               fontFamily: ele.font, fontSize: 30, height: 1, color: ele.color),
         ),
@@ -115,10 +132,14 @@ class MonthClock extends StatelessWidget {
   static Widget getChild({int? num, ElementProvider? value}) {
     final ele = value!.getElementFromList(ElementType.monthClock);
     return commonWidget(
-        child: Text(
+        child: GradientText(
           ele.isShort!
               ? MIUIThemeData.monthNames[num! - 1]!.substring(0, 3)
               : MIUIThemeData.monthNames[num! - 1]!,
+          gradient: getGradient(colors: [
+            ele.color!,
+            ele.colorSecondary!,
+          ], ele: ele),
           style: TextStyle(
               fontFamily: ele.font, fontSize: 30, height: 1, color: ele.color),
         ),
@@ -141,8 +162,12 @@ class DateClock extends StatelessWidget {
   static Widget getChild({int? num, ElementProvider? value}) {
     final ele = value!.getElementFromList(ElementType.dateClock);
     return commonWidget(
-        child: Text(
+        child: GradientText(
           num.toString().padLeft(2, '0'),
+          gradient: getGradient(colors: [
+            ele.color!,
+            ele.colorSecondary!,
+          ], ele: ele),
           style: TextStyle(
               fontFamily: ele.font, fontSize: 30, height: 1, color: ele.color),
         ),
@@ -165,8 +190,12 @@ class AmPmClock extends StatelessWidget {
   static Widget getChild({bool? isAm, ElementProvider? value}) {
     final ele = value!.getElementFromList(ElementType.amPmClock);
     return commonWidget(
-        child: Text(
+        child: GradientText(
           isAm! ? 'AM' : 'PM',
+          gradient: getGradient(colors: [
+            ele.color!,
+            ele.colorSecondary!,
+          ], ele: ele),
           style: TextStyle(
               fontFamily: ele.font, fontSize: 30, height: 1, color: ele.color),
         ),
@@ -338,5 +367,23 @@ Future exportAmPmPng(BuildContext context) async {
           '$themePath\\lockscreen\\advance\\ampm\\ampm_$i.png'));
       await imagePath.writeAsBytes(value);
     });
+  }
+}
+
+Gradient getGradient({List<Color>? colors, ElementWidget? ele}) {
+  switch (ele!.gradientType) {
+    case GradientType.linear:
+      return LinearGradient(
+          begin: ele.gradStartAlign!, end: ele.gradEndAlign!, colors: colors!);
+
+    case GradientType.radial:
+      return RadialGradient(
+          center: Alignment.center, radius: 0.5, colors: colors!);
+
+    case GradientType.sweep:
+      return SweepGradient(center: Alignment.center, colors: colors!);
+    case null:
+      return LinearGradient(
+          begin: ele.gradStartAlign!, end: ele.gradEndAlign!, colors: colors!);
   }
 }

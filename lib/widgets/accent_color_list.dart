@@ -34,6 +34,8 @@ Consumer<WallpaperProvider> accentColorsList({required bool? isLockscreen}) {
                                       listen: false);
                               provider.updateElementColorInList(
                                   provider.activeType!, e);
+                              provider.updateElementSecondaryColorInList(
+                                  provider.activeType!, e);
                             } else {
                               Provider.of<IconProvider>(context, listen: false)
                                   .setBgColor = e;

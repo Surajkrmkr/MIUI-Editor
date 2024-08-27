@@ -42,6 +42,27 @@ class IconProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Color? bgColor2 = Colors.pinkAccent;
+
+  set setBgColor2(Color c) {
+    bgColor2 = c;
+    notifyListeners();
+  }
+
+  AlignmentGeometry? bgGradAlign = Alignment.topLeft;
+
+  set setbgGradAlign(AlignmentGeometry c) {
+    bgGradAlign = c;
+    notifyListeners();
+  }
+
+  AlignmentGeometry? bgGradAlign2 = Alignment.bottomRight;
+
+  set setbgGradAlign2(AlignmentGeometry c) {
+    bgGradAlign2 = c;
+    notifyListeners();
+  }
+
   Color? iconColor = Colors.white;
 
   set setIconColor(Color c) {
@@ -104,6 +125,9 @@ class IconProvider extends ChangeNotifier {
                 IconWidget(
                   name: element,
                   bgColor: provider.bgColor,
+                  bgColor2: provider.bgColor2,
+                  bgGradAlign2: provider.bgGradAlign,
+                  bgGradAlign: provider.bgGradAlign,
                   iconColor: provider.iconColor,
                   margin: provider.margin,
                   padding: provider.padding,

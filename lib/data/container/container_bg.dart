@@ -23,13 +23,39 @@ class ContainerBG extends StatelessWidget {
         height: ele.height,
         width: ele.width,
         decoration: BoxDecoration(
-            border: ele.borderWidth == 0
-                ? const Border.fromBorderSide(BorderSide.none)
-                : Border.all(width: ele.borderWidth!, color: ele.borderColor!),
-            borderRadius: BorderRadius.circular(ele.radius!),
-            color: ele.color),
+          border: ele.borderWidth == 0
+              ? const Border.fromBorderSide(BorderSide.none)
+              : Border.all(width: ele.borderWidth!, color: ele.borderColor!),
+          borderRadius: BorderRadius.circular(ele.radius!),
+          gradient: getGradient(ele: ele, colors: [
+            ele.color!,
+            ele.colorSecondary!,
+          ]),
+        ),
       ),
     );
+  }
+
+  static Gradient getGradient({List<Color>? colors, ElementWidget? ele}) {
+    switch (ele!.gradientType) {
+      case GradientType.linear:
+        return LinearGradient(
+            begin: ele.gradStartAlign!,
+            end: ele.gradEndAlign!,
+            colors: colors!);
+
+      case GradientType.radial:
+        return RadialGradient(
+            center: Alignment.center, radius: 0.5, colors: colors!);
+
+      case GradientType.sweep:
+        return SweepGradient(center: Alignment.center, colors: colors!);
+      case null:
+        return LinearGradient(
+            begin: ele.gradStartAlign!,
+            end: ele.gradEndAlign!,
+            colors: colors!);
+    }
   }
 
   @override

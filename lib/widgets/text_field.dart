@@ -52,10 +52,12 @@ class _BuffyTextFieldState extends State<BuffyTextField> {
         keyboardType: TextInputType.number,
         controller: textController,
         inputFormatters: <TextInputFormatter>[
-          FilteringTextInputFormatter.digitsOnly
+          FilteringTextInputFormatter.allow(RegExp("^-?\\d*")),
         ],
         onChanged: (val) {
-          widget.onChanged(double.parse(val).toStringAsFixed(2));
+          if (double.tryParse(val) != null) {
+            widget.onChanged(double.parse(val).toStringAsFixed(2));
+          }
         },
         decoration: InputDecoration(
             border: const OutlineInputBorder(), label: Text(widget.title)));

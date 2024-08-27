@@ -42,29 +42,32 @@ class FontListWidget extends StatelessWidget {
                                   .getElementFromList(eleProvider.activeType!)
                                   .font ==
                               font.dynamicCachedFonts!.fontFamily;
-                          return ListTile(
-                            selected: isSelected,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15)),
-                            title: Text(
-                              font.name!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontFamily: font.name,
-                                fontSize: 25,
+                          return Material(
+                            type: MaterialType.transparency,
+                            child: ListTile(
+                              selected: isSelected,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15)),
+                              title: Text(
+                                font.name!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontFamily: font.name,
+                                  fontSize: 25,
+                                ),
                               ),
+                              onTap: () {
+                                provider.setFontFamily =
+                                    font.dynamicCachedFonts!.fontFamily;
+                                final eleProvider =
+                                    Provider.of<ElementProvider>(context,
+                                        listen: false);
+                                eleProvider.updateElementFontInList(
+                                    eleProvider.activeType!,
+                                    font.dynamicCachedFonts!.fontFamily);
+                              },
                             ),
-                            onTap: () {
-                              provider.setFontFamily =
-                                  font.dynamicCachedFonts!.fontFamily;
-                              final eleProvider = Provider.of<ElementProvider>(
-                                  context,
-                                  listen: false);
-                              eleProvider.updateElementFontInList(
-                                  eleProvider.activeType!,
-                                  font.dynamicCachedFonts!.fontFamily);
-                            },
                           );
                         }),
                   ),

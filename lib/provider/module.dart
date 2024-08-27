@@ -56,17 +56,18 @@ class ModuleProvider extends ChangeNotifier {
     }
 
     for (var patch in NineSvg.patches) {
-     final value = await ScreenshotController()
-          .captureFromWidget(patch(context)["widget"],
-              pixelRatio: 1, targetSize: patch(context)["size"]);
-          //.then((value) async {
-        for (var png in patch(context)["list"]) {
-          for (var dir in png["path"]) {
-            final imagePath =
-                File(platformBasedPath('$themePath$dir${png["name"]}.png'));
-            await imagePath.writeAsBytes(value);
-          }
+      final value = await ScreenshotController().captureFromWidget(
+          patch(context)["widget"],
+          pixelRatio: 1,
+          targetSize: patch(context)["size"]);
+      //.then((value) async {
+      for (var png in patch(context)["list"]) {
+        for (var dir in png["path"]) {
+          final imagePath =
+              File(platformBasedPath('$themePath$dir${png["name"]}.png'));
+          await imagePath.writeAsBytes(value);
         }
+      }
       //});
     }
 
@@ -114,9 +115,10 @@ class ModuleProvider extends ChangeNotifier {
 
   void checkAlreadyExport({required BuildContext context}) async {
     final themePath = CurrentTheme.getPath(context);
-    final isExist = await File(platformBasedPath(
-            "$themePath${MIUIThemeData.moduleList.last}\\theme_values.xml"))
-        .exists();
+    const isExist = true;
+    //  await File(platformBasedPath(
+    //         "$themePath${MIUIThemeData.moduleList.last}\\theme_values.xml"))
+    //     .exists();
     setIsCopied = isExist;
   }
 }

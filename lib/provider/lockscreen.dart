@@ -56,6 +56,7 @@ class LockscreenProvider extends ChangeNotifier {
     final lockscreen = lockscreenXml.copy();
     final themePath = CurrentTheme.getPath(context);
     final eleProvider = Provider.of<ElementProvider>(context!, listen: false);
+    eleProvider.setActiveType = ElementType.swipeUpUnlock;
     final elementList = eleProvider.elementList;
     await Future.delayed(const Duration(seconds: 2), () {});
     for (ElementWidget widget in elementList) {

@@ -43,5 +43,15 @@ Widget commonWidget(
                       width: MIUIConstants.screenWidth,
                       alignment: ele.align,
                       child: MouseRegion(
-                          cursor: SystemMouseCursors.click, child: child))))));
+                          cursor: SystemMouseCursors.click,
+                          child: Container(
+                              decoration: BoxDecoration(
+                                  border: Border.all(
+                                      width:
+                                          ele.type == value.activeType ? 1 : 0,
+                                      color: ele.type == value.activeType
+                                          ? Colors.white24
+                                          : Colors.transparent)),
+                              padding: const EdgeInsets.all(2),
+                              child: child)))))));
 }

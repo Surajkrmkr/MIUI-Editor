@@ -47,6 +47,26 @@ class ElementProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateElementSecondaryColorInList(ElementType type, Color? color) {
+    elementList.firstWhere((element) => element.type == type).colorSecondary =
+        color;
+    notifyListeners();
+  }
+
+  void updateElementGradStartAlignInList(
+      ElementType type, AlignmentGeometry? align) {
+    elementList.firstWhere((element) => element.type == type).gradStartAlign =
+        align;
+    notifyListeners();
+  }
+
+  void updateElementGradEndAlignInList(
+      ElementType type, AlignmentGeometry? align) {
+    elementList.firstWhere((element) => element.type == type).gradEndAlign =
+        align;
+    notifyListeners();
+  }
+
   void updateElementFontInList(ElementType type, String? font) {
     elementList.firstWhere((element) => element.type == type).font = font;
     notifyListeners();
@@ -130,6 +150,10 @@ class ElementWidget {
   ElementType? type;
   Widget? child;
   Color? color;
+  Color? colorSecondary;
+  GradientType? gradientType;
+  AlignmentGeometry? gradStartAlign;
+  AlignmentGeometry? gradEndAlign;
   String? font;
   AlignmentGeometry? align;
   double? angle;
@@ -152,6 +176,10 @@ class ElementWidget {
       this.width = 200,
       this.font = 'Roboto',
       this.color = Colors.white,
+      this.colorSecondary = Colors.white,
+      this.gradientType = GradientType.linear,
+      this.gradStartAlign = Alignment.centerLeft,
+      this.gradEndAlign = Alignment.centerRight,
       this.align = Alignment.center,
       this.angle = 0,
       this.path = "",
@@ -159,4 +187,10 @@ class ElementWidget {
       this.text = "Text",
       this.fontSize = 20,
       this.isShort = false});
+}
+
+enum GradientType {
+  linear,
+  radial,
+  sweep,
 }

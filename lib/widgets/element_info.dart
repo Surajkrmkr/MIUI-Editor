@@ -1,6 +1,7 @@
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:miui_icon_generator/constants.dart';
+import 'package:miui_icon_generator/widgets/color_picker.dart';
 import 'package:provider/provider.dart';
 import '../data/element_map_dart.dart';
 import '../provider/element.dart';
@@ -42,21 +43,20 @@ class ElementInfo extends StatelessWidget {
                   ),
                 ),
               if (!isIcon && !isMusic)
-                ColorPicker(
-                  color: ele.color!,
-                  enableShadesSelection: false,
-                  showColorCode: true,
-                  opacityTrackHeight: 30,
-                  opacityThumbRadius: 15,
-                  colorCodeHasColor: true,
-                  onColorChanged: (value) {
+                GradientColorPicker(
+                  color1: ele.color!,
+                  color2: ele.colorSecondary!,
+                  align1: ele.gradStartAlign!,
+                  align2: ele.gradEndAlign!,
+                  onColorChanged: (value, value2) {
                     provider.updateElementColorInList(ele.type!, value);
+                    provider.updateElementSecondaryColorInList(
+                        ele.type!, value2);
                   },
-                  enableOpacity: true,
-                  pickersEnabled: const {
-                    ColorPickerType.wheel: true,
-                    ColorPickerType.primary: false,
-                    ColorPickerType.accent: false
+                  onAlignmentChanged: (value, value2) {
+                    provider.updateElementGradStartAlignInList(
+                        ele.type!, value);
+                    provider.updateElementGradEndAlignInList(ele.type!, value2);
                   },
                 ),
               if (!isIcon && !isMusic && !isText && !isContainer)
@@ -348,21 +348,25 @@ class ElementList extends StatelessWidget {
                         null;
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8.0),
-                      child: ListTile(
-                        selected: isAdded,
-                        title: Text(
-                          ElementType.values[i].name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: ListTile(
+                          selected: isAdded,
+                          title: Text(
+                            ElementType.values[i].name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          onTap: () {
+                            if (!isAdded) {
+                              addToList(context: context, i: i);
+                            } else {
+                              Provider.of<ElementProvider>(context,
+                                      listen: false)
+                                  .removeElementFromList(ElementType.values[i]);
+                            }
+                          },
                         ),
-                        onTap: () {
-                          if (!isAdded) {
-                            addToList(context: context, i: i);
-                          } else {
-                            Provider.of<ElementProvider>(context, listen: false)
-                                .removeElementFromList(ElementType.values[i]);
-                          }
-                        },
                       ),
                     );
                   }),

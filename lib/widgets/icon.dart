@@ -9,6 +9,9 @@ class IconWidget extends StatelessWidget {
   final double? margin;
   final double? padding;
   final Color? bgColor;
+  final Color? bgColor2;
+  final AlignmentGeometry? bgGradAlign;
+  final AlignmentGeometry? bgGradAlign2;
   final double? radius;
   final Color? iconColor;
   final double? borderWidth;
@@ -23,7 +26,10 @@ class IconWidget extends StatelessWidget {
       required this.iconColor,
       required this.name,
       required this.borderWidth,
-      required this.borderColor});
+      required this.borderColor,
+      this.bgColor2,
+      this.bgGradAlign,
+      this.bgGradAlign2});
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +45,15 @@ class IconWidget extends StatelessWidget {
             height: 130,
             width: 130,
             decoration: BoxDecoration(
-                border: Border.all(width: borderWidth!, color: borderColor!),
-                borderRadius: BorderRadius.circular(radius!),
-                color: name == 'icon_border' ? Colors.transparent : bgColor),
+              border: Border.all(width: borderWidth!, color: borderColor!),
+              borderRadius: BorderRadius.circular(radius!),
+              gradient: getGradient(
+                  colors: name == 'icon_border'
+                      ? [Colors.transparent]
+                      : [bgColor!, bgColor2!],
+                  start: bgGradAlign,
+                  end: bgGradAlign2),
+            ),
             child: !MIUIThemeData.extraIconList.contains(name)
                 ? Center(
                     child: SvgPicture.asset(
@@ -54,6 +66,11 @@ class IconWidget extends StatelessWidget {
       ),
     );
   }
+}
+
+Gradient getGradient(
+    {List<Color>? colors, AlignmentGeometry? start, AlignmentGeometry? end}) {
+  return LinearGradient(begin: start!, end: end!, colors: colors!);
 }
 
 class IconContainer extends StatelessWidget {
@@ -81,6 +98,10 @@ class IconContainer extends StatelessWidget {
                       width: provider.borderWidth!,
                       color: provider.borderColor!),
                   borderRadius: BorderRadius.circular(provider.radius!),
+                  gradient: getGradient(
+                      colors: [provider.bgColor!, provider.bgColor2!],
+                      start: provider.bgGradAlign,
+                      end: provider.bgGradAlign2),
                   color: provider.bgColor),
               child: Center(
                   child: SvgPicture.asset(
