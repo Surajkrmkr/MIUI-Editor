@@ -37,6 +37,8 @@ enum ElementType {
   musicBg,
   musicNext,
   musicPrev,
+  musicPlay,
+  musicPause,
   cameraIcon,
   themeIcon,
   musicIcon,
@@ -166,6 +168,20 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
     "xml": musicPrevXml,
     "isMusic": true,
     "path": "music\\prev"
+  },
+  ElementType.musicPlay: {
+    "widget": const MusicPlay(),
+    "exportable": false,
+    "xml": musicPlayXml,
+    "isMusic": true,
+    "path": "music\\play"
+  },
+  ElementType.musicPause: {
+    "widget": const MusicPause(),
+    "exportable": false,
+    "xml": musicPauseXml,
+    "isMusic": true,
+    "path": "music\\pause"
   },
   ElementType.cameraIcon: {
     "widget":
@@ -317,4 +333,64 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
     "isTextType": true,
     "exportable": false,
   },
+};
+
+const Map<String, List<ElementType>> elementsByGroup = {
+  "Container": [
+    ElementType.containerBG1,
+    ElementType.containerBG2,
+    ElementType.containerBG3,
+    ElementType.containerBG4,
+    ElementType.containerBG5
+  ],
+  "Clock": [
+    ElementType.hourClock,
+    ElementType.minClock,
+    ElementType.dotClock,
+    ElementType.amPmClock,
+    ElementType.weekClock,
+  ],
+  "Date": [
+    ElementType.monthClock,
+    ElementType.dateClock,
+  ],
+  "Weather": [
+    ElementType.weatherIconClock,
+  ],
+  "DateTime Text": [
+    ElementType.dateTimeText1,
+    ElementType.dateTimeText2,
+    ElementType.dateTimeText3,
+  ],
+  "Text": [
+    ElementType.normalText1,
+    ElementType.normalText2,
+    ElementType.normalText3,
+    ElementType.normalText4,
+    ElementType.normalText5,
+  ],
+  "Music": [
+    ElementType.musicBg,
+    ElementType.musicNext,
+    ElementType.musicPrev,
+    ElementType.musicPlay,
+    ElementType.musicPause,
+  ],
+  "Icon": [
+    ElementType.cameraIcon,
+    ElementType.themeIcon,
+    ElementType.musicIcon,
+    ElementType.dialerIcon,
+    ElementType.mmsIcon,
+    ElementType.contactIcon,
+    ElementType.whatsAppIcon,
+    ElementType.telegramIcon,
+    ElementType.instagramIcon,
+    ElementType.spotifyIcon,
+    ElementType.settingIcon,
+    ElementType.galleryIcon,
+  ],
+  "Other": [
+    ElementType.swipeUpUnlock,
+  ],
 };

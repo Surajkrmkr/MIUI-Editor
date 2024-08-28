@@ -90,3 +90,57 @@ class MusicPrev extends StatelessWidget {
     });
   }
 }
+
+class MusicPause extends StatelessWidget {
+  const MusicPause({super.key});
+
+  static Widget getChild({ElementProvider? value, String? themePath}) {
+    final ele = value!.getElementFromList(ElementType.musicPause);
+    return commonWidget(
+        child: Image.memory(
+          File(platformBasedPath(
+                  "${themePath}lockscreen\\advance\\music\\pause.png"))
+              .readAsBytesSync(),
+          gaplessPlayback: true,
+          height: ele.height! / MIUIConstants.ratio,
+          width: ele.width! / MIUIConstants.ratio,
+        ),
+        type: ElementType.musicPause,
+        value: value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themePath = CurrentTheme.getPath(context);
+    return Consumer<ElementProvider>(builder: (context, value, _) {
+      return getChild(value: value, themePath: themePath);
+    });
+  }
+}
+
+class MusicPlay extends StatelessWidget {
+  const MusicPlay({super.key});
+
+  static Widget getChild({ElementProvider? value, String? themePath}) {
+    final ele = value!.getElementFromList(ElementType.musicPlay);
+    return commonWidget(
+        child: Image.memory(
+          File(platformBasedPath(
+                  "${themePath}lockscreen\\advance\\music\\play.png"))
+              .readAsBytesSync(),
+          gaplessPlayback: true,
+          height: ele.height! / MIUIConstants.ratio,
+          width: ele.width! / MIUIConstants.ratio,
+        ),
+        type: ElementType.musicPlay,
+        value: value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themePath = CurrentTheme.getPath(context);
+    return Consumer<ElementProvider>(builder: (context, value, _) {
+      return getChild(value: value, themePath: themePath);
+    });
+  }
+}

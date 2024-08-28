@@ -326,6 +326,7 @@ class ElementList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<ElementProvider>(context);
     return SizedBox(
         width: 200,
         child: Column(
@@ -337,47 +338,58 @@ class ElementList extends StatelessWidget {
               ),
             if (MIUIConstants.isDesktop) const SizedBox(height: 20),
             Expanded(
-              child: ListView.builder(
-                  itemCount: ElementType.values.length,
-                  itemBuilder: (context, i) {
-                    final provider =
-                        Provider.of<ElementProvider>(context, listen: true);
-                    final bool isAdded = provider
-                            .getElementFromList(ElementType.values[i])
-                            .type !=
-                        null;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: Material(
-                        type: MaterialType.transparency,
-                        child: ListTile(
-                          selected: isAdded,
-                          title: Text(
-                            ElementType.values[i].name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          onTap: () {
-                            if (!isAdded) {
-                              addToList(context: context, i: i);
-                            } else {
-                              Provider.of<ElementProvider>(context,
-                                      listen: false)
-                                  .removeElementFromList(ElementType.values[i]);
-                            }
-                          },
-                        ),
+              child: ListView(
+                children: elementsByGroup.keys.map((groupName) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 5.0),
+                    child: ExpansionTile(
+                      collapsedShape: RoundedRectangleBorder(
+                          side:
+                              const BorderSide(width: 2, color: Colors.white30),
+                          borderRadius: BorderRadius.circular(25)),
+                      shape: RoundedRectangleBorder(
+                          side:
+                              const BorderSide(width: 2, color: Colors.white30),
+                          borderRadius: BorderRadius.circular(25)),
+                      title: Text(
+                        groupName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    );
-                  }),
-            ),
+                      children: elementsByGroup[groupName]!.map((element) {
+                        final bool isAdded =
+                            provider.getElementFromList(element).type != null;
+                        return Material(
+                          type: MaterialType.transparency,
+                          child: ListTile(
+                            selected: isAdded,
+                            title: Text(
+                              element.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            onTap: () {
+                              if (!isAdded) {
+                                addToList(context: context, type: element);
+                              } else {
+                                provider.removeElementFromList(element);
+                              }
+                            },
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  );
+                }).toList(),
+              ),
+            )
           ],
         ));
   }
 }
 
-void addToList({int? i, BuildContext? context}) {
-  final eleType = ElementType.values[i!];
+void addToList({ElementType? type, BuildContext? context}) {
+  final eleType = type!;
   final elementWidgetFromMap = elementWidgetMap[eleType];
   ElementWidget ele = ElementWidget(
       type: eleType,

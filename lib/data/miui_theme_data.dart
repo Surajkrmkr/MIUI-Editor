@@ -155,7 +155,9 @@ class MIUIThemeData {
     "\\icon\\spotify",
     "\\music\\bg",
     "\\music\\next",
-    "\\music\\prev"
+    "\\music\\prev",
+    "\\music\\play",
+    "\\music\\pause"
   ];
 
   static List<String?> contactsPngs = [
