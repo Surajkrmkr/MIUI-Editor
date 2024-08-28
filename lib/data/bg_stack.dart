@@ -21,7 +21,6 @@ Widget getBGStack({required Widget child}) {
 Widget commonWidget(
     {ElementType? type, ElementProvider? value, Widget? child}) {
   final ele = value!.getElementFromList(type!);
-  final isActive = ele.type == value.activeType;
   final showGuidLines = ele.showGuideLines ?? false;
 
   return Stack(
