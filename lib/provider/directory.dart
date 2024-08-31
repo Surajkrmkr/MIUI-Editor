@@ -14,11 +14,13 @@ class DirectoryProvider extends ChangeNotifier {
   bool? isCreating = false;
   bool? isLoadingPrelockCount = false;
   bool? isLoadingPreviewWallPath = false;
+  bool? isLoadingPresetLockPath = false;
   String? preLockFolderNum = "1";
   String? status = "";
 
   List<String?> preLockPaths = [];
   List<String?> previewWallsPath = [];
+  List<String?> presetLockPaths = [];
 
   set setIsCreating(bool val) {
     isCreating = val;
@@ -27,6 +29,11 @@ class DirectoryProvider extends ChangeNotifier {
 
   set setIsLoadingPrelockCount(bool val) {
     isLoadingPrelockCount = val;
+    notifyListeners();
+  }
+
+  set setIsLoadingPresetLockPath(bool val) {
+    isLoadingPresetLockPath = val;
     notifyListeners();
   }
 
@@ -47,6 +54,11 @@ class DirectoryProvider extends ChangeNotifier {
 
   void addPreviewWallPathsToList({String? path}) {
     previewWallsPath.add(path);
+    notifyListeners();
+  }
+
+  void addPresetPathsToList({String? path}) {
+    presetLockPaths.add(path);
     notifyListeners();
   }
 
@@ -97,6 +109,24 @@ class DirectoryProvider extends ChangeNotifier {
       }
     }
     setIsLoadingPrelockCount = false;
+  }
+
+  Future getPresetLockPath() async {
+    setIsLoadingPresetLockPath = true;
+    if (Platform.isAndroid) {
+      await Directory(MIUIConstants.preset!).create(recursive: true);
+    }
+    final folders = await Directory("${MIUIConstants.preset}").list().toList();
+    presetLockPaths.clear();
+    for (var folderEntity in folders) {
+      if (folderEntity is Directory) {
+        // final presetName =
+        //     folderEntity.path.split(platformBasedPath("\\")).last;
+        addPresetPathsToList(path: folderEntity.path);
+      }
+    }
+    presetLockPaths.sort((a, b) => a!.compareTo(b!));
+    setIsLoadingPresetLockPath = false;
   }
 
   Future setPreviewWallsPath({String? folderNum}) async {

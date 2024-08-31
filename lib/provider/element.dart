@@ -1,3 +1,6 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../data/element_map_dart.dart';
@@ -14,6 +17,11 @@ class ElementProvider extends ChangeNotifier {
 
   set setBgAlpha(double? alpha) {
     bgAlpha = alpha;
+    notifyListeners();
+  }
+
+  void addAllElements(List<ElementWidget> elements) {
+    elementList = elements;
     notifyListeners();
   }
 
@@ -196,6 +204,150 @@ class ElementWidget {
       this.fontSize = 20,
       this.isShort = false,
       this.showGuideLines = false});
+
+  @override
+  String toString() {
+    return 'ElementWidget(name: $name, dx: $dx, dy: $dy, scale: $scale, height: $height, width: $width, radius: $radius, borderWidth: $borderWidth, borderColor: $borderColor, type: $type, child: $child, color: $color, colorSecondary: $colorSecondary, gradientType: $gradientType, gradStartAlign: $gradStartAlign, gradEndAlign: $gradEndAlign, font: $font, align: $align, angle: $angle, path: $path, text: $text, fontSize: $fontSize, fontWeight: $fontWeight, isShort: $isShort, showGuideLines: $showGuideLines)';
+  }
+
+  // JSON serialization method
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'dx': dx,
+      'dy': dy,
+      'scale': scale,
+      'height': height,
+      'width': width,
+      'radius': radius,
+      'borderWidth': borderWidth,
+      'borderColor': (borderColor ?? Colors.white).value,
+      'type': type!.name,
+      'child': child.toString(),
+      'color': (color ?? Colors.white).value,
+      'colorSecondary': (colorSecondary ?? Colors.white).value,
+      'gradientType': gradientType.toString().split('.').last,
+      'gradStartAlign': (gradStartAlign ?? Alignment.center).toString(),
+      'gradEndAlign': (gradEndAlign ?? Alignment.center).toString(),
+      'font': font,
+      'align': (align ?? Alignment.center).toString(),
+      'angle': angle,
+      'path': path ?? "",
+      'text': text,
+      'fontSize': fontSize,
+      'fontWeight': fontWeight.toString(),
+      'isShort': isShort,
+      'showGuideLines': showGuideLines,
+    };
+  }
+
+  // JSON deserialization method
+  factory ElementWidget.fromJson(Map<String, dynamic> json) {
+    return ElementWidget(
+      name: json['name'],
+      dx: json['dx'],
+      dy: json['dy'],
+      scale: json['scale'],
+      height: json['height'],
+      width: json['width'],
+      radius: json['radius'],
+      borderWidth: json['borderWidth'],
+      borderColor: Color(json['borderColor']),
+      type: _stringToElementType(json['type']),
+      child: buildElementWidget(json["child"]),
+      color: Color(json['color']),
+      colorSecondary: Color(json['colorSecondary']),
+      gradientType: _stringToGradientType(json['gradientType']),
+      gradStartAlign: _stringToAlignment(json['gradStartAlign']),
+      gradEndAlign: _stringToAlignment(json['gradEndAlign']),
+      font: json['font'],
+      align: _stringToAlignment(json['align']),
+      angle: json['angle'],
+      path: json['path'],
+      text: json['text'],
+      fontSize: json['fontSize'],
+      fontWeight: _stringToFontWeight(json['fontWeight']),
+      isShort: json['isShort'],
+      showGuideLines: json['showGuideLines'],
+    );
+  }
+
+  // Helper method to convert a string to ElementType
+  static ElementType _stringToElementType(String type) {
+    return ElementType.values
+        .firstWhere((e) => e.toString().split('.').last == type);
+  }
+
+  // Helper method to convert a string to GradientType
+  static GradientType _stringToGradientType(String gradientType) {
+    return GradientType.values
+        .firstWhere((e) => e.toString().split('.').last == gradientType);
+  }
+
+  // Helper method to convert a string to Alignment
+  static Alignment _stringToAlignment(String alignment) {
+    switch (alignment) {
+      case 'Alignment.centerLeft':
+        return Alignment.centerLeft;
+      case 'Alignment.centerRight':
+        return Alignment.centerRight;
+      case 'Alignment.center':
+        return Alignment.center;
+      case 'Alignment.topLeft':
+        return Alignment.topLeft;
+      case 'Alignment.topRight':
+        return Alignment.topRight;
+      case 'Alignment.topCenter':
+        return Alignment.topCenter;
+      case 'Alignment.bottomLeft':
+        return Alignment.bottomLeft;
+      case 'Alignment.bottomRight':
+        return Alignment.bottomRight;
+      case 'Alignment.bottomCenter':
+        return Alignment.bottomCenter;
+      default:
+        return Alignment.center; // Fallback alignment
+    }
+  }
+
+  // Helper method to convert a string to FontWeight
+  static FontWeight _stringToFontWeight(String fontWeight) {
+    switch (fontWeight) {
+      case 'FontWeight.w100':
+        return FontWeight.w100;
+      case 'FontWeight.w200':
+        return FontWeight.w200;
+      case 'FontWeight.w300':
+        return FontWeight.w300;
+      case 'FontWeight.w400':
+        return FontWeight.w400;
+      case 'FontWeight.w500':
+        return FontWeight.w500;
+      case 'FontWeight.w600':
+        return FontWeight.w600;
+      case 'FontWeight.w700':
+        return FontWeight.w700;
+      case 'FontWeight.w800':
+        return FontWeight.w800;
+      case 'FontWeight.w900':
+        return FontWeight.w900;
+      default:
+        return FontWeight.normal; // Fallback weight
+    }
+  }
+
+  static Widget buildElementWidget(String elementName) {
+    return elementWidgetMap[ElementType.values.firstWhere(
+      (element) => element.name.toLowerCase() == elementName.toLowerCase(),
+      orElse: () => ElementType.swipeUpUnlock,
+    )]!["widget"];
+  }
+}
+
+List<Map<String, dynamic>> elementWidgetToMap(List<ElementWidget> elements) {
+  List<Map<String, dynamic>> jsonElements =
+      elements.map((element) => element.toJson()).toList();
+  return jsonElements;
 }
 
 enum GradientType {

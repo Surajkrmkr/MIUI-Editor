@@ -7,6 +7,7 @@ class MIUIConstants {
   static String? preLock = getPrelock;
   static String? sample2Lockscreen = getSampleLockscreen;
   static String? sample2 = getSample;
+  static String? preset = getPreset;
 
   static double screenHeight = 600;
   static double screenWidth = 276.92;
@@ -42,6 +43,15 @@ class MIUIConstants {
       return "${getBasePath}Sample2\\";
     } else if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) {
       return "${getBasePath}Sample2/";
+    }
+    return "";
+  }
+
+  static String get getPreset {
+    if (Platform.isWindows) {
+      return "${getBasePath}Preset\\";
+    } else if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) {
+      return "${getBasePath}Preset/";
     }
     return "";
   }

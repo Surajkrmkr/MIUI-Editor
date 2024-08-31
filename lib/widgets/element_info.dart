@@ -363,7 +363,7 @@ class ElementList extends StatelessWidget {
                           type: MaterialType.transparency,
                           child: Padding(
                             padding: const EdgeInsets.only(
-                                left: 10, right: 10, bottom: 8.0),
+                                left: 10, right: 10, bottom: 10.0),
                             child: ListTile(
                               selected: isAdded,
                               title: Text(

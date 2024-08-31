@@ -53,93 +53,90 @@ class GlobalVarDetailsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20.0),
-      child: TextButton.icon(
-        icon: const Icon(Icons.info),
-        onPressed: () {
-          showDialog(
-              context: context,
-              builder: ((context) {
-                return Dialog(
-                    child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Wrap(
-                    children: [
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            "Date Time",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 18),
-                          ),
-                          const SizedBox(
-                            height: 20,
-                          ),
-                          SizedBox(
-                            height: 300,
-                            width: 100,
-                            child: ListView.builder(
-                                itemCount: MIUIString.dateTimeStringMap.length,
-                                itemBuilder: (context, i) {
-                                  final keys = MIUIString.dateTimeStringMap.keys
-                                      .toList();
-                                  final val =
-                                      MIUIString.dateTimeStringMap[keys[i]];
-                                  return ListTile(
-                                    title: Text(keys[i]!),
-                                    subtitle: Text(val!),
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                      Clipboard.setData(
-                                          ClipboardData(text: keys[i]!));
-                                    },
-                                  );
-                                }),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            "Global Variables",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 18),
-                          ),
-                          const SizedBox(
-                            height: 20,
-                          ),
-                          SizedBox(
-                            height: 300,
-                            width: 300,
-                            child: ListView.builder(
-                                itemCount: MIUIString.globalVarMap.length - 2,
-                                itemBuilder: (context, i) {
-                                  final keys =
-                                      MIUIString.globalVarMap.keys.toList();
-                                  final val = MIUIString.globalVarMap[keys[i]];
-                                  return ListTile(
-                                    title: Text(keys[i]!),
-                                    subtitle: Text(val!),
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                      Clipboard.setData(
-                                          ClipboardData(text: keys[i]!));
-                                    },
-                                  );
-                                }),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ));
-              }));
-        },
-        label: const Text('Instruction'),
-      ),
+    return TextButton.icon(
+      icon: const Icon(Icons.info),
+      onPressed: () {
+        showDialog(
+            context: context,
+            builder: ((context) {
+              return Dialog(
+                  child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Wrap(
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Date Time",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 18),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        SizedBox(
+                          height: 300,
+                          width: 100,
+                          child: ListView.builder(
+                              itemCount: MIUIString.dateTimeStringMap.length,
+                              itemBuilder: (context, i) {
+                                final keys =
+                                    MIUIString.dateTimeStringMap.keys.toList();
+                                final val =
+                                    MIUIString.dateTimeStringMap[keys[i]];
+                                return ListTile(
+                                  title: Text(keys[i]!),
+                                  subtitle: Text(val!),
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    Clipboard.setData(
+                                        ClipboardData(text: keys[i]!));
+                                  },
+                                );
+                              }),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Global Variables",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 18),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        SizedBox(
+                          height: 300,
+                          width: 300,
+                          child: ListView.builder(
+                              itemCount: MIUIString.globalVarMap.length - 2,
+                              itemBuilder: (context, i) {
+                                final keys =
+                                    MIUIString.globalVarMap.keys.toList();
+                                final val = MIUIString.globalVarMap[keys[i]];
+                                return ListTile(
+                                  title: Text(keys[i]!),
+                                  subtitle: Text(val!),
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    Clipboard.setData(
+                                        ClipboardData(text: keys[i]!));
+                                  },
+                                );
+                              }),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ));
+            }));
+      },
+      label: const Text('Instruction'),
     );
   }
 }

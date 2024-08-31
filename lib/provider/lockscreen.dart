@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -128,6 +129,60 @@ class LockscreenProvider extends ChangeNotifier {
         .exists();
     setIsExported = isExist;
   }
+
+  void aiGeneratedLockscreen({required BuildContext context}) async {
+    final eleProvider = Provider.of<ElementProvider>(context, listen: false);
+    final elementList = eleProvider.elementList;
+    final eleJSON = json.encode(elementWidgetToMap(elementList));
+
+    print(elementList);
+    print(eleJSON);
+    print((json.decode(eleJSON) as List<dynamic>)
+        .map((element) => ElementWidget.fromJson(element))
+        .toList());
+  }
+
+  void importPresetToLockscreen(
+      {required BuildContext context, required String jsonPath}) async {
+    final jsonString =
+        await File(platformBasedPath("$jsonPath\\preset.json")).readAsString();
+    List<ElementWidget> elementList = (json.decode(jsonString) as List<dynamic>)
+        .map((element) => ElementWidget.fromJson(element))
+        .toList();
+
+    final eleProvider = Provider.of<ElementProvider>(context, listen: false);
+    eleProvider.addAllElements(elementList);
+    eleProvider.setActiveType = elementList.last.type;
+    Navigator.pop(context);
+    UIWidgets.getBanner(
+        content: "Preset Imported", context: context, hasError: false);
+  }
+
+  void addLockscreenToPreset(
+      {required BuildContext context, required String presetName}) async {
+    final eleProvider = Provider.of<ElementProvider>(context, listen: false);
+    final elementList = eleProvider.elementList;
+    final eleJSON = json.encode(elementWidgetToMap(elementList));
+    // final folders = await Directory("${MIUIConstants.preset}").list().toList();
+    // for (var folderEntity in folders) {
+    //   if (folderEntity is! Directory) {
+    //     final presetName =
+    //         folderEntity.path.split(platformBasedPath("\\")).last;
+    final jsonPath =
+        platformBasedPath("${MIUIConstants.preset}$presetName\\preset.json");
+    if (await File(jsonPath).exists()) {
+      await File(jsonPath).delete();
+    } else {
+      await Directory(platformBasedPath("${MIUIConstants.preset}$presetName"))
+          .create(recursive: true);
+    }
+    await File(platformBasedPath(jsonPath)).writeAsString(eleJSON);
+    // }
+    // }
+
+    UIWidgets.getBanner(
+        content: "Preset Generated", context: context, hasError: false);
+  }
 }
 
 class ExportLockscreenBtn extends StatelessWidget {
@@ -141,6 +196,38 @@ class ExportLockscreenBtn extends StatelessWidget {
           icon: Icon(provider.isExported ? Icons.check : Icons.lock),
           isLoading: provider.isExporting!,
           onTap: () => provider.export(context: context));
+    });
+  }
+}
+
+class AILockscreenBtn extends StatelessWidget {
+  const AILockscreenBtn({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<LockscreenProvider>(builder: (context, provider, _) {
+      return UIWidgets.getElevatedButton(
+          text: "SURAJ AI",
+          icon: const Icon(Icons.gesture_rounded),
+          isLoading: provider.isExporting!,
+          onTap: () => provider.aiGeneratedLockscreen(context: context));
+    });
+  }
+}
+
+class PresetLockscreenBtn extends StatelessWidget {
+  const PresetLockscreenBtn({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<LockscreenProvider>(builder: (context, provider, _) {
+      return UIWidgets.getElevatedButton(
+          text: "Add Preset",
+          icon: const Icon(Icons.save_rounded),
+          isLoading: provider.isExporting!,
+          onTap: () => provider.addLockscreenToPreset(
+              context: context,
+              presetName: DateTime.now().millisecondsSinceEpoch.toString()));
     });
   }
 }
