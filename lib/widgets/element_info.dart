@@ -361,20 +361,24 @@ class ElementList extends StatelessWidget {
                             provider.getElementFromList(element).type != null;
                         return Material(
                           type: MaterialType.transparency,
-                          child: ListTile(
-                            selected: isAdded,
-                            title: Text(
-                              element.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                left: 10, right: 10, bottom: 8.0),
+                            child: ListTile(
+                              selected: isAdded,
+                              title: Text(
+                                element.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              onTap: () {
+                                if (!isAdded) {
+                                  addToList(context: context, type: element);
+                                } else {
+                                  provider.removeElementFromList(element);
+                                }
+                              },
                             ),
-                            onTap: () {
-                              if (!isAdded) {
-                                addToList(context: context, type: element);
-                              } else {
-                                provider.removeElementFromList(element);
-                              }
-                            },
                           ),
                         );
                       }).toList(),

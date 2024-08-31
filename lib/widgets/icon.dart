@@ -49,7 +49,7 @@ class IconWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(radius!),
               gradient: getGradient(
                   colors: name == 'icon_border'
-                      ? [Colors.transparent]
+                      ? [Colors.transparent, Colors.transparent]
                       : [bgColor!, bgColor2!],
                   start: bgGradAlign,
                   end: bgGradAlign2),

@@ -89,7 +89,9 @@ class WallpaperProvider extends ChangeNotifier {
         FileImage(File(paths![index!])));
     setColorPalette = list.colors.toList();
     Provider.of<IconProvider>(context, listen: false).setBgColor =
-        list.dominantColor!.color;
+        (list.lightVibrantColor ?? list.dominantColor)!.color;
+    Provider.of<IconProvider>(context, listen: false).setBgColor2 =
+        (list.darkVibrantColor ?? list.dominantColor)!.color;
     Provider.of<IconProvider>(context, listen: false).setAccentColor =
         list.dominantColor!.color;
   }

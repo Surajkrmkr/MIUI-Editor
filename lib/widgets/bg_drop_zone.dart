@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/functions/windows_utils.dart';
 
 import '../functions/theme_path.dart';
 
@@ -13,7 +14,8 @@ class BGDropZone extends StatelessWidget {
     return DropTarget(
       onDragDone: (detail) async {
         final themePath = CurrentTheme.getPath(context);
-        final bgPath = File("$themePath\\lockscreen\\advance\\$path.png");
+        final bgPath = File(
+            platformBasedPath("${themePath}lockscreen\\advance\\$path.png"));
         await detail.files.first.saveTo(bgPath.path);
       },
       child: Container(
