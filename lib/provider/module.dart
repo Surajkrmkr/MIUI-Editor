@@ -84,18 +84,18 @@ class ModuleProvider extends ChangeNotifier {
     final wallpaperProvider =
         Provider.of<WallpaperProvider>(context, listen: false);
     await File(wallpaperProvider.paths![wallpaperProvider.index!]).copy(
-        platformBasedPath("$themePath\\wallpaper\\default_lock_wallpaper.jpg"));
+        platformBasedPath("${themePath}wallpaper\\default_lock_wallpaper.jpg"));
     await File(wallpaperProvider.paths![wallpaperProvider.index!]).copy(
-        platformBasedPath("$themePath\\wallpaper\\default_wallpaper.jpg"));
-    await File(platformBasedPath("$themePath\\clock_2x4\\manifest.xml"))
+        platformBasedPath("${themePath}wallpaper\\default_wallpaper.jpg"));
+    await File(platformBasedPath("${themePath}clock_2x4\\manifest.xml"))
         .writeAsString(XmlDocument.parse(ThemeDesc.clockManifest()!)
             .toXmlString(pretty: true, indent: '\t'));
     final desc = XmlDocument.parse(ThemeDesc.getXmlString()!.replaceAll("Test",
         themePath!.split(platformBasedPath("\\")).reversed.toList()[1]));
-    await File(platformBasedPath("$themePath\\description.xml"))
+    await File(platformBasedPath("${themePath}description.xml"))
         .writeAsString(desc.toXmlString(pretty: true, indent: '\t'));
     final pluginInfo = XmlDocument.parse(ThemeDesc.pluginInfo()!);
-    await File(platformBasedPath("$themePath\\plugin_config.xml"))
+    await File(platformBasedPath("${themePath}plugin_config.xml"))
         .writeAsString(pluginInfo.toXmlString(pretty: true, indent: '\t'));
 
     checkAlreadyExport(context: context);
