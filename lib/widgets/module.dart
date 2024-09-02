@@ -32,7 +32,7 @@ class ModuleWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Suraj Fiber",
+                    "Subhangi 6G",
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 14,
