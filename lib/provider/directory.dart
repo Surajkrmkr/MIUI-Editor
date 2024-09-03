@@ -122,7 +122,7 @@ class DirectoryProvider extends ChangeNotifier {
       if (folderEntity is Directory) {
         // final presetName =
         //     folderEntity.path.split(platformBasedPath("\\")).last;
-        addPresetPathsToList(path: folderEntity.path);
+        addPresetPathsToList(path: platformBasedPath(folderEntity.path));
       }
     }
     presetLockPaths.sort((a, b) => a!.compareTo(b!));

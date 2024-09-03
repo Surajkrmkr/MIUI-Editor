@@ -129,7 +129,7 @@ class IconProvider extends ChangeNotifier {
                   bgColor: provider.bgColor,
                   bgColor2: provider.bgColor2,
                   bgGradAlign2: provider.bgGradAlign,
-                  bgGradAlign: provider.bgGradAlign,
+                  bgGradAlign: provider.bgGradAlign2,
                   iconColor: provider.iconColor,
                   margin: provider.margin,
                   padding: provider.padding,
