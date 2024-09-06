@@ -2,9 +2,11 @@ import 'package:miui_icon_generator/data/unlock/unlock.dart';
 
 import 'container/container_bg.dart';
 import 'music/music.dart';
+import 'notification/notification.dart';
 import 'text/text.dart';
 import 'xml data/container/container_bg.dart';
 import 'xml data/music/music.dart';
+import 'xml data/notification/notification.dart';
 import 'xml data/shortcuts/icons.dart';
 import 'xml data/swipe_up_unlock.dart';
 import 'xml data/clock/date_time_clock.dart';
@@ -26,6 +28,7 @@ enum ElementType {
   monthClock,
   dateClock,
   weatherIconClock,
+  notification,
   dateTimeText1,
   dateTimeText2,
   dateTimeText3,
@@ -147,6 +150,12 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
     "exportable": true,
     "xml": amClockXml,
     "png": {"export": exportAmPmPng, "path": "ampm"},
+  },
+  ElementType.notification: {
+    "widget": const Notification(),
+    "exportable": false,
+    "xml": notificationXml,
+    "path": "notification\\close",
   },
   ElementType.musicBg: {
     "widget": const MusicBG(),
@@ -356,6 +365,9 @@ const Map<String, List<ElementType>> elementsByGroup = {
   ],
   "Weather": [
     ElementType.weatherIconClock,
+  ],
+  "Notification":[
+    ElementType.notification
   ],
   "DateTime Text": [
     ElementType.dateTimeText1,

@@ -90,7 +90,8 @@ class ModuleProvider extends ChangeNotifier {
     await File(platformBasedPath("$themePath\\clock_2x4\\manifest.xml"))
         .writeAsString(XmlDocument.parse(ThemeDesc.clockManifest()!)
             .toXmlString(pretty: true, indent: '\t'));
-    final desc = XmlDocument.parse(ThemeDesc.getXmlString()!.replaceAll("Test",
+    final desc = XmlDocument.parse(ThemeDesc.getXmlString(context)!.replaceAll(
+        "Test",
         themePath!.split(platformBasedPath("\\")).reversed.toList()[1]));
     await File(platformBasedPath("$themePath\\description.xml"))
         .writeAsString(desc.toXmlString(pretty: true, indent: '\t'));

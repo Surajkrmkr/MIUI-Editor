@@ -5,7 +5,6 @@ import '../element_map_dart.dart';
 final lockscreenManifest = '''
   <?xml version="1.0" encoding="utf-8"?>
     <Lockscreen version="2" frameRate="30" displayDesktop="false" screenWidth="1080">
-	  <!--Don't COPY SURAJ's WORK-->
 	    <Var expression="#screen_width" name="sw"/>
 	    <Var expression="#screen_height" name="sh"/>
 	    <Wallpaper name="wall" pivotX="#wall.bmp_width/2" pivotY="#wall.bmp_height/2">
@@ -32,10 +31,16 @@ final lockscreenManifest = '''
           <List name="notification_list"/>
         </ContentProviderBinder>
       </VariableBinders>
+      <Button x="0" y="0" w="1080" h="#sh" visibility="#hasnotifications}0">
+          <Triggers>
+            <Trigger action="up,cancel">
+              <VariableCommand name="notice_down" expression="0" />
+            </Trigger>
+          </Triggers>
+      </Button>
       <Group name="bgAlpha"></Group>
       <Image name="bgLock" srcExp="'bg.png'" width="#sw" height="#sh"/>
       ${getGroupStrings()}
-    <!--Don't COPY SURAJ's WORK-->
   </Lockscreen>
 ''';
 

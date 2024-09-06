@@ -18,14 +18,9 @@ class FontProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-
-  FontProvider() {
-    getFontsFromAPI();
-  }
-
-  getFontsFromAPI() async {
+  getFontsFromAPI(context) async {
     setIsLoading = true;
-    final FontModel model = await FontApi.fetchFontList();
+    final FontModel model = await FontApi.fetchFontList(context);
     fonts = model.fonts!;
     notifyListeners();
     setIsLoading = false;

@@ -1,11 +1,17 @@
+import 'package:provider/provider.dart';
+
+import '../provider/userprofile.dart';
+
 class ThemeDesc {
-  static String? getXmlString() {
+  static String? getXmlString(context) {
+    final userProfile =
+        Provider.of<UserProfileProvider>(context, listen: false).activeUser;
     return '''
         <?xml version='1.0' encoding='utf-8' standalone='yes' ?>
           <MIUI-Theme>
             <title>Test</title>
-            <designer>Suraj</designer>
-            <author>Sj</author>
+            <designer>${users[userProfile]!['name']}</designer>
+            <author>${users[userProfile]!['author']}</author>
             <version>1.0</version>
             <uiVersion>15</uiVersion>
             <keywords>MIUIThemeEditor;40.7.10_1594360719;</keywords>

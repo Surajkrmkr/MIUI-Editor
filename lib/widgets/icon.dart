@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../data/miui_theme_data.dart';
 import '../provider/icon.dart';
+import '../provider/userprofile.dart';
 
 class IconWidget extends StatelessWidget {
   final double? margin;
@@ -55,11 +56,14 @@ class IconWidget extends StatelessWidget {
                   end: bgGradAlign2),
             ),
             child: !MIUIThemeData.extraIconList.contains(name)
-                ? Center(
-                    child: SvgPicture.asset(
-                    "assets/icons/$name.svg",
-                    colorFilter: ColorFilter.mode(iconColor!, BlendMode.srcIn),
-                  ))
+                ? Center(child: Consumer<UserProfileProvider>(
+                    builder: (context, provider, child) {
+                    return SvgPicture.asset(
+                      "assets/icons/${users[provider.activeUser]![name]}/$name.svg",
+                      colorFilter:
+                          ColorFilter.mode(iconColor!, BlendMode.srcIn),
+                    );
+                  }))
                 : Container(),
           ),
         ),
@@ -103,12 +107,14 @@ class IconContainer extends StatelessWidget {
                       start: provider.bgGradAlign,
                       end: provider.bgGradAlign2),
                   color: provider.bgColor),
-              child: Center(
-                  child: SvgPicture.asset(
-                "assets/icons/$name.svg",
-                colorFilter:
-                    ColorFilter.mode(provider.iconColor!, BlendMode.srcIn),
-              )),
+              child: Center(child: Consumer<UserProfileProvider>(
+                  builder: (context, userProvider, child) {
+                return SvgPicture.asset(
+                  "assets/icons/${users[userProvider.activeUser]![name]}/$name.svg",
+                  colorFilter:
+                      ColorFilter.mode(provider.iconColor!, BlendMode.srcIn),
+                );
+              })),
             ),
           ),
         );

@@ -7,7 +7,9 @@ import 'package:provider/provider.dart';
 
 import 'functions/shared_prefs.dart';
 import 'functions/windows_utils.dart';
+import 'provider/userprofile.dart';
 import 'providers.dart';
+import 'screen/userprofile/user_profile.dart';
 import 'theme.dart';
 
 void main() async {
@@ -32,7 +34,7 @@ class MyApp extends StatelessWidget {
         darkTheme: AppThemeData.getDarkTheme(),
         theme: AppThemeData.getLightTheme(),
         debugShowCheckedModeBanner: false,
-        home: const LandingPage(),
+        home: const UserProfile(),
       ),
     );
   }

@@ -10,6 +10,7 @@ import 'provider/lockscreen.dart';
 import 'provider/mtz.dart';
 import 'provider/pick_wall.dart';
 import 'provider/tag.dart';
+import 'provider/userprofile.dart';
 
 class MIUIProvider {
   static getProviders(context) => [
@@ -42,6 +43,9 @@ class MIUIProvider {
         ),
         ChangeNotifierProvider(
           create: (context) => MTZProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => UserProfileProvider(),
         ),
       ];
 }
