@@ -117,7 +117,7 @@ class ModuleProvider extends ChangeNotifier {
   void checkAlreadyExport({required BuildContext context}) async {
     final themePath = CurrentTheme.getPath(context);
     final isExist =
-        await File(platformBasedPath("${themePath}description.xml")).exists();
+        await File(platformBasedPath("$themePath\\description.xml")).exists();
     setIsCopied = isExist;
   }
 }
