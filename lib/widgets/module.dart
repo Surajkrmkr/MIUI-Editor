@@ -32,7 +32,7 @@ class ModuleWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Suraj Fiber",
+                    "Miui Wifi",
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 14,

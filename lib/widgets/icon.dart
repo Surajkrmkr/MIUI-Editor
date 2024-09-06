@@ -18,6 +18,7 @@ class IconWidget extends StatelessWidget {
   final double? borderWidth;
   final Color? borderColor;
   final String? name;
+  final UserProfiles? userType;
   const IconWidget(
       {super.key,
       required this.margin,
@@ -30,7 +31,8 @@ class IconWidget extends StatelessWidget {
       required this.borderColor,
       this.bgColor2,
       this.bgGradAlign,
-      this.bgGradAlign2});
+      this.bgGradAlign2,
+      this.userType});
 
   @override
   Widget build(BuildContext context) {
@@ -56,14 +58,11 @@ class IconWidget extends StatelessWidget {
                   end: bgGradAlign2),
             ),
             child: !MIUIThemeData.extraIconList.contains(name)
-                ? Center(child: Consumer<UserProfileProvider>(
-                    builder: (context, provider, child) {
-                    return SvgPicture.asset(
-                      "assets/icons/${users[provider.activeUser]![name]}/$name.svg",
-                      colorFilter:
-                          ColorFilter.mode(iconColor!, BlendMode.srcIn),
-                    );
-                  }))
+                ? Center(
+                    child: SvgPicture.asset(
+                    "assets/icons/${users[userType]!["user"]}/$name.svg",
+                    colorFilter: ColorFilter.mode(iconColor!, BlendMode.srcIn),
+                  ))
                 : Container(),
           ),
         ),
@@ -110,7 +109,7 @@ class IconContainer extends StatelessWidget {
               child: Center(child: Consumer<UserProfileProvider>(
                   builder: (context, userProvider, child) {
                 return SvgPicture.asset(
-                  "assets/icons/${users[userProvider.activeUser]![name]}/$name.svg",
+                  "assets/icons/${users[userProvider.activeUser]!["user"]}/$name.svg",
                   colorFilter:
                       ColorFilter.mode(provider.iconColor!, BlendMode.srcIn),
                 );

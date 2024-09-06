@@ -1,22 +1,25 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:xml/xml.dart';
 
-import '../data/miui_theme_data.dart';
 import '../data/xml data/lockscreen.dart';
 import '../functions/theme_path.dart';
 import '../functions/windows_utils.dart';
 import '../widgets/icon.dart';
 import '../widgets/ui_widgets.dart';
+import 'userprofile.dart';
 
 class IconProvider extends ChangeNotifier {
   double? margin = 4;
   bool? isIconsExporting = false;
   bool isExported = false;
   int? progress = 0;
+  List<dynamic> iconAssetsPath = [];
 
   set setMargin(double m) {
     margin = m;
@@ -108,35 +111,57 @@ class IconProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void getIconAssetsPath(context) async {
+    final provider = Provider.of<UserProfileProvider>(context, listen: false);
+    var assets = await rootBundle.loadString('AssetManifest.json');
+    var json = jsonDecode(assets);
+    final List<String> paths = json.keys
+        .where((String element) => element
+            .startsWith("assets/icons/${users[provider.activeUser]!['user']}/"))
+        .toList();
+
+    iconAssetsPath = paths
+        .map(
+          (e) => e
+              .replaceAll(
+                  "assets/icons/${users[provider.activeUser]!['user']}/", '')
+              .replaceAll(".svg", ''),
+        )
+        .toList();
+    notifyListeners();
+  }
+
   void checkAlreadyExport({required BuildContext context}) async {
     final themePath = CurrentTheme.getPath(context);
     final isExist = await File(platformBasedPath(
-            '$themePath\\icons\\res\\drawable-xhdpi\\${MIUIThemeData.vectorList[1]}.png'))
+            '$themePath\\icons\\res\\drawable-xhdpi\\${iconAssetsPath[1]}.png'))
         .exists();
     setIsExported = isExist;
   }
 
   void export({BuildContext? context}) async {
     final provider = Provider.of<IconProvider>(context!, listen: false);
+    final userType =
+        Provider.of<UserProfileProvider>(context, listen: false).activeUser;
     final themePath = CurrentTheme.getPath(context);
     setIsExporting = true;
     try {
-      for (String? element in MIUIThemeData.vectorList) {
+      for (String? element in iconAssetsPath) {
         ScreenshotController()
             .captureFromWidget(
                 IconWidget(
-                  name: element,
-                  bgColor: provider.bgColor,
-                  bgColor2: provider.bgColor2,
-                  bgGradAlign2: provider.bgGradAlign,
-                  bgGradAlign: provider.bgGradAlign2,
-                  iconColor: provider.iconColor,
-                  margin: provider.margin,
-                  padding: provider.padding,
-                  radius: provider.radius,
-                  borderColor: provider.borderColor,
-                  borderWidth: provider.borderWidth,
-                ),
+                    name: element,
+                    bgColor: provider.bgColor,
+                    bgColor2: provider.bgColor2,
+                    bgGradAlign2: provider.bgGradAlign,
+                    bgGradAlign: provider.bgGradAlign2,
+                    iconColor: provider.iconColor,
+                    margin: provider.margin,
+                    padding: provider.padding,
+                    radius: provider.radius,
+                    borderColor: provider.borderColor,
+                    borderWidth: provider.borderWidth,
+                    userType: userType),
                 pixelRatio: 4)
             .then((value) async {
           final imagePath = File(platformBasedPath(
@@ -146,7 +171,7 @@ class IconProvider extends ChangeNotifier {
               '$themePath\\icons\\res\\drawable-xxhdpi\\$element.png'));
           await imagePath2.writeAsBytes(value);
           setProgress = progress! + 1;
-          if (progress == MIUIThemeData.vectorList.length) {
+          if (progress == iconAssetsPath.length) {
             checkAlreadyExport(context: context);
             setIsExporting = false;
             setProgress = 0;

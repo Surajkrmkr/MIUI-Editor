@@ -102,11 +102,11 @@ class _UserProfileState extends State<UserProfile>
                                   height: 100.0,
                                   width: 100.0,
                                   decoration: BoxDecoration(
-                                      color: Colors.redAccent,
                                       image: DecorationImage(
                                           image: AssetImage(
-                                              "assets/users/$userType.png")),
-                                      borderRadius: BorderRadius.circular(30)),
+                                              "assets/users/${userType.name}.png"),
+                                          fit: BoxFit.cover),
+                                      borderRadius: BorderRadius.circular(25)),
                                 ),
                               ),
                               const SizedBox(height: 10.0),
