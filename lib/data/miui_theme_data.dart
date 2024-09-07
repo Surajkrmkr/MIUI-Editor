@@ -130,6 +130,7 @@ class MIUIThemeData {
     "\\clock_2x4\\",
     "\\lockscreen\\advance\\icon\\",
     "\\lockscreen\\advance\\music\\"
+    "\\lockscreen\\advance\\notification\\"
   ];
 
   static List<String> subDirectoryList = [

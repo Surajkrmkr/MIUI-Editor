@@ -96,6 +96,7 @@ class _UserProfileState extends State<UserProfile>
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               InkWell(
+                                borderRadius: BorderRadius.circular(100),
                                 onTap: () =>
                                     onProfileSelected(user, userType, context),
                                 child: Container(

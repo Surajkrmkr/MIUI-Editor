@@ -404,6 +404,9 @@ void addToList({ElementType? type, BuildContext? context}) {
   if (isIconType) {
     ele.path = elementWidgetFromMap["path"];
   }
+  if (eleType == ElementType.notification) {
+    ele.colorSecondary = Colors.white24;
+  }
   final provider = Provider.of<ElementProvider>(context!, listen: false);
   provider.addElementInList(ele);
   provider.setActiveType = eleType;
