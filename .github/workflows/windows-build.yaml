@@ -2,7 +2,7 @@ name: Miui Theme Editor Build Generation For Windows
 
 on:
   push:
-    branches: [master]
+    tags: ["build-windows"]
 
 permissions:
   contents: write
@@ -32,6 +32,7 @@ jobs:
           directory: build/windows/x64/runner/Release
       - name: Windows Release
         uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
