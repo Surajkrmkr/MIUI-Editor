@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:xml/xml.dart';
 
+import '../data/miui_theme_data.dart';
 import '../data/xml data/lockscreen.dart';
 import '../functions/theme_path.dart';
 import '../functions/windows_utils.dart';
@@ -128,6 +129,7 @@ class IconProvider extends ChangeNotifier {
               .replaceAll(".svg", ''),
         )
         .toList();
+    iconAssetsPath = [...MIUIThemeData.vectorList, ...iconAssetsPath];
     notifyListeners();
   }
 

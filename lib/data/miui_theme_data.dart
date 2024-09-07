@@ -1,10 +1,10 @@
 class MIUIThemeData {
-  // static List<String?> vectorList = [
-  //   "icon_folder",
-  //   "icon_folder_light",
-  //   "icon_mask",
-  //   "icon_pattern",
-  //   "icon_border",
+  static List<String?> vectorList = [
+    "icon_folder",
+    "icon_folder_light",
+    "icon_mask",
+    "icon_pattern",
+    "icon_border",
   //   "com.android.contacts.activities.TwelveKeyDialer",
   //   "com.android.mms",
   //   "com.google.android.apps.chrome.Main",
@@ -83,7 +83,7 @@ class MIUIThemeData {
   //   "status_bar_toggle_lock_on",
   //   "status_bar_toggle_wifi_ap_off",
   //   "status_bar_toggle_wifi_ap_on",
-  // ];
+  ];
 
   static List<String?> extraIconList = [
     "icon_folder",
