@@ -2,7 +2,7 @@ name: Miui Theme Editor Build Generation For Windows
 
 on:
   push:
-    tags: ["build-windows-vs", "build-windows-vp","build-windows-vsu"]
+    branches: [master]
 
 permissions:
   contents: write
