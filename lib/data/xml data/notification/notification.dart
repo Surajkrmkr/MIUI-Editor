@@ -9,14 +9,14 @@ String notificationXml({required ElementWidget ele}) {
   return '''
     <Var name="w" expression="1024" type="number" />
     <Var name="h" expression="186" type="number" />
-    <List name="notification_list" x="0" y="$dy" w="#screen_width" maxHeight="int(#h+20)*3" data="icon:bitmap,title:string,content:string,time:string,info:string,subtext:string,key:int" visibility="#hasnotifications">
+    <List name="notification_list" x="0" y="$dy+#sh/2" w="#screen_width" maxHeight="int(#h+20)*3" data="icon:bitmap,title:string,content:string,time:string,info:string,subtext:string,key:int" visibility="#hasnotifications">
 		<Item x="540" y="0" w="#w" h="int(#h+20)" align="center">
 			<Button x="0" y="0" w="1024" h="(#h+20)" alignChildren="true">
          <Normal>
-            <Rectangle x="0" w="1024" h="186" fillColor="#$color2" cornerRadius="#$radius" />
+            <Rectangle x="0" w="1024" h="186" fillColor="#$color2" cornerRadius="25" />
          </Normal>
          <Pressed>
-            <Rectangle x="0" w="1024" h="186" fillColor="#$color2" cornerRadius="#$radius" alpha="100"/>
+            <Rectangle x="0" w="1024" h="186" fillColor="#$color2" cornerRadius="25" alpha="100"/>
         </Pressed>
 				<Image x="#w - 66" y="#h/2" align="center" alignV="center" src="notification/close.png" />
 				<Image name="icon" x="#h/2" y="#h/2" w="130" h="130" align="center" alignV="center" />

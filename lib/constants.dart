@@ -67,7 +67,7 @@ class MIUIConstants {
 
   static Size get getWindowSize {
     if (Platform.isWindows) {
-      return const Size(1500, 900);
+      return const Size(1400, 750);
     } else if (Platform.isMacOS) {
       return const Size(1400, 800);
     }

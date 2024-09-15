@@ -154,6 +154,7 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
   ElementType.notification: {
     "widget": const Notification(),
     "exportable": false,
+    "isTextType": true,
     "xml": notificationXml,
     "path": "notification\\close",
   },
