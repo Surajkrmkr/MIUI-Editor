@@ -2,12 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:miui_icon_generator/constants.dart';
-import 'package:miui_icon_generator/screen/landing/export.dart';
 import 'package:provider/provider.dart';
+import 'package:video_player_media_kit/video_player_media_kit.dart';
 
 import 'functions/shared_prefs.dart';
 import 'functions/windows_utils.dart';
-import 'provider/userprofile.dart';
 import 'providers.dart';
 import 'screen/userprofile/user_profile.dart';
 import 'theme.dart';
@@ -17,6 +16,12 @@ void main() async {
   await SharedPrefs().init();
   if (MIUIConstants.isDesktop) await startUpWindowsUtils();
   if (Platform.isAndroid) await requestPermission();
+  VideoPlayerMediaKit.ensureInitialized(
+    android: true,
+    iOS: true,
+    macOS: true,
+    windows: true,
+  );
   errorBuilder();
   runApp(const MyApp());
 }

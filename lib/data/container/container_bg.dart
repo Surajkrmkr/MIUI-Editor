@@ -66,6 +66,15 @@ class ContainerBG extends StatelessWidget {
   }
 }
 
+class ContainerWidget extends StatelessWidget {
+  const ContainerWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
 Future exportContainerBG1Png(BuildContext context) async {
   final value = Provider.of<ElementProvider>(context, listen: false);
   final themePath = CurrentTheme.getPath(context);

@@ -7,6 +7,7 @@ class ElementProvider extends ChangeNotifier {
   double? bgAlpha = 0;
 
   ElementType? activeType = ElementType.swipeUpUnlock;
+
   set setActiveType(ElementType? type) {
     activeType = type;
     notifyListeners();
@@ -19,6 +20,10 @@ class ElementProvider extends ChangeNotifier {
 
   void addAllElements(List<ElementWidget> elements) {
     elementList = elements;
+    notifyListeners();
+  }
+
+  void refreshElementList() {
     notifyListeners();
   }
 

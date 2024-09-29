@@ -5,14 +5,15 @@ import '../element_map_dart.dart';
 final lockscreenManifest = '''
   <?xml version="1.0" encoding="utf-8"?>
     <Lockscreen version="2" frameRate="30" displayDesktop="false" screenWidth="1080">
-	    <Var expression="#screen_width" name="sw"/>
-	    <Var expression="#screen_height" name="sh"/>
-	    <Wallpaper name="wall" pivotX="#wall.bmp_width/2" pivotY="#wall.bmp_height/2">
+      <Var expression="#screen_width" name="sw"/>
+      <Var expression="#screen_height" name="sh"/>
+      <Wallpaper name="wall" pivotX="#wall.bmp_width/2" pivotY="#wall.bmp_height/2">
         <ScaleAnimation loop="false">
           <Item value="1.3" time="0" easeType="ExpoEaseOut" />
           <Item value="1" time="1000" />
         </ScaleAnimation>
-	    </Wallpaper>
+      </Wallpaper>
+      <Video layerType="bottom" name="mamlVideo"/>
       <VariableBinders>
         <ContentProviderBinder name="WeatherService" uri="content://weather/actualWeatherData/1" columns="city_id,city_name,weather_type,aqilevel,description,temperature,forecast_type,tmphighs,tmplows,wind,humidity" countName="hasweather">
           <Variable name="cityName" type="string" column="city_name"/>
@@ -31,6 +32,23 @@ final lockscreenManifest = '''
           <List name="notification_list"/>
         </ContentProviderBinder>
       </VariableBinders>
+      <ExternalCommands>
+        <Trigger action="init">
+          <VideoCommand command="config" loop="1" path="&apos;video.mp4&apos;" scaleMode="2" target="mamlVideo"/>
+          <VideoCommand command="play" target="mamlVideo"/>
+          <IntentCommand action="initialization" broadcast="true">
+          <Extra expression="#btnVar" name="bg_number" type="number"/>
+          </IntentCommand>
+        </Trigger>
+        <Trigger action="pause">
+          <AnimationCommand command="play(0,0)" target="resumeAni"/>
+          <VideoCommand command="seekTo" target="mamlVideo" time="0"/>
+        </Trigger>
+        <Trigger action="resume">
+          <AnimationCommand command="play" target="resumeAni"/>
+          <VideoCommand command="play" delay="100" target="mamlVideo"/>
+        </Trigger>
+      </ExternalCommands>
       <Button x="0" y="0" w="1080" h="#sh" visibility="#hasnotifications}0">
           <Triggers>
             <Trigger action="up,cancel">

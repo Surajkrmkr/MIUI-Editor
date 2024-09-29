@@ -20,6 +20,7 @@ enum ElementType {
   containerBG3,
   containerBG4,
   containerBG5,
+  videoWallpaper,
   hourClock,
   minClock,
   dotClock,
@@ -92,6 +93,12 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
     "exportable": true,
     "isContainerType": true,
     "png": {"export": exportContainerBG5Png, "path": "container"},
+  },
+  ElementType.videoWallpaper: {
+    "widget": const ContainerWidget(),
+    "xml": emptyXml,
+    "isVideo": true,
+    "exportable": false,
   },
   ElementType.hourClock: {
     "widget": const HourClock(num: 02),
@@ -353,6 +360,7 @@ const Map<String, List<ElementType>> elementsByGroup = {
     ElementType.containerBG4,
     ElementType.containerBG5
   ],
+  "Animation": [ElementType.videoWallpaper],
   "Clock": [
     ElementType.hourClock,
     ElementType.minClock,
@@ -367,9 +375,7 @@ const Map<String, List<ElementType>> elementsByGroup = {
   "Weather": [
     ElementType.weatherIconClock,
   ],
-  "Notification":[
-    ElementType.notification
-  ],
+  "Notification": [ElementType.notification],
   "DateTime Text": [
     ElementType.dateTimeText1,
     ElementType.dateTimeText2,

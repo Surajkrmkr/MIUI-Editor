@@ -29,3 +29,5 @@ const amClockXml = '''
 const weatherIconClockXml = '''
 		<Image name="weatherIcon" srcExp="'weather/weather_'+ #w_outID +'.png'" width="#sw" height="#sh"/>
 ''';
+
+const emptyXml = '''''';

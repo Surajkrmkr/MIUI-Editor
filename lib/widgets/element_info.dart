@@ -25,6 +25,8 @@ class ElementInfo extends StatelessWidget {
           elementWidgetMap[provider.activeType]!["isContainerType"] ?? false;
       final isIcon =
           elementWidgetMap[provider.activeType]!["isIconType"] ?? false;
+      final isVideo =
+          elementWidgetMap[provider.activeType]!["isVideo"] ?? false;
       final isMusic =
           elementWidgetMap[provider.activeType]!["isMusic"] ?? false;
       final isText =
@@ -35,14 +37,15 @@ class ElementInfo extends StatelessWidget {
           child: Column(
             children: [
               Text(ele.name!),
-              if (isIcon || isMusic)
+              if (isIcon || isMusic || isVideo)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20.0),
                   child: BGDropZone(
-                    path: ele.path,
+                    path: isVideo ? "video" : ele.path,
+                    extension: isVideo ? "mp4" : "png",
                   ),
                 ),
-              if (!isIcon && !isMusic)
+              if (!isIcon && !isMusic && !isVideo)
                 GradientColorPicker(
                   color1: ele.color!,
                   color2: ele.colorSecondary!,
@@ -59,7 +62,7 @@ class ElementInfo extends StatelessWidget {
                     provider.updateElementGradEndAlignInList(ele.type!, value2);
                   },
                 ),
-              if (!isIcon && !isMusic && !isText && !isContainer)
+              if (!isIcon && !isMusic && !isText && !isContainer && !isVideo)
                 SwitchListTile(
                     value: ele.isShort!,
                     activeColor: Theme.of(context).colorScheme.primary,
