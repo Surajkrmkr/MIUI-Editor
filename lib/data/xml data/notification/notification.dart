@@ -3,8 +3,8 @@ import '../../../provider/element.dart';
 
 String notificationXml({required ElementWidget ele}) {
   final String dy = (ele.dy! * MIUIConstants.ratio).toStringAsFixed(2);
-  final String color = ele.color.toString().split("x").last.replaceAll(")", '');
-  final String color2 = ele.colorSecondary.toString().split("x").last.replaceAll(")", '');
+  final String color = '#FF${ele.color!.value.toRadixString(16).substring(2, 8)}';
+  final String color2 = '#FF${ele.colorSecondary!.value.toRadixString(16).substring(2, 8)}';
   final String radius = ele.radius!.toStringAsFixed(2);
   return '''
     <Var name="w" expression="1024" type="number" />

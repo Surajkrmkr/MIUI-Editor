@@ -15,7 +15,7 @@ String dateTimeTextXml({required ElementWidget ele}) {
       isBold = "false";
   }
 
-  final String color = ele.color.toString().split("x").last.replaceAll(")", '');
+  final String color = '#FF${ele.color!.value.toRadixString(16).substring(2, 8)}';
 
   String dx = (ele.dx! * MIUIConstants.ratio).toStringAsFixed(2);
   final String dy = (ele.dy! * MIUIConstants.ratio).toStringAsFixed(2);
@@ -33,11 +33,9 @@ String dateTimeTextXml({required ElementWidget ele}) {
     align = "center";
   }
   return '''
-  <DateTime angle="$angle" x="#sw/2+$dx" y="#sh/2+$dy" align="$align" alignV="center" size="$fontSize" color="#$color" formatExp="'$text'" bold="$isBold"/>
+  <DateTime angle="$angle" x="#sw/2+$dx" y="#sh/2+$dy" align="$align" alignV="center" size="$fontSize" color="$color" formatExp="'$text'" bold="$isBold"/>
 ''';
 }
-
-
 
 String normalTextXml({required ElementWidget ele}) {
   final String text = (ele.text!);
