@@ -1,6 +1,7 @@
 import 'package:miui_icon_generator/data/unlock/unlock.dart';
 
 import 'container/container_bg.dart';
+import 'container/png_bg.dart';
 import 'music/music.dart';
 import 'notification/notification.dart';
 import 'text/text.dart';
@@ -20,6 +21,11 @@ enum ElementType {
   containerBG3,
   containerBG4,
   containerBG5,
+  pngBG1,
+  pngBG2,
+  pngBG3,
+  pngBG4,
+  pngBG5,
   videoWallpaper,
   hourClock,
   minClock,
@@ -93,6 +99,56 @@ final Map<ElementType, Map<String, dynamic>> elementWidgetMap = {
     "exportable": true,
     "isContainerType": true,
     "png": {"export": exportContainerBG5Png, "path": "container"},
+  },
+  ElementType.pngBG1: {
+    "widget": const PngBG(
+      path: "png\\pngBG1",
+      type: ElementType.pngBG1,
+    ),
+    "xml": pngBGXml,
+    "exportable": false,
+    "isIconType": true,
+    "path": "png\\pngBG1"
+  },
+  ElementType.pngBG2: {
+    "widget": const PngBG(
+      path: "png\\pngBG2",
+      type: ElementType.pngBG2,
+    ),
+    "xml": pngBGXml,
+    "exportable": false,
+    "isIconType": true,
+    "path": "png\\pngBG2"
+  },
+  ElementType.pngBG3: {
+    "widget": const PngBG(
+      path: "png\\pngBG3",
+      type: ElementType.pngBG3,
+    ),
+    "xml": pngBGXml,
+    "exportable": false,
+    "isIconType": true,
+    "path": "png\\pngBG3"
+  },
+  ElementType.pngBG4: {
+    "widget": const PngBG(
+      path: "png\\pngBG4",
+      type: ElementType.pngBG4,
+    ),
+    "xml": pngBGXml,
+    "exportable": false,
+    "isIconType": true,
+    "path": "png\\pngBG4"
+  },
+  ElementType.pngBG5: {
+    "widget": const PngBG(
+      path: "png\\pngBG5",
+      type: ElementType.pngBG5,
+    ),
+    "xml": pngBGXml,
+    "exportable": false,
+    "isIconType": true,
+    "path": "png\\pngBG5"
   },
   ElementType.videoWallpaper: {
     "widget": const ContainerWidget(),
@@ -359,6 +415,13 @@ const Map<String, List<ElementType>> elementsByGroup = {
     ElementType.containerBG3,
     ElementType.containerBG4,
     ElementType.containerBG5
+  ],
+  "Png": [
+    ElementType.pngBG1,
+    ElementType.pngBG2,
+    ElementType.pngBG3,
+    ElementType.pngBG4,
+    ElementType.pngBG5
   ],
   "Animation": [ElementType.videoWallpaper],
   "Clock": [

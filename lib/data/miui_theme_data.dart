@@ -129,6 +129,7 @@ class MIUIThemeData {
     "\\com.android.settings\\${subDirectoryList[3]}",
     "\\clock_2x4\\",
     "\\lockscreen\\advance\\icon\\",
+    "\\lockscreen\\advance\\png\\",
     "\\lockscreen\\advance\\music\\"
     "\\lockscreen\\advance\\notification\\"
   ];
