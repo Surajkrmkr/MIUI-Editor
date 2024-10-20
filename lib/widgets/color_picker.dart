@@ -241,6 +241,12 @@ class ColorPickerButton extends StatelessWidget {
       color: color,
       enableShadesSelection: false,
       showColorCode: true,
+      copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+          copyButton: true,
+          pasteButton: true,
+          snackBarParseError: true,
+          ctrlC: true,
+          ctrlV: true),
       opacityTrackHeight: 30,
       opacityThumbRadius: 15,
       colorCodeHasColor: true,
