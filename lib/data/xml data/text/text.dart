@@ -49,7 +49,7 @@ String normalTextXml({required ElementWidget ele}) {
       isBold = "false";
   }
 
-  final String color = ele.color.toString().split("x").last.replaceAll(")", '');
+  final String color = '#FF${ele.color!.value.toRadixString(16).substring(2, 8)}';
 
   String dx = (ele.dx! * MIUIConstants.ratio).toStringAsFixed(2);
   final String dy = (ele.dy! * MIUIConstants.ratio).toStringAsFixed(2);
