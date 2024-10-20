@@ -146,6 +146,11 @@ class ElementProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateElementIsWrapInList(ElementType type, bool? isWrap) {
+    elementList.firstWhere((element) => element.type == type).isWrap = isWrap;
+    notifyListeners();
+  }
+
   void updateElementShowGuideLinesInList(
       ElementType type, bool? showGuideLines) {
     elementList.firstWhere((element) => element.type == type).showGuideLines =
@@ -179,6 +184,7 @@ class ElementWidget {
   double? fontSize;
   FontWeight? fontWeight;
   bool? isShort;
+  bool? isWrap;
   bool? showGuideLines;
   ElementWidget(
       {required this.child,
@@ -205,6 +211,7 @@ class ElementWidget {
       this.text = "Text",
       this.fontSize = 20,
       this.isShort = false,
+      this.isWrap = false,
       this.showGuideLines = false});
 
   @override
@@ -239,6 +246,7 @@ class ElementWidget {
       'fontSize': fontSize,
       'fontWeight': fontWeight.toString(),
       'isShort': isShort,
+      'isWrap': isWrap,
       'showGuideLines': showGuideLines,
     };
   }
@@ -270,6 +278,7 @@ class ElementWidget {
       fontSize: json['fontSize'],
       fontWeight: _stringToFontWeight(json['fontWeight']),
       isShort: json['isShort'],
+      isWrap: json['isWrap'],
       showGuideLines: json['showGuideLines'],
     );
   }

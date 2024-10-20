@@ -105,7 +105,9 @@ class WeekClock extends StatelessWidget {
         child: GradientText(
           ele.isShort!
               ? MIUIThemeData.weekNames[num!]!.substring(0, 3)
-              : MIUIThemeData.weekNames[num!]!,
+              : ele.isWrap!
+                  ? sliceAndJoin(MIUIThemeData.weekNames[num!]!)
+                  : MIUIThemeData.weekNames[num!]!,
           gradient: getGradient(colors: [
             ele.color!,
             ele.colorSecondary!,
@@ -115,6 +117,30 @@ class WeekClock extends StatelessWidget {
         ),
         type: ElementType.weekClock,
         value: value);
+  }
+
+  static String sliceAndJoin(String input) {
+    List<int> slicePattern = [3, 2];
+    List<String> result = [];
+    int startIndex = 0;
+
+    for (int length in slicePattern) {
+      if (startIndex + length <= input.length) {
+        result.add(input.substring(startIndex, startIndex + length));
+        startIndex += length;
+      } else {
+        result.add(input.substring(startIndex)); // add remaining characters
+        break;
+      }
+    }
+
+    // Add remaining part of the string after the last slice
+    if (startIndex < input.length) {
+      result.add(input.substring(startIndex));
+    }
+
+    // Join slices with '\n'
+    return result.join('\n');
   }
 
   @override

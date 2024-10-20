@@ -73,6 +73,17 @@ class ElementInfo extends StatelessWidget {
                     onChanged: (value) {
                       provider.updateElementIsShortInList(ele.type!, value);
                     }),
+              if (!isIcon && !isMusic && !isText && !isContainer && !isVideo)
+                SwitchListTile(
+                    value: ele.isWrap!,
+                    activeColor: Theme.of(context).colorScheme.primary,
+                    title: Text(
+                      "Make Wrap",
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    onChanged: (value) {
+                      provider.updateElementIsWrapInList(ele.type!, value);
+                    }),
               Column(
                 children: [
                   Padding(
