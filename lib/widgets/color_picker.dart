@@ -57,6 +57,7 @@ class ColorsTab extends StatelessWidget {
             // ),
             GradientColorPicker(
                 onColorChanged: (value, value2) {
+                  provider.setRandomColors = false;
                   provider.setBgColor = value;
                   provider.setBgColor2 = value2;
                 },

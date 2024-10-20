@@ -76,6 +76,20 @@ class IconProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  List<Color>? bgColors = [Colors.pinkAccent];
+
+  set setBgColors(List<Color> c) {
+    bgColors = c;
+    notifyListeners();
+  }
+
+  bool?  randomColors= false;
+
+  set setRandomColors(bool c) {
+    randomColors = c;
+    notifyListeners();
+  }
+
   Color? borderColor = Colors.white.withOpacity(0.3);
 
   set setBorderColor(Color c) {
@@ -161,6 +175,8 @@ class IconProvider extends ChangeNotifier {
                     margin: provider.margin,
                     padding: provider.padding,
                     radius: provider.radius,
+                    bgColors: provider.bgColors,
+                    randomColors: provider.randomColors,
                     borderColor: provider.borderColor,
                     borderWidth: provider.borderWidth,
                     userType: userType),

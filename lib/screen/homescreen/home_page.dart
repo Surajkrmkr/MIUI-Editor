@@ -130,11 +130,13 @@ class HomePage extends StatelessWidget {
                         )
                       ],
                     ),
-                    const Column(
-                      children: [
-                        Sliders(),
-                        ColorsTab(),
-                      ],
+                    const SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          Sliders(),
+                          ColorsTab(),
+                        ],
+                      ),
                     ),
                     Tags(themeName: null)
                   ],

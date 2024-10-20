@@ -38,6 +38,8 @@ Consumer<WallpaperProvider> accentColorsList({required bool? isLockscreen}) {
                                   provider.activeType!, e);
                             } else {
                               Provider.of<IconProvider>(context, listen: false)
+                                  .setRandomColors = false;
+                              Provider.of<IconProvider>(context, listen: false)
                                   .setBgColor = e;
                               Provider.of<IconProvider>(context, listen: false)
                                   .setBgColor2 = e;

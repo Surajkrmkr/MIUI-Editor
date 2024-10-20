@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
@@ -11,9 +13,11 @@ class IconWidget extends StatelessWidget {
   final double? padding;
   final Color? bgColor;
   final Color? bgColor2;
+  final List<Color>? bgColors;
   final AlignmentGeometry? bgGradAlign;
   final AlignmentGeometry? bgGradAlign2;
   final double? radius;
+  final bool? randomColors;
   final Color? iconColor;
   final double? borderWidth;
   final Color? borderColor;
@@ -29,10 +33,12 @@ class IconWidget extends StatelessWidget {
       required this.name,
       required this.borderWidth,
       required this.borderColor,
-      this.bgColor2,
-      this.bgGradAlign,
-      this.bgGradAlign2,
-      this.userType});
+      required this.bgColor2,
+      required this.bgGradAlign,
+      required this.bgGradAlign2,
+      required this.userType,
+      required this.bgColors,
+      required this.randomColors});
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +59,12 @@ class IconWidget extends StatelessWidget {
               gradient: getGradient(
                   colors: name == 'icon_border'
                       ? [Colors.transparent, Colors.transparent]
-                      : [bgColor!, bgColor2!],
+                      : randomColors!
+                          ? [
+                              bgColors![
+                                  Random().nextInt(bgColors!.length)]
+                            ]
+                          : [bgColor!, bgColor2!],
                   start: bgGradAlign,
                   end: bgGradAlign2),
             ),
@@ -73,7 +84,10 @@ class IconWidget extends StatelessWidget {
 
 Gradient getGradient(
     {List<Color>? colors, AlignmentGeometry? start, AlignmentGeometry? end}) {
-  return LinearGradient(begin: start!, end: end!, colors: colors!);
+  return LinearGradient(
+      begin: start!,
+      end: end!,
+      colors: colors!.length > 1 ? colors : [colors.first, colors.last]);
 }
 
 class IconContainer extends StatelessWidget {
@@ -102,7 +116,12 @@ class IconContainer extends StatelessWidget {
                       color: provider.borderColor!),
                   borderRadius: BorderRadius.circular(provider.radius!),
                   gradient: getGradient(
-                      colors: [provider.bgColor!, provider.bgColor2!],
+                      colors: provider.randomColors!
+                          ? [
+                              provider.bgColors![
+                                  Random().nextInt(provider.bgColors!.length)]
+                            ]
+                          : [provider.bgColor!, provider.bgColor2!],
                       start: provider.bgGradAlign,
                       end: provider.bgGradAlign2),
                   color: provider.bgColor),

@@ -88,12 +88,17 @@ class WallpaperProvider extends ChangeNotifier {
     final list = await PaletteGenerator.fromImageProvider(
         FileImage(File(paths![index!])));
     setColorPalette = list.colors.toList();
-    Provider.of<IconProvider>(context, listen: false).setBgColor =
-        (list.lightVibrantColor ?? list.dominantColor)!.color;
-    Provider.of<IconProvider>(context, listen: false).setBgColor2 =
-        (list.darkVibrantColor ?? list.dominantColor)!.color;
-    Provider.of<IconProvider>(context, listen: false).setAccentColor =
-        list.dominantColor!.color;
+    final iconProvider = Provider.of<IconProvider>(context, listen: false);
+    if (iconProvider.randomColors ?? false) {
+      final colors = list.colors.where((e)=> ThemeData.estimateBrightnessForColor(e) == Brightness.dark).toList();
+      iconProvider.setBgColors = colors;
+    } else {
+      iconProvider.setBgColor =
+          (list.lightVibrantColor ?? list.dominantColor)!.color;
+      iconProvider.setBgColor2 =
+          (list.darkVibrantColor ?? list.dominantColor)!.color;
+    }
+    iconProvider.setAccentColor = list.dominantColor!.color;
   }
 
   void checkExported(context) async {
