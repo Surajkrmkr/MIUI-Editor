@@ -18,7 +18,7 @@ class MIUIConstants {
 
   static String get getBasePath {
     if (Platform.isWindows) {
-      return "E:\\Xiaomi Contract\\";
+      return "C:\\piyush\\personal\\Xiaomi Contract\\";
     } else if (Platform.isAndroid) {
       return "/storage/emulated/0/Xiaomi Contract/";
     } else if (Platform.isMacOS) {
