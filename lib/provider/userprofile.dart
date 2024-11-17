@@ -5,6 +5,7 @@ enum UserProfiles {
   subhangi,
   rajat,
   abhishek,
+  sumit,
   defaultUser,
 }
 
@@ -45,5 +46,12 @@ final Map<UserProfiles, Map<String, String>> users = {
     'fontUrl': 'https://gitlab.com/piyushkpv/shadowgirl/-/raw/main/fonts.json',
     'name': 'Abhishek',
     'author': 'Abhishek'
+  },
+  UserProfiles.sumit: {
+    'user': 'u5',
+    'image': 'assets/user5.png',
+    'fontUrl': 'https://gitlab.com/piyushkpv/font-api/-/raw/main/fonts.json',
+    'name': 'Sumi7t',
+    'author': 'Sumi7t'
   }
 };

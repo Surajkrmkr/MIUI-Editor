@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import '../../data/element_map_dart.dart';
 import '../../provider/element.dart';
 import '../../widgets/accent_color_list.dart';
-import '../../widgets/active_elements.dart';
 import '../../widgets/element_info.dart';
 import '../../widgets/font.dart';
 import '../../widgets/image_stack.dart';

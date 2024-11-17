@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:miui_icon_generator/widgets/text_field.dart';
 import 'package:provider/provider.dart';
 import 'package:xml/xml.dart';
 
@@ -54,71 +56,71 @@ class LockscreenProvider extends ChangeNotifier {
 
   void export({BuildContext? context}) async {
     setIsExporting = true;
-  final lockscreen = lockscreenXml.copy();
-  final themePath = CurrentTheme.getPath(context);
-  final eleProvider = Provider.of<ElementProvider>(context!, listen: false);
-  eleProvider.setActiveType = ElementType.swipeUpUnlock;
-  final elementList = eleProvider.elementList;
-  await Future.delayed(const Duration(seconds: 2), () {});
-  for (ElementWidget widget in elementList) {
-    final elementFromMap = elementWidgetMap[widget.type];
-    dynamic elementXmlFromMap;
-    // if (widget.type == ElementType.textLineClock) {
-    //   elementXmlFromMap = elementFromMap!["xml"]!(
-    //       textName: "d/E", color: "#ffffff", size: "60");
-    // } else {
-    //   elementXmlFromMap = elementFromMap!["xml"]!;
-    // }
-    if (elementFromMap!["isIconType"] ?? false) {
-      elementXmlFromMap = elementFromMap["xml"]!(ele: widget);
-    } else if (elementFromMap["isMusic"] ?? false) {
-      elementXmlFromMap = elementFromMap["xml"]!(ele: widget);
-      final previousText = lockscreen
-          .findAllElements("MusicControl")
-          .toList()
-          .firstWhere(
-              (element) => element.getAttribute("name") == "music_control")
-          .innerXml;
-      lockscreen
-          .findAllElements("MusicControl")
-          .toList()
-          .firstWhere(
-              (element) => element.getAttribute("name") == "music_control")
-          .innerXml = previousText + elementXmlFromMap;
-    } else if ((elementFromMap["isTextType"] ?? false) ||
-        (elementFromMap["isContainerType"] ?? false)) {
-      elementXmlFromMap = elementFromMap["xml"]!(ele: widget);
-    } else {
-      elementXmlFromMap = elementFromMap["xml"]!;
+    final lockscreen = lockscreenXml.copy();
+    final themePath = CurrentTheme.getPath(context);
+    final eleProvider = Provider.of<ElementProvider>(context!, listen: false);
+    eleProvider.setActiveType = ElementType.swipeUpUnlock;
+    final elementList = eleProvider.elementList;
+    await Future.delayed(const Duration(seconds: 2), () {});
+    for (ElementWidget widget in elementList) {
+      final elementFromMap = elementWidgetMap[widget.type];
+      dynamic elementXmlFromMap;
+      // if (widget.type == ElementType.textLineClock) {
+      //   elementXmlFromMap = elementFromMap!["xml"]!(
+      //       textName: "d/E", color: "#ffffff", size: "60");
+      // } else {
+      //   elementXmlFromMap = elementFromMap!["xml"]!;
+      // }
+      if (elementFromMap!["isIconType"] ?? false) {
+        elementXmlFromMap = elementFromMap["xml"]!(ele: widget);
+      } else if (elementFromMap["isMusic"] ?? false) {
+        elementXmlFromMap = elementFromMap["xml"]!(ele: widget);
+        final previousText = lockscreen
+            .findAllElements("MusicControl")
+            .toList()
+            .firstWhere(
+                (element) => element.getAttribute("name") == "music_control")
+            .innerXml;
+        lockscreen
+            .findAllElements("MusicControl")
+            .toList()
+            .firstWhere(
+                (element) => element.getAttribute("name") == "music_control")
+            .innerXml = previousText + elementXmlFromMap;
+      } else if ((elementFromMap["isTextType"] ?? false) ||
+          (elementFromMap["isContainerType"] ?? false)) {
+        elementXmlFromMap = elementFromMap["xml"]!(ele: widget);
+      } else {
+        elementXmlFromMap = elementFromMap["xml"]!;
+      }
+      if (!(elementFromMap["isMusic"] ?? false)) {
+        lockscreen
+            .findAllElements("Group")
+            .toList()
+            .firstWhere(
+                (element) => element.getAttribute("name") == widget.type!.name)
+            .innerXml = elementXmlFromMap;
+      }
+
+      if (elementFromMap["exportable"]) {
+        await Directory(platformBasedPath(
+                "$themePath\\lockscreen\\advance\\${elementFromMap["png"]["path"]}"))
+            .create(recursive: true)
+            .then((value) async {
+          await elementFromMap["png"]["export"](context);
+        });
+      }
     }
-    if (!(elementFromMap["isMusic"] ?? false)) {
-      lockscreen
-          .findAllElements("Group")
-          .toList()
-          .firstWhere(
-              (element) => element.getAttribute("name") == widget.type!.name)
-          .innerXml = elementXmlFromMap;
-    }
-  
-    if (elementFromMap["exportable"]) {
-      await Directory(platformBasedPath(
-              "$themePath\\lockscreen\\advance\\${elementFromMap["png"]["path"]}"))
-          .create(recursive: true)
-          .then((value) async {
-        await elementFromMap["png"]["export"](context);
-      });
-    }
-  }
-  await Future.delayed(const Duration(seconds: 15), () {});
-  lockscreen
-      .findAllElements("Group")
-      .toList()
-      .firstWhere((element) => element.getAttribute("name") == "bgAlpha")
-      .innerXml = getBgAlphaString(alpha: eleProvider.bgAlpha! * 255)!;
-  await File(
-          platformBasedPath("$themePath\\lockscreen\\advance\\manifest.xml"))
-      .writeAsString(lockscreen.toXmlString(pretty: true, indent: '\t'));
-  checkAlreadyExport(context: context);
+    await Future.delayed(const Duration(seconds: 15), () {});
+    lockscreen
+        .findAllElements("Group")
+        .toList()
+        .firstWhere((element) => element.getAttribute("name") == "bgAlpha")
+        .innerXml = getBgAlphaString(alpha: eleProvider.bgAlpha! * 255)!;
+    await File(
+            platformBasedPath("$themePath\\lockscreen\\advance\\manifest.xml"))
+        .writeAsString(lockscreen.toXmlString(pretty: true, indent: '\t'));
+    checkAlreadyExport(context: context);
     setIsExporting = false;
   }
 
@@ -135,12 +137,108 @@ class LockscreenProvider extends ChangeNotifier {
     final elementList = eleProvider.elementList;
     final eleJSON = json.encode(elementWidgetToMap(elementList));
 
-    print(elementList);
-    print(eleJSON);
-    print((json.decode(eleJSON) as List<dynamic>)
-        .map((element) => ElementWidget.fromJson(element))
-        .toList());
+    // print(elementList);
+    print("${eleJSON}raw");
+    // final list = (json.decode(eleJSON) as List<dynamic>)
+    //     .map((element) => ElementWidget.fromJson(element))
+    //     .toList();
+    // print(list);
+    final schema = Schema.array(
+      description: 'List of lock screen elements',
+      items: Schema.object(properties: {
+        'name': Schema.string(description: 'Unique name for the element'),
+        'dx': Schema.number(description: 'X-coordinate of the element'),
+        'dy': Schema.number(description: 'Y-coordinate of the element'),
+        'scale': Schema.number(description: 'Scale factor of the element'),
+        'height': Schema.number(description: 'Height of the element'),
+        'width': Schema.number(description: 'Width of the element'),
+        'radius': Schema.number(description: 'Corner radius of the element'),
+        'borderWidth':
+            Schema.number(description: 'Border width of the element'),
+        'borderColor': Schema.string(description: 'Color of the border'),
+        'type': Schema.enumString(
+          description: 'Type of the lock screen element',
+          enumValues: ElementType.values.map((e) => e.name).toList(),
+        ),
+        'child': Schema.enumString(
+          enumValues:
+              ElementType.values.map((e) => e.name.capitalize()).toList(),
+          description: 'Child element within this element',
+        ),
+        'color': Schema.string(description: 'Primary color of the element'),
+        'colorSecondary':
+            Schema.string(description: 'Secondary color of the element'),
+        'gradientType': Schema.enumString(
+            enumValues: ['GradientType.linear'],
+            description: 'Type of gradient applied to the element'),
+        'gradStartAlign': Schema.object(
+            description: 'Alignment of the gradient start point',
+            properties: {
+              'x': Schema.number(description: 'X-coordinate alignment'),
+              'y': Schema.number(description: 'Y-coordinate alignment'),
+            }),
+        'gradEndAlign': Schema.object(
+            description: 'Alignment of the gradient end point',
+            properties: {
+              'x': Schema.number(description: 'X-coordinate alignment'),
+              'y': Schema.number(description: 'Y-coordinate alignment'),
+            }),
+        'font': Schema.string(description: 'Font family of the text'),
+        'align': Schema.enumString(enumValues: [
+          "Alignment.bottomCenter",
+          "Alignment.bottomLeft",
+          "Alignment.bottomRight",
+          "Alignment.center",
+          "Alignment.centerLeft",
+          "Alignment.centerRight",
+          "Alignment.topCenter",
+          "Alignment.topLeft",
+          "Alignment.topRight"
+        ], description: 'Text alignment within the element'),
+        'angle': Schema.number(description: 'Rotation angle of the element'),
+        'path': Schema.string(description: 'Path data for custom shapes'),
+        'text': Schema.string(
+            description: 'Text content displayed within the element'),
+        'fontSize': Schema.number(description: 'Font size of the text'),
+        'fontWeight': Schema.enumString(enumValues: [
+          'FontWeight.w100',
+          'FontWeight.w200', /* more weights */
+        ], description: 'Font weight of the text'),
+        'isShort': Schema.boolean(
+            description: 'Whether the clock display is short (optional)'),
+        'showGuideLines': Schema.boolean(
+            description: 'Whether to display guidelines (optional)')
+      }),
+    );
+
+    final model = GenerativeModel(
+        model: 'gemini-1.5-flash-latest',
+        apiKey: apiKey,
+        systemInstruction:
+            Content.system("Example of sample json aray : $eleJSON"),
+        generationConfig: GenerationConfig(
+            responseMimeType: 'application/json', responseSchema: schema));
+
+    const prompt = 'Suggest me a lock screen';
+    final response = await model.generateContent([Content.text(prompt)]);
+    print(response.text);
+    final jsonString = response.text;
+    List<ElementWidget> elementList1 =
+        (json.decode(jsonString!) as List<dynamic>)
+            .map((element) => ElementWidget.fromJson(element))
+            .toList();
+
+    eleProvider.addAllElements(elementList1);
+    eleProvider.setActiveType = elementList1.last.type;
+    Navigator.pop(context);
+    UIWidgets.getBanner(
+        content: "Preset Imported", context: context, hasError: false);
   }
+
+  final apiKey = () {
+    const apiKey = 'AIzaSyBJaQrAWTCa6EXNG1ajqfwSyznU96rVYu0';
+    return apiKey;
+  }();
 
   void importPresetToLockscreen(
       {required BuildContext context, required String jsonPath}) async {

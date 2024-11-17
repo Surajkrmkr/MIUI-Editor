@@ -65,6 +65,7 @@ dependencies:
   media_kit_libs_ios_video: any
   media_kit_libs_macos_video: any
   media_kit_libs_windows_video: any
+  google_generative_ai: ^0.4.6
 
 dev_dependencies:
   build_runner: ^2.4.7
@@ -97,6 +98,7 @@ flutter:
     - assets/icons/u2/
     - assets/icons/u3/
     - assets/icons/u4/
+    - assets/icons/u5/
     - assets/9pngs/
     - assets/tags/
     - assets/lockscreen/weatherIcon/
