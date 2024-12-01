@@ -385,7 +385,7 @@ Future exportAmPmPng(BuildContext context) async {
         .captureFromWidget(
             getBGStack(
                 child: AmPmClock.getChild(
-                    isAm: i == 1 ? true : false, value: value)),
+                    isAm: i == 0 ? true : false, value: value)),
             context: context,
             pixelRatio: 3)
         .then((value) async {
