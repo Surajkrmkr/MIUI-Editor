@@ -1,5 +1,6 @@
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/widgets/bg_drop_zone.dart';
 import 'package:provider/provider.dart';
 
 import '../provider/icon.dart';
@@ -144,6 +145,29 @@ class Sliders extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class IconBgDropZones extends StatelessWidget {
+  const IconBgDropZones({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      children: [
+        BGDropZone(
+          path: 'beforeVector',
+          extension: "png",
+        ),
+        SizedBox(
+          width: 20,
+        ),
+        BGDropZone(
+          path: 'afterVector',
+          extension: "png",
+        ),
+      ],
     );
   }
 }

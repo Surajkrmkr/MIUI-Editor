@@ -1,10 +1,13 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:miui_icon_generator/functions/windows_utils.dart';
 import 'package:provider/provider.dart';
 
 import '../data/miui_theme_data.dart';
+import '../functions/theme_path.dart';
 import '../provider/icon.dart';
 import '../provider/userprofile.dart';
 
@@ -22,6 +25,8 @@ class IconWidget extends StatelessWidget {
   final double? borderWidth;
   final Color? borderColor;
   final String? name;
+  final String? beforeVector;
+  final String? afterVector;
   final UserProfiles? userType;
   const IconWidget(
       {super.key,
@@ -38,6 +43,8 @@ class IconWidget extends StatelessWidget {
       required this.bgGradAlign2,
       required this.userType,
       required this.bgColors,
+      required this.afterVector,
+      required this.beforeVector,
       required this.randomColors});
 
   @override
@@ -49,32 +56,49 @@ class IconWidget extends StatelessWidget {
         margin: EdgeInsets.all(name == 'icon_mask' ? 10 : margin!),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(name == 'icon_mask' ? 200 : 0),
-          child: Container(
-            padding: EdgeInsets.all(padding!),
-            height: 130,
-            width: 130,
-            decoration: BoxDecoration(
-              border: Border.all(width: borderWidth!, color: borderColor!),
-              borderRadius: BorderRadius.circular(radius!),
-              gradient: getGradient(
-                  colors: name == 'icon_border'
-                      ? [Colors.transparent, Colors.transparent]
-                      : randomColors!
-                          ? [
-                              bgColors![
-                                  Random().nextInt(bgColors!.length)]
-                            ]
-                          : [bgColor!, bgColor2!],
-                  start: bgGradAlign,
-                  end: bgGradAlign2),
-            ),
-            child: !MIUIThemeData.extraIconList.contains(name)
-                ? Center(
-                    child: SvgPicture.asset(
-                    "assets/icons/${users[userType]!["user"]}/$name.svg",
-                    colorFilter: ColorFilter.mode(iconColor!, BlendMode.srcIn),
-                  ))
-                : Container(),
+          child: Stack(
+            children: [
+              if (beforeVector!.isNotEmpty)
+                Image.memory(
+                    height: 130,
+                    width: 130,
+                    File(platformBasedPath("$beforeVector.png"))
+                        .readAsBytesSync(),
+                    gaplessPlayback: true),
+              Container(
+                padding: EdgeInsets.all(padding!),
+                height: 130,
+                width: 130,
+                decoration: BoxDecoration(
+                  border: Border.all(width: borderWidth!, color: borderColor!),
+                  borderRadius: BorderRadius.circular(radius!),
+                  gradient: getGradient(
+                      colors: name == 'icon_border'
+                          ? [Colors.transparent, Colors.transparent]
+                          : randomColors!
+                              ? [bgColors![Random().nextInt(bgColors!.length)]]
+                              : [bgColor!, bgColor2!],
+                      start: bgGradAlign,
+                      end: bgGradAlign2),
+                ),
+                child: !MIUIThemeData.extraIconList.contains(name)
+                    ? Center(
+                        child: SvgPicture.asset(
+                          "assets/icons/${users[userType]!["user"]}/$name.svg",
+                          colorFilter:
+                              ColorFilter.mode(iconColor!, BlendMode.srcIn),
+                        ),
+                      )
+                    : Container(),
+              ),
+              if (afterVector!.isNotEmpty)
+                Image.memory(
+                    height: 130,
+                    width: 130,
+                    File(platformBasedPath("$afterVector.png"))
+                        .readAsBytesSync(),
+                    gaplessPlayback: true),
+            ],
           ),
         ),
       ),
@@ -127,6 +151,7 @@ class IconContainer extends StatelessWidget {
                   color: provider.bgColor),
               child: Center(child: Consumer<UserProfileProvider>(
                   builder: (context, userProvider, child) {
+                final themePath = CurrentTheme.getPath(context);
                 return SvgPicture.asset(
                   "assets/icons/${users[userProvider.activeUser]!["user"]}/$name.svg",
                   colorFilter:

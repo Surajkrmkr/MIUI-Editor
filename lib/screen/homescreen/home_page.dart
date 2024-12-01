@@ -134,6 +134,7 @@ class HomePage extends StatelessWidget {
                       child: Column(
                         children: [
                           Sliders(),
+                          IconBgDropZones(),
                           ColorsTab(),
                         ],
                       ),

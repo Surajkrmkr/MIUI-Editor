@@ -111,6 +111,20 @@ class IconProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  String? beforeVector = '';
+
+  set setBeforeVector(String c) {
+    beforeVector = c;
+    notifyListeners();
+  }
+
+  String? afterVector = '';
+
+  set setAfterVector(String c) {
+    afterVector = c;
+    notifyListeners();
+  }
+
   set setProgress(int? p) {
     progress = p;
     notifyListeners();
@@ -179,6 +193,8 @@ class IconProvider extends ChangeNotifier {
                     randomColors: provider.randomColors,
                     borderColor: provider.borderColor,
                     borderWidth: provider.borderWidth,
+                    beforeVector: '${themePath}lockscreen\\advance\\beforeVector',
+                    afterVector: '${themePath}lockscreen\\advance\\afterVector',
                     userType: userType),
                 pixelRatio: 4)
             .then((value) async {
