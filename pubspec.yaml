@@ -98,7 +98,7 @@ flutter:
     - assets/icons/u2/
     - assets/icons/u3/
     - assets/icons/u4/
-    - assets/icons/u5/
+    # - assets/icons/u5/
     - assets/9pngs/
     - assets/tags/
     - assets/lockscreen/weatherIcon/
