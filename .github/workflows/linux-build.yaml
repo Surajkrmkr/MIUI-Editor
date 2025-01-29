@@ -23,7 +23,7 @@ jobs:
       - name: Enable linux support
         run: flutter config --enable-linux-desktop
       - name: Install linux pkgs
-        run: apt-get install clang cmake ninja-build pkg-config libgtk-3-dev
+        run: sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev
       - name: Flutter Build Release for Linux
         run: flutter build linux --release
       - name: Archive Release
@@ -32,7 +32,7 @@ jobs:
           type: "zip"
           filename: Miui-Editor-${{github.ref_name}}-windows.zip
           directory: build/linux/x64/release/bundle/miui-editor
-      - name: Windows Release
+      - name: Linux Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         env:
