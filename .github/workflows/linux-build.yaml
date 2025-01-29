@@ -30,8 +30,8 @@ jobs:
         uses: thedoctor0/zip-release@master
         with:
           type: "zip"
-          filename: Miui-Editor-${{github.ref_name}}-windows.zip
-          directory: build/linux/x64/release/bundle/miui-editor
+          filename: Miui-Editor-${{github.ref_name}}-linux.zip
+          directory: build/linux/x64/release/bundle/miui_icon_generator
       - name: Linux Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
