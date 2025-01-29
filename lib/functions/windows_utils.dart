@@ -44,7 +44,7 @@ Future requestPermission() async {
 
 String platformBasedPath(String path) {
   String newPath = path;
-  if (Platform.isAndroid || Platform.isMacOS) {
+  if (Platform.isAndroid || Platform.isMacOS || Platform.isLinux) {
     newPath = path.replaceAll("\\", "/");
   }
   return newPath;

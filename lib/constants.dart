@@ -14,7 +14,8 @@ class MIUIConstants {
   static double ratio = 2340 / 600;
   static Size windowSize = getWindowSize;
 
-  static bool isDesktop = Platform.isWindows || Platform.isMacOS;
+  static bool isDesktop =
+      Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 
   static String get getBasePath {
     if (Platform.isWindows) {
@@ -23,6 +24,8 @@ class MIUIConstants {
       return "/storage/emulated/0/Xiaomi Contract/";
     } else if (Platform.isMacOS) {
       return "/Users/surajkrmkr/Storage/Xiaomi Contract/";
+    } else if (Platform.isLinux) {
+      return "/home/annu/Xiaomi Contract/";
     } else if (Platform.isIOS) {
       return "On My iPad/Xiaomi Contract/";
     }
@@ -32,7 +35,10 @@ class MIUIConstants {
   static String get getPrelock {
     if (Platform.isWindows) {
       return "${getBasePath}Wall\\";
-    } else if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) {
+    } else if (Platform.isAndroid ||
+        Platform.isIOS ||
+        Platform.isMacOS ||
+        Platform.isLinux) {
       return "${getBasePath}Wall/";
     }
     return "";
@@ -41,7 +47,10 @@ class MIUIConstants {
   static String get getSample {
     if (Platform.isWindows) {
       return "${getBasePath}Sample2\\";
-    } else if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) {
+    } else if (Platform.isAndroid ||
+        Platform.isIOS ||
+        Platform.isMacOS ||
+        Platform.isLinux) {
       return "${getBasePath}Sample2/";
     }
     return "";
@@ -50,7 +59,10 @@ class MIUIConstants {
   static String get getPreset {
     if (Platform.isWindows) {
       return "${getBasePath}Preset\\";
-    } else if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) {
+    } else if (Platform.isAndroid ||
+        Platform.isIOS ||
+        Platform.isMacOS ||
+        Platform.isLinux) {
       return "${getBasePath}Preset/";
     }
     return "";
@@ -59,7 +71,10 @@ class MIUIConstants {
   static String get getSampleLockscreen {
     if (Platform.isWindows) {
       return "${getSample}lockscreen\\advance\\";
-    } else if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) {
+    } else if (Platform.isAndroid ||
+        Platform.isIOS ||
+        Platform.isMacOS ||
+        Platform.isLinux) {
       return "${getSample}lockscreen/advance/";
     }
     return "";
@@ -69,6 +84,8 @@ class MIUIConstants {
     if (Platform.isWindows) {
       return const Size(1400, 750);
     } else if (Platform.isMacOS) {
+      return const Size(1400, 800);
+    } else if (Platform.isLinux) {
       return const Size(1400, 800);
     }
     return Size.zero;
