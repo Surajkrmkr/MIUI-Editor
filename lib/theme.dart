@@ -7,12 +7,12 @@ class AppThemeData {
       useMaterial3: true,
       scaffoldBackgroundColor: Colors.white,
       sliderTheme: const SliderThemeData(
-        showValueIndicator: ShowValueIndicator.always,
+        showValueIndicator: ShowValueIndicator.alwaysVisible,
       ),
       radioTheme: RadioThemeData(
         fillColor: WidgetStateProperty.all(Colors.pinkAccent),
       ),
-      dialogTheme: const DialogTheme(
+      dialogTheme: const DialogThemeData(
           backgroundColor: Colors.white, surfaceTintColor: Colors.transparent),
       listTileTheme: ListTileThemeData(
         selectedColor: Colors.white,
@@ -35,7 +35,7 @@ class AppThemeData {
           backgroundColor: Color(0xFF6D5D6E), foregroundColor: Colors.white),
       scaffoldBackgroundColor: const Color(0xFF282A3A),
       sliderTheme: const SliderThemeData(
-        showValueIndicator: ShowValueIndicator.always,
+        showValueIndicator: ShowValueIndicator.alwaysVisible,
       ),
       listTileTheme: ListTileThemeData(
         selectedColor: Colors.white,

@@ -13,7 +13,7 @@ class ThemeDesc {
             <designer>${users[userProfile]!['name']}</designer>
             <author>${users[userProfile]!['author']}</author>
             <version>1.0</version>
-            <uiVersion>15</uiVersion>
+            <uiVersion>17</uiVersion>
             <keywords>MIUIThemeEditor;40.7.10_1594360719;</keywords>
           </MIUI-Theme>
     ''';
