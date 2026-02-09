@@ -83,7 +83,7 @@ class IconProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool?  randomColors= false;
+  bool? randomColors = false;
 
   set setRandomColors(bool c) {
     randomColors = c;
@@ -142,9 +142,10 @@ class IconProvider extends ChangeNotifier {
 
   void getIconAssetsPath(context) async {
     final provider = Provider.of<UserProfileProvider>(context, listen: false);
-    var assets = await rootBundle.loadString('AssetManifest.json');
-    var json = jsonDecode(assets);
-    final List<String> paths = json.keys
+    final assetManifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+    final assets = assetManifest.listAssets();
+    // var json = jsonDecode(assets);
+    final List<String> paths = assets
         .where((String element) => element
             .startsWith("assets/icons/${users[provider.activeUser]!['user']}/"))
         .toList();
@@ -193,7 +194,8 @@ class IconProvider extends ChangeNotifier {
                     randomColors: provider.randomColors,
                     borderColor: provider.borderColor,
                     borderWidth: provider.borderWidth,
-                    beforeVector: '${themePath}lockscreen\\advance\\beforeVector',
+                    beforeVector:
+                        '${themePath}lockscreen\\advance\\beforeVector',
                     afterVector: '${themePath}lockscreen\\advance\\afterVector',
                     userType: userType),
                 pixelRatio: 4)
