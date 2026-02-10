@@ -58,7 +58,7 @@ class IconWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(name == 'icon_mask' ? 200 : 0),
           child: Stack(
             children: [
-              if (beforeVector!.isNotEmpty)
+              if (File(platformBasedPath("$beforeVector.png")).existsSync())
                 Image.memory(
                     height: 130,
                     width: 130,
@@ -91,7 +91,7 @@ class IconWidget extends StatelessWidget {
                       )
                     : Container(),
               ),
-              if (afterVector!.isNotEmpty)
+              if (File(platformBasedPath("$afterVector.png")).existsSync())
                 Image.memory(
                     height: 130,
                     width: 130,
