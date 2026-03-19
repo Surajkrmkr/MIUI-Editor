@@ -7,7 +7,7 @@ String dateTimeTextXml({required ElementWidget ele}) {
   final String text = (ele.text!);
   String? isBold;
 
-  if (ele.fontWeight == FontWeight.bold) {
+  if (ele.fontWeight == FontWeight.w700) {
     isBold = "true";
   } else {
     isBold = "false";
