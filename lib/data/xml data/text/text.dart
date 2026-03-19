@@ -7,15 +7,14 @@ String dateTimeTextXml({required ElementWidget ele}) {
   final String text = (ele.text!);
   String? isBold;
 
-  switch (ele.fontWeight) {
-    case FontWeight.bold:
-      isBold = "true";
-      break;
-    default:
-      isBold = "false";
+  if (ele.fontWeight == FontWeight.bold) {
+    isBold = "true";
+  } else {
+    isBold = "false";
   }
 
-  final String color = '#FF${ele.color!.value.toRadixString(16).substring(2, 8)}';
+  final String color =
+      '#FF${ele.color!.value.toRadixString(16).substring(2, 8)}';
 
   String dx = (ele.dx! * MIUIConstants.ratio).toStringAsFixed(2);
   final String dy = (ele.dy! * MIUIConstants.ratio).toStringAsFixed(2);
@@ -49,7 +48,8 @@ String normalTextXml({required ElementWidget ele}) {
       isBold = "false";
   }
 
-  final String color = '#FF${ele.color!.value.toRadixString(16).substring(2, 8)}';
+  final String color =
+      '#FF${ele.color!.value.toRadixString(16).substring(2, 8)}';
 
   String dx = (ele.dx! * MIUIConstants.ratio).toStringAsFixed(2);
   final String dy = (ele.dy! * MIUIConstants.ratio).toStringAsFixed(2);
