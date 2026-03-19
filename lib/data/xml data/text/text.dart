@@ -40,12 +40,10 @@ String normalTextXml({required ElementWidget ele}) {
   final String text = (ele.text!);
   String? isBold;
 
-  switch (ele.fontWeight) {
-    case FontWeight.bold:
-      isBold = "true";
-      break;
-    default:
-      isBold = "false";
+  if (ele.fontWeight == FontWeight.w700) {
+    isBold = "true";
+  } else {
+    isBold = "false";
   }
 
   final String color =
