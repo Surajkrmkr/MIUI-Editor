@@ -14,7 +14,10 @@ class ThemeDesc {
             <author>${users[userProfile]!['author']}</author>
             <version>1.0</version>
             <uiVersion>17</uiVersion>
-            <keywords>MIUIThemeEditor;40.7.10_1594360719;</keywords>
+            <editorVersion>2.0.5</editorVersion>
+            <resourceType>theme</resourceType>
+            <moduleVersion>com.android.contacts:0.0.2;com.android.mms:0.0.2;com.android.settings:0.0.2;com.android.systemui:0.0.2;com.miui.home:0.0.2;com.miui.notification:0.0.2;com.miui.securitycenter:0.0.2;framework-res:0.0.2;</moduleVersion>
+            <miuiAdapterVersion>3.2</miuiAdapterVersion>
           </MIUI-Theme>
     ''';
   }
