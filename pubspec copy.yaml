@@ -1,0 +1,70 @@
+name: miui_editor
+description: MIUI Theme Editor — Riverpod clean architecture.
+publish_to: none
+version: 2.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # State management
+  flutter_riverpod: ^3.3.1
+  riverpod_annotation: ^4.0.2
+  # UI
+  cupertino_icons: ^1.0.8
+  flutter_svg: ^2.2.4
+  shimmer: ^3.0.0
+  # Color
+  flex_color_picker: ^3.8.0
+  palette_generator: ^0.3.3+3
+  # File / IO
+  path_provider: ^2.1.5
+  file_picker: ^10.3.10
+  archive: ^4.0.9
+  desktop_drop: ^0.7.0
+  android_path_provider: ^0.3.1
+  permission_handler: ^12.0.1
+  # Fonts
+  dynamic_cached_fonts: ^1.2.0
+  # Networking
+  http: ^1.6.0
+  download_task: ^1.0.4
+  # Image / Video
+  screenshot: ^3.0.0
+  image: ^4.8.0
+  crop_your_image: ^1.1.0
+  video_player: ^2.11.1
+  video_player_media_kit: ^2.0.0
+  media_kit_libs_windows_video: 1.0.11
+  media_kit_libs_macos_video: 1.1.4
+  # XML
+  xml: ^6.5.0
+  # Persistence
+  shared_preferences: ^2.5.4
+  # AI
+  google_generative_ai: ^0.4.7
+  # Desktop window
+  window_manager: ^0.5.1
+  vector_graphics: ^1.1.2
+  cached_network_image: ^3.4.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.13.0
+  riverpod_generator: ^4.0.3
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icons/u1/
+    - assets/icons/u2/
+    - assets/icons/u3/
+    - assets/icons/u4/
+    - assets/9pngs/
+    - assets/tags/
+    - assets/lockscreen/weatherIcon/
+    - assets/users/

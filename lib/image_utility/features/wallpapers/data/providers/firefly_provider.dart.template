@@ -1,0 +1,148 @@
+// This is a template for future Adobe Firefly integration
+// Uncomment and implement when ready to integrate
+
+/*
+import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:miui_icon_generator/theme_editor/core/providers/image_source_provider.dart';
+import 'package:miui_icon_generator/theme_editor/features/wallpapers/domain/entities/search_params.dart';
+import 'package:miui_icon_generator/theme_editor/features/wallpapers/domain/entities/wallpaper.dart';
+import 'package:miui_icon_generator/theme_editor/core/utils/attribution_tracker.dart';
+import 'package:path/path.dart' as path;
+
+class FireflyProvider implements ImageSourceProvider {
+  final String apiKey;
+  final String clientId;
+  final String baseUrl = 'https://firefly-api.adobe.io/v2';
+  
+  FireflyProvider({
+    required this.apiKey,
+    required this.clientId,
+  });
+
+  @override
+  String get sourceId => 'firefly';
+
+  @override
+  String get sourceName => 'Adobe Firefly';
+
+  @override
+  bool isConfigured() => apiKey.isNotEmpty && clientId.isNotEmpty;
+
+  @override
+  Future<List<Wallpaper>> searchImages({
+    required String query,
+    SearchParams? params,
+  }) async {
+    if (!isConfigured()) throw Exception('Adobe Firefly API not configured');
+
+    // Adobe Firefly is for generation, not search
+    // This would generate images based on the query
+    return await generateImages(
+      prompt: query,
+      count: params?.perPage ?? 4,
+    );
+  }
+
+  @override
+  Future<List<Wallpaper>> getCuratedImages({SearchParams? params}) async {
+    // Firefly is for generation, so we'll generate some default artistic images
+    return await generateImages(
+      prompt: 'Beautiful artistic wallpaper',
+      count: params?.perPage ?? 4,
+    );
+  }
+
+  @override
+  Future<Wallpaper?> getImageById(String id) async {
+    // For Firefly, we would need to store generated images
+    // This is a placeholder
+    return null;
+  }
+
+  Future<List<Wallpaper>> generateImages({
+    required String prompt,
+    int count = 4,
+  }) async {
+    final uri = Uri.parse('$baseUrl/images/generate');
+    
+    final response = await http.post(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $apiKey',
+        'x-api-key': clientId,
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'prompt': prompt,
+        'n': count,
+        'size': '1024x1024',
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final images = data['outputs'] as List;
+      
+      return images.asMap().entries.map((entry) {
+        return _mapToWallpaper(entry.value, prompt, entry.key);
+      }).toList();
+    } else {
+      throw Exception('Failed to generate images: ${response.statusCode}');
+    }
+  }
+
+  @override
+  Future<String> downloadImage({
+    required Wallpaper wallpaper,
+    required String savePath,
+  }) async {
+    final response = await http.get(Uri.parse(wallpaper.originalUrl));
+    
+    if (response.statusCode == 200) {
+      final fileName = '${wallpaper.source}_${wallpaper.id}.png';
+      final filePath = path.join(savePath, fileName);
+      final file = File(filePath);
+      await file.writeAsBytes(response.bodyBytes);
+      
+      // Track attribution
+      await AttributionTracker.saveAttribution(
+        wallpaper: wallpaper,
+        localPath: filePath,
+      );
+      
+      return filePath;
+    } else {
+      throw Exception('Failed to download image');
+    }
+  }
+
+  Wallpaper _mapToWallpaper(Map<String, dynamic> image, String prompt, int index) {
+    final imageUrl = image['url'] ?? '';
+    final imageId = image['id'] ?? 'firefly_${DateTime.now().millisecondsSinceEpoch}_$index';
+    
+    return Wallpaper(
+      id: imageId,
+      source: sourceId,
+      photographer: 'Adobe Firefly AI',
+      photographerUrl: 'https://www.adobe.com/products/firefly.html',
+      originalUrl: imageUrl,
+      largeUrl: imageUrl,
+      mediumUrl: imageUrl,
+      smallUrl: imageUrl,
+      width: 1024,
+      height: 1024,
+      description: 'AI-generated: $prompt',
+      tags: ['AI-generated', 'firefly', ...prompt.split(' ')],
+    );
+  }
+}
+*/
+
+// TODO: To enable Adobe Firefly:
+// 1. Uncomment the code above
+// 2. Update ImageSourceRegistry.initialize() to include Firefly
+// 3. Add Firefly API key and Client ID fields in SettingsPage
+// 4. Add Firefly configuration to AppConfig
+// 5. Test the integration with valid Adobe Firefly credentials

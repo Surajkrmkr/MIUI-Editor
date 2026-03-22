@@ -6,7 +6,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
   media_kit_video
   screen_retriever_linux
-  volume_controller
   window_manager
 )
 
