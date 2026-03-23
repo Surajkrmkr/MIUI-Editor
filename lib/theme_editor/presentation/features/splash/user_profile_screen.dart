@@ -41,7 +41,14 @@ class _State extends ConsumerState<UserProfileScreen>
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Welcome to MIUI World')),
+    appBar: AppBar(
+      title: const Text('Welcome to MIUI World'),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_rounded),
+        tooltip: 'Back to Launcher',
+        onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+      ),
+    ),
     body: Center(
       child: AnimatedBuilder(
         animation: _ctrl,

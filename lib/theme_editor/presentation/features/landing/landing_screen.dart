@@ -42,6 +42,11 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Welcome to MIUI World'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          tooltip: 'Back to Launcher',
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -64,10 +69,10 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
                 return Text('NO FOLDER AVAILABLE',
                     style: Theme.of(context).textTheme.bodyLarge);
               }
-              return Row(
+              return const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   FolderWeekOptions(),
                   PreviewWallsPanel(),
                 ],

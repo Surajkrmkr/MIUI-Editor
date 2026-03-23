@@ -56,6 +56,11 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Miui Tools'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          tooltip: 'Back to Launcher',
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.collections_bookmark),

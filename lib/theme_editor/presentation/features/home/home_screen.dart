@@ -35,54 +35,61 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          tooltip: 'Back',
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Row(
           children: [
-            const SizedBox(width: 220, child: Text('Theme Generator')),
-            const SizedBox(width: 20),
-            _ProgressBar(state: wallState),
+            const Text('Theme Generator'),
+            const SizedBox(width: 16),
+            if (!wallState.isLoading) _ProgressBar(state: wallState),
             if (dirState.isCreatingDirs)
               const Padding(
-                padding: EdgeInsets.only(left: 12),
+                padding: EdgeInsets.only(left: 10),
                 child: SizedBox(
-                    width: 20,
-                    height: 20,
+                    width: 16,
+                    height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2)),
               ),
           ],
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.home_rounded),
-          onPressed: () => Navigator.pop(context),
         ),
         actions: [
           Consumer(builder: (_, ref, __) {
             final colors = ref.watch(wallpaperProvider).colorPalette;
             return _PaletteStrip(colors: colors, isLockscreen: false);
           }),
+          const SizedBox(width: 8),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(30),
-        child: wallState.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Row(
+      body: wallState.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : const Padding(
+              padding: EdgeInsets.fromLTRB(24, 16, 24, 24),
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const ImageStack(isLockscreen: false),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      const ModulePreview(),
-                      const ExportButtons(),
-                    ],
+                  ImageStack(isLockscreen: false),
+                  SizedBox(width: 24),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        ModulePreview(),
+                        SizedBox(height: 20),
+                        ExportButtons(),
+                      ],
+                    ),
                   ),
-                  const SingleChildScrollView(
+                  SizedBox(width: 24),
+                  SingleChildScrollView(
                     child: IconEditorPanel(),
                   ),
                 ],
               ),
-      ),
+            ),
     );
   }
 }

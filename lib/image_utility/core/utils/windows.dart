@@ -16,9 +16,9 @@ Future startUpWindowsUtils() async {
 
 Size get getWindowSize {
   if (Platform.isWindows) {
-    return const Size(1300, 750);
+    return const Size(1350, 750);
   } else if (Platform.isMacOS) {
-    return const Size(1300, 800);
+    return const Size(1350, 800);
   } else if (Platform.isLinux) {
     return const Size(1400, 800);
   }

@@ -14,31 +14,33 @@ class BulkDownloadPage extends ConsumerStatefulWidget {
 }
 
 class _BulkDownloadPageState extends ConsumerState<BulkDownloadPage> {
-  final _queryController = TextEditingController();
-  String? _selectedSource;
-  String? _selectedOrientation;
-  String? _selectedColor;
-
   static const _orientations = ['portrait', 'landscape', 'square'];
   static const _colors = [
-    'red',
-    'orange',
-    'yellow',
-    'green',
-    'turquoise',
-    'blue',
-    'violet',
-    'pink',
-    'brown',
-    'black',
-    'gray',
-    'white',
+    'red', 'orange', 'yellow', 'green', 'turquoise', 'blue',
+    'violet', 'pink', 'brown', 'black', 'gray', 'white',
   ];
 
   @override
-  void dispose() {
-    _queryController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showCriteriaDialog());
+  }
+
+  Future<void> _showCriteriaDialog() async {
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => const _CriteriaDialog(
+        orientations: _orientations,
+        colors: _colors,
+      ),
+    );
+    if (!mounted) return;
+    // If user dismissed without fetching, go back
+    if (ref.read(bulkDownloadProvider).step == BulkDownloadStep.criteria) {
+      context.pop();
+    }
   }
 
   @override
@@ -86,6 +88,7 @@ class _BulkDownloadPageState extends ConsumerState<BulkDownloadPage> {
       _confirmExit(context);
     } else if (step == BulkDownloadStep.selection) {
       ref.read(bulkDownloadProvider.notifier).reset();
+      _showCriteriaDialog();
     } else {
       context.pop();
     }
@@ -118,23 +121,8 @@ class _BulkDownloadPageState extends ConsumerState<BulkDownloadPage> {
   Widget _bodyForStep(BuildContext context, BulkDownloadState state) {
     switch (state.step) {
       case BulkDownloadStep.criteria:
-        return _CriteriaStep(
-          queryController: _queryController,
-          selectedSource: _selectedSource,
-          selectedOrientation: _selectedOrientation,
-          selectedColor: _selectedColor,
-          orientations: _orientations,
-          colors: _colors,
-          onSourceChanged: (v) => setState(() => _selectedSource = v),
-          onOrientationChanged: (v) => setState(() => _selectedOrientation = v),
-          onColorChanged: (v) => setState(() => _selectedColor = v),
-          onFetch: state.isFetching ? null : _onFetch,
-          isFetching: state.isFetching,
-          fetchError: state.fetchError,
-          batchSize: state.batchSize,
-          onBatchSizeChanged: (v) =>
-              ref.read(bulkDownloadProvider.notifier).setBatchSize(v),
-        );
+        // Criteria is shown as a dialog via initState / _handleBack
+        return const SizedBox.shrink();
       case BulkDownloadStep.selection:
         return _SelectionStep(
           wallpapers: state.wallpapers,
@@ -162,6 +150,36 @@ class _BulkDownloadPageState extends ConsumerState<BulkDownloadPage> {
         );
     }
   }
+}
+
+// ─────────────────────────────────────────────
+// Step 1: Search Criteria (shown as a Dialog)
+// ─────────────────────────────────────────────
+
+class _CriteriaDialog extends ConsumerStatefulWidget {
+  final List<String> orientations;
+  final List<String> colors;
+
+  const _CriteriaDialog({
+    required this.orientations,
+    required this.colors,
+  });
+
+  @override
+  ConsumerState<_CriteriaDialog> createState() => _CriteriaDialogState();
+}
+
+class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
+  final _queryController = TextEditingController();
+  String? _selectedSource;
+  String? _selectedOrientation;
+  String? _selectedColor;
+
+  @override
+  void dispose() {
+    _queryController.dispose();
+    super.dispose();
+  }
 
   Future<void> _onFetch() async {
     await ref.read(bulkDownloadProvider.notifier).fetchWallpapers(
@@ -172,261 +190,285 @@ class _BulkDownloadPageState extends ConsumerState<BulkDownloadPage> {
           orientation: _selectedOrientation,
           color: _selectedColor,
         );
+    // Close dialog once step has moved past criteria
+    if (mounted &&
+        ref.read(bulkDownloadProvider).step != BulkDownloadStep.criteria) {
+      Navigator.of(context).pop();
+    }
   }
-}
-
-// ─────────────────────────────────────────────
-// Step 1: Search Criteria
-// ─────────────────────────────────────────────
-
-class _CriteriaStep extends ConsumerWidget {
-  final TextEditingController queryController;
-  final String? selectedSource;
-  final String? selectedOrientation;
-  final String? selectedColor;
-  final List<String> orientations;
-  final List<String> colors;
-  final ValueChanged<String?> onSourceChanged;
-  final ValueChanged<String?> onOrientationChanged;
-  final ValueChanged<String?> onColorChanged;
-  final VoidCallback? onFetch;
-  final bool isFetching;
-  final String? fetchError;
-  final int batchSize;
-  final ValueChanged<int> onBatchSizeChanged;
-
-  const _CriteriaStep({
-    required this.queryController,
-    required this.selectedSource,
-    required this.selectedOrientation,
-    required this.selectedColor,
-    required this.orientations,
-    required this.colors,
-    required this.onSourceChanged,
-    required this.onOrientationChanged,
-    required this.onColorChanged,
-    required this.onFetch,
-    required this.isFetching,
-    required this.fetchError,
-    required this.batchSize,
-    required this.onBatchSizeChanged,
-  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context, ) {
+    final state = ref.watch(bulkDownloadProvider);
     final sourcesAsync = ref.watch(availableSourcesProvider);
+    final isFetching = state.isFetching;
+    final batchSize = state.batchSize;
+    final fetchError = state.fetchError;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header info
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.collections,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Fetch $batchSize random wallpapers and approve them for bulk download.',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Count picker
-          Row(
-            children: [
-              Text(
-                'Wallpaper Count',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const Spacer(),
-              IconButton.outlined(
-                icon: const Icon(Icons.remove),
-                onPressed: batchSize > 1
-                    ? () => onBatchSizeChanged(batchSize - 1)
-                    : null,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text(
-                  '$batchSize',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-              ),
-              IconButton.outlined(
-                icon: const Icon(Icons.add),
-                onPressed: batchSize < 100
-                    ? () => onBatchSizeChanged(batchSize + 1)
-                    : null,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-          Text(
-            'Search Criteria',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const Text(
-            'All fields are optional',
-            style: TextStyle(color: Colors.grey, fontSize: 12),
-          ),
-          const SizedBox(height: 16),
-
-          // Query
-          TextField(
-            controller: queryController,
-            decoration: const InputDecoration(
-              labelText: 'Search Query',
-              hintText: 'e.g. nature, abstract, city...',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Source
-          sourcesAsync.when(
-            data: (sources) => DropdownButtonFormField<String>(
-              initialValue: selectedSource,
-              decoration: const InputDecoration(
-                labelText: 'Source',
-                prefixIcon: Icon(Icons.source),
-                border: OutlineInputBorder(),
-              ),
-              hint: const Text('All sources'),
-              items: [
-                const DropdownMenuItem(value: null, child: Text('All sources')),
-                ...sources.map(
-                  (s) => DropdownMenuItem(
-                    value: s.sourceId,
-                    child: Text(s.sourceId.toUpperCase()),
-                  ),
-                ),
-              ],
-              onChanged: onSourceChanged,
-            ),
-            loading: () => const LinearProgressIndicator(),
-            error: (_, __) => const SizedBox.shrink(),
-          ),
-          const SizedBox(height: 16),
-
-          // Orientation
-          DropdownButtonFormField<String>(
-            initialValue: selectedOrientation,
-            decoration: const InputDecoration(
-              labelText: 'Orientation',
-              prefixIcon: Icon(Icons.screen_rotation),
-              border: OutlineInputBorder(),
-            ),
-            hint: const Text('Any orientation'),
-            items: [
-              const DropdownMenuItem(
-                  value: null, child: Text('Any orientation')),
-              ...orientations.map(
-                (o) => DropdownMenuItem(
-                  value: o,
-                  child: Text(o[0].toUpperCase() + o.substring(1)),
-                ),
-              ),
-            ],
-            onChanged: onOrientationChanged,
-          ),
-          const SizedBox(height: 16),
-
-          // Color
-          DropdownButtonFormField<String>(
-            initialValue: selectedColor,
-            decoration: const InputDecoration(
-              labelText: 'Color',
-              prefixIcon: Icon(Icons.palette),
-              border: OutlineInputBorder(),
-            ),
-            hint: const Text('Any color'),
-            items: [
-              const DropdownMenuItem(value: null, child: Text('Any color')),
-              ...colors.map(
-                (c) => DropdownMenuItem(
-                  value: c,
-                  child: Text(c[0].toUpperCase() + c.substring(1)),
-                ),
-              ),
-            ],
-            onChanged: onColorChanged,
-          ),
-
-          if (fetchError != null) ...[
-            const SizedBox(height: 16),
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Header ──────────────────────────────────────────────────
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(24, 20, 16, 16),
               decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(20)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.error_outline, color: Colors.red, size: 20),
-                  const SizedBox(width: 8),
+                  Icon(Icons.collections_bookmark,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer),
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      fetchError!,
-                      style: const TextStyle(color: Colors.red, fontSize: 13),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Bulk Download',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onPrimaryContainer,
+                              ),
+                        ),
+                        Text(
+                          'Set criteria to fetch wallpapers',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onPrimaryContainer
+                                    .withValues(alpha: 0.7),
+                              ),
+                        ),
+                      ],
                     ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
             ),
-          ],
 
-          const SizedBox(height: 32),
+            // ── Form body ────────────────────────────────────────────────
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Count picker
+                    Row(
+                      children: [
+                        Text(
+                          'Wallpaper Count',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                        const Spacer(),
+                        IconButton.outlined(
+                          icon: const Icon(Icons.remove, size: 16),
+                          onPressed: batchSize > 1
+                              ? () => ref
+                                  .read(bulkDownloadProvider.notifier)
+                                  .setBatchSize(batchSize - 1)
+                              : null,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            '$batchSize',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        IconButton.outlined(
+                          icon: const Icon(Icons.add, size: 16),
+                          onPressed: batchSize < 100
+                              ? () => ref
+                                  .read(bulkDownloadProvider.notifier)
+                                  .setBatchSize(batchSize + 1)
+                              : null,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
 
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: onFetch,
-              icon: isFetching
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.download_for_offline),
-              label: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Text(
-                  isFetching
-                      ? 'Fetching wallpapers...'
-                      : 'Fetch $batchSize Wallpapers',
-                  style: const TextStyle(fontSize: 16),
+                    Text(
+                      'Search Criteria',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'All fields are optional',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Query
+                    TextField(
+                      controller: _queryController,
+                      enabled: !isFetching,
+                      decoration: const InputDecoration(
+                        labelText: 'Search Query',
+                        hintText: 'e.g. nature, abstract, city...',
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Source
+                    sourcesAsync.when(
+                      data: (sources) => DropdownButtonFormField<String>(
+                        initialValue: _selectedSource,
+                        decoration: const InputDecoration(
+                          labelText: 'Source',
+                          prefixIcon: Icon(Icons.source),
+                        ),
+                        hint: const Text('All sources'),
+                        items: [
+                          const DropdownMenuItem(
+                              value: null, child: Text('All sources')),
+                          ...sources.map(
+                            (s) => DropdownMenuItem(
+                              value: s.sourceId,
+                              child: Text(s.sourceId.toUpperCase()),
+                            ),
+                          ),
+                        ],
+                        onChanged:
+                            isFetching ? null : (v) => setState(() => _selectedSource = v),
+                      ),
+                      loading: () => const LinearProgressIndicator(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Orientation
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedOrientation,
+                      decoration: const InputDecoration(
+                        labelText: 'Orientation',
+                        prefixIcon: Icon(Icons.screen_rotation),
+                      ),
+                      hint: const Text('Any orientation'),
+                      items: [
+                        const DropdownMenuItem(
+                            value: null, child: Text('Any orientation')),
+                        ...widget.orientations.map(
+                          (o) => DropdownMenuItem(
+                            value: o,
+                            child: Text(o[0].toUpperCase() + o.substring(1)),
+                          ),
+                        ),
+                      ],
+                      onChanged: isFetching
+                          ? null
+                          : (v) => setState(() => _selectedOrientation = v),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Color
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedColor,
+                      decoration: const InputDecoration(
+                        labelText: 'Color',
+                        prefixIcon: Icon(Icons.palette),
+                      ),
+                      hint: const Text('Any color'),
+                      items: [
+                        const DropdownMenuItem(
+                            value: null, child: Text('Any color')),
+                        ...widget.colors.map(
+                          (c) => DropdownMenuItem(
+                            value: c,
+                            child: Text(c[0].toUpperCase() + c.substring(1)),
+                          ),
+                        ),
+                      ],
+                      onChanged: isFetching
+                          ? null
+                          : (v) => setState(() => _selectedColor = v),
+                    ),
+
+                    if (fetchError != null) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                              color: Colors.red.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.error_outline,
+                                color: Colors.red, size: 18),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(fetchError,
+                                  style: const TextStyle(
+                                      color: Colors.red, fontSize: 13)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ),
-          ),
-        ],
+
+            // ── Action button ────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: isFetching ? null : _onFetch,
+                  icon: isFetching
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Icon(Icons.download_for_offline),
+                  label: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: Text(
+                      isFetching
+                          ? 'Fetching wallpapers...'
+                          : 'Fetch $batchSize Wallpapers',
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -25,6 +25,11 @@ class LockscreenScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          tooltip: 'Back',
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Row(
           children: [
             const SizedBox(width: 220, child: Text('Lockscreen')),

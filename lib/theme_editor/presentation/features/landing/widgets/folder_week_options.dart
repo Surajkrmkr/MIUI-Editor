@@ -76,7 +76,7 @@ class _FolderWeekOptionsState extends ConsumerState<FolderWeekOptions> {
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: dirState.preLockFolders.map((folder) {
+                  children: (dirState.preLockFolders.toList()..sort()).map((folder) {
                     final selected = folder == dirState.selectedFolder;
                     return ChoiceChip(
                       label: Text(folder),
