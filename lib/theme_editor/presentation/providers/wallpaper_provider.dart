@@ -19,6 +19,9 @@ class WallpaperState {
     this.colorPalette = const [],
     this.themeCount = 25,
     this.isLoading = false,
+    this.designerName = '',
+    this.authorTag = '',
+    this.uiVersion = '',
   });
 
   final String folderNum;
@@ -28,6 +31,9 @@ class WallpaperState {
   final List<Color> colorPalette;
   final int themeCount;
   final bool isLoading;
+  final String designerName;
+  final String authorTag;
+  final String uiVersion;
 
   WallpaperState copyWith({
     String? folderNum,
@@ -37,6 +43,9 @@ class WallpaperState {
     List<Color>? colorPalette,
     int? themeCount,
     bool? isLoading,
+    String? designerName,
+    String? authorTag,
+    String? uiVersion,
   }) =>
       WallpaperState(
         folderNum: folderNum ?? this.folderNum,
@@ -46,6 +55,9 @@ class WallpaperState {
         colorPalette: colorPalette ?? this.colorPalette,
         themeCount: themeCount ?? this.themeCount,
         isLoading: isLoading ?? this.isLoading,
+        designerName: designerName ?? this.designerName,
+        authorTag: authorTag ?? this.authorTag,
+        uiVersion: uiVersion ?? this.uiVersion,
       );
 
   String? get currentPath => paths.isNotEmpty ? paths[index] : null;
@@ -63,7 +75,18 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
     final prefs = ref.read(sharedPrefsProvider);
     final raw = prefs.getString('themeSettings') ?? '{}';
     final settings = ThemeSettings.decode(raw);
-    return WallpaperState(themeCount: settings.themeCount);
+
+    // Apply saved basePath so PathConstants picks it up for all subsequent calls
+    if (settings.basePath != null && settings.basePath!.isNotEmpty) {
+      PathConstants.customBasePath = settings.basePath!;
+    }
+
+    return WallpaperState(
+      themeCount: settings.themeCount,
+      designerName: settings.designerName,
+      authorTag: settings.authorTag,
+      uiVersion: settings.uiVersion,
+    );
   }
 
   // ── Load a folder (called once from HomeScreen init) ──────────────────────
@@ -90,7 +113,6 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
     state = state.copyWith(isLoading: false, paths: paths, index: 0);
 
     if (paths.isNotEmpty) {
-      // ✅ Create directories for the FIRST theme in the folder
       await _onThemeActivated(weekNum, paths[0]);
     }
   }
@@ -101,45 +123,30 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
     if (i < 0 || i >= state.paths.length) return;
     state = state.copyWith(index: i);
 
-    // ✅ Create directories for the newly selected theme
     if (state.weekNum != null) {
       await _onThemeActivated(state.weekNum!, state.paths[i]);
     }
   }
 
   // ── Core: everything that must happen when the active theme changes ────────
-  //
-  // Original behaviour from WallpaperProvider.setIndex():
-  //   1. fetchColorPalette  → update icon editor colors
-  //   2. createThemeDirectory → ensure all subdirs exist on disk
-  //   3. getTagsFromFile    → load saved tags for this theme
-  //   4. checkExported      → update icon/module "already exported" badges
 
   Future<void> _onThemeActivated(String weekNum, String wallPath) async {
     final themeName =
         wallPath.split(Platform.isWindows ? r'\' : '/').last.split('.').first;
 
-    // ✅ Reset ALL export states immediately — before any async checks.
-    // This ensures the UI shows clean (unexported) state the moment
-    // the user taps next/prev, not after the async checks complete.
     ref.read(exportProvider.notifier).resetExportState();
     ref.read(lockscreenProvider.notifier).resetExportState();
 
-    // Palette → icon editor colors
     await _updatePalette(wallPath);
 
-    // Create theme directory tree
     await ref
         .read(directoryProvider.notifier)
         .createThemeDirectories(weekNum, themeName);
 
-    // Load saved tags for this theme
     await ref
         .read(directoryProvider.notifier)
         .loadTagsFromFile(weekNum, themeName);
 
-    // Check what's actually exported on disk and update badges
-    // (runs AFTER reset so there's no flicker of stale state)
     await ref.read(exportProvider.notifier).checkExported();
     await ref.read(lockscreenProvider.notifier).checkExported();
   }
@@ -174,8 +181,43 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
 
   void updateThemeCount(int count) {
     final prefs = ref.read(sharedPrefsProvider);
-    prefs.setString('themeSettings', ThemeSettings(themeCount: count).encode());
+    final current = _currentSettings();
+    prefs.setString('themeSettings', current.copyWith(themeCount: count).encode());
     state = state.copyWith(themeCount: count);
+  }
+
+  void updateSettings({
+    String? basePath,
+    String? designerName,
+    String? authorTag,
+    String? uiVersion,
+    int? themeCount,
+  }) {
+    final prefs = ref.read(sharedPrefsProvider);
+    final updated = _currentSettings().copyWith(
+      basePath: basePath,
+      designerName: designerName,
+      authorTag: authorTag,
+      uiVersion: uiVersion,
+      themeCount: themeCount,
+    );
+    prefs.setString('themeSettings', updated.encode());
+
+    if (basePath != null && basePath.isNotEmpty) {
+      PathConstants.customBasePath = basePath;
+    }
+
+    state = state.copyWith(
+      designerName: designerName,
+      authorTag: authorTag,
+      uiVersion: uiVersion,
+      themeCount: themeCount,
+    );
+  }
+
+  ThemeSettings _currentSettings() {
+    final prefs = ref.read(sharedPrefsProvider);
+    return ThemeSettings.decode(prefs.getString('themeSettings') ?? '{}');
   }
 }
 

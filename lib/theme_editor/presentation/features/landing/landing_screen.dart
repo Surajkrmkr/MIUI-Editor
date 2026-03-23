@@ -4,6 +4,7 @@ import '../../providers/directory_provider.dart';
 import '../../providers/font_provider.dart';
 import '../../providers/icon_editor_provider.dart';
 import '../../providers/tag_provider.dart';
+import '../../providers/wallpaper_provider.dart';
 import 'widgets/folder_week_options.dart';
 import 'widgets/preview_walls.dart';
 import 'widgets/settings_dialog.dart';
@@ -23,6 +24,10 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
   }
 
   void _init() {
+    // Ensure WallpaperNotifier.build() runs first so PathConstants.customBasePath
+    // is populated from SharedPreferences before any directory operations.
+    ref.read(wallpaperProvider);
+
     ref.read(directoryProvider.notifier)
       ..loadPreLockFolders()
       ..loadPreviewWalls('1');

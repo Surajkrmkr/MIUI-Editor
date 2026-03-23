@@ -5,15 +5,15 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player_media_kit/video_player_media_kit.dart';
 
+// ── Shared theme ──────────────────────────────────────────────────────────────
+import 'core/theme/app_theme.dart';
+
 // ── Theme Editor imports ──────────────────────────────────────────────────────
 import 'theme_editor/core/services/window_service.dart';
-import 'theme_editor/presentation/common/theme/app_theme.dart'
-    as theme_editor_theme;
 import 'theme_editor/presentation/features/splash/user_profile_screen.dart';
 import 'theme_editor/presentation/providers/service_providers.dart';
 
 // ── Image Utility imports ─────────────────────────────────────────────────────
-import 'image_utility/core/theme/app_theme.dart' as image_utility_theme;
 import 'image_utility/core/utils/windows.dart';
 import 'image_utility/core/router/app_router.dart';
 
@@ -79,18 +79,8 @@ class RootApp extends StatelessWidget {
         title: 'MIUI Tools',
         debugShowCheckedModeBanner: false,
         themeMode: ThemeMode.dark,
-        // Neutral dark theme for the launcher itself
-        theme: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: const Color(0xFFD27685),
-          brightness: Brightness.light,
-        ),
-        darkTheme: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: const Color(0xFFD27685),
-          brightness: Brightness.dark,
-          scaffoldBackgroundColor: const Color(0xFF1A1A2E),
-        ),
+        theme: AppTheme.light(),
+        darkTheme: AppTheme.dark(),
         home: const AppLauncherScreen(),
       );
 }
@@ -303,8 +293,8 @@ class _ThemeEditorApp extends ConsumerWidget {
         title: 'MIUI Theme Editor',
         debugShowCheckedModeBanner: false,
         themeMode: ThemeMode.dark,
-        theme: theme_editor_theme.AppTheme.light(),
-        darkTheme: theme_editor_theme.AppTheme.dark(),
+        theme: AppTheme.light(),
+        darkTheme: AppTheme.dark(),
         home: const UserProfileScreen(),
         // Back button on AppBar automatically pops back to launcher
         // because this MaterialApp is pushed onto the root Navigator.
@@ -322,8 +312,8 @@ class _ImageUtilityApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Image Utility',
       debugShowCheckedModeBanner: false,
-      theme: image_utility_theme.AppTheme.lightTheme,
-      darkTheme: image_utility_theme.AppTheme.darkTheme,
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.system,
       routerConfig: router,
     );

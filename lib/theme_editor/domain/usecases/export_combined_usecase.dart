@@ -26,6 +26,9 @@ class ExportCombinedUseCase {
     required String wallpaperSourcePath,
     required List<String> iconNames,
     required void Function(int done, int total) onProgress,
+    String? designerName,
+    String? authorTag,
+    String uiVersion = '17',
   }) async {
     // Phase 1 — Icons
     final iconFailure = await exportIcons.call(
@@ -45,6 +48,9 @@ class ExportCombinedUseCase {
       themePath: themePath,
       themeName: themeName,
       wallpaperSourcePath: wallpaperSourcePath,
+      designerName: designerName,
+      authorTag: authorTag,
+      uiVersion: uiVersion,
     );
     return moduleFailure;
   }

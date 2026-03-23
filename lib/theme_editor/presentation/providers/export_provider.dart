@@ -147,6 +147,9 @@ class ExportNotifier extends Notifier<ExportState> {
       themeName:           ws.currentThemeName!,
       wallpaperSourcePath: ws.currentPath!,
       iconNames:           iconNames,
+      designerName:        ws.designerName.isNotEmpty ? ws.designerName : null,
+      authorTag:           ws.authorTag.isNotEmpty ? ws.authorTag : null,
+      uiVersion:           ws.uiVersion.isNotEmpty ? ws.uiVersion : '17',
       onProgress:          (done, total) {
         state = state.copyWith(
           phase:     ExportPhase.icons,

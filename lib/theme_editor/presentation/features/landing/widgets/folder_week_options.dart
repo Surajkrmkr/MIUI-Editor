@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/theme/app_theme.dart';
 import '../../../providers/directory_provider.dart';
 import '../../home/home_screen.dart';
-import 'pick_walls_screen.dart';
 
 class FolderWeekOptions extends ConsumerStatefulWidget {
   const FolderWeekOptions({super.key});
@@ -35,89 +35,131 @@ class _FolderWeekOptionsState extends ConsumerState<FolderWeekOptions> {
     );
   }
 
-  void _pickWalls() {
-    final dirState = ref.read(directoryProvider);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PickWallsScreen(
-          folderNum: dirState.selectedFolder,
-          weekNum: _weekCtrl.text,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final dirState = ref.watch(directoryProvider);
+    final cs = Theme.of(context).colorScheme;
 
     return SizedBox(
-      width: 600,
+      width: 560,
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Select Folder', style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 200,
+            // ── Section heading ─────────────────────────────────────────────
+            Row(
+              children: [
+                const Icon(Icons.folder_open_rounded,
+                    color: AppTheme.accent, size: 20),
+                const SizedBox(width: 8),
+                Text('Select Folder',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600)),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // ── Folder chips ────────────────────────────────────────────────
+            Container(
+              constraints: const BoxConstraints(maxHeight: 180),
+              decoration: BoxDecoration(
+                color: cs.surface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: cs.outline.withAlpha(40)),
+              ),
               child: SingleChildScrollView(
+                padding: const EdgeInsets.all(12),
                 child: Wrap(
-                  alignment: WrapAlignment.center,
+                  spacing: 8,
+                  runSpacing: 8,
                   children: dirState.preLockFolders.map((folder) {
-                    return SizedBox(
-                      width: 150,
-                      child: RadioListTile<String>(
-                        title: Text(folder),
-                        value: folder,
-                        groupValue: dirState.selectedFolder,
-                        onChanged: (val) {
-                          if (val == null) return;
-                          ref.read(directoryProvider.notifier).selectFolder(val);
-                          ref.read(directoryProvider.notifier).loadPreviewWalls(val);
-                        },
-                      ),
+                    final selected = folder == dirState.selectedFolder;
+                    return ChoiceChip(
+                      label: Text(folder),
+                      selected: selected,
+                      onSelected: (_) {
+                        ref
+                            .read(directoryProvider.notifier)
+                            .selectFolder(folder);
+                        ref
+                            .read(directoryProvider.notifier)
+                            .loadPreviewWalls(folder);
+                      },
                     );
                   }).toList(),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              dirState.status,
-              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: 300,
-              child: TextField(
-                controller: _weekCtrl,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                onSubmitted: (_) => _submit(),
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Week Number',
+
+            // ── Status ──────────────────────────────────────────────────────
+            if (dirState.status.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppTheme.accent.withAlpha(15),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppTheme.accent.withAlpha(40)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline_rounded,
+                        size: 16, color: AppTheme.accent),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        dirState.status,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppTheme.accent,
+                              fontWeight: FontWeight.w500,
+                            ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
+            ],
+
+            const SizedBox(height: 28),
+
+            // ── Week number ─────────────────────────────────────────────────
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                FilledButton.icon(
-                  icon: const Icon(Icons.wallpaper),
-                  label: const Text('Get Walls'),
-                  onPressed: _pickWalls,
+                Icon(Icons.calendar_today_rounded,
+                    color: AppTheme.accent, size: 20),
+                const SizedBox(width: 8),
+                Text('Week Number',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _weekCtrl,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    onSubmitted: (_) => _submit(),
+                    textInputAction: TextInputAction.go,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter week number…',
+                      prefixIcon:
+                          Icon(Icons.tag_rounded, size: 18),
+                    ),
+                  ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 FilledButton.icon(
-                  icon: const Icon(Icons.chevron_right_rounded),
+                  icon: const Icon(Icons.arrow_forward_rounded, size: 18),
                   label: const Text('Continue'),
                   onPressed: _submit,
                 ),

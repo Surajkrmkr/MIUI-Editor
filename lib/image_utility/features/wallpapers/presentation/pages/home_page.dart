@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
+import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/pages/settings_page_updated.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/providers/wallpaper_providers.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/widgets/wallpaper_card.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/widgets/source_selector.dart';
@@ -54,7 +55,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Image Utility'),
+        title: const Text('Miui Tools'),
         actions: [
           IconButton(
             icon: const Icon(Icons.collections_bookmark),
@@ -68,7 +69,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: () => context.push('/settings'),
+            onPressed: () => showImageUtilitySettings(context),
           ),
         ],
       ),
@@ -131,15 +132,21 @@ class _HomePageState extends ConsumerState<HomePage> {
                   );
                 }
 
-                return MasonryGridView.count(
-                  controller: _scrollController,
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
-                  padding: const EdgeInsets.all(16),
-                  itemCount: wallpapers.length,
-                  itemBuilder: (context, index) {
-                    return WallpaperCard(wallpaper: wallpapers[index]);
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final crossAxisCount =
+                        (constraints.maxWidth / 280).clamp(2, 6).round();
+                    return MasonryGridView.count(
+                      controller: _scrollController,
+                      crossAxisCount: crossAxisCount,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: wallpapers.length,
+                      itemBuilder: (context, index) {
+                        return WallpaperCard(wallpaper: wallpapers[index]);
+                      },
+                    );
                   },
                 );
               },

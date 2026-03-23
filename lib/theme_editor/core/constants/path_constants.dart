@@ -1,7 +1,12 @@
 import 'dart:io';
 
 abstract final class PathConstants {
+  /// Set this from SharedPreferences before any path operations.
+  /// When non-empty it takes precedence over the platform defaults.
+  static String customBasePath = '';
+
   static String get basePath {
+    if (customBasePath.isNotEmpty) return customBasePath;
     if (Platform.isWindows) return r'E:\Xiaomi Contract\';
     if (Platform.isAndroid) return '/storage/emulated/0/Xiaomi Contract/';
     if (Platform.isMacOS)   return '/Users/surajkrmkr/Storage/Xiaomi Contract/';

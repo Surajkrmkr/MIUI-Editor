@@ -23,6 +23,9 @@ class ExportModuleUseCase {
     required String themePath,
     required String themeName,
     required String wallpaperSourcePath,
+    String? designerName,
+    String? authorTag,
+    String uiVersion = '17',
   }) async {
     try {
       // ── 1. Copy module XML files + theme_values.xml ───────────────────────
@@ -89,8 +92,9 @@ class ExportModuleUseCase {
       // ── 4. description.xml ────────────────────────────────────────────────
       final rawDesc = ThemeDescription.buildDescription(
         themeName: themeName,
-        designerName: profile.displayName,
-        authorTag: profile.authorTag,
+        designerName: designerName?.isNotEmpty == true ? designerName! : profile.displayName,
+        authorTag: authorTag?.isNotEmpty == true ? authorTag! : profile.authorTag,
+        uiVersion: uiVersion,
       );
       await File(PathConstants.p('${themePath}description.xml')).writeAsString(
         XmlDocument.parse(rawDesc).toXmlString(pretty: true, indent: '\t'),

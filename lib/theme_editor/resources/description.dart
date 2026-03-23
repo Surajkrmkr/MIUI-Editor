@@ -5,6 +5,7 @@ class ThemeDescription {
     required String themeName,
     required String designerName,
     required String authorTag,
+    String uiVersion = '17',
   }) =>
       '''<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
 <MIUI-Theme>
@@ -12,7 +13,7 @@ class ThemeDescription {
   <designer>$designerName</designer>
   <author>$authorTag</author>
   <version>1.0</version>
-  <uiVersion>17</uiVersion>
+  <uiVersion>$uiVersion</uiVersion>
   <editorVersion>2.0.5</editorVersion>
   <resourceType>theme</resourceType>
   <moduleVersion>com.android.contacts:0.0.2;com.android.mms:0.0.2;com.android.settings:0.0.2;com.android.systemui:0.0.2;</moduleVersion>
