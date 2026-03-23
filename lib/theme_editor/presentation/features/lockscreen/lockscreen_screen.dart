@@ -14,7 +14,6 @@ class LockscreenScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Add swipe-unlock on first build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final n = ref.read(elementProvider.notifier);
       if (!ref.read(elementProvider).contains(ElementType.swipeUpUnlock)) {
@@ -22,6 +21,8 @@ class LockscreenScreen extends ConsumerWidget {
         n.setActive(ElementType.swipeUpUnlock);
       }
     });
+
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -32,28 +33,129 @@ class LockscreenScreen extends ConsumerWidget {
         ),
         title: Row(
           children: [
-            const SizedBox(width: 220, child: Text('Lockscreen')),
-            const SizedBox(width: 20),
-            // Progress
+            ShaderMask(
+              shaderCallback: (bounds) => LinearGradient(
+                colors: [scheme.primary, scheme.tertiary],
+              ).createShader(bounds),
+              child: const Text(
+                'Lockscreen',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
             Consumer(builder: (_, ref, __) {
               final ws = ref.watch(wallpaperProvider);
-              return Text(
-                ws.paths.isEmpty ? '' : '${ws.index + 1}/${ws.paths.length}',
-                style: Theme.of(context).textTheme.bodyMedium,
+              if (ws.paths.isEmpty) return const SizedBox.shrink();
+              return _CountBadge(
+                current: ws.index + 1,
+                total: ws.paths.length,
               );
             }),
           ],
         ),
         actions: [
-          // Palette strip
           Consumer(builder: (_, ref, __) {
             final colors = ref.watch(wallpaperProvider).colorPalette;
-            return SizedBox(
-              height: 40,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: colors.map((c) => GestureDetector(
+            return _PaletteStrip(colors: colors, ref: ref);
+          }),
+          const SizedBox(width: 12),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            height: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  scheme.primary.withAlpha(0),
+                  scheme.primary.withAlpha(100),
+                  scheme.tertiary.withAlpha(100),
+                  scheme.primary.withAlpha(0),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      body: const Padding(
+        padding: EdgeInsets.all(24),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ImageStack(isLockscreen: true),
+            SizedBox(width: 16),
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ElementInfoPanel(),
+                  SizedBox(width: 12),
+                  ElementListPanel(),
+                  SizedBox(width: 12),
+                  LockscreenFunctionsPanel(),
+                  SizedBox(width: 12),
+                  FontListPanel(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Count Badge ───────────────────────────────────────────────────────────────
+
+class _CountBadge extends StatelessWidget {
+  const _CountBadge({required this.current, required this.total});
+  final int current;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        '$current / $total',
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: scheme.onPrimaryContainer,
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Palette Strip ─────────────────────────────────────────────────────────────
+
+class _PaletteStrip extends StatelessWidget {
+  const _PaletteStrip({required this.colors, required this.ref});
+  final List<Color> colors;
+  final WidgetRef ref;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 44,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: colors
+              .map((c) => GestureDetector(
                     onTap: () {
                       final elState = ref.read(elementProvider);
                       ref.read(elementProvider.notifier)
@@ -61,38 +163,27 @@ class LockscreenScreen extends ConsumerWidget {
                         ..setColorSecondary(elState.activeType, c);
                     },
                     child: Container(
-                      margin: const EdgeInsets.only(right: 4),
-                      width: 34, height: 34,
+                      margin: const EdgeInsets.only(right: 6),
+                      width: 30,
+                      height: 30,
                       decoration: BoxDecoration(
-                        color: c, borderRadius: BorderRadius.circular(6)),
+                        color: c,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withAlpha(70),
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: c.withAlpha(110),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
                     ),
-                  )).toList(),
-                ),
-              ),
-            );
-          }),
-          const SizedBox(width: 12),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(30),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            // Phone + ruler
-            ImageStack(isLockscreen: true),
-            // Panels
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ElementInfoPanel(),
-                ElementListPanel(),
-                LockscreenFunctionsPanel(),
-                FontListPanel(),
-              ],
-            ),
-          ],
+                  ))
+              .toList(),
         ),
       ),
     );

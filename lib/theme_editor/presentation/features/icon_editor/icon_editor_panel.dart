@@ -8,10 +8,11 @@ class IconEditorPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const Column(
-    children: [
-      SlidersPanel(),
-      BgDropZones(),
-      ColorTab(),
-    ],
-  );
+        spacing: 10,
+        children: [
+          SlidersPanel(),
+          BgDropZones(),
+          ColorTab(),
+        ],
+      );
 }

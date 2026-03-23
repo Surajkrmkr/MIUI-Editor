@@ -32,6 +32,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final wallState = ref.watch(wallpaperProvider);
     final dirState = ref.watch(directoryProvider);
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -42,16 +43,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         title: Row(
           children: [
-            const Text('Theme Generator'),
+            ShaderMask(
+              shaderCallback: (bounds) => LinearGradient(
+                colors: [scheme.primary, scheme.tertiary],
+              ).createShader(bounds),
+              child: const Text(
+                'Theme Generator',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ),
             const SizedBox(width: 16),
             if (!wallState.isLoading) _ProgressBar(state: wallState),
             if (dirState.isCreatingDirs)
-              const Padding(
-                padding: EdgeInsets.only(left: 10),
+              Padding(
+                padding: const EdgeInsets.only(left: 10),
                 child: SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2)),
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: scheme.primary,
+                  ),
+                ),
               ),
           ],
         ),
@@ -60,8 +78,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             final colors = ref.watch(wallpaperProvider).colorPalette;
             return _PaletteStrip(colors: colors, isLockscreen: false);
           }),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            height: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  scheme.primary.withAlpha(0),
+                  scheme.primary.withAlpha(100),
+                  scheme.tertiary.withAlpha(100),
+                  scheme.primary.withAlpha(0),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
       body: wallState.isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -94,35 +128,71 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
+// ── Progress Bar ──────────────────────────────────────────────────────────────
+
 class _ProgressBar extends StatelessWidget {
   const _ProgressBar({required this.state});
   final WallpaperState state;
 
   @override
-  Widget build(BuildContext context) => Row(
-        children: [
-          SizedBox(
-            width: 200,
-            height: 10,
-            child: ClipRRect(
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final progress = state.paths.isEmpty
+        ? 0.0
+        : state.index / (state.themeCount - 1);
+    final remaining = state.themeCount - state.index - 1;
+
+    return Row(
+      children: [
+        SizedBox(
+          width: 190,
+          height: 7,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // Track
+                Container(color: scheme.surfaceContainerHigh),
+                // Filled gradient
+                FractionallySizedBox(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: progress,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [scheme.primary, scheme.tertiary],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        if (remaining > 0)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: scheme.primaryContainer,
               borderRadius: BorderRadius.circular(10),
-              child: LinearProgressIndicator(
-                value: state.paths.isEmpty
-                    ? 0
-                    : state.index / (state.themeCount - 1),
+            ),
+            child: Text(
+              '$remaining left',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: scheme.onPrimaryContainer,
               ),
             ),
           ),
-          const SizedBox(width: 16),
-          Text(
-            state.index == state.themeCount - 1
-                ? ''
-                : '${state.themeCount - state.index - 1} left',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-        ],
-      );
+      ],
+    );
+  }
 }
+
+// ── Palette Strip ─────────────────────────────────────────────────────────────
 
 class _PaletteStrip extends ConsumerWidget {
   const _PaletteStrip({required this.colors, required this.isLockscreen});
@@ -130,33 +200,46 @@ class _PaletteStrip extends ConsumerWidget {
   final bool isLockscreen;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => SizedBox(
-        height: 40,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: colors
-                .map((c) => GestureDetector(
-                      onTap: () {
-                        if (!isLockscreen) {
-                          ref.read(iconEditorProvider.notifier)
-                            ..setBgColor(c)
-                            ..setBgColor2(c)
-                            ..setAccentColor(c);
-                        }
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 4),
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: c,
-                          borderRadius: BorderRadius.circular(8),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SizedBox(
+      height: 44,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: colors
+              .map((c) => GestureDetector(
+                    onTap: () {
+                      if (!isLockscreen) {
+                        ref.read(iconEditorProvider.notifier)
+                          ..setBgColor(c)
+                          ..setBgColor2(c)
+                          ..setAccentColor(c);
+                      }
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 6),
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color: c,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withAlpha(70),
+                          width: 2,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: c.withAlpha(110),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                    ))
-                .toList(),
-          ),
+                    ),
+                  ))
+              .toList(),
         ),
-      );
+      ),
+    );
+  }
 }
