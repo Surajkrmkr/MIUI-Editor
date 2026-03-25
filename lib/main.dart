@@ -125,6 +125,13 @@ final List<_AppEntry> _apps = [
     color: const Color(0xFF6C8EBF),
     builder: () => const _ImageUtilityApp(),
   ),
+  _AppEntry(
+    title: 'Themes Deployment',
+    subtitle: 'Upload · Designer Portal · Automation',
+    icon: Icons.rocket_launch,
+    color: const Color(0xFF7DAF7A),
+    builder: () => const _ThemeDeploymentApp(),
+  ),
   // ── Add more apps below — no other code changes needed ────────────────────
   // _AppEntry(
   //   title:   'New Tool',
@@ -311,6 +318,25 @@ class _ImageUtilityApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
     return MaterialApp.router(
       title: 'Image Utility',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: ThemeMode.system,
+      routerConfig: router,
+    );
+  }
+}
+
+// ── Themes Deployment ─────────────────────────────────────────────────────────────
+
+class _ThemeDeploymentApp extends ConsumerWidget {
+  const _ThemeDeploymentApp();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
+    return MaterialApp.router(
+      title: 'Themes Deployment',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
