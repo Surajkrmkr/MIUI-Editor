@@ -2,7 +2,7 @@ name: Miui Theme Editor Build Generation For Mac OS
 
 on:
   push:
-    tags: ["build-macos-vs", "build-macos-vp"]
+    # tags: ["build-macos-vs", "build-macos-vp"]
 
 permissions:
   contents: write
