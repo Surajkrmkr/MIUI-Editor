@@ -275,7 +275,7 @@ class ElementInfoPanel extends ConsumerWidget {
               ),
 
             // Alignment chips
-            if (el.type.isText || el.type.isDateTime)
+            if (!el.type.isIcon && !el.type.isMusic && !el.type.isContainer)
               _Section(
                 title: 'ALIGNMENT',
                 child: Row(

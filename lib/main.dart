@@ -196,7 +196,7 @@ class AppLauncherScreen extends StatelessWidget {
                     crossAxisCount: 3,
                     crossAxisSpacing: 20,
                     mainAxisSpacing: 20,
-                    childAspectRatio: 1.4,
+                    childAspectRatio: 1.8,
                   ),
                   itemCount: _apps.length,
                   itemBuilder: (context, i) => _AppCard(
