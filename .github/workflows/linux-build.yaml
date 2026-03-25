@@ -2,7 +2,7 @@ name: Miui Theme Editor Build Generation For linux
 
 on:
   push:
-    # tags: ["v*"]
+    tags: ["linux*"]
 
 permissions:
   contents: write
