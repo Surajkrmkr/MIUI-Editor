@@ -16,37 +16,11 @@ class WallpaperCardShimmer extends StatelessWidget {
       child: Shimmer.fromColors(
         baseColor: Colors.grey[300]!,
         highlightColor: Colors.grey[100]!,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image placeholder with 6:13 aspect ratio
-            AspectRatio(
-              aspectRatio: 6.0 / 13.0,
-              child: Container(
-                color: Colors.white,
-              ),
-            ),
-            // Info section
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: double.infinity,
-                    height: 12,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    width: 80,
-                    height: 10,
-                    color: Colors.white,
-                  ),
-                ],
-              ),
-            ),
-          ],
+        child: AspectRatio(
+          aspectRatio: 6.0 / 13.0,
+          child: Container(
+            color: Colors.white,
+          ),
         ),
       ),
     );
@@ -67,7 +41,7 @@ class WallpaperGridShimmer extends StatelessWidget {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
+        crossAxisCount: 5,
         mainAxisSpacing: 8,
         crossAxisSpacing: 8,
         childAspectRatio: 6.0 / 13.0,

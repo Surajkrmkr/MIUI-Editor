@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
-import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/pages/settings_page_updated.dart';
+import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/pages/settings_page.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/providers/wallpaper_providers.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/widgets/wallpaper_card.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/widgets/source_selector.dart';

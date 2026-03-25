@@ -17,7 +17,8 @@ class ExportButtons extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppTheme.cardDark : Colors.white;
-    final borderColor = isDark ? Colors.white.withAlpha(18) : Colors.black.withAlpha(15);
+    final borderColor =
+        isDark ? Colors.white.withAlpha(18) : Colors.black.withAlpha(15);
 
     return Container(
       width: 240,
@@ -54,7 +55,8 @@ class ExportButtons extends ConsumerWidget {
               if (tags.length < 6) ...[
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: scheme.errorContainer,
                     borderRadius: BorderRadius.circular(10),
@@ -79,7 +81,7 @@ class ExportButtons extends ConsumerWidget {
             sublabel: 'Export icons and modules',
             icon: exportState.isExported
                 ? Icons.check_circle_rounded
-                : Icons.android_rounded,
+                : Icons.format_paint_outlined,
             loading: exportState.isRunning,
             progress: exportState.progress,
             statusLabel: exportState.statusLabel,
@@ -93,7 +95,7 @@ class ExportButtons extends ConsumerWidget {
           _ExportButton(
             label: 'Lockscreen',
             sublabel: 'Open lockscreen editor',
-            icon: Icons.lock_rounded,
+            icon: Icons.wallpaper_rounded,
             loading: lsState.isCopyingDefaults,
             outlined: true,
             onPressed: () => _goLockscreen(context, ref),
@@ -106,8 +108,8 @@ class ExportButtons extends ConsumerWidget {
   Future<void> _goLockscreen(BuildContext context, WidgetRef ref) async {
     await ref.read(lockscreenProvider.notifier).copyDefaultPngs();
     if (context.mounted) {
-      Navigator.push(context,
-          MaterialPageRoute(builder: (_) => const LockscreenScreen()));
+      Navigator.push(
+          context, MaterialPageRoute(builder: (_) => const LockscreenScreen()));
     }
   }
 }
@@ -152,9 +154,8 @@ class _ExportButton extends StatelessWidget {
         : isSuccess
             ? scheme.onPrimaryContainer
             : scheme.onPrimary;
-    final iconBg = outlined
-        ? scheme.primaryContainer
-        : Colors.white.withAlpha(30);
+    final iconBg =
+        outlined ? scheme.primaryContainer : Colors.white.withAlpha(30);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -238,7 +239,11 @@ class _ExportButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
             child: Stack(
               children: [
-                Container(height: 4, color: isDark ? AppTheme.surfaceDark : const Color(0xFFF0F0F5)),
+                Container(
+                    height: 4,
+                    color: isDark
+                        ? AppTheme.surfaceDark
+                        : const Color(0xFFF0F0F5)),
                 FractionallySizedBox(
                   widthFactor: progress,
                   child: Container(

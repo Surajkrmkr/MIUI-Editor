@@ -24,7 +24,7 @@ class _CropImageDialogState extends State<CropImageDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: Colors.black,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
         height: MediaQuery.of(context).size.height * 0.9,
@@ -55,14 +55,15 @@ class _CropImageDialogState extends State<CropImageDialog> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.2),
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: Colors.blue, size: 16),
-                  SizedBox(width: 8),
-                  Expanded(
+                  Icon(Icons.info_outline,
+                      color: Theme.of(context).colorScheme.primary, size: 16),
+                  const SizedBox(width: 8),
+                  const Expanded(
                     child: Text(
                       'Drag corners to adjust crop area (6:13 phone ratio)',
                       style: TextStyle(color: Colors.white70, fontSize: 12),
@@ -109,15 +110,18 @@ class _CropImageDialogState extends State<CropImageDialog> {
                       },
                       aspectRatio: 6 / 13, // Phone wallpaper ratio
                       withCircleUi: false,
-                      baseColor: Colors.black,
-                      maskColor: Colors.black.withOpacity(0.5),
+                      baseColor: Theme.of(context).colorScheme.surface,
+                      maskColor: Theme.of(context)
+                          .colorScheme
+                          .surface
+                          .withOpacity(0.5),
                       radius: 0,
                       cornerDotBuilder: (size, edgeAlignment) {
                         return Container(
                           width: size,
                           height: size,
                           decoration: BoxDecoration(
-                            color: Colors.blue,
+                            color: Theme.of(context).colorScheme.primary,
                             border: Border.all(color: Colors.white, width: 2),
                             borderRadius: BorderRadius.circular(size / 2),
                           ),
@@ -156,7 +160,6 @@ class _CropImageDialogState extends State<CropImageDialog> {
                   icon: const Icon(Icons.crop),
                   label: const Text('Crop Image'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 32,

@@ -88,8 +88,8 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
         ref.watch(elementProvider.select((s) => s.hasSelection));
     final isActive = hasSelection && el.type == activeType;
     final n = ref.read(elementProvider.notifier);
-    final hw = AppConstants.screenHeight;
-    final ww = AppConstants.screenWidth;
+    const hw = AppConstants.screenHeight;
+    const ww = AppConstants.screenWidth;
 
     return Stack(
       children: [
@@ -142,16 +142,18 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
             onTap: () => n.setActive(el.type),
             onPanDown: (_) {
               n.setActive(el.type);
-              n.setGuideLines(el.type, true);
+              // n.setGuideLines(el.type, true);
+            },
+            onPanUpdate: (d) {
+              n.moveElement(el.type, d.delta.dx, d.delta.dy);
               setState(() => _isDragging = true);
             },
-            onPanUpdate: (d) => n.moveElement(el.type, d.delta.dx, d.delta.dy),
             onPanEnd: (_) {
-              n.setGuideLines(el.type, false);
+              // n.setGuideLines(el.type, false);
               setState(() => _isDragging = false);
             },
             child: AnimatedScale(
-              scale: _isDragging ? 1.04 : 1.0,
+              scale: _isDragging ? 1.1 : 1.0,
               duration: const Duration(milliseconds: 100),
               child: Transform.scale(
                 scale: el.scale,
@@ -163,12 +165,10 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
                     child: Align(
                       alignment: el.align,
                       child: MouseRegion(
-                        cursor: SystemMouseCursors.grab,
-                        child: _ElementHighlight(
-                          isActive: isSwipeUnlock ? false : isActive,
-                          isDragging: isSwipeUnlock ? false : _isDragging,
-                          child: _buildChild(el),
-                        ),
+                        cursor: _isDragging
+                            ? SystemMouseCursors.grabbing
+                            : SystemMouseCursors.grab,
+                        child: _buildChild(el),
                       ),
                     ),
                   ),
@@ -307,43 +307,40 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _ElementHighlight extends StatelessWidget {
-  const _ElementHighlight({
-    required this.isActive,
-    required this.isDragging,
-    required this.child,
-  });
+// class _ElementHighlight extends StatelessWidget {
+//   const _ElementHighlight({
+//     required this.isActive,
+//     required this.isDragging,
+//     required this.child,
+//   });
 
-  final bool isActive;
-  final bool isDragging;
-  final Widget child;
+//   final bool isActive;
+//   final bool isDragging;
+//   final Widget child;
 
-  @override
-  Widget build(BuildContext context) {
-    if (!isActive) return child;
+//   @override
+//   Widget build(BuildContext context) {
+//     if (!isActive) return child;
 
-    final primary = Theme.of(context).colorScheme.primary;
+//     final primary = Theme.of(context).colorScheme.primary;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: primary,
-          width: isDragging ? 2.0 : 1.5,
-        ),
-        boxShadow: isDragging
-            ? [
-                BoxShadow(
-                  color: primary.withAlpha(110),
-                  blurRadius: 16,
-                  spreadRadius: 3,
-                ),
-              ]
-            : null,
-      ),
-      child: child,
-    );
-  }
-}
+//     return AnimatedContainer(
+//       duration: const Duration(milliseconds: 150),
+//       padding: const EdgeInsets.all(4),
+//       decoration: BoxDecoration(
+//         borderRadius: BorderRadius.circular(6),
+//         boxShadow: isDragging
+//             ? [
+//                 BoxShadow(
+//                   color: primary.withAlpha(110),
+//                   blurStyle: BlurStyle.inner,
+//                   blurRadius: 24,
+//                   spreadRadius: 1,
+//                 )
+//               ]
+//             : null,
+//       ),
+//       child: child,
+//     );
+//   }
+// }

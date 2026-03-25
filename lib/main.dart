@@ -17,6 +17,9 @@ import 'theme_editor/presentation/providers/service_providers.dart';
 import 'image_utility/core/utils/windows.dart';
 import 'image_utility/core/router/app_router.dart';
 
+// ── Theme Deployment imports ──────────────────────────────────────────────────
+import 'theme_deployment/presentation/pages/deployment_page.dart';
+
 // =============================================================================
 
 void main() async {
@@ -327,21 +330,18 @@ class _ImageUtilityApp extends ConsumerWidget {
   }
 }
 
-// ── Themes Deployment ─────────────────────────────────────────────────────────────
+// ── Themes Deployment ─────────────────────────────────────────────────────────
 
-class _ThemeDeploymentApp extends ConsumerWidget {
+class _ThemeDeploymentApp extends StatelessWidget {
   const _ThemeDeploymentApp();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final router = ref.watch(routerProvider);
-    return MaterialApp.router(
-      title: 'Themes Deployment',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
-      routerConfig: router,
-    );
-  }
+  Widget build(BuildContext context) => MaterialApp(
+        title: 'Themes Deployment',
+        debugShowCheckedModeBanner: false,
+        themeMode: ThemeMode.dark,
+        theme: AppTheme.light(),
+        darkTheme: AppTheme.dark(),
+        home: const DeploymentPage(),
+      );
 }

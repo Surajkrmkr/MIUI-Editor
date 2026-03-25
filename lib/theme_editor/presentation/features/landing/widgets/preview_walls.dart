@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:miui_icon_generator/widgets/iphone_frame.dart';
 import '../../../providers/directory_provider.dart';
 
 class PreviewWallsPanel extends ConsumerStatefulWidget {
@@ -68,7 +69,8 @@ class _PreviewWallsPanelState extends ConsumerState<PreviewWallsPanel> {
                             scale: isActive ? 1.0 : 0.88,
                             duration: const Duration(milliseconds: 250),
                             curve: Curves.easeOut,
-                            child: _WallCard(path: paths[i]),
+                            child:
+                                IPhoneFrame(child: _WallCard(path: paths[i])),
                           );
                         },
                       ),
@@ -108,7 +110,6 @@ class _WallCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = path.split(Platform.pathSeparator).last;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
@@ -126,7 +127,7 @@ class _WallCard extends StatelessWidget {
       alignment: Alignment.bottomCenter,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(12, 40, 12, 12),
+        padding: const EdgeInsets.fromLTRB(12, 40, 12, 24),
         decoration: BoxDecoration(
           borderRadius:
               const BorderRadius.vertical(bottom: Radius.circular(24)),
@@ -137,7 +138,7 @@ class _WallCard extends StatelessWidget {
           ),
         ),
         child: Text(
-          name,
+          name.split(".").first,
           textAlign: TextAlign.center,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

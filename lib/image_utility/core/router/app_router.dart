@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/pages/home_page.dart';
-import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/pages/settings_page_updated.dart';
-import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/pages/wallpaper_detail_page_enhanced.dart';
+import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/pages/settings_page.dart';
+import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/pages/wallpaper_detail_page.dart';
 import 'package:miui_icon_generator/image_utility/features/image_generation/presentation/pages/image_generation_page.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/pages/bulk_download_page.dart';
 
