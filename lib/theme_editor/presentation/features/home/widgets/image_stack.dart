@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/widgets/iphone_frame.dart';
-import 'package:screenshot/screenshot.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../providers/wallpaper_provider.dart';
 import '../../icon_editor/widgets/icon_preview_on_phone.dart';
@@ -17,7 +16,6 @@ class ImageStack extends ConsumerStatefulWidget {
 }
 
 class _ImageStackState extends ConsumerState<ImageStack> {
-  final _screenshotCtrl = ScreenshotController();
 
   @override
   Widget build(BuildContext context) {

@@ -177,7 +177,7 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog>
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.settings_rounded, color: AppTheme.accent),
+                      const Icon(Icons.settings_rounded, color: AppTheme.accent),
                       const SizedBox(width: 12),
                       Text('Image Utility Settings',
                           style: Theme.of(context)

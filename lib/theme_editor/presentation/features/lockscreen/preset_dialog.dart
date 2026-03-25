@@ -1,8 +1,7 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/theme_editor/presentation/providers/directory_provider.dart';
-import 'package:miui_icon_generator/theme_editor/presentation/providers/lockscreen_provider.dart';
+import 'preset/preset_card.dart';
 
 class PresetDialog extends ConsumerStatefulWidget {
   const PresetDialog({super.key});
@@ -21,57 +20,105 @@ class _PresetDialogState extends ConsumerState<PresetDialog> {
   @override
   Widget build(BuildContext context) {
     final dirState = ref.watch(directoryProvider);
+    final size = MediaQuery.of(context).size;
+
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.7,
-        width: MediaQuery.of(context).size.width * 0.7,
-        child: Scaffold(
-          appBar: AppBar(title: const Text('Preset Collections')),
-          body: dirState.isLoadingPresets
-              ? const Center(child: CircularProgressIndicator())
-              : dirState.presetPaths.isEmpty
-                  ? const Center(child: Text('NO PRESET AVAILABLE'))
-                  : GridView.builder(
-                      padding: const EdgeInsets.all(20),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 6,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                      ),
-                      itemCount: dirState.presetPaths.length,
-                      itemBuilder: (_, i) {
-                        final path = dirState.presetPaths[i];
-                        final name = path.split(Platform.pathSeparator).last;
-                        return ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(20),
-                            onTap: () async {
-                              final jsonPath =
-                                  '$path${Platform.pathSeparator}preset.json';
-                              await ref
-                                  .read(lockscreenProvider.notifier)
-                                  .loadPreset(jsonPath);
-                              if (context.mounted) Navigator.pop(context);
-                            },
-                            child: Card(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .primaryContainer,
-                              margin: EdgeInsets.zero,
-                              child: Center(
-                                child: Text('Preset #${i + 1}\n$name',
-                                    textAlign: TextAlign.center),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+        height: size.height * 0.85,
+        width: size.width * 0.82,
+        child: Column(
+          children: [
+            _Header(),
+            const SizedBox(height: 4),
+            Expanded(
+              child: _Body(
+                isLoading: dirState.isLoadingPresets,
+                paths: dirState.presetPaths,
+              ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _Header extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 20, 16, 0),
+      child: Row(
+        children: [
+          Icon(Icons.style_rounded,
+              color: theme.colorScheme.primary, size: 22),
+          const SizedBox(width: 10),
+          Text(
+            'Preset Collections',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const Spacer(),
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.close_rounded),
+            tooltip: 'Close',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _Body extends StatelessWidget {
+  const _Body({required this.isLoading, required this.paths});
+
+  final bool isLoading;
+  final List<String> paths;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (paths.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.inbox_rounded,
+                size: 48,
+                color: Theme.of(context).colorScheme.onSurfaceVariant),
+            const SizedBox(height: 12),
+            Text(
+              'No presets available',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return GridView.builder(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 165,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        mainAxisExtent: 330,
+      ),
+      itemCount: paths.length,
+      itemBuilder: (_, i) => PresetCard(path: paths[i], index: i),
     );
   }
 }

@@ -351,8 +351,9 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
 
     if (sourceId != null) {
       final provider = _registry.getProvider(sourceId);
-      if (provider == null)
+      if (provider == null) {
         throw Exception('Provider not configured: $sourceId');
+      }
 
       return query != null && query.isNotEmpty
           ? await provider.searchImages(query: query, params: params)

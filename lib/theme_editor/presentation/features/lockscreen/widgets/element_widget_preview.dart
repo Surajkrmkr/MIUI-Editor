@@ -81,12 +81,6 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
   @override
   Widget build(BuildContext context) {
     final el = widget.el;
-    final isSwipeUnlock =
-        el.type == ElementType.swipeUpUnlock; // FIX: was el.type.swipeUpUnlock
-    final activeType = ref.watch(elementProvider.select((s) => s.activeType));
-    final hasSelection =
-        ref.watch(elementProvider.select((s) => s.hasSelection));
-    final isActive = hasSelection && el.type == activeType;
     final n = ref.read(elementProvider.notifier);
     const hw = AppConstants.screenHeight;
     const ww = AppConstants.screenWidth;

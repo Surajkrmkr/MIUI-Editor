@@ -13,7 +13,7 @@ class ShimmerGrid extends StatelessWidget {
         highlightColor: const Color(0xFF3E3E3E),
         child: GridView.builder(
           padding: const EdgeInsets.all(ThemeDefaults.paddingMd),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 5,
             mainAxisSpacing: ThemeDefaults.paddingSm,
             crossAxisSpacing: ThemeDefaults.paddingSm,

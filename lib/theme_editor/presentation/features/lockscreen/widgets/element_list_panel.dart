@@ -94,7 +94,7 @@ class ElementListPanel extends ConsumerWidget {
                             Container(
                               width: 18,
                               height: 18,
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: AppTheme.accent,
                                 shape: BoxShape.circle,
                               ),
@@ -113,18 +113,24 @@ class ElementListPanel extends ConsumerWidget {
                       ),
                       shape: RoundedRectangleBorder(
                         side: BorderSide(
-                            color: isDark ? Colors.white.withAlpha(18) : Colors.black.withAlpha(15),
+                            color: isDark
+                                ? Colors.white.withAlpha(18)
+                                : Colors.black.withAlpha(15),
                             width: 1.5),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       collapsedShape: RoundedRectangleBorder(
                         side: BorderSide(
-                            color: isDark ? Colors.white.withAlpha(18) : Colors.black.withAlpha(15),
+                            color: isDark
+                                ? Colors.white.withAlpha(18)
+                                : Colors.black.withAlpha(15),
                             width: 1.5),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      collapsedBackgroundColor: isDark ? AppTheme.cardDark : Colors.white,
-                      backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+                      collapsedBackgroundColor:
+                          isDark ? AppTheme.cardDark : Colors.white,
+                      backgroundColor:
+                          isDark ? AppTheme.cardDark : Colors.white,
                       children: entry.value.map((type) {
                         final added = state.contains(type);
                         return ListTile(
@@ -152,22 +158,18 @@ class ElementListPanel extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: added
-                                  ? FontWeight.w600
-                                  : FontWeight.normal,
-                              color: added
-                                  ? scheme.primary
-                                  : scheme.onSurface,
+                              fontWeight:
+                                  added ? FontWeight.w600 : FontWeight.normal,
+                              color: added ? scheme.primary : scheme.onSurface,
                             ),
                           ),
                           onTap: () {
                             if (!added) {
                               notifier.add(LockElement(
                                 type: type,
-                                colorSecondary:
-                                    type == ElementType.notification
-                                        ? Colors.white24
-                                        : Colors.white,
+                                colorSecondary: type == ElementType.notification
+                                    ? Colors.white24
+                                    : Colors.white,
                               ));
                             } else {
                               notifier.remove(type);

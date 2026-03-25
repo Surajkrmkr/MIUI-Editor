@@ -76,7 +76,8 @@ class _FolderWeekOptionsState extends ConsumerState<FolderWeekOptions> {
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: (dirState.preLockFolders.toList()..sort()).map((folder) {
+                  children:
+                      (dirState.preLockFolders.toList()..sort()).map((folder) {
                     final selected = folder == dirState.selectedFolder;
                     return ChoiceChip(
                       label: Text(folder),
@@ -108,7 +109,7 @@ class _FolderWeekOptionsState extends ConsumerState<FolderWeekOptions> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline_rounded,
+                    const Icon(Icons.info_outline_rounded,
                         size: 16, color: AppTheme.accent),
                     const SizedBox(width: 8),
                     Expanded(
@@ -130,7 +131,7 @@ class _FolderWeekOptionsState extends ConsumerState<FolderWeekOptions> {
             // ── Week number ─────────────────────────────────────────────────
             Row(
               children: [
-                Icon(Icons.calendar_today_rounded,
+                const Icon(Icons.calendar_today_rounded,
                     color: AppTheme.accent, size: 20),
                 const SizedBox(width: 8),
                 Text('Week Number',
@@ -152,8 +153,7 @@ class _FolderWeekOptionsState extends ConsumerState<FolderWeekOptions> {
                     textInputAction: TextInputAction.go,
                     decoration: const InputDecoration(
                       hintText: 'Enter week number…',
-                      prefixIcon:
-                          Icon(Icons.tag_rounded, size: 18),
+                      prefixIcon: Icon(Icons.tag_rounded, size: 18),
                     ),
                   ),
                 ),

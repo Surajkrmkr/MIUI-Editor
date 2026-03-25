@@ -18,8 +18,8 @@ class IconPreviewOnPhone extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final offset = AppConstants.iconGridPreviewOffset;
-    final count = AppConstants.iconGridPreviewCount;
+    const offset = AppConstants.iconGridPreviewOffset;
+    const count = AppConstants.iconGridPreviewCount;
     final shown = s.iconAssetsPath.skip(offset).take(count).toList();
 
     return Padding(

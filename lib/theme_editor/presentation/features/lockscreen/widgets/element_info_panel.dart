@@ -52,8 +52,7 @@ class ElementInfoPanel extends ConsumerWidget {
           children: [
             // Element title header
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: AppTheme.accent.withAlpha(30),
                 borderRadius: BorderRadius.circular(14),
@@ -62,7 +61,7 @@ class ElementInfoPanel extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.widgets_rounded,
+                  const Icon(Icons.widgets_rounded,
                       size: 16, color: AppTheme.accent),
                   const SizedBox(width: 8),
                   Expanded(
@@ -77,12 +76,12 @@ class ElementInfoPanel extends ConsumerWidget {
                   ),
                   // Reset + Delete
                   IconButton(
-                    icon: Icon(Icons.restart_alt_rounded,
+                    icon: const Icon(Icons.restart_alt_rounded,
                         size: 18, color: AppTheme.accent),
                     tooltip: 'Reset position',
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                        minWidth: 32, minHeight: 32),
+                    constraints:
+                        const BoxConstraints(minWidth: 32, minHeight: 32),
                     onPressed: () => n.resetPosition(el.type),
                   ),
                   IconButton(
@@ -90,8 +89,8 @@ class ElementInfoPanel extends ConsumerWidget {
                         size: 18, color: scheme.error),
                     tooltip: 'Remove',
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                        minWidth: 32, minHeight: 32),
+                    constraints:
+                        const BoxConstraints(minWidth: 32, minHeight: 32),
                     onPressed: () => n.remove(el.type),
                   ),
                 ],
@@ -265,10 +264,9 @@ class ElementInfoPanel extends ConsumerWidget {
               _Section(
                 title: 'TEXT / EXPRESSION',
                 child: TextField(
-                  controller:
-                      TextEditingController(text: el.text)
-                        ..selection = TextSelection.collapsed(
-                            offset: el.text.length),
+                  controller: TextEditingController(text: el.text)
+                    ..selection =
+                        TextSelection.collapsed(offset: el.text.length),
                   decoration: const InputDecoration(
                     hintText: 'Enter text or expression…',
                   ),
@@ -283,15 +281,14 @@ class ElementInfoPanel extends ConsumerWidget {
                 child: Row(
                   children: [
                     Expanded(
-                        child: _AlignChip(
-                            'Left', Alignment.centerLeft, el, n)),
+                        child: _AlignChip('Left', Alignment.centerLeft, el, n)),
                     const SizedBox(width: 6),
                     Expanded(
                         child: _AlignChip('Center', Alignment.center, el, n)),
                     const SizedBox(width: 6),
                     Expanded(
-                        child: _AlignChip(
-                            'Right', Alignment.centerRight, el, n)),
+                        child:
+                            _AlignChip('Right', Alignment.centerRight, el, n)),
                   ],
                 ),
               ),
@@ -345,7 +342,9 @@ class _Section extends StatelessWidget {
           color: isDark ? AppTheme.cardDark : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-              color: isDark ? Colors.white.withAlpha(18) : Colors.black.withAlpha(15)),
+              color: isDark
+                  ? Colors.white.withAlpha(18)
+                  : Colors.black.withAlpha(15)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -400,7 +399,10 @@ class _ColorBtn extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isDark ? Colors.white.withAlpha(18) : Colors.black.withAlpha(15)),
+          border: Border.all(
+              color: isDark
+                  ? Colors.white.withAlpha(18)
+                  : Colors.black.withAlpha(15)),
           boxShadow: [
             BoxShadow(
               color: color.withAlpha(70),
@@ -418,9 +420,7 @@ class _ColorBtn extends StatelessWidget {
               fontSize: 12,
               shadows: [
                 Shadow(
-                    color: Colors.black54,
-                    offset: Offset(0, 1),
-                    blurRadius: 2),
+                    color: Colors.black54, offset: Offset(0, 1), blurRadius: 2),
               ],
             ),
           ),
@@ -451,7 +451,9 @@ class _AlignChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected
               ? AppTheme.accent.withAlpha(30)
-              : isDark ? AppTheme.surfaceDark : const Color(0xFFF0F0F5),
+              : isDark
+                  ? AppTheme.surfaceDark
+                  : const Color(0xFFF0F0F5),
           borderRadius: BorderRadius.circular(10),
           border: selected
               ? Border.all(color: AppTheme.accent.withAlpha(120), width: 1.5)
@@ -489,8 +491,7 @@ class _ToggleRow extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Row(
       children: [
-        Text(label,
-            style: TextStyle(fontSize: 13, color: scheme.onSurface)),
+        Text(label, style: TextStyle(fontSize: 13, color: scheme.onSurface)),
         const Spacer(),
         Switch.adaptive(value: value, onChanged: onChanged),
       ],
@@ -598,8 +599,7 @@ class _NumFieldState extends State<_NumField> {
   Widget build(BuildContext context) => TextField(
         controller: _c,
         decoration: InputDecoration(labelText: widget.label),
-        keyboardType:
-            const TextInputType.numberWithOptions(signed: true),
+        keyboardType: const TextInputType.numberWithOptions(signed: true),
         onChanged: (v) {
           final d = double.tryParse(v);
           if (d != null) widget.onChanged(d);

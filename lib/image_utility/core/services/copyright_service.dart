@@ -29,10 +29,6 @@ class CopyrightService {
     final zipEncoder = ZipEncoder();
     final zipData = zipEncoder.encode(archive);
 
-    if (zipData == null) {
-      throw Exception('Failed to create zip file');
-    }
-
     // Write zip file
     final zipPath = path.join(outputPath, '$name.zip');
     final zipFile = File(zipPath);
@@ -63,10 +59,6 @@ class CopyrightService {
     // Encode archive
     final zipEncoder = ZipEncoder();
     final zipData = zipEncoder.encode(archive);
-
-    if (zipData == null) {
-      throw Exception('Failed to create batch zip file');
-    }
 
     // Write zip file
     final fileName = zipName ?? 'copyright_batch_${DateTime.now().millisecondsSinceEpoch}';

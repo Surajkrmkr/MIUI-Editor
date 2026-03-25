@@ -80,7 +80,7 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.tune_rounded, color: AppTheme.accent),
+                  const Icon(Icons.tune_rounded, color: AppTheme.accent),
                   const SizedBox(width: 12),
                   Text('Settings',
                       style: Theme.of(context)
