@@ -317,7 +317,9 @@ class ElementInfoPanel extends ConsumerWidget {
     final tp = PathConstants.themePath(ws.weekNum!, ws.currentThemeName!);
     final lsAdv = PathConstants.lockscreenAdvance(tp);
     final ext = el.type.isVideo ? 'mp4' : 'png';
-    final dest = '$lsAdv${el.path.isNotEmpty ? el.path : el.name}.$ext';
+    final resolvedPath = el.path.isNotEmpty ? el.path : el.type.defaultPath;
+    final relative = resolvedPath.startsWith(r'\') ? resolvedPath.substring(1) : resolvedPath;
+    final dest = PathConstants.p('$lsAdv$relative.$ext');
     await ref.read(fileServiceProvider).copyFile(src, dest);
     ref.read(elementProvider.notifier).setGuideLines(el.type, false);
   }

@@ -11,11 +11,11 @@ enum IconVariant {
 
 abstract final class AssetPaths {
   static String iconSvg(IconVariant v, String name) =>
-      'assets/icons/\${v.folder}/\$name.svg';
-  static String weatherIcon(int code) =>
-      'assets/lockscreen/weatherIcon/weather_\$code.png';
-  static String userAvatar(String name) => 'assets/users/\$name.png';
-  static String ninePatch(String name)  => 'assets/9pngs/\$name';
+      'assets/icons/${v.folder}/$name.svg';
+  static String weatherIcon(String code) =>
+      'assets/lockscreen/weatherIcon/weather_$code.png';
+  static String userAvatar(String name) => 'assets/users/$name.png';
+  static String ninePatch(String name)  => 'assets/9pngs/$name';
   static const String tagsJson = 'assets/tags/tags.json';
 
   static const List<int> weatherCodes = [0,1,2,3,4,7,12,13,18,22,24];

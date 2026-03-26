@@ -265,6 +265,14 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
             "<Path x='0' y='0' tolerance='2000'>"
             "<Position x='0' y='0'/><Position x='0' y='-#sh'/>"
             "</Path></EndPoint></Unlocker>";
+      case ElementType.tapToUnlock:
+        return "<Unlocker name='unlocker' visibility='not(#unlocker_v)'>"
+            "<StartPoint x='0' y='0' w='#sw' h='#sh' easeType='BounceEaseOut' easeTime='400'/>"
+            "<EndPoint x='0' y='-#sh' w='#sw' h='#sh - 400'>"
+            "<Path x='0' y='0' tolerance='2000'>"
+            "<Position x='0' y='0'/><Position x='0' y='-#sh'/>"
+            "</Path></EndPoint></Unlocker>";
+      case ElementType.slideToUnlock:
       default:
         return _dynamicXml(el);
     }
@@ -322,6 +330,35 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
           "</Button></Item></List>";
     }
 
+    if (el.type == ElementType.tapToUnlock) {
+      return "<Unlocker name='unlocker' visibility='not(#unlocker_v)' x='#sw/2+$dx' y='#sh/2+$dy'>"
+          "<StartPoint h='$h' w='$w' x='#touch_begin_x-50' y='#touch_begin_y-50'></StartPoint>"
+          "<EndPoint h='0' w='0' x='0' y='0'></EndPoint>"
+          "<Image align='center' alignV='center' alpha='255-75*#locks' scale='1.0' h='$h' w='$w' src='unlock/tap.png' x='#sw/2' y='#sh/2'/>"
+          "<Button align='center' alignV='center' h='$h' w='$w' visibility='eq(#state,0)*eq(#open,0)' x='#sw/2+$dx' y='#sh/2+$dy'>"
+          "<Triggers>"
+          "<Trigger action='down'> <VariableCommand expression='1' name='locks'/> </Trigger>"
+          "<Trigger action='up,cancel'> <VariableCommand expression='0' name='locks'/> </Trigger>"
+          "<Trigger action='up'> <ExternCommand command='unlock'/> </Trigger>"
+          "</Triggers>"
+          "</Button>"
+          "</Unlocker>";
+    }
+
+    if (el.type == ElementType.slideToUnlock) {
+      return "<Unlocker name='unlocker' alwaysShow='true' bounceAcceleration='4000' bounceInitSpeed='80' x='#sw/2+$dx' y='#sh/2+$dy'>"
+          "<Image align='center' src='unlock/slider_base.png' x='0' y='0-14'/>"
+          "<StartPoint h='201' w='240' x='80-#sw/2' y='0'>"
+          "<NormalState><Image src='unlock/unlock.png' x='60-#sw/2' y='0'/></NormalState>"
+          "<ReachedState><Image alpha='0' src='unlock/unlock.png' x='#sw/2-365' y='0'/></ReachedState>"
+          "</StartPoint>"
+          "<EndPoint h='201' w='600' x='#sw/2-620' y='0'>"
+          "<ReachedState><Image src='unlock/unlock.png' x='#sw/2-365' y='0'/></ReachedState>"
+          "<Path tolerance='300' x='-#sw/2' y='0'>"
+          "<Position x='80' y='0'/><Position x='#sw*0.8 - 25' y='0'/>"
+          "</Path></EndPoint></Unlocker>";
+    }
+
     if (el.type.isMusic) return _musicXml(el, w, h, dx, dy, ang);
     if (el.type.isIcon) return _iconXml(el, w, h, dx, dy, ang);
     return null;
@@ -367,6 +404,7 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
         "<Normal><Image align='center' alignV='center' src='${meta[0]}.png' w='$w' h='$h'/></Normal>"
         "<Triggers><Trigger action='up'>"
         "<IntentCommand action='android.intent.action.MAIN' package='${meta[1]}' class='${meta[2]}'>"
+        "${meta.length > 3 ? "<IntentCommand action='android.intent.action.MAIN' package='${meta[3]}' class='${meta[4]}'>" : ""}"
         "<Extra name='StartActivityWhenLocked' type='boolean' expression='1'/></IntentCommand>"
         "<ExternCommand command='unlock' condition='not(#set_lock)'/>"
         "</Trigger></Triggers></Button></Group>";
@@ -401,16 +439,22 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
     ElementType.dialerIcon: [
       'icon/dialer',
       'com.android.contacts',
-      'com.android.contacts.activities.TwelveKeyDialer'
+      'com.android.contacts.activities.TwelveKeyDialer',
+      'com.google.android.dialer',
+      'com.google.android.dialer.extensions.GoogleDialtactsActivity'
     ],
     ElementType.mmsIcon: [
       'icon/mms',
       'com.android.mms',
-      'com.android.mms.ui.MmsTabActivity'
+      'com.android.mms.ui.MmsTabActivity',
+      'com.google.android.apps.messaging',
+      'com.google.android.apps.messaging.ui.ConversationListActivity'
     ],
     ElementType.contactIcon: [
       'icon/contact',
       'com.android.contacts',
+      'com.android.contacts.activities.PeopleActivity',
+      'com.google.android.contacts',
       'com.android.contacts.activities.PeopleActivity'
     ],
     ElementType.whatsAppIcon: [

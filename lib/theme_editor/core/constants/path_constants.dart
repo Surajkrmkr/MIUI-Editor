@@ -68,5 +68,6 @@ abstract final class PathConstants {
     r'\icon\telegram', r'\icon\instagram', r'\icon\spotify',
     r'\music\bg', r'\music\next', r'\music\prev',
     r'\music\play', r'\music\pause',
+    r'\unlock\unlock', r'\unlock\slider', r'\unlock\tap',
   ];
 }

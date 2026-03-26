@@ -151,7 +151,7 @@ class ExportLockscreenPngsUseCase {
         return AssetPaths.weatherCodes
             .map((code) => _Frame(
                   widget: _phoneFrame(el,
-                      Image.asset(AssetPaths.weatherIcon(code), height: 40)),
+                      Image.asset(AssetPaths.weatherIcon(code.toString()), height: 40)),
                   path: PathConstants.p('${dir("weather")}weather_$code.png'),
                 ))
             .toList();

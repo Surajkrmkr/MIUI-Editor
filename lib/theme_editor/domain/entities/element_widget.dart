@@ -16,7 +16,7 @@ enum ElementType {
   cameraIcon, themeIcon, musicIcon, dialerIcon, mmsIcon,
   contactIcon, whatsAppIcon, telegramIcon, instagramIcon,
   spotifyIcon, settingIcon, galleryIcon,
-  swipeUpUnlock,
+  swipeUpUnlock, tapToUnlock, slideToUnlock
 }
 
 extension ElementTypeX on ElementType {
@@ -49,17 +49,34 @@ extension ElementTypeX on ElementType {
   }.contains(this);
   bool get isExportable => isClock || isContainer;
   bool get swipeUpUnlock => this == ElementType.swipeUpUnlock;
+
+  String get defaultPath => const {
+    ElementType.cameraIcon:    r'\icon\camera',
+    ElementType.galleryIcon:   r'\icon\gallery',
+    ElementType.settingIcon:   r'\icon\setting',
+    ElementType.themeIcon:     r'\icon\theme',
+    ElementType.musicIcon:     r'\icon\music',
+    ElementType.dialerIcon:    r'\icon\dialer',
+    ElementType.mmsIcon:       r'\icon\mms',
+    ElementType.contactIcon:   r'\icon\contact',
+    ElementType.whatsAppIcon:  r'\icon\whatsApp',
+    ElementType.telegramIcon:  r'\icon\telegram',
+    ElementType.instagramIcon: r'\icon\instagram',
+    ElementType.spotifyIcon:   r'\icon\spotify',
+    ElementType.musicBg:       r'\music\bg',
+    ElementType.musicNext:     r'\music\next',
+    ElementType.musicPrev:     r'\music\prev',
+    ElementType.musicPlay:     r'\music\play',
+    ElementType.musicPause:    r'\music\pause',
+    ElementType.swipeUpUnlock: r'\unlock\unlock',
+    ElementType.slideToUnlock: r'\unlock\slider',
+    ElementType.tapToUnlock:   r'\unlock\tap',
+  }[this] ?? '';
 }
 
 // ── Groups for UI panel ───────────────────────────────────────────────────────
 
 const Map<String, List<ElementType>> kElementGroups = {
-  'Container': [ElementType.containerBG1, ElementType.containerBG2,
-                ElementType.containerBG3, ElementType.containerBG4,
-                ElementType.containerBG5],
-  'PNG':       [ElementType.pngBG1, ElementType.pngBG2, ElementType.pngBG3,
-                ElementType.pngBG4, ElementType.pngBG5],
-  'Animation': [ElementType.videoWallpaper],
   'Clock':     [ElementType.hourClock, ElementType.minClock,
                 ElementType.dotClock,  ElementType.amPmClock,
                 ElementType.weekClock],
@@ -71,6 +88,12 @@ const Map<String, List<ElementType>> kElementGroups = {
   'Text':      [ElementType.normalText1, ElementType.normalText2,
                 ElementType.normalText3, ElementType.normalText4,
                 ElementType.normalText5],
+  'Container': [ElementType.containerBG1, ElementType.containerBG2,
+                ElementType.containerBG3, ElementType.containerBG4,
+                ElementType.containerBG5],
+  'PNG':       [ElementType.pngBG1, ElementType.pngBG2, ElementType.pngBG3,
+                ElementType.pngBG4, ElementType.pngBG5],
+  'Animation': [ElementType.videoWallpaper],
   'Music':     [ElementType.musicBg, ElementType.musicNext,
                 ElementType.musicPrev, ElementType.musicPlay,
                 ElementType.musicPause],
@@ -80,7 +103,7 @@ const Map<String, List<ElementType>> kElementGroups = {
                 ElementType.whatsAppIcon, ElementType.telegramIcon,
                 ElementType.instagramIcon, ElementType.spotifyIcon,
                 ElementType.settingIcon, ElementType.galleryIcon],
-  'Other':     [ElementType.swipeUpUnlock],
+  'Other':     [ElementType.swipeUpUnlock, ElementType.tapToUnlock, ElementType.slideToUnlock],
 };
 
 // ── Gradient type ─────────────────────────────────────────────────────────────

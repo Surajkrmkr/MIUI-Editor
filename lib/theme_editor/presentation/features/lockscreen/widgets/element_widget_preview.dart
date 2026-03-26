@@ -177,14 +177,40 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
 
   Widget _buildChild(LockElement el) {
     if (el.type == ElementType.swipeUpUnlock) return const SizedBox.shrink();
+    if (el.type == ElementType.weatherIconClock) {
+      return Image.asset(AssetPaths.weatherIcon("0"), height: 40);
+    }
     if (el.type.isClock) return _clock(el);
     if (el.type.isContainer) return _container(el);
     if (el.type == ElementType.notification) return _notification(el);
     if (el.type.isText) return _text(el);
-    if (el.type == ElementType.weatherIconClock) {
-      return Image.asset(AssetPaths.weatherIcon(0), height: 40);
+
+    // PNG / icon / music — try to load the image from disk
+    final resolvedPath = el.path.isNotEmpty ? el.path : el.type.defaultPath;
+    if (resolvedPath.isNotEmpty) {
+      final wallState = ref.read(wallpaperProvider);
+      final weekNum = wallState.weekNum ?? '1';
+      final themeName = wallState.currentThemeName ?? '';
+      if (themeName.isNotEmpty) {
+        final tp = PathConstants.themePath(weekNum, themeName);
+        final lsAdv = PathConstants.lockscreenAdvance(tp);
+        final relative = resolvedPath.startsWith(r'\')
+            ? resolvedPath.substring(1)
+            : resolvedPath;
+        final fullPath = PathConstants.p('$lsAdv$relative.png');
+        final file = File(fullPath);
+        if (file.existsSync()) {
+          return Image.memory(
+            file.readAsBytesSync(),
+            height: el.height / AppConstants.screenRatio,
+            width: el.width / AppConstants.screenRatio,
+            gaplessPlayback: true,
+          );
+        }
+      }
     }
-    // PNG / icon / music — placeholder box
+
+    // Fallback placeholder
     return Container(
       height: el.height / AppConstants.screenRatio,
       width: el.width / AppConstants.screenRatio,
@@ -214,7 +240,7 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
         colors: [el.color, el.colorSecondary],
       ),
       style: TextStyle(
-          fontFamily: el.font, fontSize: 60, height: 1, color: el.color),
+          fontFamily: el.font, fontSize: 30, height: 1, color: el.color),
     );
   }
 

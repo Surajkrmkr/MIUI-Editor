@@ -42,8 +42,8 @@ class _AppDropZoneState extends State<AppDropZone> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             color: _hovering
-                ? Theme.of(context).colorScheme.primaryContainer
-                : Theme.of(context).colorScheme.onPrimary,
+                ? Theme.of(context).colorScheme.onPrimaryContainer
+                : Theme.of(context).colorScheme.primaryContainer,
           ),
           alignment: Alignment.center,
           child: Text(widget.label,

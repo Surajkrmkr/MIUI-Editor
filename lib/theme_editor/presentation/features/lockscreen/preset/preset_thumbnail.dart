@@ -134,7 +134,7 @@ class _StaticElement extends StatelessWidget {
     if (el.type == ElementType.notification) return _notification();
     if (el.type.isText) return _text();
     if (el.type == ElementType.weatherIconClock) {
-      return Image.asset(AssetPaths.weatherIcon(0), height: 40);
+      return Image.asset(AssetPaths.weatherIcon("0"), height: 40);
     }
     // Icon / PNG / music — subtle placeholder
     return Container(
@@ -167,7 +167,7 @@ class _StaticElement extends StatelessWidget {
       ),
       style: TextStyle(
         fontFamily: el.font,
-        fontSize: 60,
+        fontSize: 30,
         height: 1,
         color: el.color,
       ),
