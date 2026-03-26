@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/domain/entities/wallpaper.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/providers/bulk_download_provider.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/providers/wallpaper_providers.dart';
+import 'package:miui_icon_generator/theme_editor/core/constants/app_constants.dart';
+import 'package:miui_icon_generator/widgets/iphone_frame.dart';
 
 class BulkDownloadPage extends ConsumerStatefulWidget {
   const BulkDownloadPage({super.key});
@@ -16,8 +18,18 @@ class BulkDownloadPage extends ConsumerStatefulWidget {
 class _BulkDownloadPageState extends ConsumerState<BulkDownloadPage> {
   static const _orientations = ['portrait', 'landscape', 'square'];
   static const _colors = [
-    'red', 'orange', 'yellow', 'green', 'turquoise', 'blue',
-    'violet', 'pink', 'brown', 'black', 'gray', 'white',
+    'red',
+    'orange',
+    'yellow',
+    'green',
+    'turquoise',
+    'blue',
+    'violet',
+    'pink',
+    'brown',
+    'black',
+    'gray',
+    'white',
   ];
 
   @override
@@ -198,7 +210,9 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
   }
 
   @override
-  Widget build(BuildContext context, ) {
+  Widget build(
+    BuildContext context,
+  ) {
     final state = ref.watch(bulkDownloadProvider);
     final sourcesAsync = ref.watch(availableSourcesProvider);
     final isFetching = state.isFetching;
@@ -232,25 +246,23 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                       children: [
                         Text(
                           'Bulk Download',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onPrimaryContainer,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onPrimaryContainer,
+                                  ),
                         ),
                         Text(
                           'Set criteria to fetch wallpapers',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onPrimaryContainer
-                                    .withValues(alpha: 0.7),
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onPrimaryContainer
+                                        .withValues(alpha: 0.7),
+                                  ),
                         ),
                       ],
                     ),
@@ -356,8 +368,9 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                             ),
                           ),
                         ],
-                        onChanged:
-                            isFetching ? null : (v) => setState(() => _selectedSource = v),
+                        onChanged: isFetching
+                            ? null
+                            : (v) => setState(() => _selectedSource = v),
                       ),
                       loading: () => const LinearProgressIndicator(),
                       error: (_, __) => const SizedBox.shrink(),
@@ -593,59 +606,58 @@ class _WallpaperSelectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: isReplacing ? null : () => onReplace(index),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+    return MouseRegion(
+      cursor:
+          isReplacing ? SystemMouseCursors.progress : SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: isReplacing ? null : () => onReplace(index),
         child: Stack(
-          fit: StackFit.expand,
+          alignment: Alignment.center,
           children: [
-            // Image
-            CachedNetworkImage(
-              imageUrl: wallpaper.smallUrl,
-              fit: BoxFit.cover,
-              placeholder: (_, __) => Container(
-                color: Colors.grey[300],
-                child: const Center(
-                    child: CircularProgressIndicator(strokeWidth: 2)),
-              ),
-              errorWidget: (_, __, ___) => Container(
-                color: Colors.grey[300],
-                child: const Icon(Icons.broken_image),
+            // ── iPhone frame ─────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: FittedBox(
+                fit: BoxFit.contain,
+                child: IPhoneFrame(
+                  child: CachedNetworkImage(
+                    imageUrl: wallpaper.originalUrl,
+                    fit: BoxFit.cover,
+                    width: AppConstants.screenWidth,
+                    height: AppConstants.screenHeight,
+                    placeholder: (_, __) => Container(
+                      color: Colors.grey[800],
+                      width: AppConstants.screenWidth,
+                      height: AppConstants.screenHeight,
+                      child: const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2)),
+                    ),
+                    errorWidget: (_, __, ___) => Container(
+                      color: Colors.grey[800],
+                      width: AppConstants.screenWidth,
+                      height: AppConstants.screenHeight,
+                      child: const Icon(Icons.broken_image),
+                    ),
+                  ),
+                ),
               ),
             ),
 
-            // Replace spinner overlay
+            // ── Replace spinner overlay ───────────────────────────────────────
             if (isReplacing)
-              Container(
-                color: Colors.black54,
-                child: const Center(
-                  child: CircularProgressIndicator(color: Colors.white),
-                ),
+              const Center(
+                child: CircularProgressIndicator(color: Colors.white),
               )
             else
-              // Hover/tap indicator overlay
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.4),
-                    ],
-                  ),
-                ),
-                alignment: Alignment.bottomCenter,
-                padding: const EdgeInsets.all(4),
-                child: const Icon(
-                  Icons.refresh,
-                  color: Colors.white70,
-                  size: 16,
-                ),
+              // ── Refresh icon hint ───────────────────────────────────────────
+              const Positioned(
+                bottom: 80,
+                child: CircleAvatar(
+                    child:
+                        Icon(Icons.refresh, color: Colors.white70, size: 16)),
               ),
 
-            // Index badge
+            // ── Index badge ───────────────────────────────────────────────────
             Positioned(
               top: 4,
               left: 4,
