@@ -147,7 +147,7 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
               setState(() => _isDragging = false);
             },
             child: AnimatedScale(
-              scale: _isDragging ? 1.1 : 1.0,
+              scale: _isDragging ? 1.05 : 1.0,
               duration: const Duration(milliseconds: 100),
               child: Transform.scale(
                 scale: el.scale,
@@ -240,7 +240,7 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
         colors: [el.color, el.colorSecondary],
       ),
       style: TextStyle(
-          fontFamily: el.font, fontSize: 30, height: 1, color: el.color),
+          fontFamily: el.font, fontSize: 35, height: 1, color: el.color),
     );
   }
 

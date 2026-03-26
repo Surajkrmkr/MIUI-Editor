@@ -123,18 +123,38 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
                   _ActionButton(
                     icon: Icons.auto_awesome_rounded,
                     label: 'AI Generate',
-                    onPressed:
-                        busy ? null : () => _showAiDialog(context, ref),
+                    onPressed: busy ? null : () => _showAiDialog(context, ref),
                     isPrimary: true,
                   ),
                   const SizedBox(height: 8),
                   _ActionButton(
                     icon: Icons.bookmark_rounded,
                     label: 'Save Preset',
-                    onPressed: () => ref
-                        .read(lockscreenProvider.notifier)
-                        .savePreset(
-                            DateTime.now().millisecondsSinceEpoch.toString()),
+                    onPressed: () async {
+                      final failure = await ref
+                          .read(lockscreenProvider.notifier)
+                          .savePreset(
+                              DateTime.now().millisecondsSinceEpoch.toString());
+                      if (!context.mounted) return;
+                      if (failure != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Save failed: ${failure.message}'),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(
+                            'Preset saved',
+                            style: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onPrimaryContainer),
+                          )),
+                        );
+                      }
+                    },
                   ),
                   const SizedBox(height: 8),
                   _ActionButton(
@@ -160,7 +180,15 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _ExportMainButton(state: s, onTap: () => _export(context, ref)),
+                    _DualVersionToggle(
+                      value: s.dualMtzExport,
+                      onChanged: (_) => ref
+                          .read(lockscreenProvider.notifier)
+                          .toggleDualMtzExport(),
+                    ),
+                    const SizedBox(height: 8),
+                    _ExportMainButton(
+                        state: s, onTap: () => _export(context, ref)),
                     if (s.isExportingPngs) ...[
                       const SizedBox(height: 8),
                       _GradientProgress(value: s.pngsProgress),
@@ -214,8 +242,7 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
   }
 
   Future<void> _export(BuildContext context, WidgetRef ref) async {
-    final failure =
-        await ref.read(lockscreenProvider.notifier).export(context);
+    final failure = await ref.read(lockscreenProvider.notifier).export(context);
     if (!context.mounted) return;
     if (failure != null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -223,18 +250,28 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lockscreen exported')),
+        SnackBar(
+            content: Text(
+          'Lockscreen exported',
+          style: TextStyle(
+              color: Theme.of(context).colorScheme.onPrimaryContainer),
+        )),
       );
     }
   }
 
   Future<void> _repackMtz(BuildContext context, WidgetRef ref) async {
+    final isDual = ref.read(lockscreenProvider.select((s) => s.dualMtzExport));
     final (path, failure) =
         await ref.read(lockscreenProvider.notifier).exportMtz();
     if (!context.mounted) return;
     if (failure != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('MTZ failed: ${failure.message}')),
+      );
+    } else if (isDual) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Exported HyperOS 1.0 & 3.0 MTZ to: $path')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -252,8 +289,8 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
         content: TextField(
           controller: ctrl,
           autofocus: true,
-          decoration: const InputDecoration(
-              hintText: 'Describe your lockscreen…'),
+          decoration:
+              const InputDecoration(hintText: 'Describe your lockscreen…'),
           maxLines: 3,
         ),
         actions: [
@@ -302,7 +339,9 @@ class _SectionCard extends StatelessWidget {
         color: isDark ? AppTheme.cardDark : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-            color: isDark ? Colors.white.withAlpha(18) : Colors.black.withAlpha(15)),
+            color: isDark
+                ? Colors.white.withAlpha(18)
+                : Colors.black.withAlpha(15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -451,6 +490,59 @@ class _GradientProgress extends StatelessWidget {
                 ),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Dual Version Toggle ───────────────────────────────────────────────────────
+
+class _DualVersionToggle extends StatelessWidget {
+  const _DualVersionToggle({required this.value, required this.onChanged});
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.surfaceDark : const Color(0xFFF0F0F5),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Both Versions',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: scheme.onSurface,
+                  ),
+                ),
+                Text(
+                  'HyperOS 1.0 & 3.0',
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: scheme.primary,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         ],
       ),

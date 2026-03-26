@@ -78,7 +78,7 @@ class PresetCard extends ConsumerWidget {
                   FilledButton(
                     onPressed: () => Navigator.pop(context, true),
                     style: FilledButton.styleFrom(
-                      backgroundColor: Colors.red,
+                      backgroundColor: Theme.of(context).colorScheme.error,
                     ),
                     child: const Text('Delete'),
                   ),

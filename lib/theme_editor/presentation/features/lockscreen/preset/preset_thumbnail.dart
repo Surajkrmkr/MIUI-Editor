@@ -167,7 +167,7 @@ class _StaticElement extends StatelessWidget {
       ),
       style: TextStyle(
         fontFamily: el.font,
-        fontSize: 30,
+        fontSize: 35,
         height: 1,
         color: el.color,
       ),

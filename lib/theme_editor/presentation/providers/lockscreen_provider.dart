@@ -16,12 +16,14 @@ class LockscreenState {
     this.isExportingPngs = false,
     this.isExported = false,
     this.isCopyingDefaults = false,
+    this.dualMtzExport = false,
     this.pngsDone = 0,
     this.pngsTotal = 0,
     this.error,
   });
 
   final bool isExporting, isExportingPngs, isExported, isCopyingDefaults;
+  final bool dualMtzExport;
   final int pngsDone, pngsTotal;
   final String? error;
 
@@ -36,6 +38,7 @@ class LockscreenState {
     isExportingPngs,
     isExported,
     isCopyingDefaults,
+    bool? dualMtzExport,
     int? pngsDone,
     pngsTotal,
     String? error,
@@ -45,6 +48,7 @@ class LockscreenState {
         isExportingPngs: isExportingPngs ?? this.isExportingPngs,
         isExported: isExported ?? this.isExported,
         isCopyingDefaults: isCopyingDefaults ?? this.isCopyingDefaults,
+        dualMtzExport: dualMtzExport ?? this.dualMtzExport,
         pngsDone: pngsDone ?? this.pngsDone,
         pngsTotal: pngsTotal ?? this.pngsTotal,
         error: error,
@@ -113,6 +117,7 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       final (_, mtzFailure) = await ref.read(exportMtzUseCaseProvider).call(
             themePath: tp,
             themeName: ws.currentThemeName!,
+            dualVersion: state.dualMtzExport,
           );
       if (mtzFailure != null) {
         // MTZ failure is non-fatal — XML + PNGs are still exported correctly.
@@ -175,6 +180,9 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
 
   // ── MTZ — delegates to use case ───────────────────────────────────────────
 
+  void toggleDualMtzExport() =>
+      state = state.copyWith(dualMtzExport: !state.dualMtzExport);
+
   Future<(String?, Failure?)> exportMtz() {
     final ws = ref.read(wallpaperProvider);
     if (ws.weekNum == null || ws.currentThemeName == null) {
@@ -184,6 +192,7 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
     return ref.read(exportMtzUseCaseProvider).call(
           themePath: tp,
           themeName: ws.currentThemeName!,
+          dualVersion: state.dualMtzExport,
         );
   }
 

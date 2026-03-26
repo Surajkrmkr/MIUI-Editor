@@ -318,7 +318,9 @@ class ElementInfoPanel extends ConsumerWidget {
     final lsAdv = PathConstants.lockscreenAdvance(tp);
     final ext = el.type.isVideo ? 'mp4' : 'png';
     final resolvedPath = el.path.isNotEmpty ? el.path : el.type.defaultPath;
-    final relative = resolvedPath.startsWith(r'\') ? resolvedPath.substring(1) : resolvedPath;
+    final relative = resolvedPath.startsWith(r'\')
+        ? resolvedPath.substring(1)
+        : resolvedPath;
     final dest = PathConstants.p('$lsAdv$relative.$ext');
     await ref.read(fileServiceProvider).copyFile(src, dest);
     ref.read(elementProvider.notifier).setGuideLines(el.type, false);
@@ -541,7 +543,7 @@ class _SliderRow extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                value.toStringAsFixed(0),
+                value.toStringAsFixed(2),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
