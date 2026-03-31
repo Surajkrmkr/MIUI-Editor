@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -424,6 +426,35 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                           : (v) => setState(() => _selectedColor = v),
                     ),
 
+                    const SizedBox(height: 16),
+                    // AI naming toggle
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('AI Naming'),
+                      subtitle: const Text(
+                          'Use Gemini to generate creative file names'),
+                      secondary: const Icon(Icons.auto_awesome_outlined),
+                      value: state.aiNamingEnabled,
+                      onChanged: isFetching
+                          ? null
+                          : (v) => ref
+                              .read(bulkDownloadProvider.notifier)
+                              .setAiNaming(v),
+                    ),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Auto Retry'),
+                      subtitle: const Text(
+                          'Automatically retry failed downloads (up to 3×)'),
+                      secondary: const Icon(Icons.replay_outlined),
+                      value: state.autoRetryEnabled,
+                      onChanged: isFetching
+                          ? null
+                          : (v) => ref
+                              .read(bulkDownloadProvider.notifier)
+                              .setAutoRetry(v),
+                    ),
+
                     if (fetchError != null) ...[
                       const SizedBox(height: 12),
                       Container(
@@ -620,24 +651,14 @@ class _WallpaperSelectionCard extends StatelessWidget {
               child: FittedBox(
                 fit: BoxFit.contain,
                 child: IPhoneFrame(
-                  child: CachedNetworkImage(
-                    imageUrl: wallpaper.originalUrl,
-                    fit: BoxFit.cover,
-                    width: AppConstants.screenWidth,
-                    height: AppConstants.screenHeight,
-                    placeholder: (_, __) => Container(
-                      color: Colors.grey[800],
-                      width: AppConstants.screenWidth,
-                      height: AppConstants.screenHeight,
-                      child: const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2)),
-                    ),
-                    errorWidget: (_, __, ___) => Container(
-                      color: Colors.grey[800],
-                      width: AppConstants.screenWidth,
-                      height: AppConstants.screenHeight,
-                      child: const Icon(Icons.broken_image),
-                    ),
+                  child: _DeferredImage(
+                    // Use mediumUrl (webformatURL ~640px) for previews — the
+                    // originalUrl (largeImageURL) is more tightly rate-limited
+                    // on Pixabay's CDN. Fall back to originalUrl if medium is empty.
+                    url: wallpaper.mediumUrl.isNotEmpty
+                        ? wallpaper.mediumUrl
+                        : wallpaper.originalUrl,
+                    index: index,
                   ),
                 ),
               ),
@@ -821,11 +842,13 @@ class _CompleteStep extends StatelessWidget {
     required this.onRename,
   });
 
-  void _showRenameDialog(BuildContext context, int index, String currentName) {
+  void _showRenameDialog(
+      BuildContext context, int index, String currentName, Wallpaper wallpaper) {
     showDialog<void>(
       context: context,
       builder: (_) => _RenameDialog(
         initialName: currentName,
+        wallpaper: wallpaper,
         onConfirm: (newName) => onRename(index, newName),
       ),
     );
@@ -935,6 +958,7 @@ class _CompleteStep extends StatelessWidget {
                                 context,
                                 index,
                                 result.downloadResult!.aiName,
+                                result.wallpaper,
                               ),
                             ),
                             const Icon(Icons.check_circle,
@@ -993,9 +1017,14 @@ class _CompleteStep extends StatelessWidget {
 
 class _RenameDialog extends StatefulWidget {
   final String initialName;
+  final Wallpaper wallpaper;
   final Future<void> Function(String newName) onConfirm;
 
-  const _RenameDialog({required this.initialName, required this.onConfirm});
+  const _RenameDialog({
+    required this.initialName,
+    required this.wallpaper,
+    required this.onConfirm,
+  });
 
   @override
   State<_RenameDialog> createState() => _RenameDialogState();
@@ -1045,16 +1074,43 @@ class _RenameDialogState extends State<_RenameDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Rename Wallpaper'),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        enabled: !_isLoading,
-        decoration: InputDecoration(
-          labelText: 'New name',
-          border: const OutlineInputBorder(),
-          errorText: _errorText,
-        ),
-        onSubmitted: (_) => _submit(),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Wallpaper preview
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: SizedBox(
+              width: double.infinity,
+              height: 200,
+              child: CachedNetworkImage(
+                imageUrl: widget.wallpaper.mediumUrl.isNotEmpty
+                    ? widget.wallpaper.mediumUrl
+                    : widget.wallpaper.originalUrl,
+                fit: BoxFit.cover,
+                placeholder: (_, __) => Container(
+                  color: Colors.grey[800],
+                  child: const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2)),
+                ),
+                errorWidget: (_, __, ___) =>
+                    Container(color: Colors.grey[800]),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            enabled: !_isLoading,
+            decoration: InputDecoration(
+              labelText: 'New name',
+              border: const OutlineInputBorder(),
+              errorText: _errorText,
+            ),
+            onSubmitted: (_) => _submit(),
+          ),
+        ],
       ),
       actions: [
         TextButton(
@@ -1072,6 +1128,77 @@ class _RenameDialogState extends State<_RenameDialog> {
               : const Text('Rename'),
         ),
       ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Staggered image loader (avoids 429 rate limits)
+// ─────────────────────────────────────────────
+
+/// Delays the CachedNetworkImage request by `(index ~/ 5) * 500 ms` so that
+/// at most 5 images are fired per 500 ms window instead of all 25 at once.
+class _DeferredImage extends StatefulWidget {
+  final String url;
+  final int index;
+
+  const _DeferredImage({required this.url, required this.index});
+
+  @override
+  State<_DeferredImage> createState() => _DeferredImageState();
+}
+
+class _DeferredImageState extends State<_DeferredImage> {
+  bool _ready = false;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    // 3 images per 800 ms window — conservative enough for Pixabay's CDN.
+    final delay = (widget.index ~/ 3) * 800;
+    if (delay == 0) {
+      _ready = true;
+    } else {
+      _timer = Timer(Duration(milliseconds: delay), () {
+        if (mounted) setState(() => _ready = true);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_ready) {
+      return Container(
+        color: Colors.grey[800],
+        width: AppConstants.screenWidth,
+        height: AppConstants.screenHeight,
+        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      );
+    }
+    return CachedNetworkImage(
+      imageUrl: widget.url,
+      fit: BoxFit.cover,
+      width: AppConstants.screenWidth,
+      height: AppConstants.screenHeight,
+      placeholder: (_, __) => Container(
+        color: Colors.grey[800],
+        width: AppConstants.screenWidth,
+        height: AppConstants.screenHeight,
+        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      ),
+      errorWidget: (_, __, ___) => Container(
+        color: Colors.grey[800],
+        width: AppConstants.screenWidth,
+        height: AppConstants.screenHeight,
+        child: const Icon(Icons.broken_image),
+      ),
     );
   }
 }

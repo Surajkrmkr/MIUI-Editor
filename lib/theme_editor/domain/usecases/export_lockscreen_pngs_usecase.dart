@@ -185,18 +185,24 @@ class ExportLockscreenPngsUseCase {
   // placed at (el.dx, el.dy) via a custom Stack — identical pixel output.
 
   Widget _phoneFrame(LockElement el, Widget child) {
-    return SizedBox(
-      height: AppConstants.screenHeight,
-      width: AppConstants.screenWidth,
-      // Transparent background — MIUI composites layers itself
-      child: Stack(
+    // Directionality is required because captureFromWidget uses an independent
+    // rendering pipeline (screenshot v3) that has no inherited widgets — without
+    // it, Text throws and the captured PNG is fully transparent.
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: SizedBox(
+        height: AppConstants.screenHeight,
+        width: AppConstants.screenWidth,
+        // Transparent background — MIUI composites layers itself
+        child: Stack(
         children: [
           Positioned(
             left: el.dx,
             top: el.dy,
             child: Transform.scale(
               scale: el.scale,
-              alignment: Alignment.topLeft,
+              // No alignment override — default Alignment.center matches the
+              // live preview's Transform.scale behaviour exactly.
               child: Transform.rotate(
                 angle: -el.angle * pi / 180,
                 child: SizedBox(
@@ -211,6 +217,7 @@ class ExportLockscreenPngsUseCase {
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -226,7 +233,7 @@ class ExportLockscreenPngsUseCase {
         ),
         style: TextStyle(
           fontFamily: el.font,
-          fontSize: 60,
+          fontSize: 35,
           height: 1,
           color: el.color,
         ),

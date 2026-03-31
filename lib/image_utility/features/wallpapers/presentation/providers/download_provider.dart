@@ -46,9 +46,12 @@ class DownloadService {
     required this.registry,
   });
 
-  /// Download and process wallpaper with AI naming and tagging
+  /// Download and process wallpaper with AI naming and tagging.
+  /// Set [aiNaming] to false to skip Gemini and use the fallback name instead.
   Future<DownloadResult> downloadAndProcessWallpaper(
-      Wallpaper wallpaper) async {
+    Wallpaper wallpaper, {
+    bool aiNaming = true,
+  }) async {
     // 1. Ensure paths exist
     await _ensurePathsExist();
 
@@ -67,7 +70,12 @@ class DownloadService {
     final tempImagePath = await _downloadOriginalImage(wallpaper);
 
     // 4. Generate AI metadata (name and tags)
-    final metadata = await _generateMetadata(wallpaper);
+    final metadata = aiNaming
+        ? await _generateMetadata(wallpaper)
+        : AIGeneratedMetadata(
+            name: _generateFallbackName(wallpaper),
+            tags: _selectFallbackTags(wallpaper, tagsService.getAllTags()),
+          );
 
     // 4b. Ensure the generated name is unique in the download path
     final uniqueName = await _ensureUniqueName(metadata.name);
@@ -122,23 +130,51 @@ class DownloadService {
   }
 
   Future<String> _downloadOriginalImage(Wallpaper wallpaper) async {
-    final response = await http.get(Uri.parse(wallpaper.originalUrl));
+    const maxRetries = 4;
+    // Backoff delays: 2s → 5s → 12s between attempts.
+    const backoffs = [
+      Duration(seconds: 2),
+      Duration(seconds: 5),
+      Duration(seconds: 12),
+    ];
 
-    if (response.statusCode != 200) {
+    for (int attempt = 0; attempt < maxRetries; attempt++) {
+      if (attempt > 0) {
+        await Future.delayed(backoffs[attempt - 1]);
+      }
+
+      final response = await http.get(Uri.parse(wallpaper.originalUrl));
+
+      if (response.statusCode == 200) {
+        final tempDir = Directory.systemTemp;
+        final tempPath = path.join(
+          tempDir.path,
+          'temp_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        );
+        await File(tempPath).writeAsBytes(response.bodyBytes);
+        return tempPath;
+      }
+
+      if (response.statusCode == 429) {
+        // Check for Retry-After header (seconds).
+        final retryAfter = response.headers['retry-after'];
+        if (retryAfter != null) {
+          final seconds = int.tryParse(retryAfter);
+          if (seconds != null && seconds > 0) {
+            await Future.delayed(Duration(seconds: seconds));
+          }
+        }
+        if (attempt == maxRetries - 1) {
+          throw Exception('Rate limited (429) after $maxRetries attempts');
+        }
+        // else: loop will sleep via backoffs on the next iteration.
+        continue;
+      }
+
       throw Exception('Failed to download image: ${response.statusCode}');
     }
 
-    // Save to temp location
-    final tempDir = Directory.systemTemp;
-    final tempPath = path.join(
-      tempDir.path,
-      'temp_${DateTime.now().millisecondsSinceEpoch}.jpg',
-    );
-
-    final tempFile = File(tempPath);
-    await tempFile.writeAsBytes(response.bodyBytes);
-
-    return tempPath;
+    throw Exception('Failed to download image after $maxRetries attempts');
   }
 
   Future<AIGeneratedMetadata> _generateMetadata(Wallpaper wallpaper) async {

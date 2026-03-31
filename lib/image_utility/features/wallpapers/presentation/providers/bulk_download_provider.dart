@@ -25,6 +25,13 @@ class BulkProcessResult {
 class BulkDownloadState {
   final BulkDownloadStep step;
   final int batchSize;
+  final bool aiNamingEnabled;
+  final bool autoRetryEnabled;
+  // Last search criteria — reused by replaceWallpaper so replacements match the query.
+  final String? lastQuery;
+  final String? lastSourceId;
+  final String? lastOrientation;
+  final String? lastColor;
   final List<Wallpaper> wallpapers;
   final Set<int> replacingIndices;
   final bool isFetching;
@@ -37,6 +44,12 @@ class BulkDownloadState {
   const BulkDownloadState({
     this.step = BulkDownloadStep.criteria,
     this.batchSize = 25,
+    this.aiNamingEnabled = true,
+    this.autoRetryEnabled = false,
+    this.lastQuery,
+    this.lastSourceId,
+    this.lastOrientation,
+    this.lastColor,
     this.wallpapers = const [],
     this.replacingIndices = const {},
     this.isFetching = false,
@@ -53,6 +66,12 @@ class BulkDownloadState {
   BulkDownloadState copyWith({
     BulkDownloadStep? step,
     int? batchSize,
+    bool? aiNamingEnabled,
+    bool? autoRetryEnabled,
+    String? lastQuery,
+    String? lastSourceId,
+    String? lastOrientation,
+    String? lastColor,
     List<Wallpaper>? wallpapers,
     Set<int>? replacingIndices,
     bool? isFetching,
@@ -68,6 +87,12 @@ class BulkDownloadState {
     return BulkDownloadState(
       step: step ?? this.step,
       batchSize: batchSize ?? this.batchSize,
+      aiNamingEnabled: aiNamingEnabled ?? this.aiNamingEnabled,
+      autoRetryEnabled: autoRetryEnabled ?? this.autoRetryEnabled,
+      lastQuery: lastQuery ?? this.lastQuery,
+      lastSourceId: lastSourceId ?? this.lastSourceId,
+      lastOrientation: lastOrientation ?? this.lastOrientation,
+      lastColor: lastColor ?? this.lastColor,
       wallpapers: wallpapers ?? this.wallpapers,
       replacingIndices: replacingIndices ?? this.replacingIndices,
       isFetching: isFetching ?? this.isFetching,
@@ -93,6 +118,14 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
 
   void setBatchSize(int size) {
     state = state.copyWith(batchSize: size);
+  }
+
+  void setAiNaming(bool enabled) {
+    state = state.copyWith(aiNamingEnabled: enabled);
+  }
+
+  void setAutoRetry(bool enabled) {
+    state = state.copyWith(autoRetryEnabled: enabled);
   }
 
   Future<void> _ensureRegistryInitialized() async {
@@ -144,6 +177,11 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
         wallpapers: displayed,
         isFetching: false,
         replacingIndices: {},
+        // Persist criteria so replaceWallpaper refetches from the same query.
+        lastQuery: query,
+        lastSourceId: sourceId,
+        lastOrientation: orientation,
+        lastColor: color,
       );
     } catch (e) {
       state = state.copyWith(
@@ -167,9 +205,15 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
       if (_reservoir.isNotEmpty) {
         replacement = _reservoir.removeAt(0);
       } else {
-        // Fetch more wallpapers
+        // Fetch more using the same criteria as the original search.
         await _ensureRegistryInitialized();
-        final more = await _fetchFromSources(perPage: 20);
+        final more = await _fetchFromSources(
+          query: state.lastQuery,
+          sourceId: state.lastSourceId,
+          orientation: state.lastOrientation,
+          color: state.lastColor,
+          perPage: 20,
+        );
         more.shuffle();
         if (more.isNotEmpty) {
           replacement = more.first;
@@ -219,7 +263,11 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
     final wallpapers = List<Wallpaper>.from(state.wallpapers);
     final results = <BulkProcessResult>[];
 
+    final aiNaming = state.aiNamingEnabled;
     for (int i = 0; i < wallpapers.length; i++) {
+      // Minimum gap between downloads to avoid hitting rate limits.
+      if (i > 0) await Future.delayed(const Duration(milliseconds: 800));
+
       final wallpaper = wallpapers[i];
       state = state.copyWith(
         processingIndex: i,
@@ -229,8 +277,9 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
       );
 
       try {
-        final result =
-            await downloadService.downloadAndProcessWallpaper(wallpaper);
+        final result = await downloadService.downloadAndProcessWallpaper(
+            wallpaper,
+            aiNaming: aiNaming);
         results.add(BulkProcessResult(
           wallpaper: wallpaper,
           success: true,
@@ -245,6 +294,54 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
       }
 
       state = state.copyWith(results: List.from(results));
+    }
+
+    // Auto-retry failed items if enabled
+    if (state.autoRetryEnabled) {
+      const maxAutoRetries = 3;
+      for (int attempt = 1; attempt <= maxAutoRetries; attempt++) {
+        final failedItems = results.where((r) => !r.success).toList();
+        if (failedItems.isEmpty) break;
+
+        for (int i = 0; i < failedItems.length; i++) {
+          if (i > 0) await Future.delayed(const Duration(milliseconds: 800));
+
+          final failed = failedItems[i];
+          final resultIndex =
+              results.indexWhere((r) => r.wallpaper.id == failed.wallpaper.id);
+
+          state = state.copyWith(
+            processingIndex: i,
+            currentWallpaper: failed.wallpaper,
+            processingStatus:
+                'Auto-retry $attempt/$maxAutoRetries: ${i + 1}/${failedItems.length}...',
+            results: List.from(results),
+          );
+
+          try {
+            final result = await downloadService.downloadAndProcessWallpaper(
+                failed.wallpaper,
+                aiNaming: aiNaming);
+            if (resultIndex >= 0) {
+              results[resultIndex] = BulkProcessResult(
+                wallpaper: failed.wallpaper,
+                success: true,
+                downloadResult: result,
+              );
+            }
+          } catch (e) {
+            if (resultIndex >= 0) {
+              results[resultIndex] = BulkProcessResult(
+                wallpaper: failed.wallpaper,
+                success: false,
+                error: e.toString(),
+              );
+            }
+          }
+
+          state = state.copyWith(results: List.from(results));
+        }
+      }
     }
 
     state = state.copyWith(
@@ -270,6 +367,8 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
     );
 
     for (int i = 0; i < failedResults.length; i++) {
+      if (i > 0) await Future.delayed(const Duration(milliseconds: 800));
+
       final failed = failedResults[i];
       final resultIndex =
           results.indexWhere((r) => r.wallpaper.id == failed.wallpaper.id);
@@ -281,8 +380,9 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
       );
 
       try {
-        final result =
-            await downloadService.downloadAndProcessWallpaper(failed.wallpaper);
+        final result = await downloadService.downloadAndProcessWallpaper(
+            failed.wallpaper,
+            aiNaming: state.aiNamingEnabled);
         if (resultIndex >= 0) {
           results[resultIndex] = BulkProcessResult(
             wallpaper: failed.wallpaper,

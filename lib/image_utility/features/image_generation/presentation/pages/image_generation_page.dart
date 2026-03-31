@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -18,10 +20,34 @@ class _ImageGenerationPageState extends ConsumerState<ImageGenerationPage> {
   String? _selectedStyle;
   bool _upscaleEnabled = true;
 
+  // Cooldown after a rate-limit error so the user doesn't hammer the API.
+  int _cooldownSeconds = 0;
+  Timer? _cooldownTimer;
+
+  static const _retryCooldown = 5; // seconds
+
   @override
   void dispose() {
+    _cooldownTimer?.cancel();
     _promptController.dispose();
     super.dispose();
+  }
+
+  void _startCooldown() {
+    _cooldownTimer?.cancel();
+    setState(() => _cooldownSeconds = _retryCooldown);
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) {
+        t.cancel();
+        return;
+      }
+      if (_cooldownSeconds <= 1) {
+        t.cancel();
+        setState(() => _cooldownSeconds = 0);
+      } else {
+        setState(() => _cooldownSeconds--);
+      }
+    });
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -63,7 +89,10 @@ class _ImageGenerationPageState extends ConsumerState<ImageGenerationPage> {
   }
 
   void _retry() {
+    final wasError =
+        ref.read(generationNotifierProvider).step == GenerationStep.error;
     ref.read(generationNotifierProvider.notifier).reset();
+    if (wasError) _startCooldown();
   }
 
   void _showSnack(String msg) =>
@@ -255,12 +284,18 @@ class _ImageGenerationPageState extends ConsumerState<ImageGenerationPage> {
             if (state.step == GenerationStep.idle ||
                 state.step == GenerationStep.error) ...[
               FilledButton.icon(
-                onPressed: _generatePreview,
-                icon: const Icon(Icons.auto_awesome),
-                label: const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 14),
-                  child:
-                      Text('Generate Preview', style: TextStyle(fontSize: 16)),
+                onPressed: _cooldownSeconds > 0 ? null : _generatePreview,
+                icon: _cooldownSeconds > 0
+                    ? const Icon(Icons.timer_outlined)
+                    : const Icon(Icons.auto_awesome),
+                label: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  child: Text(
+                    _cooldownSeconds > 0
+                        ? 'Please wait ${_cooldownSeconds}s…'
+                        : 'Generate Preview',
+                    style: const TextStyle(fontSize: 16),
+                  ),
                 ),
               ),
             ],

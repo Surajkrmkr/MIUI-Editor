@@ -53,8 +53,9 @@ class ExportIconsUseCase {
           ? editorState.bgColors
           : [editorState.bgColor, editorState.bgColor2];
 
+      final allIconNames = [...iconNames, ...extraIconList];
       int done = 0;
-      for (final name in iconNames) {
+      for (final name in allIconNames) {
         final bytes = await _renderIcon(
           name: name,
           profile: profile,
@@ -71,7 +72,7 @@ class ExportIconsUseCase {
         ]);
 
         done++;
-        onProgress(done, iconNames.length);
+        onProgress(done, allIconNames.length);
       }
 
       beforeImage?.dispose();
@@ -141,25 +142,28 @@ class ExportIconsUseCase {
       );
     }
 
-    // 2 ── Gradient background
-    final gradStart = state.bgGradStart as Alignment;
-    final gradEnd = state.bgGradEnd as Alignment;
-    final startOffset = Offset(
-      innerRect.left + (gradStart.x + 1) / 2 * innerRect.width,
-      innerRect.top + (gradStart.y + 1) / 2 * innerRect.height,
-    );
-    final endOffset = Offset(
-      innerRect.left + (gradEnd.x + 1) / 2 * innerRect.width,
-      innerRect.top + (gradEnd.y + 1) / 2 * innerRect.height,
-    );
-    final effectiveColors =
-        colors.length > 1 ? colors : [colors.first, colors.first];
+    // 2 ── Gradient background (skipped for icon_border — transparent inside)
+    if (!_skipBg(name)) {
+      final gradStart = state.bgGradStart as Alignment;
+      final gradEnd = state.bgGradEnd as Alignment;
+      final startOffset = Offset(
+        innerRect.left + (gradStart.x + 1) / 2 * innerRect.width,
+        innerRect.top + (gradStart.y + 1) / 2 * innerRect.height,
+      );
+      final endOffset = Offset(
+        innerRect.left + (gradEnd.x + 1) / 2 * innerRect.width,
+        innerRect.top + (gradEnd.y + 1) / 2 * innerRect.height,
+      );
+      final effectiveColors =
+          colors.length > 1 ? colors : [colors.first, colors.first];
 
-    canvas.drawRRect(
-      ui.RRect.fromRectAndRadius(innerRect, ui.Radius.circular(bgRadius)),
-      ui.Paint()
-        ..shader = ui.Gradient.linear(startOffset, endOffset, effectiveColors),
-    );
+      canvas.drawRRect(
+        ui.RRect.fromRectAndRadius(innerRect, ui.Radius.circular(bgRadius)),
+        ui.Paint()
+          ..shader =
+              ui.Gradient.linear(startOffset, endOffset, effectiveColors),
+      );
+    }
 
     // 3 ── Border stroke (drawn on top of the fill)
     if (borderWidth > 0) {
@@ -175,8 +179,10 @@ class ExportIconsUseCase {
       );
     }
 
-    // 4 ── SVG icon (skip for folder / mask / pattern / border icons)
-    if (!_isExtraIcon(name)) {
+    // 4 ── SVG icon
+    // Skipped for bg-only icons (folder/pattern) and border-only icon.
+    // icon_mask draws SVG but with a smaller margin (handled above via isIconMask).
+    if (!_skipSvg(name)) {
       final svgArea = innerRect.deflate(padding + borderWidth);
       final loader =
           SvgAssetLoader('assets/icons/${profile.iconFolder}/$name.svg');
@@ -225,14 +231,27 @@ class ExportIconsUseCase {
     return byteData!.buffer.asUint8List();
   }
 
-  static const _extraIcons = {
+  /// Extra icons appended to every export run (after the user's SVG icons).
+  static const extraIconList = [
     'icon_folder',
     'icon_folder_light',
     'icon_mask',
     'icon_pattern',
     'icon_border',
+  ];
+
+  // bg-only: draw gradient background but skip the SVG step.
+  static const _bgOnlyIcons = {
+    'icon_folder',
+    'icon_folder_light',
+    'icon_pattern',
+    'icon_mask'
   };
-  static bool _isExtraIcon(String name) => _extraIcons.contains(name);
+  // border-only: transparent inside — skip both BG fill and SVG.
+  static const _borderOnlyIcon = 'icon_border';
+  static bool _skipSvg(String name) =>
+      _bgOnlyIcons.contains(name) || name == _borderOnlyIcon;
+  static bool _skipBg(String name) => name == _borderOnlyIcon;
 
   // ── Transform config ───────────────────────────────────────────────────────
   static const String _transformConfigXml =

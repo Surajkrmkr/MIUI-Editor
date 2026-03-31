@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'user_profile_provider.dart';
+
 class IconEditorState {
   const IconEditorState({
     this.margin = 4,
@@ -104,10 +106,12 @@ class IconEditorNotifier extends Notifier<IconEditorState> {
       state = state.copyWith(iconAssetsPath: p);
 
   Future<void> loadIconAssets() async {
+    final profile = ref.read(activeUserProfileProvider);
+    final iconFolder = profile?.iconFolder ?? 'u1';
     final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
     final names = manifest
         .listAssets()
-        .where((k) => k.startsWith('assets/icons/u1/') && k.endsWith('.svg'))
+        .where((k) => k.startsWith('assets/icons/$iconFolder/') && k.endsWith('.svg'))
         .map((k) => k.split('/').last.replaceAll('.svg', ''))
         .toList();
     setIconAssetsPath(names);
