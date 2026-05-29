@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/core/theme/app_theme.dart';
+import '../../../domain/entities/user_profile.dart';
 import '../../../presentation/providers/font_provider.dart';
 import '../../../presentation/providers/element_provider.dart';
 
@@ -11,6 +12,7 @@ class FontListPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final fontsAsync = ref.watch(fontListProvider);
     final elState = ref.watch(elementProvider);
+    final selectedUser = ref.watch(fontUserSelectionProvider);
     final scheme = Theme.of(context).colorScheme;
     final activeFont = elState.active?.font;
 
@@ -21,7 +23,7 @@ class FontListPanel extends ConsumerWidget {
         children: [
           // Header
           Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: 8),
             child: Row(
               children: [
                 Container(
@@ -61,6 +63,62 @@ class FontListPanel extends ConsumerWidget {
                   ),
                 ],
               ],
+            ),
+          ),
+
+          // User dropdown
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Container(
+              height: 34,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHighest.withAlpha(120),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: scheme.outlineVariant.withAlpha(80),
+                  width: 1,
+                ),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<UserProfileType>(
+                  value: selectedUser,
+                  isExpanded: true,
+                  isDense: true,
+                  icon: Icon(Icons.expand_more_rounded,
+                      size: 16, color: scheme.onSurfaceVariant),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: scheme.onSurface,
+                  ),
+                  dropdownColor: scheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  items: kUserProfiles.entries.map((e) {
+                    return DropdownMenuItem<UserProfileType>(
+                      value: e.key,
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 10,
+                            backgroundImage:
+                                AssetImage(e.value.avatarAsset),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(e.value.displayName),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (type) {
+                    if (type != null) {
+                      ref
+                          .read(fontUserSelectionProvider.notifier)
+                          .select(type);
+                    }
+                  },
+                ),
+              ),
             ),
           ),
 
