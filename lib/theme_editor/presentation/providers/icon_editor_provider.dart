@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/entities/icon_effect.dart';
+import '../../domain/entities/icon_shape.dart';
+import '../../domain/entities/icon_texture.dart';
 import 'user_profile_provider.dart';
 
 class IconEditorState {
@@ -10,14 +13,14 @@ class IconEditorState {
     this.padding = 9,
     this.radius = 10,
     this.borderWidth = 2,
-    this.bgColor = Colors.pinkAccent,
-    this.bgColor2 = Colors.pinkAccent,
+    this.bgColor = const Color(0xFFFFC300),
+    this.bgColor2 = const Color(0xFFFFC300),
     this.bgGradStart = Alignment.topLeft,
     this.bgGradEnd = Alignment.bottomRight,
     this.iconColor = Colors.white,
     this.borderColor = const Color(0x4DFFFFFF),
-    this.accentColor = Colors.pinkAccent,
-    this.bgColors = const [Colors.pinkAccent],
+    this.accentColor = const Color(0xFFFFC300),
+    this.bgColors = const [Color(0xFFFFC300)],
     this.randomColors = false,
     this.beforeVectorPath = '',
     this.afterVectorPath = '',
@@ -25,6 +28,14 @@ class IconEditorState {
     this.isExporting = false,
     this.isExported = false,
     this.exportProgress = 0,
+    this.shape = IconShape.squircle,
+    this.effect = IconEffect.none,
+    this.texture = IconTexture.none,
+    this.effectIntensity = 0.6,
+    this.effectBlur = 20.0,
+    this.effectElevation = 4.0,
+    this.textureScale = 1.0,
+    this.textureOpacity = 0.3,
   });
 
   final double margin, padding, radius, borderWidth;
@@ -36,6 +47,11 @@ class IconEditorState {
   final List<dynamic> iconAssetsPath;
   final bool isExporting, isExported;
   final int exportProgress;
+  final IconShape shape;
+  final IconEffect effect;
+  final IconTexture texture;
+  final double effectIntensity, effectBlur, effectElevation;
+  final double textureScale, textureOpacity;
 
   IconEditorState copyWith({
     double? margin,
@@ -57,6 +73,14 @@ class IconEditorState {
     bool? isExporting,
     bool? isExported,
     int? exportProgress,
+    IconShape? shape,
+    IconEffect? effect,
+    IconTexture? texture,
+    double? effectIntensity,
+    double? effectBlur,
+    double? effectElevation,
+    double? textureScale,
+    double? textureOpacity,
   }) =>
       IconEditorState(
         margin: margin ?? this.margin,
@@ -78,6 +102,14 @@ class IconEditorState {
         isExporting: isExporting ?? this.isExporting,
         isExported: isExported ?? this.isExported,
         exportProgress: exportProgress ?? this.exportProgress,
+        shape: shape ?? this.shape,
+        effect: effect ?? this.effect,
+        texture: texture ?? this.texture,
+        effectIntensity: effectIntensity ?? this.effectIntensity,
+        effectBlur: effectBlur ?? this.effectBlur,
+        effectElevation: effectElevation ?? this.effectElevation,
+        textureScale: textureScale ?? this.textureScale,
+        textureOpacity: textureOpacity ?? this.textureOpacity,
       );
 }
 
@@ -104,6 +136,14 @@ class IconEditorNotifier extends Notifier<IconEditorState> {
   void setAfterVector(String p) => state = state.copyWith(afterVectorPath: p);
   void setIconAssetsPath(List<dynamic> p) =>
       state = state.copyWith(iconAssetsPath: p);
+  void setIconShape(IconShape s) => state = state.copyWith(shape: s);
+  void setIconEffect(IconEffect e) => state = state.copyWith(effect: e);
+  void setIconTexture(IconTexture t) => state = state.copyWith(texture: t);
+  void setEffectIntensity(double v) => state = state.copyWith(effectIntensity: v);
+  void setEffectBlur(double v) => state = state.copyWith(effectBlur: v);
+  void setEffectElevation(double v) => state = state.copyWith(effectElevation: v);
+  void setTextureScale(double v) => state = state.copyWith(textureScale: v);
+  void setTextureOpacity(double v) => state = state.copyWith(textureOpacity: v);
 
   Future<void> loadIconAssets() async {
     final profile = ref.read(activeUserProfileProvider);
@@ -111,7 +151,8 @@ class IconEditorNotifier extends Notifier<IconEditorState> {
     final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
     final names = manifest
         .listAssets()
-        .where((k) => k.startsWith('assets/icons/$iconFolder/') && k.endsWith('.svg'))
+        .where((k) =>
+            k.startsWith('assets/icons/$iconFolder/') && k.endsWith('.svg'))
         .map((k) => k.split('/').last.replaceAll('.svg', ''))
         .toList();
     setIconAssetsPath(names);

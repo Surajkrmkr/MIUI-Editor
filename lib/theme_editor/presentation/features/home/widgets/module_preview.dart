@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/core/theme/app_theme.dart';
 import '../../../providers/icon_editor_provider.dart';
+import '../../icon_editor/utils/icon_shape_utils.dart';
 
 class ModulePreview extends ConsumerWidget {
   const ModulePreview({super.key});
@@ -9,6 +10,7 @@ class ModulePreview extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final accent = ref.watch(iconEditorProvider).accentColor;
+    final state = ref.watch(iconEditorProvider);
     final scheme = Theme.of(context).colorScheme;
 
     return Column(
@@ -41,84 +43,111 @@ class ModulePreview extends ConsumerWidget {
           ),
         ),
 
-        // WiFi notification card
-        Container(
-          height: 72,
-          width: 230,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [accent, Color.alphaBlend(Colors.black.withAlpha(40), accent)],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: accent.withAlpha(90),
-                blurRadius: 14,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(35),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.wifi_rounded, color: Colors.white, size: 22),
+        Row(
+          children: [
+            // WiFi notification card
+            Container(
+              height: 72,
+              width: 230,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    accent,
+                    Color.alphaBlend(Colors.black.withAlpha(40), accent)
+                  ],
                 ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'MIUI Wifi',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: accent.withAlpha(90),
+                    blurRadius: 14,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: ShapeDecoration(
+                        color: Colors.white.withAlpha(35),
+                        shape: IconShapeUtils.getBorder(
+                          state.shape,
+                          state.radius,
+                          scale: 0.8, // Slightly smaller radius for nested icons
                         ),
                       ),
-                      SizedBox(height: 2),
-                      Text(
-                        'Connected · Secure',
-                        style: TextStyle(color: Colors.white70, fontSize: 10),
+                      child: const Icon(Icons.wifi_rounded,
+                          color: Colors.white, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'MIUI Wifi',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Connected · Secure',
+                            style: TextStyle(color: Colors.white70, fontSize: 10),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                        color: Colors.greenAccent,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
                 ),
-                Container(
-                  width: 7,
-                  height: 7,
-                  decoration: const BoxDecoration(
-                    color: Colors.greenAccent,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
 
-        const SizedBox(height: 16),
+            const SizedBox(width: 16),
 
-        // Quick action tiles
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _QuickAction(icon: Icons.call_rounded, label: 'Phone', color: accent),
-            const SizedBox(width: 16),
-            _QuickAction(icon: Icons.person_rounded, label: 'Contacts', color: accent),
-            const SizedBox(width: 16),
-            _QuickAction(icon: Icons.message_rounded, label: 'Messages', color: accent),
+            // Quick action tiles
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _QuickAction(
+                    icon: Icons.call_rounded,
+                    label: 'Phone',
+                    color: accent,
+                    state: state,
+                  ),
+                  _QuickAction(
+                    icon: Icons.person_rounded,
+                    label: 'Contacts',
+                    color: accent,
+                    state: state,
+                  ),
+                  _QuickAction(
+                    icon: Icons.message_rounded,
+                    label: 'Messages',
+                    color: accent,
+                    state: state,
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ],
@@ -131,11 +160,13 @@ class _QuickAction extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.color,
+    required this.state,
   });
 
   final IconData icon;
   final String label;
   final Color color;
+  final IconEditorState state;
 
   @override
   Widget build(BuildContext context) {
@@ -144,10 +175,15 @@ class _QuickAction extends StatelessWidget {
         Container(
           width: 50,
           height: 50,
-          decoration: BoxDecoration(
+          decoration: ShapeDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
+            shape: IconShapeUtils.getBorder(
+              state.shape,
+              state.radius,
+              borderWidth: state.borderWidth,
+              borderColor: state.borderColor.withAlpha(100),
+            ),
+            shadows: [
               BoxShadow(
                 color: color.withAlpha(90),
                 blurRadius: 10,

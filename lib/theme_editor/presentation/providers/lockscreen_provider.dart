@@ -1,19 +1,27 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:archive/archive_io.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/theme_editor/core/extensions/color_ext.dart';
+import 'package:screenshot/screenshot.dart';
 import 'package:xml/xml.dart';
 import '../../core/constants/path_constants.dart';
 import '../../core/errors/failures.dart';
 import '../../domain/entities/element_widget.dart';
+import '../features/lockscreen/widgets/element_widget_preview.dart';
 import 'element_provider.dart';
 import 'wallpaper_provider.dart';
+import 'directory_provider.dart';
 import 'service_providers.dart';
 import 'usecase_providers.dart';
+import '../../core/utils/svg_generator.dart';
 
 class LockscreenState {
   const LockscreenState({
     this.isExporting = false,
     this.isExportingPngs = false,
+    this.isTracing = false,
     this.isExported = false,
     this.isCopyingDefaults = false,
     this.dualMtzExport = false,
@@ -22,12 +30,12 @@ class LockscreenState {
     this.error,
   });
 
-  final bool isExporting, isExportingPngs, isExported, isCopyingDefaults;
+  final bool isExporting, isExportingPngs, isTracing, isExported, isCopyingDefaults;
   final bool dualMtzExport;
   final int pngsDone, pngsTotal;
   final String? error;
 
-  bool get isBusy => isExporting || isExportingPngs || isCopyingDefaults;
+  bool get isBusy => isExporting || isExportingPngs || isCopyingDefaults || isTracing;
 
   double get pngsProgress => pngsTotal == 0 ? 0 : pngsDone / pngsTotal;
 
@@ -35,17 +43,19 @@ class LockscreenState {
 
   LockscreenState copyWith({
     bool? isExporting,
-    isExportingPngs,
-    isExported,
-    isCopyingDefaults,
+    bool? isExportingPngs,
+    bool? isTracing,
+    bool? isExported,
+    bool? isCopyingDefaults,
     bool? dualMtzExport,
     int? pngsDone,
-    pngsTotal,
+    int? pngsTotal,
     String? error,
   }) =>
       LockscreenState(
         isExporting: isExporting ?? this.isExporting,
         isExportingPngs: isExportingPngs ?? this.isExportingPngs,
+        isTracing: isTracing ?? this.isTracing,
         isExported: isExported ?? this.isExported,
         isCopyingDefaults: isCopyingDefaults ?? this.isCopyingDefaults,
         dualMtzExport: dualMtzExport ?? this.dualMtzExport,
@@ -112,13 +122,13 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
         return pngFailure;
       }
 
-      // ── Step 3: auto-pack MTZ ─────────────────────────────────────────────
+      // ── Step 2.5: Generate layered SVG ────────────────────────────────────
+      await generateLayeredSvg();
+
+      // ── Step 3: auto-pack MTZ and save preset ─────────────────────────────
       // No extra button tap — the full theme is ready, so zip it immediately.
-      final (_, mtzFailure) = await ref.read(exportMtzUseCaseProvider).call(
-            themePath: tp,
-            themeName: ws.currentThemeName!,
-            dualVersion: state.dualMtzExport,
-          );
+      final (_, mtzFailure) = await exportMtz(context);
+      
       if (mtzFailure != null) {
         // MTZ failure is non-fatal — XML + PNGs are still exported correctly.
         // Surface it as a warning rather than aborting.
@@ -162,11 +172,120 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
     return failure;
   }
 
+  // ── Generate Layered SVG ───────────────────────────────────────────────────
+
+  Future<void> generateLayeredSvg() async {
+    state = state.copyWith(isTracing: true, error: null);
+    try {
+      final ws = ref.read(wallpaperProvider);
+      if (ws.weekNum == null ||
+          ws.currentThemeName == null ||
+          ws.currentPath == null) {
+        state = state.copyWith(
+            isTracing: false, error: 'No active theme or wallpaper selected');
+        return;
+      }
+
+      // The original wallpaper path (e.g. E:\Xiaomi Contract\Wall\1\image.jpg)
+      final sourceWallPath = ws.currentPath!;
+
+      // Save SVG folder: E:\Xiaomi Contract\svg\<FolderNum>\
+      final svgFolder =
+          '${PathConstants.basePath}svg${PathConstants.sep}${ws.folderNum}${PathConstants.sep}';
+      final fs = ref.read(fileServiceProvider);
+
+      await fs.createDir(svgFolder);
+
+      if (!(await fs.exists(sourceWallPath))) {
+        state = state.copyWith(
+            isTracing: false, error: 'Source wallpaper not found');
+        return;
+      }
+
+      // Final SVG path (e.g. E:\Xiaomi Contract\svg\1\wallpaper1.svg)
+      final finalPath = '$svgFolder${ws.currentThemeName}.svg';
+      final tracedSvgPath = '${svgFolder}temp_trace.svg';
+
+      // Locate vtracer.exe (Project Root)
+      String vtracerPath = PathConstants.p(
+          '${Directory.current.path}${PathConstants.sep}vtracer.exe');
+      if (!File(vtracerPath).existsSync()) {
+        vtracerPath = 'vtracer.exe'; // Try PATH as fallback
+      }
+
+      debugPrint('Executing vtracer on source: $sourceWallPath');
+
+      final result = await Process.run(vtracerPath, [
+        '--input',
+        sourceWallPath,
+        '--output',
+        tracedSvgPath,
+        '--preset',
+        'photo',
+        '--mode',
+        'spline',
+        '--hierarchical',
+        'stacked'
+      ]);
+
+      if (result.exitCode != 0) {
+        final err = result.stderr.toString();
+        debugPrint('vtracer failed: $err');
+        state = state.copyWith(
+            isTracing: false, error: 'vtracer failed: $err');
+        return;
+      }
+
+      if (!(await fs.exists(tracedSvgPath))) {
+        state = state.copyWith(
+            isTracing: false, error: 'vtracer did not produce output');
+        return;
+      }
+
+      final tracedContent = await fs.readString(tracedSvgPath);
+      if (tracedContent.isEmpty) {
+        state = state.copyWith(isTracing: false, error: 'Traced SVG is empty');
+      } else {
+        await fs.writeString(finalPath, tracedContent);
+
+        // ── Create ZIP file ──────────────────────────────────────────────────
+        try {
+          final archive = Archive();
+          final svgBytes = await File(finalPath).readAsBytes();
+          archive.addFile(ArchiveFile(
+            '${ws.currentThemeName}.svg',
+            svgBytes.length,
+            svgBytes,
+          ));
+          final zipBytes = ZipEncoder().encode(archive);
+          if (zipBytes != null) {
+            final zipPath = '$svgFolder${ws.currentThemeName}.zip';
+            await File(zipPath).writeAsBytes(zipBytes);
+            debugPrint('Generated ZIP at: $zipPath');
+          }
+        } catch (e) {
+          debugPrint('Error creating ZIP: $e');
+        }
+
+        state = state.copyWith(isTracing: false, error: null);
+        debugPrint('Generated traced wallpaper at: $finalPath');
+      }
+
+      // Cleanup temporary file
+      if (await fs.exists(tracedSvgPath)) {
+        await File(tracedSvgPath).delete();
+      }
+    } catch (e) {
+      state = state.copyWith(isTracing: false, error: 'SVG Error: $e');
+      debugPrint('Error generating SVG: $e');
+    }
+  }
+
   // ── Preset — delegates to use cases ──────────────────────────────────────
 
-  Future<Failure?> savePreset(String name) => ref
+  Future<Failure?> savePreset(String name, {Uint8List? previewBytes}) => ref
       .read(savePresetUseCaseProvider)
-      .call(name, ref.read(elementProvider).elements);
+      .call(name, ref.read(elementProvider).elements, previewBytes: previewBytes);
 
   Future<Failure?> loadPreset(String jsonPath) async {
     final (elements, failure) =
@@ -183,12 +302,34 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
   void toggleDualMtzExport() =>
       state = state.copyWith(dualMtzExport: !state.dualMtzExport);
 
-  Future<(String?, Failure?)> exportMtz() {
+  Future<(String?, Failure?)> exportMtz(BuildContext context) async {
     final ws = ref.read(wallpaperProvider);
     if (ws.weekNum == null || ws.currentThemeName == null) {
-      return Future.value((null, const ValidationFailure('No active theme')));
+      return (null, const ValidationFailure('No active theme'));
     }
     final tp = PathConstants.themePath(ws.weekNum!, ws.currentThemeName!);
+
+    // ── Auto-save preset with preview ───────────────────────────────────────
+    try {
+      final container = ProviderScope.containerOf(context);
+      final bytes = await ScreenshotController().captureFromWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const Directionality(
+            textDirection: TextDirection.ltr,
+            child: ElementWidgetPreview(),
+          ),
+        ),
+        context: context,
+        pixelRatio: 1,
+      );
+      await savePreset(ws.currentThemeName!, previewBytes: bytes);
+      // Refresh preset paths so the new one appears in Load Presets immediately
+      ref.read(directoryProvider.notifier).loadPresetPaths();
+    } catch (e) {
+      debugPrint('Auto-save preset failed: $e');
+    }
+
     return ref.read(exportMtzUseCaseProvider).call(
           themePath: tp,
           themeName: ws.currentThemeName!,

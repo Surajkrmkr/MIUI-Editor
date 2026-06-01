@@ -1,0 +1,35 @@
+enum IconTexture {
+  none,
+  leather,
+  paper,
+  metal,
+  carbonFiber,
+  wood,
+  granite,
+  jeans,
+  velvet,
+  rust,
+  concrete,
+  silk,
+  frostedGlass,
+  marble,
+  fabric;
+
+  String get label => switch (this) {
+        none => 'None',
+        leather => 'Leather',
+        paper => 'Paper',
+        metal => 'Metal',
+        carbonFiber => 'Carbon',
+        wood => 'Wood',
+        granite => 'Granite',
+        jeans => 'Jeans',
+        velvet => 'Velvet',
+        rust => 'Rust',
+        concrete => 'Concrete',
+        silk => 'Silk',
+        frostedGlass => 'Glass',
+        marble => 'Marble',
+        fabric => 'Fabric',
+      };
+}

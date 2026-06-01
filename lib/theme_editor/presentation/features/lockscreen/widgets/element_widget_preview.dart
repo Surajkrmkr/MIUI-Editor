@@ -20,6 +20,7 @@ class ElementWidgetPreview extends ConsumerWidget {
     final wallState = ref.watch(wallpaperProvider);
     final weekNum = wallState.weekNum ?? '1';
     final themeName = wallState.currentThemeName ?? '';
+    final currentWallPath = wallState.currentPath;
 
     String? bgPath, videoPath;
     if (themeName.isNotEmpty) {
@@ -29,6 +30,8 @@ class ElementWidgetPreview extends ConsumerWidget {
       videoPath = PathConstants.p('${lsAdv}video.mp4');
     }
     final hasBg = bgPath != null && File(bgPath).existsSync();
+    final hasCurrentWall =
+        currentWallPath != null && File(currentWallPath).existsSync();
     final hasVideo = videoPath != null && File(videoPath).existsSync();
 
     return Container(
@@ -39,7 +42,28 @@ class ElementWidgetPreview extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         child: Stack(
           children: [
-            // Tap empty space → deselect
+            // 1. Wallpaper (Current selected or exported bg.png)
+            if (hasBg)
+              Image.memory(
+                File(bgPath).readAsBytesSync(),
+                gaplessPlayback: true,
+                fit: BoxFit.cover,
+                width: AppConstants.screenWidth,
+                height: AppConstants.screenHeight,
+              )
+            else if (hasCurrentWall)
+              Image.file(
+                File(currentWallPath),
+                gaplessPlayback: true,
+                fit: BoxFit.cover,
+                width: AppConstants.screenWidth,
+                height: AppConstants.screenHeight,
+              ),
+
+            // 2. Video layer
+            if (hasVideo) VideoWallpaperWidget(path: videoPath),
+
+            // 3. Darken overlay (tap to deselect)
             GestureDetector(
               onTap: () => ref.read(elementProvider.notifier).deselect(),
               child: Container(
@@ -48,16 +72,11 @@ class ElementWidgetPreview extends ConsumerWidget {
                 color: Colors.black.withAlpha((els.bgAlpha * 255).round()),
               ),
             ),
-            if (hasBg)
-              Image.memory(
-                File(bgPath).readAsBytesSync(),
-                gaplessPlayback: true,
-                fit: BoxFit.cover,
-                width: AppConstants.screenWidth,
-                height: AppConstants.screenHeight,
-              ),
-            if (hasVideo) VideoWallpaperWidget(path: videoPath),
-            ...els.elements.map((el) => _DraggableElement(el: el)),
+
+            // 4. Elements
+            ...els.elements
+                .where((el) => el.isVisible)
+                .map((el) => _DraggableElement(el: el)),
           ],
         ),
       ),
@@ -134,15 +153,15 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
           top: el.dy,
           child: GestureDetector(
             onTap: () => n.setActive(el.type),
-            onPanDown: (_) {
+            onPanDown: el.isLocked ? null : (_) {
               n.setActive(el.type);
               // n.setGuideLines(el.type, true);
             },
-            onPanUpdate: (d) {
+            onPanUpdate: el.isLocked ? null : (d) {
               n.moveElement(el.type, d.delta.dx, d.delta.dy);
               setState(() => _isDragging = true);
             },
-            onPanEnd: (_) {
+            onPanEnd: el.isLocked ? null : (_) {
               // n.setGuideLines(el.type, false);
               setState(() => _isDragging = false);
             },
@@ -159,9 +178,11 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
                     child: Align(
                       alignment: el.align,
                       child: MouseRegion(
-                        cursor: _isDragging
-                            ? SystemMouseCursors.grabbing
-                            : SystemMouseCursors.grab,
+                        cursor: el.isLocked 
+                            ? SystemMouseCursors.basic
+                            : _isDragging
+                                ? SystemMouseCursors.grabbing
+                                : SystemMouseCursors.grab,
                         child: _buildChild(el),
                       ),
                     ),
@@ -238,6 +259,7 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
         begin: el.gradStartAlign as Alignment,
         end: el.gradEndAlign as Alignment,
         colors: [el.color, el.colorSecondary],
+        stops: const [0.0, 1.0],
       ),
       style: TextStyle(
           fontFamily: el.font, fontSize: 35, height: 1, color: el.color),
@@ -272,7 +294,7 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
             margin: const EdgeInsets.only(left: 8),
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.pinkAccent,
+              color: const Color(0xFFFFC300),
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(Icons.android, size: 14),

@@ -2,7 +2,9 @@ import 'package:dynamic_cached_fonts/dynamic_cached_fonts.dart';
 
 class FontEntry {
   FontEntry({required this.id, required this.name, required this.url})
-      : dynamicFont = DynamicCachedFonts(fontFamily: name, url: url)..load();
+      : dynamicFont = DynamicCachedFonts(fontFamily: name, url: url) {
+    _loadSafely();
+  }
 
   final int id;
   final String name;
@@ -10,6 +12,15 @@ class FontEntry {
   final DynamicCachedFonts dynamicFont;
 
   String get fontFamily => dynamicFont.fontFamily;
+
+  void _loadSafely() async {
+    try {
+      await dynamicFont.load();
+    } catch (e) {
+      // Catching errors to prevent 404s or network issues from crashing the app
+      print('Font loading failed for $name ($url): $e');
+    }
+  }
 
   factory FontEntry.fromJson(Map<String, dynamic> j) =>
       FontEntry(id: j['id'] as int, name: j['name'] as String, url: j['url'] as String);

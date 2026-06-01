@@ -203,7 +203,7 @@ class _StaticElement extends StatelessWidget {
               margin: const EdgeInsets.only(left: 8),
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.pinkAccent,
+                color: const Color(0xFFFFC300),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(Icons.android, size: 14),

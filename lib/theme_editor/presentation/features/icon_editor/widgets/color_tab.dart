@@ -10,16 +10,16 @@ class ColorTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? AppTheme.cardDark : Colors.white;
-    final sectionBg = isDark ? AppTheme.surfaceDark : const Color(0xFFF0F0F5);
-    final borderColor = isDark ? Colors.white.withAlpha(18) : Colors.black.withAlpha(15);
+    
+    const cardBg = AppTheme.proCard;
+    const sectionBg = AppTheme.proSidebar;
+    const borderColor = Colors.black;
 
     return DefaultTabController(
       length: 4,
       child: SizedBox(
         height: 560,
-        width: 500,
+        width: 450,
         child: Column(
           children: [
             // Custom tab bar header
@@ -73,19 +73,19 @@ class ColorTab extends ConsumerWidget {
                       ],
                       dividerColor: Colors.transparent,
                       indicator: BoxDecoration(
-                        color: scheme.primaryContainer,
+                        color: AppTheme.accent,
                         borderRadius: BorderRadius.circular(9),
                       ),
                       indicatorSize: TabBarIndicatorSize.tab,
-                      labelColor: scheme.onPrimaryContainer,
-                      unselectedLabelColor: scheme.onSurfaceVariant,
+                      labelColor: Colors.white,
+                      unselectedLabelColor: Colors.white38,
                       labelStyle: const TextStyle(
                         fontWeight: FontWeight.w700,
-                        fontSize: 12,
+                        fontSize: 10,
                       ),
                       unselectedLabelStyle: const TextStyle(
                         fontWeight: FontWeight.w500,
-                        fontSize: 12,
+                        fontSize: 10,
                       ),
                       overlayColor:
                           WidgetStateProperty.all(Colors.transparent),

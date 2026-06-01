@@ -69,6 +69,14 @@ class ElementNotifier extends Notifier<ElementState> {
     );
   }
 
+  void reorder(int oldIndex, int newIndex) {
+    if (newIndex > oldIndex) newIndex -= 1;
+    final items = [...state.elements];
+    final item = items.removeAt(oldIndex);
+    items.insert(newIndex, item);
+    state = state.copyWith(elements: items);
+  }
+
   void setActive(ElementType t) =>
       state = state.copyWith(activeType: t, hasSelection: true);
 
@@ -122,6 +130,14 @@ class ElementNotifier extends Notifier<ElementState> {
       update(t, (e) => e.copyWith(isShort: v));
   void setIsWrap(ElementType t, bool v) =>
       update(t, (e) => e.copyWith(isWrap: v));
+  void setVisible(ElementType t, bool v) =>
+      update(t, (e) => e.copyWith(isVisible: v));
+  void toggleVisibility(ElementType t) =>
+      update(t, (e) => e.copyWith(isVisible: !e.isVisible));
+  void setLocked(ElementType t, bool v) =>
+      update(t, (e) => e.copyWith(isLocked: v));
+  void toggleLock(ElementType t) =>
+      update(t, (e) => e.copyWith(isLocked: !e.isLocked));
   void setGuideLines(ElementType t, bool v) =>
       update(t, (e) => e.copyWith(showGuideLines: v));
   void resetPosition(ElementType t) =>

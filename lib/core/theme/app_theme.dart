@@ -15,6 +15,14 @@ class AppTheme {
   static const Color surfaceDark  = Color(0xFF252540);
   static const Color cardDark     = Color(0xFF2E2E4A);
 
+  // ── Pro Workspace Palette (Neutral Grays) ──────────────────────────────────
+
+  static const Color proBackground = Color(0xFF000000);
+  static const Color proSidebar    = Color(0xFF252525);
+  static const Color proInspector  = Color(0xFF2D2D2D);
+  static const Color proCard       = Color(0xFF363636);
+  static const Color proInput      = Color(0xFF1E1E1E);
+
   // ── Light theme ───────────────────────────────────────────────────────────
 
   static ThemeData light() => ThemeData(

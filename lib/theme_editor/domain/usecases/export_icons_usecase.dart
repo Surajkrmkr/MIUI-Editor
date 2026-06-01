@@ -1,14 +1,18 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:morphable_shape/morphable_shape.dart';
 
 import '../../core/constants/path_constants.dart';
 import '../../core/errors/failures.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../presentation/providers/icon_editor_provider.dart';
+import '../../presentation/features/icon_editor/utils/icon_shape_utils.dart';
+import '../../presentation/features/icon_editor/utils/icon_visual_utils.dart';
 
 /// Renders every SVG icon directly via [dart:ui] Canvas — no widget tree,
 /// no ScreenshotController. Composites gradient background + SVG + overlays
@@ -110,7 +114,6 @@ class ExportIconsUseCase {
     final bool isIconMask = name == 'icon_mask';
     final double margin = (isIconMask ? 10.0 : state.margin) * p;
     final double clipRadius = (isIconMask ? 200.0 : 0.0) * p;
-    final double bgRadius = state.radius * p;
     final double padding = state.padding * p;
     final double borderWidth = state.borderWidth * p;
 
@@ -125,13 +128,26 @@ class ExportIconsUseCase {
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder, ui.Rect.fromLTWH(0, 0, size, size));
 
-    // Clip everything to the inner rounded rect.
-    canvas.clipRRect(
-      ui.RRect.fromRectAndRadius(
-          innerRect, ui.Radius.circular(clipRadius)),
+    final shapeBorder = IconShapeUtils.getBorder(
+      state.shape,
+      state.radius,
+      borderWidth: state.borderWidth, // Pass logical value
+      borderColor: state.borderColor,
+      scale: p, // Pass scale factor (4.0)
+      seed: name.hashCode, // Add seed for blob variation
     );
 
-    // 1 ── Before-vector overlay
+    final iconPath = (shapeBorder as OutlinedShapeBorder).getOuterPath(innerRect);
+
+    // 1 ── Clip everything to the shape (or mask radius)
+    if (isIconMask) {
+      canvas.clipRRect(ui.RRect.fromRectAndRadius(
+          innerRect, ui.Radius.circular(clipRadius)));
+    } else {
+      canvas.clipPath(iconPath);
+    }
+
+    // 2 ── Before-vector overlay
     if (beforeImage != null) {
       canvas.drawImageRect(
         beforeImage,
@@ -142,36 +158,59 @@ class ExportIconsUseCase {
       );
     }
 
-    // 2 ── Gradient background (skipped for icon_border — transparent inside)
+    // 3 ── Gradient background
     if (!_skipBg(name)) {
       final gradStart = state.bgGradStart as Alignment;
       final gradEnd = state.bgGradEnd as Alignment;
-      final startOffset = Offset(
+      final startOffset = ui.Offset(
         innerRect.left + (gradStart.x + 1) / 2 * innerRect.width,
         innerRect.top + (gradStart.y + 1) / 2 * innerRect.height,
       );
-      final endOffset = Offset(
+      final endOffset = ui.Offset(
         innerRect.left + (gradEnd.x + 1) / 2 * innerRect.width,
         innerRect.top + (gradEnd.y + 1) / 2 * innerRect.height,
       );
-      final effectiveColors =
-          colors.length > 1 ? colors : [colors.first, colors.first];
 
-      canvas.drawRRect(
-        ui.RRect.fromRectAndRadius(innerRect, ui.Radius.circular(bgRadius)),
-        ui.Paint()
-          ..shader =
-              ui.Gradient.linear(startOffset, endOffset, effectiveColors),
+      // Consistent random color per icon name
+      final effectiveColors = (state.randomColors && colors.isNotEmpty)
+          ? [colors[math.Random(name.hashCode).nextInt(colors.length)]]
+          : (colors.length > 1 ? colors : [colors.first, colors.first]);
+
+      final paint = ui.Paint();
+      if (effectiveColors.length > 1) {
+        paint.shader = ui.Gradient.linear(
+            startOffset, endOffset, effectiveColors, const [0.0, 1.0]);
+      } else {
+        paint.color = effectiveColors.first;
+      }
+
+      canvas.drawPath(iconPath, paint);
+
+      // 3.5 ── Apply Textures & Effects
+      IconVisualUtils.applyTexture(
+        canvas, 
+        iconPath, 
+        state.texture, 
+        innerRect,
+        scale: state.textureScale * p,
+        opacity: state.textureOpacity,
+      );
+      IconVisualUtils.applyEffect(
+        canvas, 
+        iconPath, 
+        state.effect, 
+        innerRect, 
+        effectiveColors.first,
+        intensity: state.effectIntensity,
+        blur: state.effectBlur * p,
+        elevation: state.effectElevation * p,
       );
     }
 
-    // 3 ── Border stroke (drawn on top of the fill)
-    if (borderWidth > 0) {
-      canvas.drawRRect(
-        ui.RRect.fromRectAndRadius(
-          innerRect.deflate(borderWidth / 2),
-          ui.Radius.circular(bgRadius),
-        ),
+    // 4 ── Border stroke (drawn on top of the fill)
+    if (borderWidth > 0 && !isIconMask) {
+      canvas.drawPath(
+        iconPath,
         ui.Paint()
           ..style = ui.PaintingStyle.stroke
           ..strokeWidth = borderWidth
@@ -179,9 +218,7 @@ class ExportIconsUseCase {
       );
     }
 
-    // 4 ── SVG icon
-    // Skipped for bg-only icons (folder/pattern) and border-only icon.
-    // icon_mask draws SVG but with a smaller margin (handled above via isIconMask).
+    // 5 ── SVG icon
     if (!_skipSvg(name)) {
       final svgArea = innerRect.deflate(padding + borderWidth);
       final loader =
@@ -191,7 +228,6 @@ class ExportIconsUseCase {
       final scaleX = svgArea.width / pictureInfo.size.width;
       final scaleY = svgArea.height / pictureInfo.size.height;
 
-      // saveLayer applies the tint (srcIn) to the entire SVG picture.
       canvas.save();
       canvas.translate(svgArea.left, svgArea.top);
       canvas.scale(scaleX, scaleY);
@@ -209,7 +245,7 @@ class ExportIconsUseCase {
       pictureInfo.picture.dispose();
     }
 
-    // 5 ── After-vector overlay
+    // 6 ── After-vector overlay
     if (afterImage != null) {
       canvas.drawImageRect(
         afterImage,

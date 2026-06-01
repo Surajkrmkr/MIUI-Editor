@@ -132,6 +132,7 @@ class LockElement {
     this.fontSize   = 20,
     this.fontWeight = FontWeight.normal,
     this.isShort = false, this.isWrap = false, this.showGuideLines = false,
+    this.isVisible = true, this.isLocked = false,
   });
 
   final ElementType type;
@@ -141,7 +142,7 @@ class LockElement {
   final AlignmentGeometry gradStartAlign, gradEndAlign, align;
   final String font, path, text;
   final FontWeight fontWeight;
-  final bool isShort, isWrap, showGuideLines;
+  final bool isShort, isWrap, showGuideLines, isVisible, isLocked;
 
   String get name => type.name;
 
@@ -155,6 +156,7 @@ class LockElement {
     String? font, String? path, String? text,
     FontWeight? fontWeight,
     bool? isShort, bool? isWrap, bool? showGuideLines,
+    bool? isVisible, bool? isLocked,
   }) => LockElement(
     type: type,
     dx: dx ?? this.dx,   dy: dy ?? this.dy, scale: scale ?? this.scale,
@@ -171,6 +173,8 @@ class LockElement {
     fontWeight: fontWeight ?? this.fontWeight,
     isShort: isShort ?? this.isShort, isWrap: isWrap ?? this.isWrap,
     showGuideLines: showGuideLines ?? this.showGuideLines,
+    isVisible: isVisible ?? this.isVisible,
+    isLocked: isLocked ?? this.isLocked,
   );
 
   Map<String, dynamic> toJson() => {
@@ -187,6 +191,7 @@ class LockElement {
     'font': font, 'path': path, 'text': text,
     'fontWeight': fontWeight.toString(),
     'isShort': isShort, 'isWrap': isWrap, 'showGuideLines': showGuideLines,
+    'isVisible': isVisible, 'isLocked': isLocked,
   };
 
   factory LockElement.fromJson(Map<String, dynamic> j) => LockElement(
@@ -216,6 +221,8 @@ class LockElement {
     isShort:       j['isShort']       as bool? ?? false,
     isWrap:        j['isWrap']        as bool? ?? false,
     showGuideLines:j['showGuideLines']as bool? ?? false,
+    isVisible:     j['isVisible']     as bool? ?? true,
+    isLocked:      j['isLocked']      as bool? ?? false,
   );
 
   static FontWeight _fw(String s) {

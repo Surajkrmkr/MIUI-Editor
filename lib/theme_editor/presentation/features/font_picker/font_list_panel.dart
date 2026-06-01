@@ -16,11 +16,9 @@ class FontListPanel extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
     final activeFont = elState.active?.font;
 
-    return SizedBox(
-      width: 210,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
           // Header
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -66,133 +64,124 @@ class FontListPanel extends ConsumerWidget {
             ),
           ),
 
-          // User dropdown
+          // User selection grid
           Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Container(
-              height: 34,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerHighest.withAlpha(120),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: scheme.outlineVariant.withAlpha(80),
-                  width: 1,
-                ),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<UserProfileType>(
-                  value: selectedUser,
-                  isExpanded: true,
-                  isDense: true,
-                  icon: Icon(Icons.expand_more_rounded,
-                      size: 16, color: scheme.onSurfaceVariant),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: scheme.onSurface,
-                  ),
-                  dropdownColor: scheme.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  items: kUserProfiles.entries.map((e) {
-                    return DropdownMenuItem<UserProfileType>(
-                      value: e.key,
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 10,
-                            backgroundImage:
-                                AssetImage(e.value.avatarAsset),
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: kUserProfiles.entries.map((e) {
+                final isSelected = selectedUser == e.key;
+                return GestureDetector(
+                  onTap: () => ref.read(fontUserSelectionProvider.notifier).select(e.key),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isSelected ? AppTheme.accent : Colors.transparent,
+                            width: 2,
                           ),
-                          const SizedBox(width: 8),
-                          Text(e.value.displayName),
-                        ],
+                        ),
+                        child: CircleAvatar(
+                          radius: 16,
+                          backgroundImage: AssetImage(e.value.avatarAsset),
+                        ),
                       ),
-                    );
-                  }).toList(),
-                  onChanged: (type) {
-                    if (type != null) {
-                      ref
-                          .read(fontUserSelectionProvider.notifier)
-                          .select(type);
-                    }
-                  },
-                ),
-              ),
+                      const SizedBox(height: 4),
+                      Text(
+                        e.value.displayName,
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                          color: isSelected ? AppTheme.accent : scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
             ),
           ),
 
           // Font list
-          Expanded(
-            child: fontsAsync.when(
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(
-                child: Text(
-                  '$e',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: scheme.error,
-                  ),
+          fontsAsync.when(
+            loading: () =>
+                const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(
+              child: Text(
+                '$e',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: scheme.error,
                 ),
               ),
-              data: (fonts) => ListView.builder(
-                itemCount: fonts.length,
-                itemBuilder: (_, i) {
+            ),
+            data: (fonts) => ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: fonts.length,
+              itemBuilder: (_, i) {
                   final font = fonts[i];
                   final sel = activeFont == font.fontFamily;
                   return Container(
                     margin: const EdgeInsets.only(bottom: 4),
                     decoration: BoxDecoration(
                       color: sel
-                          ? scheme.primaryContainer.withAlpha(120)
+                          ? AppTheme.accent.withAlpha(30)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
-                      border: sel
-                          ? Border.all(
-                              color: scheme.primary.withAlpha(80), width: 1.5)
-                          : null,
+                      border: Border.all(
+                        color: sel ? AppTheme.accent.withAlpha(80) : Colors.black,
+                        width: 1.0,
+                      ),
                     ),
-                    child: ListTile(
-                      dense: true,
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 12),
-                      leading: sel
-                          ? Icon(Icons.check_rounded,
-                              size: 16, color: scheme.primary)
-                          : null,
-                      title: Text(
-                        font.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontFamily: font.name,
-                          fontSize: 20,
-                          color: sel ? scheme.primary : scheme.onSurface,
-                          fontWeight: sel ? FontWeight.w700 : FontWeight.normal,
+                    child: Material(
+                      color: Colors.transparent,
+                      clipBehavior: Clip.antiAlias,
+                      borderRadius: BorderRadius.circular(12),
+                      child: ListTile(
+                        dense: true,
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 12),
+                        leading: sel
+                            ? const Icon(Icons.check_rounded,
+                                size: 16, color: AppTheme.accent)
+                            : null,
+                        title: Text(
+                          font.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: font.name,
+                            fontSize: 20,
+                            color: sel ? AppTheme.accent : scheme.onSurface,
+                            fontWeight: sel ? FontWeight.w700 : FontWeight.normal,
+                          ),
                         ),
-                      ),
-                      subtitle: Text(
-                        font.name,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: scheme.onSurfaceVariant,
+                        subtitle: Text(
+                          font.name,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: scheme.onSurfaceVariant,
+                          ),
                         ),
+                        onTap: () {
+                          final type = ref.read(elementProvider).activeType;
+                          ref
+                              .read(elementProvider.notifier)
+                              .setFont(type, font.fontFamily);
+                        },
                       ),
-                      onTap: () {
-                        final type = ref.read(elementProvider).activeType;
-                        ref
-                            .read(elementProvider.notifier)
-                            .setFont(type, font.fontFamily);
-                      },
                     ),
                   );
                 },
               ),
             ),
-          ),
         ],
-      ),
-    );
+      );
   }
 }

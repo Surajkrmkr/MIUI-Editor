@@ -58,6 +58,11 @@ dependencies:
   # XML
   xml: ^6.5.0
 
+  # Code Editor
+  code_text_field: ^1.1.0
+  highlight: ^0.7.0
+  flutter_highlight: ^0.7.0
+
   # Navigation
   go_router: ^17.1.0
 
@@ -75,6 +80,11 @@ dependencies:
   json_annotation: ^4.8.1
   freezed_annotation: ^3.1.0
   icons_launcher: ^3.1.0
+  morphable_shape: ^2.0.0
+  dimension: ^0.2.0
+  flutter_class_parser: ^0.2.5
+  animated_box_decoration: ^0.0.7
+  flutter_shaders: ^0.1.3
 
 dev_dependencies:
   flutter_test:

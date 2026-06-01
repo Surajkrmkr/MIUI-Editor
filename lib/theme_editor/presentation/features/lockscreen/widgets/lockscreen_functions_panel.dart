@@ -9,6 +9,7 @@ import '../../../providers/service_providers.dart';
 import '../../../providers/ai_provider.dart';
 import '../../../common/widgets/drop_zone.dart';
 import '../preset_dialog.dart';
+import 'manifest_editor_dialog.dart';
 
 class LockscreenFunctionsPanel extends ConsumerWidget {
   const LockscreenFunctionsPanel({super.key});
@@ -20,12 +21,10 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
     final busy = lsState.isExporting || aiState.isLoading;
     final scheme = Theme.of(context).colorScheme;
 
-    return SizedBox(
-      width: 190,
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
             // ── Background section ─────────────────────────────────────
             _SectionCard(
               title: 'BACKGROUND',
@@ -128,6 +127,12 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   _ActionButton(
+                    icon: Icons.code_rounded,
+                    label: 'Manifest Editor',
+                    onPressed: () => _showManifestEditor(context, ref),
+                  ),
+                  const SizedBox(height: 8),
+                  _ActionButton(
                     icon: Icons.bookmark_rounded,
                     label: 'Save Preset',
                     onPressed: () async {
@@ -210,14 +215,46 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
                       onPressed:
                           s.isBusy ? null : () => _repackMtz(context, ref),
                     ),
+                    const SizedBox(height: 8),
+                    _ActionButton(
+                      icon: Icons.auto_fix_high_rounded,
+                      label: s.isTracing ? 'Generating…' : 'Generate Copyright',
+                      isOutlined: true,
+                      onPressed: s.isBusy
+                          ? null
+                          : () async {
+                              await ref
+                                  .read(lockscreenProvider.notifier)
+                                  .generateLayeredSvg();
+                              if (context.mounted) {
+                                final err = ref.read(lockscreenProvider).error;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      backgroundColor: err != null 
+                                          ? scheme.errorContainer 
+                                          : scheme.primaryContainer,
+                                      content: Text(
+                                        err ?? 'Copyright generated in "svg" folder',
+                                        style: TextStyle(
+                                          color: err != null 
+                                              ? scheme.onErrorContainer 
+                                              : scheme.onPrimaryContainer
+                                        ),
+                                      )),
+                                );
+                              }
+                            },
+                    ),
+                    if (s.isTracing) ...[
+                      const SizedBox(height: 8),
+                      const LinearProgressIndicator(minHeight: 2),
+                    ],
                   ],
                 ),
               );
             }),
           ],
-        ),
-      ),
-    );
+        );
   }
 
   // ── Drop handlers ──────────────────────────────────────────────────────────
@@ -263,7 +300,7 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
   Future<void> _repackMtz(BuildContext context, WidgetRef ref) async {
     final isDual = ref.read(lockscreenProvider.select((s) => s.dualMtzExport));
     final (path, failure) =
-        await ref.read(lockscreenProvider.notifier).exportMtz();
+        await ref.read(lockscreenProvider.notifier).exportMtz(context);
     if (!context.mounted) return;
     if (failure != null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -320,6 +357,13 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
       }
     }
   }
+
+  void _showManifestEditor(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (_) => const ManifestEditorDialog(),
+    );
+  }
 }
 
 // ── Section Card ──────────────────────────────────────────────────────────────
@@ -332,16 +376,16 @@ class _SectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    const cardBg = AppTheme.proCard;
+    const borderColor = Colors.black;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDark : Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-            color: isDark
-                ? Colors.white.withAlpha(18)
-                : Colors.black.withAlpha(15)),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -397,26 +441,35 @@ class _ActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final labelWidget = FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.visible,
+        softWrap: false,
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+      ),
+    );
+
     if (isPrimary) {
       return FilledButton.icon(
         icon: Icon(icon, size: 14),
-        label: Text(label,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        label: labelWidget,
         onPressed: onPressed,
       );
     }
     if (isOutlined) {
       return OutlinedButton.icon(
         icon: Icon(icon, size: 14),
-        label: Text(label,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        label: labelWidget,
         onPressed: onPressed,
       );
     }
     return FilledButton.tonalIcon(
       icon: Icon(icon, size: 14),
-      label: Text(label,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+      label: labelWidget,
       onPressed: onPressed,
       style: FilledButton.styleFrom(
         backgroundColor: scheme.secondaryContainer,

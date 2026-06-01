@@ -33,7 +33,7 @@ class MtzExportButton extends ConsumerWidget {
 
   Future<void> _export(BuildContext context, WidgetRef ref) async {
     final (path, failure) =
-        await ref.read(lockscreenProvider.notifier).exportMtz();
+        await ref.read(lockscreenProvider.notifier).exportMtz(context);
 
     if (!context.mounted) return;
 

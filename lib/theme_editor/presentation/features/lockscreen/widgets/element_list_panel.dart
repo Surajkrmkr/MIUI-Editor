@@ -15,11 +15,9 @@ class ElementListPanel extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final addedCount = state.elements.length;
 
-    return SizedBox(
-      width: 210,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
           // Header
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
@@ -65,14 +63,14 @@ class ElementListPanel extends ConsumerWidget {
           ),
 
           // List
-          Expanded(
-            child: ListView(
-              children: kElementGroups.entries.map((entry) {
-                final groupAdded =
-                    entry.value.where((t) => state.contains(t)).length;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Theme(
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: kElementGroups.entries.map((entry) {
+              final groupAdded =
+                  entry.value.where((t) => state.contains(t)).length;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Theme(
                     data: Theme.of(context).copyWith(
                       dividerColor: Colors.transparent,
                     ),
@@ -112,69 +110,65 @@ class ElementListPanel extends ConsumerWidget {
                         ],
                       ),
                       shape: RoundedRectangleBorder(
-                        side: BorderSide(
-                            color: isDark
-                                ? Colors.white.withAlpha(18)
-                                : Colors.black.withAlpha(15),
-                            width: 1.5),
+                        side: const BorderSide(color: Colors.black, width: 1.0),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       collapsedShape: RoundedRectangleBorder(
-                        side: BorderSide(
-                            color: isDark
-                                ? Colors.white.withAlpha(18)
-                                : Colors.black.withAlpha(15),
-                            width: 1.5),
+                        side: const BorderSide(color: Colors.black, width: 1.0),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      collapsedBackgroundColor:
-                          isDark ? AppTheme.cardDark : Colors.white,
-                      backgroundColor:
-                          isDark ? AppTheme.cardDark : Colors.white,
+                      collapsedBackgroundColor: AppTheme.proCard,
+                      backgroundColor: AppTheme.proCard,
                       children: entry.value.map((type) {
                         final added = state.contains(type);
-                        return ListTile(
-                          dense: true,
-                          selected: added,
-                          selectedTileColor:
-                              scheme.primaryContainer.withAlpha(120),
-                          shape: RoundedRectangleBorder(
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          child: Material(
+                            color: added ? AppTheme.accent : Colors.transparent,
                             borderRadius: BorderRadius.circular(10),
-                          ),
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 16),
-                          leading: Icon(
-                            added
-                                ? Icons.check_circle_rounded
-                                : Icons.radio_button_unchecked_rounded,
-                            size: 16,
-                            color: added
-                                ? scheme.primary
-                                : scheme.onSurfaceVariant,
-                          ),
-                          title: Text(
-                            type.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight:
-                                  added ? FontWeight.w600 : FontWeight.normal,
-                              color: added ? scheme.primary : scheme.onSurface,
+                            clipBehavior: Clip.antiAlias,
+                            child: ListTile(
+                              dense: true,
+                              selected: added,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              leading: Icon(
+                                added
+                                    ? Icons.check_circle_rounded
+                                    : Icons.radio_button_unchecked_rounded,
+                                size: 16,
+                                color: added
+                                    ? Colors.black87
+                                    : scheme.onSurfaceVariant,
+                              ),
+                              title: Text(
+                                type.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight:
+                                      added ? FontWeight.w700 : FontWeight.normal,
+                                  color: added ? Colors.black87 : scheme.onSurface,
+                                ),
+                              ),
+                              onTap: () {
+                                if (!added) {
+                                  notifier.add(LockElement(
+                                    type: type,
+                                    colorSecondary: type == ElementType.notification
+                                        ? Colors.white24
+                                        : Colors.white,
+                                  ));
+                                } else {
+                                  notifier.remove(type);
+                                }
+                              },
                             ),
                           ),
-                          onTap: () {
-                            if (!added) {
-                              notifier.add(LockElement(
-                                type: type,
-                                colorSecondary: type == ElementType.notification
-                                    ? Colors.white24
-                                    : Colors.white,
-                              ));
-                            } else {
-                              notifier.remove(type);
-                            }
-                          },
                         );
                       }).toList(),
                     ),
@@ -182,9 +176,7 @@ class ElementListPanel extends ConsumerWidget {
                 );
               }).toList(),
             ),
-          ),
         ],
-      ),
-    );
+      );
   }
 }

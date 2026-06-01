@@ -13,16 +13,17 @@ class BgDropZones extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    const cardBg = AppTheme.proCard;
+    const borderColor = Colors.black;
 
     return Container(
-      width: 500,
+      width: 450,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDark : Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-            color: isDark ? Colors.white.withAlpha(18) : Colors.black.withAlpha(15)),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

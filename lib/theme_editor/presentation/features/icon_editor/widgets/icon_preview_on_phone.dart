@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../../../core/constants/app_constants.dart';
-import '../../../../domain/entities/user_profile.dart';
-import '../../../providers/icon_editor_provider.dart';
-import '../../../providers/user_profile_provider.dart';
-import 'dart:math';
+import 'package:morphable_shape/morphable_shape.dart';
+import 'package:miui_icon_generator/theme_editor/core/constants/app_constants.dart';
+import 'package:miui_icon_generator/theme_editor/domain/entities/user_profile.dart';
+import 'package:miui_icon_generator/theme_editor/presentation/providers/icon_editor_provider.dart';
+import 'package:miui_icon_generator/theme_editor/presentation/providers/user_profile_provider.dart';
+import '../utils/icon_shape_utils.dart';
+import '../utils/icon_visual_utils.dart';
+import 'dart:math' as math;
 
 class IconPreviewOnPhone extends ConsumerWidget {
   const IconPreviewOnPhone({super.key});
@@ -77,30 +80,108 @@ class _IconCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = state.randomColors
-        ? [state.bgColors[Random().nextInt(state.bgColors.length)]]
+        ? [
+            state.bgColors[
+                math.Random(name.hashCode).nextInt(state.bgColors.length)]
+          ]
         : [state.bgColor, state.bgColor2];
+
+    final iconPath = 'assets/icons/${profile.iconFolder}/$name.svg';
 
     return SizedBox(
       width: 45,
       height: 45,
       child: Container(
         margin: EdgeInsets.all(state.margin),
-        padding: EdgeInsets.all(state.padding),
-        decoration: BoxDecoration(
-          border:
-              Border.all(width: state.borderWidth, color: state.borderColor),
-          borderRadius: BorderRadius.circular(state.radius),
-          gradient: LinearGradient(
-            begin: state.bgGradStart as Alignment,
-            end: state.bgGradEnd as Alignment,
-            colors: colors.length > 1 ? colors : [colors.first, colors.first],
+        child: CustomPaint(
+          painter:
+              _IconBackgroundPainter(state: state, colors: colors, name: name),
+          child: Container(
+            padding: EdgeInsets.all(state.padding),
+            child: SvgPicture.asset(
+              iconPath,
+              colorFilter: ColorFilter.mode(state.iconColor, BlendMode.srcIn),
+            ),
           ),
-        ),
-        child: SvgPicture.asset(
-          'assets/icons/${profile.iconFolder}/$name.svg',
-          colorFilter: ColorFilter.mode(state.iconColor, BlendMode.srcIn),
         ),
       ),
     );
+  }
+}
+
+class _IconBackgroundPainter extends CustomPainter {
+  final IconEditorState state;
+  final List<Color> colors;
+  final String name;
+
+  _IconBackgroundPainter({required this.state, required this.colors, required this.name});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    try {
+      final rect = Offset.zero & size;
+      final shapeBorder = IconShapeUtils.getBorder(
+        state.shape,
+        state.radius,
+        borderWidth: state.borderWidth,
+        borderColor: state.borderColor,
+        scale: 1.0,
+        seed: name.hashCode,
+      );
+
+      final path = (shapeBorder as OutlinedShapeBorder).getOuterPath(rect);
+
+      // 1 ── Draw Fill (Gradient or Solid)
+      final paint = Paint();
+      if (colors.length > 1) {
+        paint.shader = LinearGradient(
+          begin: state.bgGradStart as Alignment,
+          end: state.bgGradEnd as Alignment,
+          colors: [colors.first, colors.last],
+          stops: const [0.0, 1.0],
+        ).createShader(rect);
+      } else {
+        paint.color = colors.first;
+      }
+      canvas.drawPath(path, paint);
+
+      // 2 ── Apply Textures
+      IconVisualUtils.applyTexture(
+        canvas, 
+        path, 
+        state.texture, 
+        rect,
+        scale: state.textureScale,
+        opacity: state.textureOpacity,
+      );
+
+      // 3 ── Apply Effects
+      IconVisualUtils.applyEffect(
+        canvas, 
+        path, 
+        state.effect, 
+        rect, 
+        colors.first,
+        intensity: state.effectIntensity,
+        blur: state.effectBlur,
+        elevation: state.effectElevation,
+      );
+
+      // 4 ── Draw Border Stroke
+      if (state.borderWidth > 0) {
+        final borderPaint = Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = state.borderWidth
+          ..color = state.borderColor;
+        canvas.drawPath(path, borderPaint);
+      }
+    } catch (e) {
+      debugPrint('Icon grid paint error: $e');
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _IconBackgroundPainter oldDelegate) {
+    return oldDelegate.state != state || oldDelegate.colors != colors;
   }
 }

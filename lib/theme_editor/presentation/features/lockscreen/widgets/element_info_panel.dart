@@ -18,46 +18,25 @@ class ElementInfoPanel extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
 
     if (state.elements.isEmpty || state.active == null) {
-      return SizedBox(
-        width: 300,
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.touch_app_rounded,
-                  size: 40, color: scheme.onSurfaceVariant.withAlpha(80)),
-              const SizedBox(height: 8),
-              Text(
-                'Select a widget',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: scheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      return const SizedBox.shrink();
     }
 
     final el = state.active!;
     final n = ref.read(elementProvider.notifier);
 
     return SizedBox(
-      width: 300,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.only(right: 8, bottom: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      width: 450, // Match expanded inspector width
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
             // Element title header
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: AppTheme.accent.withAlpha(30),
+                color: AppTheme.proSidebar,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                    color: AppTheme.accent.withAlpha(60), width: 1.5),
+                border: Border.all(color: Colors.black),
               ),
               child: Row(
                 children: [
@@ -307,7 +286,6 @@ class ElementInfoPanel extends ConsumerWidget {
             ),
           ],
         ),
-      ),
     );
   }
 
@@ -337,32 +315,45 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    const cardBg = AppTheme.proCard;
+    const borderColor = Colors.black;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Container(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
         decoration: BoxDecoration(
-          color: isDark ? AppTheme.cardDark : Colors.white,
+          color: cardBg,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-              color: isDark
-                  ? Colors.white.withAlpha(18)
-                  : Colors.black.withAlpha(15)),
+          border: Border.all(color: borderColor),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: scheme.onSurfaceVariant,
-                  letterSpacing: 0.8,
-                ),
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                children: [
+                  Container(
+                    width: 3,
+                    height: 12,
+                    margin: const EdgeInsets.only(right: 6),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accent,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: scheme.onSurfaceVariant,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ],
               ),
             ),
             child,
@@ -384,7 +375,6 @@ class _ColorBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: () => ColorPicker(
         color: color,
@@ -403,10 +393,7 @@ class _ColorBtn extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-              color: isDark
-                  ? Colors.white.withAlpha(18)
-                  : Colors.black.withAlpha(15)),
+          border: Border.all(color: Colors.black),
           boxShadow: [
             BoxShadow(
               color: color.withAlpha(70),
@@ -446,7 +433,6 @@ class _AlignChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final selected = el.align == align;
     return GestureDetector(
       onTap: () => n.setAlign(el.type, align),
@@ -455,13 +441,11 @@ class _AlignChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected
               ? AppTheme.accent.withAlpha(30)
-              : isDark
-                  ? AppTheme.surfaceDark
-                  : const Color(0xFFF0F0F5),
+              : AppTheme.proSidebar,
           borderRadius: BorderRadius.circular(10),
           border: selected
               ? Border.all(color: AppTheme.accent.withAlpha(120), width: 1.5)
-              : null,
+              : Border.all(color: Colors.black),
         ),
         child: Center(
           child: Text(

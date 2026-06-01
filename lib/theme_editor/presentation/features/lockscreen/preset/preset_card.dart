@@ -42,18 +42,30 @@ class PresetCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final name = path.split(Platform.pathSeparator).last;
+    final previewFile = File('$path${Platform.pathSeparator}preview.png');
 
     return FutureBuilder<List<LockElement>>(
       future: _load(),
       builder: (context, snapshot) {
-        final phoneContent = switch (snapshot.connectionState) {
-          ConnectionState.done when snapshot.hasData => PresetThumbnail(
-              elements: snapshot.data!,
-              thumbnailWidth: AppConstants.screenWidth,
-            ),
-          ConnectionState.done => _ErrorPlaceholder(),
-          _ => _LoadingPlaceholder(),
-        };
+        Widget phoneContent;
+        
+        if (previewFile.existsSync()) {
+          phoneContent = Image.file(
+            previewFile,
+            fit: BoxFit.cover,
+            width: AppConstants.screenWidth,
+            height: AppConstants.screenHeight,
+          );
+        } else {
+          phoneContent = switch (snapshot.connectionState) {
+            ConnectionState.done when snapshot.hasData => PresetThumbnail(
+                elements: snapshot.data!,
+                thumbnailWidth: AppConstants.screenWidth,
+              ),
+            ConnectionState.done => _ErrorPlaceholder(),
+            _ => _LoadingPlaceholder(),
+          };
+        }
 
         return _PresetCardFrame(
           name: name,
