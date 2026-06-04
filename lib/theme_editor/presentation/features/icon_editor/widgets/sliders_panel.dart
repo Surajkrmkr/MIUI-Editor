@@ -579,6 +579,14 @@ class _RandomColorsRow extends StatelessWidget {
             enableOpacity: true,
             width: 28,
             height: 28,
+            showColorCode: true,
+            colorCodeHasColor: true,
+            copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+              copyButton: true,
+              pasteButton: true,
+              longPressMenu: true,
+              copyFormat: ColorPickerCopyFormat.numHexAARRGGBB,
+            ),
             pickersEnabled: const {
               ColorPickerType.wheel: true,
               ColorPickerType.primary: false,

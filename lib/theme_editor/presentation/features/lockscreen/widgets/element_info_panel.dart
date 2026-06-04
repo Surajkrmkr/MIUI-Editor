@@ -232,6 +232,14 @@ class ElementInfoPanel extends ConsumerWidget {
                       color: el.borderColor,
                       onColorChanged: (c) => n.setBorderColor(el.type, c),
                       enableOpacity: true,
+                      showColorCode: true,
+                      colorCodeHasColor: true,
+                      copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+                        copyButton: true,
+                        pasteButton: true,
+                        longPressMenu: true,
+                        copyFormat: ColorPickerCopyFormat.numHexAARRGGBB,
+                      ),
                       pickersEnabled: const {ColorPickerType.wheel: true},
                     ),
                   ],
@@ -382,6 +390,12 @@ class _ColorBtn extends StatelessWidget {
         enableOpacity: true,
         showColorCode: true,
         colorCodeHasColor: true,
+        copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+          copyButton: true,
+          pasteButton: true,
+          longPressMenu: true,
+          copyFormat: ColorPickerCopyFormat.numHexAARRGGBB,
+        ),
         pickersEnabled: const {
           ColorPickerType.wheel: true,
           ColorPickerType.primary: false,

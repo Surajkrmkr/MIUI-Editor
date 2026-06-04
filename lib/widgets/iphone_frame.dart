@@ -186,13 +186,29 @@ class IPhoneFrame extends StatelessWidget {
 
           // ── Side buttons ───────────────────────────────────────────────
           // Action button (left, top)
-          const _SideButton(isLeft: true, top: 86, height: 26),
+          Positioned(
+            left: 0,
+            top: 86,
+            child: _SideButton(height: 26, isLeft: true),
+          ),
           // Volume up (left)
-          const _SideButton(isLeft: true, top: 124, height: 44),
+          Positioned(
+            left: 0,
+            top: 124,
+            child: _SideButton(height: 44, isLeft: true),
+          ),
           // Volume down (left)
-          const _SideButton(isLeft: true, top: 180, height: 44),
+          Positioned(
+            left: 0,
+            top: 180,
+            child: _SideButton(height: 44, isLeft: true),
+          ),
           // Power button (right)
-          const _SideButton(isLeft: false, top: 152, height: 70),
+          Positioned(
+            right: 0,
+            top: 152,
+            child: _SideButton(height: 70, isLeft: false),
+          ),
         ],
       ),
     );
@@ -202,35 +218,28 @@ class IPhoneFrame extends StatelessWidget {
 class _SideButton extends StatelessWidget {
   const _SideButton({
     required this.isLeft,
-    required this.top,
     required this.height,
   });
 
   final bool isLeft;
-  final double top;
   final double height;
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      left: isLeft ? 0 : null,
-      right: isLeft ? null : 0,
-      top: top,
-      child: Container(
-        width: 6,
-        height: height,
-        decoration: BoxDecoration(
-          borderRadius: isLeft
-              ? const BorderRadius.horizontal(left: Radius.circular(3))
-              : const BorderRadius.horizontal(right: Radius.circular(3)),
-          gradient: LinearGradient(
-            begin: isLeft ? Alignment.centerRight : Alignment.centerLeft,
-            end: isLeft ? Alignment.centerLeft : Alignment.centerRight,
-            colors: const [
-              Color(0xFF3C3C3E),
-              Color(0xFF1A1A1C),
-            ],
-          ),
+    return Container(
+      width: 6,
+      height: height,
+      decoration: BoxDecoration(
+        borderRadius: isLeft
+            ? const BorderRadius.horizontal(left: Radius.circular(3))
+            : const BorderRadius.horizontal(right: Radius.circular(3)),
+        gradient: LinearGradient(
+          begin: isLeft ? Alignment.centerRight : Alignment.centerLeft,
+          end: isLeft ? Alignment.centerLeft : Alignment.centerRight,
+          colors: const [
+            Color(0xFF3C3C3E),
+            Color(0xFF1A1A1C),
+          ],
         ),
       ),
     );

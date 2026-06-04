@@ -67,7 +67,11 @@ class PresetThumbnail extends ConsumerWidget {
                       ),
                     ),
                   ),
-                ...elements.map((el) => _StaticElement(el: el)),
+                ...elements.map((el) => Positioned(
+                      left: el.dx,
+                      top: el.dy,
+                      child: _StaticElement(el: el),
+                    )),
               ],
             ),
           ),
@@ -107,20 +111,16 @@ class _StaticElement extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      left: el.dx,
-      top: el.dy,
-      child: Transform.scale(
-        scale: el.scale,
-        child: Transform.rotate(
-          angle: -el.angle * pi / 180,
-          child: SizedBox(
-            height: _hw,
-            width: _ww,
-            child: Align(
-              alignment: el.align,
-              child: _buildChild(),
-            ),
+    return Transform.scale(
+      scale: el.scale,
+      child: Transform.rotate(
+        angle: -el.angle * pi / 180,
+        child: SizedBox(
+          height: _hw,
+          width: _ww,
+          child: Align(
+            alignment: el.align,
+            child: _buildChild(),
           ),
         ),
       ),

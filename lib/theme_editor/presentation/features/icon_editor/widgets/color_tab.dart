@@ -162,6 +162,12 @@ class _WheelPicker extends StatelessWidget {
           onColorChanged: onChanged,
           enableOpacity: true,
           showColorCode: true,
+          copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+            copyButton: true,
+            pasteButton: true,
+            longPressMenu: true,
+            copyFormat: ColorPickerCopyFormat.numHexAARRGGBB,
+          ),
           pickersEnabled: const {ColorPickerType.wheel: true},
         ),
       );
@@ -329,6 +335,12 @@ class _ColorBtn extends StatelessWidget {
         enableOpacity: true,
         showColorCode: true,
         colorCodeHasColor: true,
+        copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+          copyButton: true,
+          pasteButton: true,
+          longPressMenu: true,
+          copyFormat: ColorPickerCopyFormat.numHexAARRGGBB,
+        ),
         pickersEnabled: const {
           ColorPickerType.wheel: true,
           ColorPickerType.primary: false,

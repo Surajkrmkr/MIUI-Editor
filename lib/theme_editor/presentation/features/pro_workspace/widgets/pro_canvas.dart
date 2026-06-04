@@ -20,6 +20,7 @@ class ProCanvas extends ConsumerWidget {
           // Infinite Canvas with Mouse Interactivity
           Positioned.fill(
             child: InteractiveViewer(
+              constrained: false, // Essential for infinite canvas / large children
               boundaryMargin: const EdgeInsets.all(1000),
               minScale: 0.01,
               maxScale: 10.0,

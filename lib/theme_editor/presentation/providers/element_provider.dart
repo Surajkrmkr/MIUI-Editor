@@ -50,6 +50,19 @@ class ElementNotifier extends Notifier<ElementState> {
         state.copyWith(elements: [...state.elements, el], activeType: el.type);
   }
 
+  void addAll(List<LockElement> els) {
+    final List<LockElement> updated = [...state.elements];
+    for (final el in els) {
+      if (!updated.any((e) => e.type == el.type)) {
+        updated.add(el);
+      }
+    }
+    state = state.copyWith(
+      elements: updated,
+      activeType: updated.isNotEmpty ? updated.last.type : state.activeType,
+    );
+  }
+
   void remove(ElementType t) {
     final updated = state.elements.where((e) => e.type != t).toList();
     state = state.copyWith(

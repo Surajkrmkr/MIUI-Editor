@@ -459,15 +459,25 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
     }
 
     if (el.type.isDateTime) {
+      final escaped = el.text
+          .replaceAll("'", "''")
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;');
       return "<DateTime angle='$ang' x='#sw/2+$dxAdj' y='#sh/2+$dy'"
           " align='$alignStr' alignV='center' size='$sz' color='$c'"
-          " formatExp=\"'${el.text}'\" bold='$bold'/>";
+          " formatExp=\"'$escaped'\" bold='$bold'/>";
     }
 
     if (el.type.isNormalText) {
+      final escaped = el.text
+          .replaceAll("'", "''")
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;');
       return "<Text angle='$ang' x='#sw/2+$dxAdj' y='#sh/2+$dy'"
           " align='$alignStr' alignV='center' size='$sz' color='$c'"
-          " textExp='${el.text}' bold='$bold'/>";
+          " textExp=\"'$escaped'\" bold='$bold'/>";
     }
 
     if (el.type == ElementType.notification) {

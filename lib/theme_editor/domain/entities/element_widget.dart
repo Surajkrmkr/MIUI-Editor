@@ -16,7 +16,13 @@ enum ElementType {
   cameraIcon, themeIcon, musicIcon, dialerIcon, mmsIcon,
   contactIcon, whatsAppIcon, telegramIcon, instagramIcon,
   spotifyIcon, settingIcon, galleryIcon,
-  swipeUpUnlock, tapToUnlock, slideToUnlock
+  swipeUpUnlock, tapToUnlock, slideToUnlock,
+  
+  // Missing values identified
+  weatherTemp, weatherDesc,
+  analogClockBg, analogHourHand, analogMinHand, analogSecHand,
+  calendarGrid, toggleSwitch, missedCalls, stepsCount,
+  batteryLevel, progressBar
 }
 
 extension ElementTypeX on ElementType {
@@ -41,11 +47,13 @@ extension ElementTypeX on ElementType {
     ElementType.normalText1, ElementType.normalText2, ElementType.normalText3,
     ElementType.normalText4, ElementType.normalText5,
   }.contains(this);
-  bool get isText => isDateTime || isNormalText || this == ElementType.notification;
+  bool get isText => isDateTime || isNormalText || this == ElementType.notification || this == ElementType.weatherDesc;
   bool get isClock => const {
     ElementType.hourClock, ElementType.minClock, ElementType.dotClock,
     ElementType.amPmClock, ElementType.weekClock, ElementType.monthClock,
     ElementType.dateClock, ElementType.weatherIconClock,
+    ElementType.analogClockBg, ElementType.analogHourHand, 
+    ElementType.analogMinHand, ElementType.analogSecHand,
   }.contains(this);
   bool get isExportable => isClock || isContainer;
   bool get swipeUpUnlock => this == ElementType.swipeUpUnlock;
@@ -81,7 +89,7 @@ const Map<String, List<ElementType>> kElementGroups = {
                 ElementType.dotClock,  ElementType.amPmClock,
                 ElementType.weekClock],
   'Date':      [ElementType.monthClock, ElementType.dateClock],
-  'Weather':   [ElementType.weatherIconClock],
+  'Weather':   [ElementType.weatherIconClock, ElementType.weatherTemp, ElementType.weatherDesc],
   'Notification': [ElementType.notification],
   'DateTime Text': [ElementType.dateTimeText1, ElementType.dateTimeText2,
                     ElementType.dateTimeText3],
@@ -103,12 +111,32 @@ const Map<String, List<ElementType>> kElementGroups = {
                 ElementType.whatsAppIcon, ElementType.telegramIcon,
                 ElementType.instagramIcon, ElementType.spotifyIcon,
                 ElementType.settingIcon, ElementType.galleryIcon],
-  'Other':     [ElementType.swipeUpUnlock, ElementType.tapToUnlock, ElementType.slideToUnlock],
+  'Other':     [ElementType.swipeUpUnlock, ElementType.tapToUnlock, ElementType.slideToUnlock,
+                ElementType.analogClockBg, ElementType.analogHourHand, ElementType.analogMinHand,
+                ElementType.analogSecHand, ElementType.calendarGrid, ElementType.toggleSwitch,
+                ElementType.missedCalls, ElementType.stepsCount, ElementType.batteryLevel,
+                ElementType.progressBar],
 };
 
 // ── Gradient type ─────────────────────────────────────────────────────────────
 
 enum GradientType { linear, radial, sweep }
+
+// ── MamlEase enum ─────────────────────────────────────────────────────────────
+
+enum MamlEase {
+  linear,
+  sineEaseIn, sineEaseOut, sineEaseInOut,
+  quadEaseIn, quadEaseOut, quadEaseInOut,
+  cubicEaseIn, cubicEaseOut, cubicEaseInOut,
+  quartEaseIn, quartEaseOut, quartEaseInOut,
+  quintEaseIn, quintEaseOut, quintEaseInOut,
+  expoEaseIn, expoEaseOut, expoEaseInOut,
+  circEaseIn, circEaseOut, circEaseInOut,
+  backEaseIn, backEaseOut, backEaseInOut,
+  elasticEaseIn, elasticEaseOut, elasticEaseInOut,
+  bounceEaseIn, bounceEaseOut, bounceEaseInOut
+}
 
 // ── Pure-Dart entity ──────────────────────────────────────────────────────────
 
@@ -133,10 +161,11 @@ class LockElement {
     this.fontWeight = FontWeight.normal,
     this.isShort = false, this.isWrap = false, this.showGuideLines = false,
     this.isVisible = true, this.isLocked = false,
+    this.blurRadius = 0,
   });
 
   final ElementType type;
-  final double dx, dy, scale, height, width, radius, borderWidth, angle, fontSize;
+  final double dx, dy, scale, height, width, radius, borderWidth, angle, fontSize, blurRadius;
   final Color borderColor, color, colorSecondary;
   final GradientType gradientType;
   final AlignmentGeometry gradStartAlign, gradEndAlign, align;
@@ -157,6 +186,7 @@ class LockElement {
     FontWeight? fontWeight,
     bool? isShort, bool? isWrap, bool? showGuideLines,
     bool? isVisible, bool? isLocked,
+    double? blurRadius,
   }) => LockElement(
     type: type,
     dx: dx ?? this.dx,   dy: dy ?? this.dy, scale: scale ?? this.scale,
@@ -175,6 +205,7 @@ class LockElement {
     showGuideLines: showGuideLines ?? this.showGuideLines,
     isVisible: isVisible ?? this.isVisible,
     isLocked: isLocked ?? this.isLocked,
+    blurRadius: blurRadius ?? this.blurRadius,
   );
 
   Map<String, dynamic> toJson() => {
@@ -192,6 +223,7 @@ class LockElement {
     'fontWeight': fontWeight.toString(),
     'isShort': isShort, 'isWrap': isWrap, 'showGuideLines': showGuideLines,
     'isVisible': isVisible, 'isLocked': isLocked,
+    'blurRadius': blurRadius,
   };
 
   factory LockElement.fromJson(Map<String, dynamic> j) => LockElement(
@@ -223,6 +255,7 @@ class LockElement {
     showGuideLines:j['showGuideLines']as bool? ?? false,
     isVisible:     j['isVisible']     as bool? ?? true,
     isLocked:      j['isLocked']      as bool? ?? false,
+    blurRadius:    (j['blurRadius']   as num?)?.toDouble() ?? 0,
   );
 
   static FontWeight _fw(String s) {
