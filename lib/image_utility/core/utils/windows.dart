@@ -6,7 +6,7 @@ import 'package:window_manager/window_manager.dart';
 Future startUpWindowsUtils() async {
   await windowManager.ensureInitialized();
   windowManager.waitUntilReadyToShow().then((_) async {
-    await windowManager.setTitle("Miui Tools");
+    await windowManager.setTitle("Team Shadow Tools");
     await windowManager.setSize(getWindowSize);
     await windowManager.setMinimumSize(getWindowSize);
     await windowManager.center();

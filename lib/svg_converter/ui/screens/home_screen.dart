@@ -99,6 +99,16 @@ class HomeScreen extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
       child: Row(
         children: [
+          GlassCard(
+            padding: const EdgeInsets.all(8),
+            borderRadius: 12,
+            child: InkWell(
+              onTap: () => Navigator.of(context, rootNavigator: true).pop(),
+              child: const Icon(Icons.arrow_back_rounded,
+                  color: Colors.white, size: 16),
+            ),
+          ),
+          const SizedBox(width: 16),
           const _NavIcon(icon: Icons.auto_awesome_mosaic_rounded),
           const SizedBox(width: 16),
           const _NavIcon(icon: Icons.layers_outlined),

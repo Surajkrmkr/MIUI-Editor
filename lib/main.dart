@@ -94,7 +94,7 @@ class RootApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        title: 'MIUI Tools',
+        title: 'Team Shadow Tools',
         debugShowCheckedModeBanner: false,
         themeMode: ThemeMode.dark,
         theme: AppTheme.light(),
@@ -204,7 +204,7 @@ class AppLauncherScreen extends StatelessWidget {
               // Header
               const SizedBox(height: 20),
               Text(
-                'MIUI Tools',
+                'Team Shadow Tools',
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Colors.white,

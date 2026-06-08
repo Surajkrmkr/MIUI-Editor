@@ -31,7 +31,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(currentPath != null 
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          tooltip: 'Back to Main',
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+        ),
+        title: Text(currentPath != null
             ? 'Dashboard - ${currentPath.split('\\').last.split('/').last}'
             : 'Dashboard'),
         actions: [
