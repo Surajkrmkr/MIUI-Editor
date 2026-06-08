@@ -18,7 +18,6 @@ class BgDropZones extends ConsumerWidget {
     const borderColor = Colors.black;
 
     return Container(
-      width: 450,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: cardBg,

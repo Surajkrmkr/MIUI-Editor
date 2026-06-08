@@ -122,8 +122,7 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
         return pngFailure;
       }
 
-      // ── Step 2.5: Generate layered SVG ────────────────────────────────────
-      await generateLayeredSvg();
+
 
       // ── Step 3: auto-pack MTZ and save preset ─────────────────────────────
       // No extra button tap — the full theme is ready, so zip it immediately.

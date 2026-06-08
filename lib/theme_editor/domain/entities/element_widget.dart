@@ -111,11 +111,7 @@ const Map<String, List<ElementType>> kElementGroups = {
                 ElementType.whatsAppIcon, ElementType.telegramIcon,
                 ElementType.instagramIcon, ElementType.spotifyIcon,
                 ElementType.settingIcon, ElementType.galleryIcon],
-  'Other':     [ElementType.swipeUpUnlock, ElementType.tapToUnlock, ElementType.slideToUnlock,
-                ElementType.analogClockBg, ElementType.analogHourHand, ElementType.analogMinHand,
-                ElementType.analogSecHand, ElementType.calendarGrid, ElementType.toggleSwitch,
-                ElementType.missedCalls, ElementType.stepsCount, ElementType.batteryLevel,
-                ElementType.progressBar],
+  'Other':     [ElementType.swipeUpUnlock, ElementType.tapToUnlock, ElementType.slideToUnlock],
 };
 
 // ── Gradient type ─────────────────────────────────────────────────────────────

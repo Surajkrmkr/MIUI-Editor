@@ -6,7 +6,6 @@ import '../../providers/workspace_provider.dart';
 import 'widgets/top_command_bar.dart';
 import 'widgets/left_tool_nav.dart';
 import 'widgets/right_inspector.dart';
-import 'widgets/bottom_status_bar.dart';
 import 'widgets/pro_canvas.dart';
 import 'widgets/sidebar_content.dart';
 import 'widgets/command_palette.dart';
@@ -45,7 +44,7 @@ class ProfessionalWorkspaceShell extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const BottomStatusBar(),
+
               ],
             ),
           ),

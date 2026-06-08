@@ -4,6 +4,8 @@ import 'package:miui_icon_generator/core/theme/app_theme.dart';
 import '../../../providers/workspace_provider.dart';
 import '../../lockscreen/widgets/element_list_panel.dart';
 import '../../font_picker/font_list_panel.dart';
+import '../../icon_editor/icon_editor_panel.dart';
+import '../../home/widgets/icon_export_card.dart';
 
 class SidebarContent extends ConsumerWidget {
   const SidebarContent({super.key});
@@ -14,9 +16,11 @@ class SidebarContent extends ConsumerWidget {
     if (!workspaceState.isSidebarExpanded) return const SizedBox.shrink();
 
     final isLockscreen = workspaceState.page == WorkspacePage.lockscreen;
+    final isIcons = workspaceState.page == WorkspacePage.svgEditor ||
+        workspaceState.page == WorkspacePage.icons;
 
     return Container(
-      width: isLockscreen ? 560 : 280,
+      width: isLockscreen ? 560 : (isIcons ? 400 : 280),
       decoration: const BoxDecoration(
         color: AppTheme.proSidebar,
         border: Border(right: BorderSide(color: Colors.black, width: 1)),
@@ -32,7 +36,27 @@ class SidebarContent extends ConsumerWidget {
         return const SizedBox.shrink();
       case WorkspacePage.svgEditor:
       case WorkspacePage.icons:
-        return const _SidebarPlaceholder(title: 'SVG Editor');
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const IconExportCard(),
+              const SizedBox(height: 16),
+              const Text(
+                'SVG EDITOR',
+                style: TextStyle(
+                  color: Colors.white38,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: 20),
+              const IconEditorPanel(),
+            ],
+          ),
+        );
       case WorkspacePage.lockscreen:
         return const Padding(
           padding: EdgeInsets.all(16),

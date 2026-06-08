@@ -10,7 +10,6 @@ class IconEditorPanel extends StatelessWidget {
   Widget build(BuildContext context) => const Column(
         spacing: 10,
         children: [
-          SlidersPanel(),
           BgDropZones(),
           ColorTab(),
         ],

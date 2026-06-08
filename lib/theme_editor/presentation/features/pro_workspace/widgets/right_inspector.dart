@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../providers/workspace_provider.dart';
-import '../../icon_editor/icon_editor_panel.dart';
 import '../../lockscreen/widgets/element_info_panel.dart';
 import '../../lockscreen/widgets/element_list_panel.dart';
 import '../../lockscreen/widgets/lockscreen_functions_panel.dart';
 import '../../font_picker/font_list_panel.dart';
 import '../../home/widgets/module_preview.dart';
-import '../../home/widgets/export_buttons.dart';
+import '../../icon_editor/widgets/sliders_panel.dart';
 import 'layer_manager.dart';
 import 'svg_inspector.dart';
 
@@ -70,10 +69,8 @@ class RightInspector extends ConsumerWidget {
         return const Column(
           children: [
             ModulePreview(),
-            SizedBox(height: 16),
-            ExportButtons(),
             SizedBox(height: 24),
-            IconEditorPanel(),
+            SlidersPanel(),
           ],
         );
       case WorkspacePage.lockscreen:

@@ -19,7 +19,6 @@ class ColorTab extends ConsumerWidget {
       length: 4,
       child: SizedBox(
         height: 560,
-        width: 450,
         child: Column(
           children: [
             // Custom tab bar header
