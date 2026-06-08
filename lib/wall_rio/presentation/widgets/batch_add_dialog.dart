@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import '../../application/providers/ai_provider.dart';
@@ -241,8 +242,10 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return Dialog(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: colors.bg,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: SizedBox(
         width: 1000,
@@ -253,13 +256,13 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
               padding: const EdgeInsets.all(24.0),
               child: Row(
                 children: [
-                  const Text('Batch Add Wallpapers', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                  Text('Batch Add Wallpapers', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: cs.onSurface)),
                   const Spacer(),
                   if (_items.isNotEmpty)
                     TextButton.icon(
                       onPressed: _analyzeAll,
-                      icon: const Icon(Icons.auto_awesome, color: Colors.purpleAccent),
-                      label: const Text('AI Auto-fill All', style: TextStyle(color: Colors.purpleAccent)),
+                      icon: Icon(Icons.auto_awesome, color: colors.primary),
+                      label: Text('AI Auto-fill All', style: TextStyle(color: colors.primary)),
                     ),
                   const SizedBox(width: 16),
                   ElevatedButton.icon(
@@ -271,15 +274,15 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
               ),
             ),
             if (_isImporting)
-              const Expanded(
+              Expanded(
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('Importing wallpapers...', style: TextStyle(color: Colors.white, fontSize: 18)),
-                      Text('Copying files and generating thumbnails. This may take a while.', style: TextStyle(color: Colors.grey)),
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text('Importing wallpapers...', style: TextStyle(color: cs.onSurface, fontSize: 18)),
+                      Text('Copying files and generating thumbnails. This may take a while.', style: TextStyle(color: cs.onSurfaceVariant)),
                     ],
                   ),
                 ),
@@ -287,11 +290,11 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
             else
             Expanded(
               child: _items.isEmpty
-                  ? Center(child: Text('No files added yet.', style: TextStyle(color: Colors.grey[600])))
+                  ? Center(child: Text('No files added yet.', style: TextStyle(color: cs.onSurfaceVariant)))
                   : ListView.separated(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       itemCount: _items.length,
-                      separatorBuilder: (_, __) => const Divider(height: 32, color: Colors.white10),
+                      separatorBuilder: (_, __) => Divider(height: 32, color: cs.onSurface.withAlpha(26)),
                       itemBuilder: (context, index) => _buildItemRow(_items[index]),
                     ),
             ),
@@ -302,14 +305,14 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                    child: Text('Cancel', style: TextStyle(color: cs.onSurfaceVariant)),
                   ),
                   const SizedBox(width: 16),
                   ElevatedButton(
                     onPressed: _items.isEmpty || _isImporting ? null : _submit,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purpleAccent,
-                      foregroundColor: Colors.white,
+                      backgroundColor: cs.primary,
+                      foregroundColor: cs.onPrimary,
                       padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 20),
                     ),
                     child: const Text('Import All'),
@@ -324,6 +327,7 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
   }
 
   Widget _buildItemRow(_BatchItem item) {
+    final cs = Theme.of(context).colorScheme;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -331,11 +335,11 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
           width: 80,
           height: 120,
           decoration: BoxDecoration(
-            color: Colors.white10,
+            color: cs.onSurface.withAlpha(26),
             borderRadius: BorderRadius.circular(8),
             image: !item.isLive ? DecorationImage(image: FileImage(item.file), fit: BoxFit.cover) : null,
           ),
-          child: item.isLive ? const Icon(Icons.videocam, color: Colors.white24) : null,
+          child: item.isLive ? Icon(Icons.videocam, color: cs.onSurface.withAlpha(60)) : null,
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -349,16 +353,16 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
                   const SizedBox(width: 16),
                   Column(
                     children: [
-                      const Text('Premium', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                      Text('Premium', style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant)),
                       Checkbox(
                         value: item.isPremium,
                         onChanged: (v) => setState(() => item.isPremium = v ?? false),
-                        activeColor: Colors.purpleAccent,
+                        activeColor: cs.primary,
                       ),
                     ],
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                    icon: Icon(Icons.delete_outline, color: cs.error),
                     onPressed: () => setState(() => _items.remove(item)),
                   ),
                 ],
@@ -381,7 +385,7 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
   Widget _buildItemTextField(TextEditingController controller, String label) {
     return TextField(
       controller: controller,
-      style: const TextStyle(fontSize: 13, color: Colors.white),
+      style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurface),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(fontSize: 12),
@@ -400,7 +404,7 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
         return TextField(
           controller: textController,
           focusNode: focusNode,
-          style: const TextStyle(fontSize: 13, color: Colors.white),
+          style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurface),
           decoration: const InputDecoration(labelText: 'Category', isDense: true),
         );
       },
@@ -432,7 +436,7 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
         return TextField(
           controller: controller,
           focusNode: focusNode,
-          style: const TextStyle(fontSize: 13, color: Colors.white),
+          style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurface),
           decoration: InputDecoration(
             labelText: label,
             isDense: true,
@@ -445,7 +449,7 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
           alignment: Alignment.topLeft,
           child: Material(
             elevation: 4,
-            color: const Color(0xFF1E1E1E),
+            color: Theme.of(context).colorScheme.surface,
             child: SizedBox(
               height: 200,
               width: 250,
@@ -455,7 +459,7 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
                 itemBuilder: (context, index) {
                   final option = options.elementAt(index);
                   return ListTile(
-                    title: Text(option, style: const TextStyle(color: Colors.white, fontSize: 12)),
+                    title: Text(option, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 12)),
                     onTap: () => onSelected(option),
                   );
                 },
@@ -481,9 +485,9 @@ class _BatchItem {
   final TextEditingController categoryController;
   final FocusNode tagsFocusNode = FocusNode();
   final FocusNode colorsFocusNode = FocusNode();
-  bool isPremium;
-  bool isAnalyzing;
-  bool isProcessed;
+  bool isPremium = false;
+  bool isAnalyzing = false;
+  bool isProcessed = false;
   bool isLive;
   final String taskId;
 
@@ -498,9 +502,6 @@ class _BatchItem {
     required this.previewVideoController,
     required this.typeController,
     required this.categoryController,
-    this.isPremium = false,
-    this.isAnalyzing = false,
-    this.isProcessed = false,
     this.isLive = false,
     required this.taskId,
   });

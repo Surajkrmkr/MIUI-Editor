@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
 import '../../providers/app_state_provider.dart';
@@ -14,10 +15,11 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(appStateProvider);
+    final colors = context.appColors;
     final primary = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: colors.bg,
       body: Stack(
         children: [
           _buildBackgroundGlow(context),
@@ -29,29 +31,29 @@ class HomeScreen extends ConsumerWidget {
                 child: FolderDropZone(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Column(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: _buildMainPreview(context, state),
-                        ),
-                        if (state.selectedFolder != null) ...[
-                          Expanded(
-                            flex: 2,
-                            child: Row(
-                              children: [
-                                const Expanded(child: StatsPanel()),
-                                const SizedBox(width: 24),
-                                Expanded(child: _ActionPanel(primary: primary)),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                        ] else ...[
-                          const Spacer(),
-                        ],
-                      ],
-                    ),
+                    child: state.selectedFolder != null
+                        ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              SizedBox(
+                                width: 320,
+                                child: Column(
+                                  children: [
+                                    const Expanded(child: StatsPanel()),
+                                    const SizedBox(height: 16),
+                                    Expanded(
+                                        child: _ActionPanel(primary: primary)),
+                                    const SizedBox(height: 24),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 24),
+                              Expanded(
+                                child: _buildCarousel(context, state),
+                              ),
+                            ],
+                          )
+                        : _buildEmptyState(context),
                   ),
                 ),
               ),
@@ -64,6 +66,7 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _buildBackgroundGlow(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Stack(
       children: [
         Positioned(
@@ -74,7 +77,7 @@ class HomeScreen extends ConsumerWidget {
             height: 500,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: primary.withOpacity(0.08),
+              color: primary.withValues(alpha: isDark ? 0.08 : 0.06),
             ),
           ),
         ),
@@ -86,7 +89,7 @@ class HomeScreen extends ConsumerWidget {
             height: 400,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: primary.withOpacity(0.04),
+              color: primary.withValues(alpha: isDark ? 0.04 : 0.04),
             ),
           ),
         ),
@@ -95,6 +98,7 @@ class HomeScreen extends ConsumerWidget {
   }
 
   Widget _buildTopBar(BuildContext context) {
+    final colors = context.appColors;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
       child: Row(
@@ -104,84 +108,10 @@ class HomeScreen extends ConsumerWidget {
             borderRadius: 12,
             child: InkWell(
               onTap: () => Navigator.of(context, rootNavigator: true).pop(),
-              child: const Icon(Icons.arrow_back_rounded,
-                  color: Colors.white, size: 16),
+              child: Icon(Icons.arrow_back_rounded,
+                  color: colors.textPrimary, size: 16),
             ),
           ),
-          const SizedBox(width: 16),
-          const _NavIcon(icon: Icons.auto_awesome_mosaic_rounded),
-          const SizedBox(width: 16),
-          const _NavIcon(icon: Icons.layers_outlined),
-          const SizedBox(width: 16),
-          const _NavIcon(icon: Icons.search_rounded),
-          const Spacer(),
-          GlassCard(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            borderRadius: 100,
-            child: Row(
-              children: [
-                const Icon(Icons.history_toggle_off_rounded,
-                    size: 14, color: Colors.white70),
-                const SizedBox(width: 8),
-                Text(
-                  _getFormattedDate(),
-                  style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          _buildUserBadge(context),
-        ],
-      ),
-    );
-  }
-
-  String _getFormattedDate() {
-    final now = DateTime.now();
-    final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return '${months[now.month - 1]} ${now.day.toString().padLeft(2, '0')}';
-  }
-
-  Widget _buildUserBadge(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
-    return GlassCard(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-      borderRadius: 100,
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: primary.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(100),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.bolt_rounded, size: 14, color: primary),
-                const SizedBox(width: 8),
-                const Text('READY',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          const CircleAvatar(
-            radius: 14,
-            backgroundColor: Colors.white10,
-            child: Icon(Icons.person_outline_rounded,
-                size: 16, color: Colors.white),
-          ),
-          const SizedBox(width: 4),
         ],
       ),
     );
@@ -197,109 +127,58 @@ class HomeScreen extends ConsumerWidget {
             count: state.tasks.length,
             isSelected: true,
           ),
-          const SizedBox(width: 12),
-          const _CategoryChip(label: 'VTracer Tags', count: 4),
-          const SizedBox(width: 12),
-          const _CategoryChip(label: 'Spline Mode', isDropdown: true),
         ],
       ),
     );
   }
 
-  Widget _buildMainPreview(BuildContext context, AppState state) {
-    if (state.selectedFolder == null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.spatial_audio_off_rounded,
-                size: 80,
-                color: Theme.of(context)
-                    .colorScheme
-                    .primary
-                    .withOpacity(0.15)),
-            const SizedBox(height: 32),
-            const Text(
-              'Initialize Spatial Workspace',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.5),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Drag folders or click to map source images',
-              style: TextStyle(color: Colors.white38, fontSize: 14),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: () async {
-                final path =
-                    await FilePicker.platform.getDirectoryPath();
-                if (path != null) {
-                  ProviderScope.containerOf(context)
-                      .read(appStateProvider.notifier)
-                      .selectFolder(path);
-                }
-              },
-              child: const Text('Map Source Directory'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Stack(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20.0),
-          child: WallpaperCarousel(tasks: state.tasks),
-        ),
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: GlassCard(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              borderRadius: 100,
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.keyboard_arrow_left_rounded,
-                      color: Colors.white38),
-                  SizedBox(width: 12),
-                  Text('SWIPE TO EXPLORE SPATIAL LIBRARY',
-                      style: TextStyle(
-                          color: Colors.white38,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.5)),
-                  SizedBox(width: 12),
-                  Icon(Icons.keyboard_arrow_right_rounded,
-                      color: Colors.white38),
-                ],
-              ),
-            ),
+  Widget _buildEmptyState(BuildContext context) {
+    final colors = context.appColors;
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.spatial_audio_off_rounded,
+              size: 80,
+              color: Theme.of(context)
+                  .colorScheme
+                  .primary
+                  .withValues(alpha: 0.15)),
+          const SizedBox(height: 32),
+          Text(
+            'Initialize Spatial Workspace',
+            style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                letterSpacing: -0.5),
           ),
-        ),
-      ],
+          const SizedBox(height: 12),
+          Text(
+            'Drag folders or click to map source images',
+            style: TextStyle(color: colors.textDisabled, fontSize: 14),
+          ),
+          const SizedBox(height: 32),
+          ElevatedButton(
+            onPressed: () async {
+              final path = await FilePicker.platform.getDirectoryPath();
+              if (path != null) {
+                ProviderScope.containerOf(context)
+                    .read(appStateProvider.notifier)
+                    .selectFolder(path);
+              }
+            },
+            child: const Text('Map Source Directory'),
+          ),
+        ],
+      ),
     );
   }
-}
 
-class _NavIcon extends StatelessWidget {
-  final IconData icon;
-  const _NavIcon({required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return GlassCard(
-      padding: const EdgeInsets.all(8),
-      borderRadius: 12,
-      child: Icon(icon, color: Colors.white, size: 16),
+  Widget _buildCarousel(BuildContext context, AppState state) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20.0),
+      child: WallpaperCarousel(tasks: state.tasks),
     );
   }
 }
@@ -308,17 +187,16 @@ class _CategoryChip extends StatelessWidget {
   final String label;
   final int? count;
   final bool isSelected;
-  final bool isDropdown;
 
   const _CategoryChip({
     required this.label,
     this.count,
     this.isSelected = false,
-    this.isDropdown = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final primary = Theme.of(context).colorScheme.primary;
     return GlassCard(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -329,25 +207,19 @@ class _CategoryChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            isDropdown ? Icons.grid_view_rounded : Icons.folder_rounded,
+            Icons.folder_rounded,
             size: 14,
-            color: isSelected ? primary : Colors.white38,
+            color: isSelected ? primary : colors.textDisabled,
           ),
           const SizedBox(width: 8),
           Text(
             label + (count != null ? ' ($count)' : ''),
             style: TextStyle(
-              color: isSelected ? Colors.white : Colors.white38,
+              color: isSelected ? colors.textPrimary : colors.textDisabled,
               fontSize: 12,
-              fontWeight:
-                  isSelected ? FontWeight.bold : FontWeight.w500,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
             ),
           ),
-          if (isDropdown) ...[
-            const SizedBox(width: 4),
-            const Icon(Icons.expand_more_rounded,
-                size: 14, color: Colors.white38),
-          ],
         ],
       ),
     );
@@ -361,6 +233,7 @@ class _ActionPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(appStateProvider);
+    final colors = context.appColors;
 
     return GlassCard(
       padding: const EdgeInsets.all(20),
@@ -368,32 +241,18 @@ class _ActionPanel extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Spatial Workflow',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -0.5),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Queue: ${state.pendingCount} tasks remaining',
-                    style: TextStyle(
-                        color: Colors.white.withOpacity(0.3),
-                        fontSize: 12),
-                  ),
-                ],
-              ),
-              const _NavIcon(
-                  icon: Icons.settings_input_component_rounded),
-            ],
+          Text(
+            'Spatial Workflow',
+            style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                letterSpacing: -0.5),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Queue: ${state.pendingCount} tasks remaining',
+            style: TextStyle(color: colors.textDisabled, fontSize: 12),
           ),
           const Spacer(),
           if (state.isProcessing)
@@ -410,7 +269,7 @@ class _ActionPanel extends ConsumerWidget {
               context: context,
               label: 'INITIALIZE CONVERSION',
               icon: Icons.play_circle_filled_rounded,
-              color: state.isVTracerInstalled ? primary : Colors.white24,
+              color: state.isVTracerInstalled ? primary : colors.textDisabled,
               onPressed: () {
                 if (!state.isVTracerInstalled) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -441,7 +300,7 @@ class _ActionPanel extends ConsumerWidget {
             context: context,
             label: 'VIEW OUTPUT LIBRARY',
             icon: Icons.folder_copy_rounded,
-            color: Colors.white.withOpacity(0.08),
+            color: colors.surfaceOverlay,
             onPressed: () {
               if (state.selectedFolder != null) {
                 final outDir = p.join(state.selectedFolder!, 'svg');
@@ -461,6 +320,7 @@ class _ActionPanel extends ConsumerWidget {
     required Color color,
     required VoidCallback onPressed,
   }) {
+    final colors = context.appColors;
     final isPrimary = color == Theme.of(context).colorScheme.primary;
 
     return SizedBox(
@@ -468,7 +328,7 @@ class _ActionPanel extends ConsumerWidget {
       child: ElevatedButton.icon(
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
-          foregroundColor: isPrimary ? Colors.white : Colors.white70,
+          foregroundColor: isPrimary ? colors.onPrimary : colors.textSecondary,
           padding: const EdgeInsets.symmetric(vertical: 16),
           elevation: 0,
           shape: RoundedRectangleBorder(

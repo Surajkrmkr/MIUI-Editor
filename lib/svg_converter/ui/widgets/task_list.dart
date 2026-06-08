@@ -8,9 +8,10 @@ class TaskList extends ConsumerWidget {
   const TaskList({super.key});
 
   Widget _buildIcon(TaskStatus status, BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     switch (status) {
       case TaskStatus.pending:
-        return Icon(Icons.circle_outlined, color: Colors.grey.withOpacity(0.5), size: 20);
+        return Icon(Icons.circle_outlined, color: scheme.onSurfaceVariant.withValues(alpha: 0.5), size: 20);
       case TaskStatus.processing:
         return SizedBox(
           width: 18, height: 18,
@@ -36,12 +37,12 @@ class TaskList extends ConsumerWidget {
       final time = task.duration != null ? '${task.duration!.inMilliseconds}ms' : '?';
       return Text(
         '${after}KB • $time',
-        style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), fontSize: 12),
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 12),
       );
     }
     return Text(
       p.dirname(task.inputPath),
-      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3), fontSize: 11),
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3), fontSize: 11),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
@@ -54,7 +55,7 @@ class TaskList extends ConsumerWidget {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
@@ -77,7 +78,7 @@ class TaskList extends ConsumerWidget {
     final tasks = state.tasks;
 
     if (tasks.isEmpty) {
-      return const Center(child: Text('Empty folder', style: TextStyle(color: Colors.grey)));
+      return Center(child: Text('Empty folder', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)));
     }
 
     return ListView.separated(
@@ -86,7 +87,7 @@ class TaskList extends ConsumerWidget {
       separatorBuilder: (context, index) => Divider(
         height: 1,
         indent: 56,
-        color: Theme.of(context).dividerColor.withOpacity(0.05),
+        color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
       ),
       itemBuilder: (context, index) {
         final task = tasks[index];

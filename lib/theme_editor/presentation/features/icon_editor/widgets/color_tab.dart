@@ -1,7 +1,8 @@
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:miui_icon_generator/core/theme/app_theme.dart';
+import 'package:miui_icon_generator/core/theme/app_radius.dart';
+import '../../../../../core/theme/theme_extensions.dart';
 import '../../../../presentation/providers/icon_editor_provider.dart';
 
 class ColorTab extends ConsumerWidget {
@@ -9,11 +10,8 @@ class ColorTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
-    
-    const cardBg = AppTheme.proCard;
-    const sectionBg = AppTheme.proSidebar;
-    const borderColor = Colors.black;
 
     return DefaultTabController(
       length: 4,
@@ -25,11 +23,11 @@ class ColorTab extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: cardBg,
+                color: colors.surfaceOverlay,
                 borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(16),
+                  top: Radius.circular(AppRadius.lg),
                 ),
-                border: Border.all(color: borderColor),
+                border: Border.all(color: colors.border),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,7 +39,7 @@ class ColorTab extends ConsumerWidget {
                         height: 12,
                         margin: const EdgeInsets.only(right: 6),
                         decoration: BoxDecoration(
-                          color: AppTheme.accent,
+                          color: colors.primary,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -60,8 +58,8 @@ class ColorTab extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: sectionBg,
-                      borderRadius: BorderRadius.circular(12),
+                      color: colors.surface,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: TabBar(
                       tabs: const [
@@ -72,12 +70,12 @@ class ColorTab extends ConsumerWidget {
                       ],
                       dividerColor: Colors.transparent,
                       indicator: BoxDecoration(
-                        color: AppTheme.accent,
-                        borderRadius: BorderRadius.circular(9),
+                        color: colors.primary,
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       indicatorSize: TabBarIndicatorSize.tab,
-                      labelColor: Colors.white,
-                      unselectedLabelColor: Colors.white38,
+                      labelColor: colors.onPrimary,
+                      unselectedLabelColor: colors.textDisabled,
                       labelStyle: const TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 10,
@@ -98,14 +96,14 @@ class ColorTab extends ConsumerWidget {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: cardBg,
+                  color: colors.surfaceOverlay,
                   borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(16),
+                    bottom: Radius.circular(AppRadius.lg),
                   ),
                   border: Border(
-                    left: BorderSide(color: borderColor),
-                    right: BorderSide(color: borderColor),
-                    bottom: BorderSide(color: borderColor),
+                    left: BorderSide(color: colors.border),
+                    right: BorderSide(color: colors.border),
+                    bottom: BorderSide(color: colors.border),
                   ),
                 ),
                 child: Consumer(builder: (context, ref, _) {
@@ -154,7 +152,7 @@ class _WheelPicker extends StatelessWidget {
   final ValueChanged<Color> onChanged;
 
   @override
-  Widget build(BuildContext context) => Padding(
+  Widget build(BuildContext context) => SingleChildScrollView(
         padding: const EdgeInsets.all(8),
         child: ColorPicker(
           color: color,
@@ -228,9 +226,7 @@ class _GradientPickerState extends State<_GradientPicker> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final borderColor = isDark ? Colors.white.withAlpha(18) : Colors.black.withAlpha(15);
-
+    final colors = context.appColors;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -244,8 +240,8 @@ class _GradientPickerState extends State<_GradientPicker> {
                 end: _a2 as Alignment,
                 colors: [_c1, _c2],
               ),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: borderColor),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(color: colors.border),
             ),
           ),
           const SizedBox(height: 16),
@@ -326,7 +322,7 @@ class _ColorBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = context.appColors;
     return GestureDetector(
       onTap: () => ColorPicker(
         color: color,
@@ -350,9 +346,8 @@ class _ColorBtn extends StatelessWidget {
         height: 52,
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-              color: isDark ? Colors.white.withAlpha(18) : Colors.black.withAlpha(15)),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: colors.border),
           boxShadow: [
             BoxShadow(
               color: color.withAlpha(80),
@@ -398,8 +393,8 @@ class _AlignDrop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -415,16 +410,15 @@ class _AlignDrop extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: isDark ? AppTheme.surfaceDark : const Color(0xFFF0F0F5),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-                color: isDark ? Colors.white.withAlpha(18) : Colors.black.withAlpha(15)),
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            border: Border.all(color: colors.border),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<AlignmentGeometry>(
               value: value,
               isExpanded: true,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               items: options.entries
                   .map((e) => DropdownMenuItem(
                         value: e.value,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:miui_icon_generator/core/theme/app_theme.dart';
+import '../../../../../core/theme/theme_extensions.dart';
 
 class CommandPalette extends ConsumerStatefulWidget {
   const CommandPalette({super.key});
@@ -27,6 +26,7 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Center(
       child: Material(
         color: Colors.transparent,
@@ -34,11 +34,15 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
           width: 500,
           height: 400,
           decoration: BoxDecoration(
-            color: const Color(0xFF2D2D2D),
+            color: colors.surfaceElevated,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white10),
+            border: Border.all(color: colors.border),
             boxShadow: [
-              BoxShadow(color: Colors.black.withAlpha(100), blurRadius: 40, offset: const Offset(0, 20)),
+              BoxShadow(
+                color: Colors.black.withAlpha(120),
+                blurRadius: 40,
+                offset: const Offset(0, 20),
+              ),
             ],
           ),
           child: Column(
@@ -49,17 +53,20 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
                 child: TextField(
                   controller: _controller,
                   autofocus: true,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: colors.textPrimary, fontSize: 14),
+                  decoration: InputDecoration(
                     hintText: 'Type a command or search...',
-                    hintStyle: TextStyle(color: Colors.white24),
-                    prefixIcon: Icon(Icons.keyboard_command_key_rounded, color: AppTheme.accent),
+                    hintStyle: TextStyle(color: colors.textDisabled),
+                    prefixIcon: Icon(
+                      Icons.keyboard_command_key_rounded,
+                      color: colors.primary,
+                    ),
                     border: InputBorder.none,
                   ),
                 ),
               ),
-              const Divider(height: 1, color: Colors.white10),
-              
+              Divider(height: 1, color: colors.border),
+
               // Command List
               Expanded(
                 child: ListView.builder(
@@ -69,31 +76,49 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
                       color: Colors.transparent,
                       child: ListTile(
                         dense: true,
-                        leading: const Icon(Icons.bolt_rounded, size: 16, color: Colors.white24),
-                        title: Text(_commands[index], style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                        trailing: const Text('Ctrl+Enter', style: TextStyle(color: Colors.white10, fontSize: 9)),
+                        leading: Icon(Icons.bolt_rounded,
+                            size: 16, color: colors.textDisabled),
+                        title: Text(
+                          _commands[index],
+                          style: TextStyle(
+                              color: colors.textSecondary, fontSize: 12),
+                        ),
+                        trailing: Text(
+                          'Ctrl+Enter',
+                          style: TextStyle(
+                              color: colors.textDisabled, fontSize: 9),
+                        ),
                         onTap: () => Navigator.pop(context),
                       ),
                     );
                   },
                 ),
               ),
-              
+
               // Footer
               Container(
                 height: 32,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: const BoxDecoration(
-                  color: Colors.black12,
-                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(12), bottomRight: Radius.circular(12)),
+                decoration: BoxDecoration(
+                  color: colors.bg,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
+                  ),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Text('↑↓ to navigate', style: TextStyle(color: Colors.white10, fontSize: 9)),
-                    SizedBox(width: 12),
-                    Text('↵ to execute', style: TextStyle(color: Colors.white10, fontSize: 9)),
-                    SizedBox(width: 12),
-                    Text('esc to close', style: TextStyle(color: Colors.white10, fontSize: 9)),
+                    Text('↑↓ to navigate',
+                        style: TextStyle(
+                            color: colors.textDisabled, fontSize: 9)),
+                    const SizedBox(width: 12),
+                    Text('↵ to execute',
+                        style: TextStyle(
+                            color: colors.textDisabled, fontSize: 9)),
+                    const SizedBox(width: 12),
+                    Text('esc to close',
+                        style: TextStyle(
+                            color: colors.textDisabled, fontSize: 9)),
                   ],
                 ),
               ),

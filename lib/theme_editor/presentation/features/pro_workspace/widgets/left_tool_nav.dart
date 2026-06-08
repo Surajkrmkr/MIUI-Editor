@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/theme/theme_extensions.dart';
 import '../../../providers/workspace_provider.dart';
 import '../../landing/widgets/settings_dialog.dart';
 
@@ -9,14 +9,15 @@ class LeftToolNav extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.appColors;
     final page = ref.watch(workspaceProvider).page;
     final n = ref.read(workspaceProvider.notifier);
 
     return Container(
       width: 48,
-      decoration: const BoxDecoration(
-        color: AppTheme.proSidebar,
-        border: Border(right: BorderSide(color: Colors.black, width: 1)),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border(right: BorderSide(color: colors.border)),
       ),
       child: Column(
         children: [
@@ -25,7 +26,8 @@ class LeftToolNav extends ConsumerWidget {
             icon: Icons.grid_view_outlined,
             activeIcon: Icons.grid_view,
             label: 'SVG Editor',
-            isActive: page == WorkspacePage.svgEditor || page == WorkspacePage.icons,
+            isActive: page == WorkspacePage.svgEditor ||
+                page == WorkspacePage.icons,
             onTap: () => n.setPage(WorkspacePage.svgEditor),
           ),
           _NavIcon(
@@ -69,6 +71,7 @@ class _NavIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Tooltip(
@@ -82,14 +85,14 @@ class _NavIcon extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border(
                 left: BorderSide(
-                  color: isActive ? AppTheme.accent : Colors.transparent,
+                  color: isActive ? colors.primary : Colors.transparent,
                   width: 2,
                 ),
               ),
             ),
             child: Icon(
               isActive ? (activeIcon ?? icon) : icon,
-              color: isActive ? AppTheme.accent : Colors.white54,
+              color: isActive ? colors.primary : colors.textDisabled,
               size: 20,
             ),
           ),

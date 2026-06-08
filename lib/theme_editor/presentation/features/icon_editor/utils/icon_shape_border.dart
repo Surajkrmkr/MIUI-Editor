@@ -119,16 +119,6 @@ class IconShapeBorder extends ShapeBorder {
     path.close();
   }
 
-  void _addFlower(Path path, Offset center, double radius, int petals) {
-    final angle = (math.pi * 2) / petals;
-    for (int i = 0; i < petals; i++) {
-      final pAngle = angle * i;
-      final petalCenter = Offset(center.dx + radius * 0.6 * math.cos(pAngle), center.dy + radius * 0.6 * math.sin(pAngle));
-      path.addOval(Rect.fromCircle(center: petalCenter, radius: radius * 0.45));
-    }
-    path.addOval(Rect.fromCircle(center: center, radius: radius * 0.5));
-  }
-
   @override
   void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {
     if (borderWidth > 0) {

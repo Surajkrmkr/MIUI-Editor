@@ -95,7 +95,7 @@ class AppStateNotifier extends Notifier<AppState> {
     state = state.copyWith(tasks: resetTasks);
 
     final settings = ref.read(settingsProvider);
-    final maxConcurrent = 4;
+    const maxConcurrent = 4;
     int currentTaskIndex = 0;
 
     Future<void> worker() async {

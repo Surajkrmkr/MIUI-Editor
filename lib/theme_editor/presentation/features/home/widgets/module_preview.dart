@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:miui_icon_generator/core/theme/app_theme.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import '../../../providers/icon_editor_provider.dart';
 import '../../icon_editor/utils/icon_shape_utils.dart';
 
@@ -26,7 +26,7 @@ class ModulePreview extends ConsumerWidget {
                 height: 14,
                 margin: const EdgeInsets.only(right: 7),
                 decoration: BoxDecoration(
-                  color: AppTheme.accent,
+                  color: context.appColors.primary,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:miui_icon_generator/image_utility/features/image_generation/data/generators/image_generator.dart';
@@ -150,7 +151,7 @@ class _ImageGenerationPageState extends ConsumerState<ImageGenerationPage> {
                       Text(g.displayName),
                       if (!g.isConfigured) ...[
                         const SizedBox(width: 4),
-                        const Icon(Icons.lock, size: 14, color: Colors.orange),
+                        Icon(Icons.lock, size: 14, color: Theme.of(context).colorScheme.tertiary),
                       ],
                     ],
                   ),
@@ -408,20 +409,22 @@ class _SuccessBanner extends StatelessWidget {
   final String path;
   const _SuccessBanner({required this.path});
   @override
-  Widget build(BuildContext context) => Card(
-        color: Colors.green[50],
+  Widget build(BuildContext context) {
+    final success = context.appColors.success;
+    return Card(
+        color: success.withAlpha(30),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(children: [
-            const Icon(Icons.check_circle, color: Colors.green),
+            Icon(Icons.check_circle, color: success),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Saved successfully!',
+                  Text('Saved successfully!',
                       style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.green)),
+                          fontWeight: FontWeight.bold, color: success)),
                   Text(path.split('/').last,
                       style: const TextStyle(fontSize: 12)),
                 ],
@@ -430,6 +433,7 @@ class _SuccessBanner extends StatelessWidget {
           ]),
         ),
       );
+  }
 }
 
 /// Renders children inside a phone-shaped frame (6:13 aspect ratio).

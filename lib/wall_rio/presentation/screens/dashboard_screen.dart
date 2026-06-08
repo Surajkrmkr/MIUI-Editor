@@ -2,7 +2,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
+import 'package:miui_icon_generator/widgets/app_icon_button.dart';
 import '../../application/providers/cms_provider.dart';
 import '../../application/providers/settings_provider.dart';
 import '../../application/providers/analytics_provider.dart';
@@ -12,7 +13,6 @@ import '../widgets/sidebar.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/wallpaper_form.dart';
 import '../widgets/git_panel.dart';
-import 'package:path/path.dart' as p;
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -31,48 +31,56 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          tooltip: 'Back to Main',
-          onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+        leadingWidth: 88,
+        leading: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppBackButton(
+              onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+            ),
+            Builder(
+              builder: (ctx) => _AppBarBtn(
+                icon: Icons.menu_rounded,
+                tooltip: 'Navigation Menu',
+                onPressed: () => Scaffold.of(ctx).openDrawer(),
+              ),
+            ),
+          ],
         ),
         title: Text(currentPath != null
             ? 'Dashboard - ${currentPath.split('\\').last.split('/').last}'
             : 'Dashboard'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
+          _AppBarBtn(
+            icon: Icons.refresh_rounded,
             tooltip: 'Refresh Analytics',
             onPressed: () => ref.read(analyticsStateProvider.notifier).refresh(),
           ),
-          IconButton(
-            icon: Icon(_showGitPanel ? Icons.view_sidebar : Icons.view_sidebar_outlined),
+          _AppBarBtn(
+            icon: _showGitPanel ? Icons.view_sidebar : Icons.view_sidebar_outlined,
             tooltip: 'Toggle Source Control',
+            isActive: _showGitPanel,
             onPressed: () => setState(() => _showGitPanel = !_showGitPanel),
           ),
           if (currentPath != null) ...[
-            IconButton(
-              icon: const Icon(Icons.add_photo_alternate),
+            const _AppBarDivider(),
+            _AppBarBtn(
+              icon: Icons.add_photo_alternate_rounded,
               tooltip: 'Batch Add',
               onPressed: () => _showBatchAddDialog(context, cmsState.value!),
             ),
-            IconButton(
-              icon: const Icon(Icons.add),
-              tooltip: 'Single Add',
+            _AppBarBtn(
+              icon: Icons.add_circle_outline_rounded,
+              tooltip: 'Add Wallpaper',
               onPressed: () => _showAddWallpaperDialog(context, cmsState.value!),
             ),
-            const VerticalDivider(width: 20, indent: 10, endIndent: 10),
-            IconButton(
-              icon: const Icon(Icons.save),
+            _AppBarBtn(
+              icon: Icons.save_rounded,
               tooltip: 'Save & Backup',
               onPressed: () => _showSaveDialog(context, ref, currentPath),
             ),
           ],
-          IconButton(
-            icon: const Icon(Icons.file_open),
-            tooltip: 'Open JSON',
-            onPressed: () => _openFile(context, ref),
-          ),
+          const SizedBox(width: 8),
         ],
       ),
       drawer: const Sidebar(),
@@ -91,9 +99,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
+                    Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
                     const SizedBox(height: 16),
-                    Text('Error: $err', style: const TextStyle(color: Colors.redAccent)),
+                    Text('Error: $err', style: TextStyle(color: Theme.of(context).colorScheme.error)),
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: () {
@@ -131,22 +139,23 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Widget _buildProjectSelection(BuildContext context, WidgetRef ref) {
     final savedPathsState = ref.watch(savedPathsProvider);
+    final colors = context.appColors;
 
     return Container(
       width: double.infinity,
       height: double.infinity,
-      color: const Color(0xFF0A0A0A), // Very dark background
+      color: colors.bg,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.folder_outlined, size: 80, color: Colors.white24),
+            Icon(Icons.folder_outlined, size: 80, color: colors.textDisabled),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'No JSON file loaded',
               style: TextStyle(
-                fontSize: 22, 
-                color: Colors.white54,
+                fontSize: 22,
+                color: colors.textSecondary,
                 letterSpacing: 1.1,
               ),
             ),
@@ -182,8 +191,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               icon: const Icon(Icons.file_open_rounded),
               label: const Text('Open WallRio JSON'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1A1A1A),
-                foregroundColor: const Color(0xFFA182FF),
+                backgroundColor: colors.surface,
+                foregroundColor: colors.primary,
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
@@ -202,13 +211,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final premium = walls.where((w) => w.isPremium).length;
     final analyticsState = ref.watch(analyticsStateProvider);
 
-    final currencyFormat = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
-
     return CustomScrollView(
       slivers: [
         analyticsState.when(
           data: (analytics) {
             if (analytics == null) return const SliverToBoxAdapter(child: SizedBox.shrink());
+            final admob = analytics.admob;
+            final play  = analytics.play;
             return SliverPadding(
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
               sliver: SliverToBoxAdapter(
@@ -217,20 +226,32 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     Expanded(
                       child: _AnalyticsCard(
                         title: 'Yesterday AdMob Earnings',
-                        value: currencyFormat.format(analytics.admob?.earnings ?? 0),
-                        subtitle: 'Impressions: ${analytics.admob?.impressions ?? 0}',
+                        value: admob == null
+                            ? '—'
+                            : '\$${admob.earnings.toStringAsFixed(2)}',
                         icon: Icons.monetization_on,
-                        color: Colors.purpleAccent,
+                        color: context.appColors.primary,
+                        metrics: admob == null ? [] : [
+                          ('Impressions', '${admob.impressions}'),
+                          ('Requests',    '${admob.requests}'),
+                          ('Match Rate',  '${(admob.matchRate * 100).toStringAsFixed(1)}%'),
+                          ('eCPM',        '\$${admob.ecpm.toStringAsFixed(3)}'),
+                        ],
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: _AnalyticsCard(
-                        title: 'Yesterday Play Revenue',
-                        value: currencyFormat.format(analytics.play?.revenue ?? 0),
-                        subtitle: 'Installs: ${analytics.play?.installs ?? 0}',
-                        icon: Icons.trending_up,
-                        color: Colors.blueAccent,
+                        title: 'Play Console',
+                        value: play == null ? '—' : 'Active',
+                        icon: Icons.android_rounded,
+                        color: Colors.greenAccent.shade400,
+                        metrics: play == null ? [] : [
+                          ('Crash Rate', '${(play.crashRate * 100).toStringAsFixed(2)}%'),
+                          ('ANR Rate',   '${(play.anrRate * 100).toStringAsFixed(2)}%'),
+                          ('Rating',     play.averageRating > 0 ? play.averageRating.toStringAsFixed(1) : '—'),
+                          ('Revenue',    'GCS export only'),
+                        ],
                       ),
                     ),
                   ],
@@ -359,7 +380,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
             child: const Text('Delete'),
           ),
         ],
@@ -446,24 +467,25 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 class _AnalyticsCard extends StatelessWidget {
   final String title;
   final String value;
-  final String subtitle;
   final IconData icon;
   final Color color;
+  final List<(String, String)> metrics;
 
   const _AnalyticsCard({
     required this.title,
     required this.value,
-    required this.subtitle,
     required this.icon,
     required this.color,
+    this.metrics = const [],
   });
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
+        color: colors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withValues(alpha: 0.2)),
         boxShadow: [
@@ -483,7 +505,7 @@ class _AnalyticsCard extends StatelessWidget {
               Text(
                 title,
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: colors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -491,24 +513,44 @@ class _AnalyticsCard extends StatelessWidget {
               Icon(icon, color: color, size: 20),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
             value,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: colors.textPrimary,
               fontSize: 28,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: TextStyle(
-              color: color.withValues(alpha: 0.7),
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
+          if (metrics.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 16,
+              runSpacing: 4,
+              children: metrics.map((m) => RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '${m.$1}  ',
+                      style: TextStyle(
+                        color: colors.textSecondary,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    TextSpan(
+                      text: m.$2,
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              )).toList(),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -533,6 +575,7 @@ class _ProjectSlot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isEmpty = label == null;
+    final colors = context.appColors;
 
     return InkWell(
       onTap: onSelect ?? onConfigure,
@@ -541,10 +584,10 @@ class _ProjectSlot extends StatelessWidget {
         width: 180,
         height: 120,
         decoration: BoxDecoration(
-          color: const Color(0xFF121212),
+          color: colors.bg,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: onSelect != null ? Colors.deepPurple.withValues(alpha: 0.3) : Colors.white10,
+            color: onSelect != null ? colors.primary.withValues(alpha: 0.3) : colors.border,
             width: 1,
           ),
         ),
@@ -557,12 +600,12 @@ class _ProjectSlot extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.deepPurple.withValues(alpha: 0.2),
+                    color: colors.primarySelection,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     'Slot ${index + 1}',
-                    style: const TextStyle(fontSize: 10, color: Colors.deepPurpleAccent),
+                    style: TextStyle(fontSize: 10, color: colors.primary),
                   ),
                 ),
               ),
@@ -573,7 +616,7 @@ class _ProjectSlot extends StatelessWidget {
                   Icon(
                     isEmpty ? Icons.add_circle_outline : Icons.insert_drive_file_outlined,
                     size: 32,
-                    color: isEmpty ? Colors.white10 : Colors.deepPurpleAccent,
+                    color: isEmpty ? colors.border : colors.primary,
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -581,7 +624,7 @@ class _ProjectSlot extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: isEmpty ? Colors.white24 : Colors.white,
+                      color: isEmpty ? colors.textDisabled : colors.textPrimary,
                     ),
                     textAlign: TextAlign.center,
                     maxLines: 1,
@@ -592,7 +635,7 @@ class _ProjectSlot extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 4, left: 12, right: 12),
                       child: Text(
                         path!.split('\\').last.split('/').last,
-                        style: const TextStyle(fontSize: 10, color: Colors.white38),
+                        style: TextStyle(fontSize: 10, color: colors.textDisabled),
                         textAlign: TextAlign.center,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -635,8 +678,8 @@ class _WallpaperCard extends StatelessWidget {
                     wall.thumbnail,
                     fit: BoxFit.cover,
                     width: double.infinity,
-                    errorBuilder: (context, error, stackTrace) => const Center(
-                      child: Icon(Icons.broken_image, color: Colors.grey),
+                    errorBuilder: (context, error, stackTrace) => Center(
+                      child: Icon(Icons.broken_image, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   ),
                 ),
@@ -657,10 +700,10 @@ class _WallpaperCard extends StatelessWidget {
                       children: [
                         Text(
                           wall.category,
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete_outline, size: 16, color: Colors.redAccent),
+                          icon: Icon(Icons.delete_outline, size: 16, color: Theme.of(context).colorScheme.error),
                           onPressed: onDelete,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
@@ -683,6 +726,74 @@ class _WallpaperCard extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Modern AppBar toolbar helpers
+// =============================================================================
+
+class _AppBarBtn extends StatelessWidget {
+  const _AppBarBtn({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+    this.isActive = false,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onPressed;
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Tooltip(
+      message: tooltip,
+      waitDuration: const Duration(milliseconds: 400),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 3),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          decoration: BoxDecoration(
+            color: isActive ? colors.primarySelection : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              onTap: onPressed,
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Icon(
+                  icon,
+                  size: 17,
+                  color: isActive ? colors.primary : colors.textSecondary,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AppBarDivider extends StatelessWidget {
+  const _AppBarDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 2),
+      child: VerticalDivider(
+        width: 1,
+        color: context.appColors.borderSubtle,
       ),
     );
   }

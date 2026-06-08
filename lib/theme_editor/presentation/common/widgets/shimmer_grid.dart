@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../core/constants/theme_defaults.dart';
 
@@ -8,9 +9,11 @@ class ShimmerGrid extends StatelessWidget {
   final int count;
 
   @override
-  Widget build(BuildContext context) => Shimmer.fromColors(
-        baseColor: ThemeDefaults.surfaceVariantDark,
-        highlightColor: const Color(0xFF3E3E3E),
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Shimmer.fromColors(
+        baseColor: colors.surface,
+        highlightColor: colors.surfaceElevated,
         child: GridView.builder(
           padding: const EdgeInsets.all(ThemeDefaults.paddingMd),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -21,10 +24,11 @@ class ShimmerGrid extends StatelessWidget {
           itemCount: count,
           itemBuilder: (_, __) => Container(
             decoration: BoxDecoration(
-              color: ThemeDefaults.surfaceVariantDark,
+              color: colors.surface,
               borderRadius: BorderRadius.circular(ThemeDefaults.radiusSm),
             ),
           ),
         ),
       );
+  }
 }

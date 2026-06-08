@@ -186,25 +186,25 @@ class IPhoneFrame extends StatelessWidget {
 
           // ── Side buttons ───────────────────────────────────────────────
           // Action button (left, top)
-          Positioned(
+          const Positioned(
             left: 0,
             top: 86,
             child: _SideButton(height: 26, isLeft: true),
           ),
           // Volume up (left)
-          Positioned(
+          const Positioned(
             left: 0,
             top: 124,
             child: _SideButton(height: 44, isLeft: true),
           ),
           // Volume down (left)
-          Positioned(
+          const Positioned(
             left: 0,
             top: 180,
             child: _SideButton(height: 44, isLeft: true),
           ),
           // Power button (right)
-          Positioned(
+          const Positioned(
             right: 0,
             top: 152,
             child: _SideButton(height: 70, isLeft: false),

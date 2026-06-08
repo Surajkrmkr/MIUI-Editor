@@ -1,8 +1,9 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
+import 'package:miui_icon_generator/widgets/app_icon_button.dart';
 
-import '../../../../core/theme/app_theme.dart';
 import '../../domain/entities/deployment_config.dart';
 import '../providers/deployment_provider.dart';
 
@@ -88,7 +89,7 @@ class _DeploymentPageState extends ConsumerState<DeploymentPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Themes Deployment'),
-        leading: BackButton(
+        leading: AppBackButton(
           onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
         ),
       ),
@@ -190,7 +191,7 @@ class _ConfigPanel extends StatelessWidget {
               'Configuration',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.accent,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
             ),
             const SizedBox(height: 20),
@@ -386,7 +387,7 @@ class _StepButton extends StatelessWidget {
         height: 48,
         decoration: BoxDecoration(
           color: enabled
-              ? AppTheme.accent.withAlpha(30)
+              ? Theme.of(context).colorScheme.primary.withAlpha(30)
               : Colors.transparent,
           borderRadius: BorderRadius.horizontal(
             left: isLeft ? const Radius.circular(11) : Radius.zero,
@@ -396,7 +397,7 @@ class _StepButton extends StatelessWidget {
         child: Icon(
           icon,
           size: 18,
-          color: enabled ? AppTheme.accent : Colors.white24,
+          color: enabled ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withAlpha(60),
         ),
       ),
     );
@@ -434,7 +435,7 @@ class _ConsolePanel extends StatelessWidget {
               'Console Output',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.accent,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
             ),
             const SizedBox(width: 12),
@@ -460,9 +461,9 @@ class _ConsolePanel extends StatelessWidget {
         Expanded(
           child: Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF0D0D17),
+              color: context.appColors.bg,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withAlpha(20)),
+              border: Border.all(color: context.appColors.borderSubtle),
             ),
             padding: const EdgeInsets.all(14),
             child: outputLines.isEmpty
@@ -470,7 +471,7 @@ class _ConsolePanel extends StatelessWidget {
                     child: Text(
                       'No output yet. Run the deployment to see logs here.',
                       style: TextStyle(
-                        color: Colors.white.withAlpha(40),
+                        color: context.appColors.textDisabled,
                         fontFamily: 'monospace',
                         fontSize: 13,
                       ),

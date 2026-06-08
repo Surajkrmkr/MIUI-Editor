@@ -85,6 +85,7 @@ dependencies:
 
   # Fonts
   dynamic_cached_fonts: ^1.2.0
+  google_fonts: ^6.2.1
 
   # JSON Serialization
   json_annotation: ^4.8.1
@@ -128,4 +129,4 @@ flutter:
     - assets/tags/
     - assets/lockscreen/weatherIcon/
     - assets/users/
-    - assets/wall_rio/
+    - assets/images/

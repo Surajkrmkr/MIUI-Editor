@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/credential_models.dart';
 import '../../infrastructure/services/secure_storage_service.dart';
@@ -10,15 +11,18 @@ class CredentialsStateNotifier extends AsyncNotifier<CredentialStatus> {
 
   @override
   FutureOr<CredentialStatus> build() async {
+    debugPrint('[WallRio] CredentialsStateNotifier.build: loading…');
     final config = await _storage.getOAuthConfig();
     final credentials = await _storage.getCredentials();
 
-    return CredentialStatus(
+    final status = CredentialStatus(
       isSignedIn: credentials != null,
       clientId: config['clientId'],
       clientSecret: config['clientSecret'],
       firebaseProjectId: config['projectId'],
     );
+    debugPrint('[WallRio] CredentialsStateNotifier.build: isSignedIn=${status.isSignedIn}, clientId=${status.clientId == null ? "null" : "present"}');
+    return status;
   }
 
   Future<void> saveConfig({
@@ -31,16 +35,29 @@ class CredentialsStateNotifier extends AsyncNotifier<CredentialStatus> {
       clientSecret: clientSecret,
       projectId: projectId,
     );
-    ref.invalidateSelf();
+    // Update state in-place — avoids loading flash that breaks the form UI
+    final current = state.value;
+    if (current != null) {
+      state = AsyncValue.data(current.copyWith(
+        clientId: clientId,
+        clientSecret: clientSecret,
+        firebaseProjectId: projectId,
+      ));
+    }
   }
 
   Future<bool> signIn() async {
+    debugPrint('[WallRio] CredentialsStateNotifier.signIn: starting…');
     final success = await _googleAuth.signIn([
       'https://www.googleapis.com/auth/firebase.messaging',
       'https://www.googleapis.com/auth/admob.report',
       'https://www.googleapis.com/auth/playdeveloperreporting',
     ]);
-    if (success) ref.invalidateSelf();
+    debugPrint('[WallRio] CredentialsStateNotifier.signIn: result=$success');
+    if (success) {
+      debugPrint('[WallRio] CredentialsStateNotifier.signIn: invalidating provider…');
+      ref.invalidateSelf();
+    }
     return success;
   }
 

@@ -214,11 +214,6 @@ class GenerationNotifier extends StateNotifier<GenerationState> {
 
 // ─── Providers ───────────────────────────────────────────────────────────────
 
-final _appConfigProvider = FutureProvider<AppConfig>((ref) async {
-  final prefs = await ref.watch(sharedPreferencesProvider.future);
-  return AppConfig(prefs);
-});
-
 final generationNotifierProvider =
     StateNotifierProvider<GenerationNotifier, GenerationState>((ref) {
   // Use synchronous fallback; config is loaded lazily from prefs.

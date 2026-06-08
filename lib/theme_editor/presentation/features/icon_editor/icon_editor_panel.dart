@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'widgets/sliders_panel.dart';
 import 'widgets/color_tab.dart';
 import 'widgets/bg_drop_zones.dart';
 

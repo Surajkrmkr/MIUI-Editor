@@ -1,7 +1,8 @@
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:miui_icon_generator/core/theme/app_theme.dart';
+import 'package:miui_icon_generator/core/theme/app_radius.dart';
+import '../../../../../core/theme/theme_extensions.dart';
 import '../../../../domain/entities/element_widget.dart';
 import '../../../providers/element_provider.dart';
 import '../../../common/widgets/drop_zone.dart';
@@ -14,8 +15,9 @@ class ElementInfoPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(elementProvider);
+    final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
+    final state = ref.watch(elementProvider);
 
     if (state.elements.isEmpty || state.active == null) {
       return const SizedBox.shrink();
@@ -25,285 +27,280 @@ class ElementInfoPanel extends ConsumerWidget {
     final n = ref.read(elementProvider.notifier);
 
     return SizedBox(
-      width: 450, // Match expanded inspector width
+      width: 450,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-            // Element title header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppTheme.proSidebar,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.black),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.widgets_rounded,
-                      size: 16, color: AppTheme.accent),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      el.name,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                        color: scheme.onSurface,
-                      ),
+          // Element title header
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              border: Border.all(color: colors.border),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.widgets_rounded,
+                    size: 16, color: colors.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    el.name,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: scheme.onSurface,
                     ),
                   ),
-                  // Reset + Delete
-                  IconButton(
-                    icon: const Icon(Icons.restart_alt_rounded,
-                        size: 18, color: AppTheme.accent),
-                    tooltip: 'Reset position',
-                    padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 32, minHeight: 32),
-                    onPressed: () => n.resetPosition(el.type),
+                ),
+                IconButton.outlined(
+                  icon: const Icon(Icons.restart_alt_rounded, size: 18),
+                  tooltip: 'Reset position',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => n.resetPosition(el.type),
+                ),
+                const SizedBox(width: 4),
+                IconButton.outlined(
+                  icon: const Icon(Icons.delete_rounded, size: 18),
+                  tooltip: 'Remove',
+                  visualDensity: VisualDensity.compact,
+                  style: IconButton.styleFrom(
+                    foregroundColor: scheme.error,
+                    side: BorderSide(color: scheme.error.withAlpha(60)),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.delete_rounded,
-                        size: 18, color: scheme.error),
-                    tooltip: 'Remove',
-                    padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 32, minHeight: 32),
-                    onPressed: () => n.remove(el.type),
-                  ),
-                ],
+                  onPressed: () => n.remove(el.type),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          if (el.type.isIcon ||
+              el.type.isMusic ||
+              el.type.isVideo ||
+              el.type.isPng)
+            _Section(
+              title: 'ASSET',
+              child: Center(
+                child: AppDropZone(
+                  label: 'Drop ${el.type.isVideo ? "MP4" : "PNG"}',
+                  allowedExtensions:
+                      el.type.isVideo ? ['.mp4'] : ['.png', '.jpg'],
+                  onDropped: (path) => _copyAsset(ref, path, el),
+                ),
               ),
             ),
 
-            const SizedBox(height: 10),
-
-            // Drop zone for asset-based widgets
-            if (el.type.isIcon ||
-                el.type.isMusic ||
-                el.type.isVideo ||
-                el.type.isPng)
-              _Section(
-                title: 'ASSET',
-                child: Center(
-                  child: AppDropZone(
-                    label: 'Drop ${el.type.isVideo ? "MP4" : "PNG"}',
-                    allowedExtensions:
-                        el.type.isVideo ? ['.mp4'] : ['.png', '.jpg'],
-                    onDropped: (path) => _copyAsset(ref, path, el),
-                  ),
-                ),
-              ),
-
-            // Colors
-            if (!el.type.isIcon &&
-                !el.type.isMusic &&
-                !el.type.isVideo &&
-                !el.type.isPng)
-              _Section(
-                title: 'COLOR',
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _ColorBtn(
-                        color: el.color,
-                        label: 'Primary',
-                        onChanged: (c) => n.setColor(el.type, c),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _ColorBtn(
-                        color: el.colorSecondary,
-                        label: 'Secondary',
-                        onChanged: (c) => n.setColorSecondary(el.type, c),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            // Clock options
-            if (el.type.isClock && !el.type.isIcon)
-              _Section(
-                title: 'CLOCK OPTIONS',
-                child: Column(
-                  children: [
-                    _ToggleRow(
-                      label: 'Short format',
-                      value: el.isShort,
-                      onChanged: (v) => n.setIsShort(el.type, v),
-                    ),
-                    const SizedBox(height: 6),
-                    _ToggleRow(
-                      label: 'Wrap text',
-                      value: el.isWrap,
-                      onChanged: (v) => n.setIsWrap(el.type, v),
-                    ),
-                  ],
-                ),
-              ),
-
-            // Position
+          if (!el.type.isIcon &&
+              !el.type.isMusic &&
+              !el.type.isVideo &&
+              !el.type.isPng)
             _Section(
-              title: 'POSITION',
+              title: 'COLOR',
               child: Row(
                 children: [
                   Expanded(
-                    child: _NumField(
-                      label: 'X',
-                      value: el.dx,
-                      onChanged: (v) => n.setPosition(el.type, v, el.dy),
+                    child: _ColorBtn(
+                      color: el.color,
+                      label: 'Primary',
+                      onChanged: (c) => n.setColor(el.type, c),
                     ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: _NumField(
-                      label: 'Y',
-                      value: el.dy,
-                      onChanged: (v) => n.setPosition(el.type, el.dx, v),
+                    child: _ColorBtn(
+                      color: el.colorSecondary,
+                      label: 'Secondary',
+                      onChanged: (c) => n.setColorSecondary(el.type, c),
                     ),
                   ),
                 ],
               ),
             ),
 
-            // Scale / FontSize
+          if (el.type.isClock && !el.type.isIcon)
             _Section(
-              title: el.type.isText ? 'FONT SIZE' : 'SCALE',
-              child: _SliderRow(
-                label: el.type.isText ? 'Font Size' : 'Scale',
-                value: el.type.isText ? el.fontSize : el.scale,
-                min: 0,
-                max: el.type.isText ? 100 : 4,
-                onChanged: (v) => el.type.isText
-                    ? n.setFontSize(el.type, v)
-                    : n.setScale(el.type, v),
-              ),
-            ),
-
-            // Container properties
-            if (el.type.isContainer)
-              _Section(
-                title: 'CONTAINER',
-                child: Column(
-                  children: [
-                    _SliderRow(
-                      label: 'Height',
-                      value: el.height,
-                      min: 0,
-                      max: 800,
-                      onChanged: (v) => n.setHeight(el.type, v),
-                    ),
-                    _SliderRow(
-                      label: 'Width',
-                      value: el.width,
-                      min: 0,
-                      max: 400,
-                      onChanged: (v) => n.setWidth(el.type, v),
-                    ),
-                    _SliderRow(
-                      label: 'Border Radius',
-                      value: el.radius,
-                      min: 0,
-                      max: 200,
-                      onChanged: (v) => n.setRadius(el.type, v),
-                    ),
-                    _SliderRow(
-                      label: 'Border Width',
-                      value: el.borderWidth,
-                      min: 0,
-                      max: 10,
-                      onChanged: (v) => n.setBorderWidth(el.type, v),
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Border Color',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                    ColorPicker(
-                      color: el.borderColor,
-                      onColorChanged: (c) => n.setBorderColor(el.type, c),
-                      enableOpacity: true,
-                      showColorCode: true,
-                      colorCodeHasColor: true,
-                      copyPasteBehavior: const ColorPickerCopyPasteBehavior(
-                        copyButton: true,
-                        pasteButton: true,
-                        longPressMenu: true,
-                        copyFormat: ColorPickerCopyFormat.numHexAARRGGBB,
-                      ),
-                      pickersEnabled: const {ColorPickerType.wheel: true},
-                    ),
-                  ],
-                ),
-              ),
-
-            // Text expression
-            if (el.type.isText)
-              _Section(
-                title: 'TEXT / EXPRESSION',
-                child: TextField(
-                  controller: TextEditingController(text: el.text)
-                    ..selection =
-                        TextSelection.collapsed(offset: el.text.length),
-                  decoration: const InputDecoration(
-                    hintText: 'Enter text or expression…',
+              title: 'CLOCK OPTIONS',
+              child: Column(
+                children: [
+                  _ToggleRow(
+                    label: 'Short format',
+                    value: el.isShort,
+                    onChanged: (v) => n.setIsShort(el.type, v),
                   ),
-                  onChanged: (v) => n.setText(el.type, v),
-                ),
-              ),
-
-            // Alignment chips
-            if (!el.type.isIcon && !el.type.isMusic && !el.type.isContainer)
-              _Section(
-                title: 'ALIGNMENT',
-                child: Row(
-                  children: [
-                    Expanded(
-                        child: _AlignChip('Left', Alignment.centerLeft, el, n)),
-                    const SizedBox(width: 6),
-                    Expanded(
-                        child: _AlignChip('Center', Alignment.center, el, n)),
-                    const SizedBox(width: 6),
-                    Expanded(
-                        child:
-                            _AlignChip('Right', Alignment.centerRight, el, n)),
-                  ],
-                ),
-              ),
-
-            // Angle
-            _Section(
-              title: 'ROTATION',
-              child: _SliderRow(
-                label: 'Angle',
-                value: el.angle,
-                min: 0,
-                max: 360,
-                divisions: 36,
-                onChanged: (v) => n.setAngle(el.type, v),
+                  const SizedBox(height: 6),
+                  _ToggleRow(
+                    label: 'Wrap text',
+                    value: el.isWrap,
+                    onChanged: (v) => n.setIsWrap(el.type, v),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+
+          _Section(
+            title: 'POSITION',
+            child: Row(
+              children: [
+                Expanded(
+                  child: _NumField(
+                    label: 'X',
+                    value: el.dx,
+                    onChanged: (v) => n.setPosition(el.type, v, el.dy),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _NumField(
+                    label: 'Y',
+                    value: el.dy,
+                    onChanged: (v) => n.setPosition(el.type, el.dx, v),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          _Section(
+            title: el.type.isText ? 'FONT SIZE' : 'SCALE',
+            child: _SliderRow(
+              label: el.type.isText ? 'Font Size' : 'Scale',
+              value: el.type.isText ? el.fontSize : el.scale,
+              min: 0,
+              max: el.type.isText ? 100 : 4,
+              onChanged: (v) => el.type.isText
+                  ? n.setFontSize(el.type, v)
+                  : n.setScale(el.type, v),
+            ),
+          ),
+
+          if (el.type.isContainer)
+            _Section(
+              title: 'CONTAINER',
+              child: Column(
+                children: [
+                  _SliderRow(
+                    label: 'Height',
+                    value: el.height,
+                    min: 0,
+                    max: 800,
+                    onChanged: (v) => n.setHeight(el.type, v),
+                  ),
+                  _SliderRow(
+                    label: 'Width',
+                    value: el.width,
+                    min: 0,
+                    max: 400,
+                    onChanged: (v) => n.setWidth(el.type, v),
+                  ),
+                  _SliderRow(
+                    label: 'Border Radius',
+                    value: el.radius,
+                    min: 0,
+                    max: 200,
+                    onChanged: (v) => n.setRadius(el.type, v),
+                  ),
+                  _SliderRow(
+                    label: 'Border Width',
+                    value: el.borderWidth,
+                    min: 0,
+                    max: 10,
+                    onChanged: (v) => n.setBorderWidth(el.type, v),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Border Color',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  ColorPicker(
+                    color: el.borderColor,
+                    onColorChanged: (c) => n.setBorderColor(el.type, c),
+                    enableOpacity: true,
+                    showColorCode: true,
+                    colorCodeHasColor: true,
+                    copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+                      copyButton: true,
+                      pasteButton: true,
+                      longPressMenu: true,
+                      copyFormat: ColorPickerCopyFormat.numHexAARRGGBB,
+                    ),
+                    pickersEnabled: const {ColorPickerType.wheel: true},
+                  ),
+                ],
+              ),
+            ),
+
+          if (el.type.isText)
+            _Section(
+              title: 'TEXT / EXPRESSION',
+              child: TextField(
+                controller: TextEditingController(text: el.text)
+                  ..selection =
+                      TextSelection.collapsed(offset: el.text.length),
+                decoration: const InputDecoration(
+                  hintText: 'Enter text or expression…',
+                ),
+                onChanged: (v) => n.setText(el.type, v),
+              ),
+            ),
+
+          if (!el.type.isIcon &&
+              !el.type.isMusic &&
+              !el.type.isContainer)
+            _Section(
+              title: 'ALIGNMENT',
+              child: Row(
+                children: [
+                  Expanded(
+                      child:
+                          _AlignChip('Left', Alignment.centerLeft, el, n)),
+                  const SizedBox(width: 6),
+                  Expanded(
+                      child: _AlignChip('Center', Alignment.center, el, n)),
+                  const SizedBox(width: 6),
+                  Expanded(
+                      child: _AlignChip(
+                          'Right', Alignment.centerRight, el, n)),
+                ],
+              ),
+            ),
+
+          _Section(
+            title: 'ROTATION',
+            child: _SliderRow(
+              label: 'Angle',
+              value: el.angle,
+              min: 0,
+              max: 360,
+              divisions: 36,
+              onChanged: (v) => n.setAngle(el.type, v),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Future<void> _copyAsset(WidgetRef ref, String src, LockElement el) async {
+  Future<void> _copyAsset(
+      WidgetRef ref, String src, LockElement el) async {
     final ws = ref.read(wallpaperProvider);
     if (ws.weekNum == null || ws.currentThemeName == null) return;
     final tp = PathConstants.themePath(ws.weekNum!, ws.currentThemeName!);
     final lsAdv = PathConstants.lockscreenAdvance(tp);
     final ext = el.type.isVideo ? 'mp4' : 'png';
-    final resolvedPath = el.path.isNotEmpty ? el.path : el.type.defaultPath;
+    final resolvedPath =
+        el.path.isNotEmpty ? el.path : el.type.defaultPath;
     final relative = resolvedPath.startsWith(r'\')
         ? resolvedPath.substring(1)
         : resolvedPath;
@@ -322,19 +319,16 @@ class _Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
-    
-    const cardBg = AppTheme.proCard;
-    const borderColor = Colors.black;
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Container(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
         decoration: BoxDecoration(
-          color: cardBg,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: borderColor),
+          color: colors.surfaceOverlay,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: colors.border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -348,7 +342,7 @@ class _Section extends StatelessWidget {
                     height: 12,
                     margin: const EdgeInsets.only(right: 6),
                     decoration: BoxDecoration(
-                      color: AppTheme.accent,
+                      color: colors.primary,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -406,8 +400,8 @@ class _ColorBtn extends StatelessWidget {
         height: 46,
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.black),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: context.appColors.border),
           boxShadow: [
             BoxShadow(
               color: color.withAlpha(70),
@@ -425,7 +419,9 @@ class _ColorBtn extends StatelessWidget {
               fontSize: 12,
               shadows: [
                 Shadow(
-                    color: Colors.black54, offset: Offset(0, 1), blurRadius: 2),
+                    color: Colors.black54,
+                    offset: Offset(0, 1),
+                    blurRadius: 2),
               ],
             ),
           ),
@@ -446,6 +442,7 @@ class _AlignChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
     final selected = el.align == align;
     return GestureDetector(
@@ -454,20 +451,21 @@ class _AlignChip extends StatelessWidget {
         height: 34,
         decoration: BoxDecoration(
           color: selected
-              ? AppTheme.accent.withAlpha(30)
-              : AppTheme.proSidebar,
-          borderRadius: BorderRadius.circular(10),
+              ? colors.primary.withAlpha(30)
+              : colors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           border: selected
-              ? Border.all(color: AppTheme.accent.withAlpha(120), width: 1.5)
-              : Border.all(color: Colors.black),
+              ? Border.all(color: colors.primary.withAlpha(120), width: 1.5)
+              : Border.all(color: colors.border),
         ),
         child: Center(
           child: Text(
             label,
             style: TextStyle(
               fontSize: 12,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              color: selected ? AppTheme.accent : scheme.onSurfaceVariant,
+              fontWeight:
+                  selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? colors.primary : scheme.onSurfaceVariant,
             ),
           ),
         ),
@@ -493,7 +491,8 @@ class _ToggleRow extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Row(
       children: [
-        Text(label, style: TextStyle(fontSize: 13, color: scheme.onSurface)),
+        Text(label,
+            style: TextStyle(fontSize: 13, color: scheme.onSurface)),
         const Spacer(),
         Switch.adaptive(value: value, onChanged: onChanged),
       ],
@@ -535,7 +534,8 @@ class _SliderRow extends StatelessWidget {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
               decoration: BoxDecoration(
                 color: scheme.primaryContainer,
                 borderRadius: BorderRadius.circular(8),
@@ -601,7 +601,8 @@ class _NumFieldState extends State<_NumField> {
   Widget build(BuildContext context) => TextField(
         controller: _c,
         decoration: InputDecoration(labelText: widget.label),
-        keyboardType: const TextInputType.numberWithOptions(signed: true),
+        keyboardType:
+            const TextInputType.numberWithOptions(signed: true),
         onChanged: (v) {
           final d = double.tryParse(v);
           if (d != null) widget.onChanged(d);

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/entities/element_widget.dart';
 import '../../providers/element_provider.dart';
 import '../../providers/wallpaper_provider.dart';
+import 'package:miui_icon_generator/widgets/app_icon_button.dart';
 import '../home/widgets/image_stack.dart';
 import '../font_picker/font_list_panel.dart';
 import 'widgets/element_info_panel.dart';
@@ -26,11 +27,7 @@ class LockscreenScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          tooltip: 'Back',
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: AppBackButton(onPressed: () => Navigator.pop(context)),
         title: Row(
           children: [
             ShaderMask(

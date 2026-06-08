@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:crop_your_image/crop_your_image.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 
 /// Dialog for manual image cropping with 6:13 aspect ratio
 class CropImageDialog extends StatefulWidget {
@@ -23,8 +24,11 @@ class _CropImageDialogState extends State<CropImageDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final primary = Theme.of(context).colorScheme.primary;
+    final surface = Theme.of(context).colorScheme.surface;
     return Dialog(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: surface,
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
         height: MediaQuery.of(context).size.height * 0.9,
@@ -37,14 +41,14 @@ class _CropImageDialogState extends State<CropImageDialog> {
               children: [
                 Text(
                   widget.title,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
+                  icon: Icon(Icons.close, color: colors.textPrimary),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
@@ -55,18 +59,17 @@ class _CropImageDialogState extends State<CropImageDialog> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                color: primary.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline,
-                      color: Theme.of(context).colorScheme.primary, size: 16),
+                  Icon(Icons.info_outline, color: primary, size: 16),
                   const SizedBox(width: 8),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Drag corners to adjust crop area (6:13 phone ratio)',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                      style: TextStyle(color: colors.textSecondary, fontSize: 12),
                     ),
                   ),
                 ],
@@ -77,15 +80,15 @@ class _CropImageDialogState extends State<CropImageDialog> {
             // Crop widget
             Expanded(
               child: _isCropping
-                  ? const Center(
+                  ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          CircularProgressIndicator(color: Colors.white),
-                          SizedBox(height: 16),
+                          CircularProgressIndicator(color: colors.textPrimary),
+                          const SizedBox(height: 16),
                           Text(
                             'Processing...',
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyle(color: colors.textPrimary),
                           ),
                         ],
                       ),
@@ -102,7 +105,7 @@ class _CropImageDialogState extends State<CropImageDialog> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Crop failed: $cause'),
-                                backgroundColor: Colors.red,
+                                backgroundColor: Theme.of(context).colorScheme.error,
                               ),
                             );
                             break;
@@ -110,19 +113,16 @@ class _CropImageDialogState extends State<CropImageDialog> {
                       },
                       aspectRatio: 6 / 13, // Phone wallpaper ratio
                       withCircleUi: false,
-                      baseColor: Theme.of(context).colorScheme.surface,
-                      maskColor: Theme.of(context)
-                          .colorScheme
-                          .surface
-                          .withOpacity(0.5),
+                      baseColor: surface,
+                      maskColor: surface.withValues(alpha: 0.5),
                       radius: 0,
                       cornerDotBuilder: (size, edgeAlignment) {
                         return Container(
                           width: size,
                           height: size,
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary,
-                            border: Border.all(color: Colors.white, width: 2),
+                            color: primary,
+                            border: Border.all(color: colors.border, width: 2),
                             borderRadius: BorderRadius.circular(size / 2),
                           ),
                         );
@@ -145,8 +145,8 @@ class _CropImageDialogState extends State<CropImageDialog> {
                   icon: const Icon(Icons.rotate_90_degrees_ccw),
                   label: const Text('Rotate'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Colors.white54),
+                    foregroundColor: colors.textPrimary,
+                    side: BorderSide(color: colors.textDisabled),
                   ),
                 ),
                 ElevatedButton.icon(
@@ -160,7 +160,7 @@ class _CropImageDialogState extends State<CropImageDialog> {
                   icon: const Icon(Icons.crop),
                   label: const Text('Crop Image'),
                   style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white,
+                    foregroundColor: colors.onPrimary,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 32,
                       vertical: 16,

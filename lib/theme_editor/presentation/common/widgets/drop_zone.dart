@@ -1,5 +1,7 @@
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/core/theme/app_radius.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 
 class AppDropZone extends StatefulWidget {
   const AppDropZone({
@@ -40,15 +42,28 @@ class _AppDropZoneState extends State<AppDropZone> {
           height: widget.size.height,
           width: widget.size.width,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
             color: _hovering
-                ? Theme.of(context).colorScheme.onPrimaryContainer
-                : Theme.of(context).colorScheme.primaryContainer,
+                ? context.appColors.primary.withAlpha(20)
+                : context.appColors.surface,
+            border: Border.all(
+              color: _hovering
+                  ? context.appColors.primary.withAlpha(120)
+                  : context.appColors.border,
+            ),
           ),
           alignment: Alignment.center,
-          child: Text(widget.label,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.w600)),
+          child: Text(
+            widget.label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: _hovering
+                  ? context.appColors.primary
+                  : context.appColors.textSecondary,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+          ),
         ),
       );
 }

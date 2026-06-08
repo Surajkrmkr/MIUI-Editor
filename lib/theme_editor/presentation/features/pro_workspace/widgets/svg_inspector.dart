@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/services/vtracer_service.dart';
-import 'package:miui_icon_generator/core/theme/app_theme.dart';
+import '../../../../../core/theme/theme_extensions.dart';
 
 class SvgInspector extends ConsumerStatefulWidget {
   const SvgInspector({super.key});
@@ -16,85 +15,108 @@ class _SvgInspectorState extends ConsumerState<SvgInspector> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'SVG TRACING (VTRACER)',
           style: TextStyle(
-            color: Colors.white38,
+            color: colors.textDisabled,
             fontSize: 10,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.2,
           ),
         ),
         const SizedBox(height: 16),
-        
-        // Tracing Status
+
         if (_isTracing)
-          const Center(
+          Center(
             child: Column(
               children: [
-                CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accent),
-                SizedBox(height: 12),
-                Text('Tracing image...', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                CircularProgressIndicator(
+                    strokeWidth: 2, color: colors.primary),
+                const SizedBox(height: 12),
+                Text(
+                  'Tracing image...',
+                  style:
+                      TextStyle(color: colors.textSecondary, fontSize: 11),
+                ),
               ],
             ),
           )
         else
           Column(
             children: [
-              _buildTraceButton(),
+              _buildTraceButton(colors),
               if (_lastOutput != null) ...[
                 const SizedBox(height: 12),
-                Text('Last output: ${_lastOutput!.split(r'\').last}', 
-                    style: const TextStyle(color: Colors.green, fontSize: 10)),
+                Text(
+                  'Last output: ${_lastOutput!.split(r'\').last}',
+                  style: TextStyle(color: colors.success, fontSize: 10),
+                ),
               ],
             ],
           ),
-          
+
         const SizedBox(height: 24),
-        const Text(
+        Text(
           'PATH OPTIMIZATION',
           style: TextStyle(
-            color: Colors.white38,
+            color: colors.textDisabled,
             fontSize: 10,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.2,
           ),
         ),
         const SizedBox(height: 12),
-        _buildSliderSetting('Color Precision', 6, 1, 8),
-        _buildSliderSetting('Filter Speckle', 4, 1, 64),
-        _buildSliderSetting('Corner Threshold', 60, 0, 180),
+        _buildSliderSetting('Color Precision', 6, 1, 8, colors),
+        _buildSliderSetting('Filter Speckle', 4, 1, 64, colors),
+        _buildSliderSetting('Corner Threshold', 60, 0, 180, colors),
       ],
     );
   }
 
-  Widget _buildTraceButton() {
+  Widget _buildTraceButton(AppColorScheme colors) {
     return SizedBox(
       width: double.infinity,
       child: FilledButton.icon(
         icon: const Icon(Icons.architecture_rounded, size: 16),
-        label: const Text('Trace Selected Layer', style: TextStyle(fontSize: 11)),
+        label: const Text('Trace Selected Layer',
+            style: TextStyle(fontSize: 11)),
         onPressed: () => _startTrace(),
         style: FilledButton.styleFrom(
-          backgroundColor: AppTheme.accent,
-          foregroundColor: Colors.black,
+          backgroundColor: colors.primary,
+          foregroundColor: colors.onPrimary,
         ),
       ),
     );
   }
 
-  Widget _buildSliderSetting(String label, double value, double min, double max) {
+  Widget _buildSliderSetting(
+    String label,
+    double value,
+    double min,
+    double max,
+    AppColorScheme colors,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
-            Text(value.toInt().toString(), style: const TextStyle(color: AppTheme.accent, fontSize: 11, fontWeight: FontWeight.bold)),
+            Text(label,
+                style:
+                    TextStyle(color: colors.textSecondary, fontSize: 11)),
+            Text(
+              value.toInt().toString(),
+              style: TextStyle(
+                color: colors.primary,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
         Slider(
@@ -102,7 +124,7 @@ class _SvgInspectorState extends ConsumerState<SvgInspector> {
           min: min,
           max: max,
           onChanged: (v) {},
-          activeColor: AppTheme.accent,
+          activeColor: colors.primary,
         ),
       ],
     );
@@ -110,7 +132,6 @@ class _SvgInspectorState extends ConsumerState<SvgInspector> {
 
   Future<void> _startTrace() async {
     setState(() => _isTracing = true);
-    // Simulation for Phase 3 UI work
     await Future.delayed(const Duration(seconds: 2));
     setState(() {
       _isTracing = false;

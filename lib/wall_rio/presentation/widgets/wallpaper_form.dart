@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import '../../application/providers/ai_provider.dart';
@@ -254,236 +255,102 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
   Widget build(BuildContext context) {
     final aiState = ref.watch(aiStateProvider);
     final task = aiState[_taskId];
+    final colors = context.appColors;
 
     return Dialog(
-      backgroundColor: const Color(0xFF1E1E1E),
+      backgroundColor: colors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: SizedBox(
-        width: 700,
+        width: 960,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
-              child: Row(
-                children: [
-                  Text(
-                    widget.initialWallpaper == null ? 'Add Wallpaper' : 'Edit Wallpaper',
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  const Spacer(),
-                  const Text('Live', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                  Switch(
-                    value: _isLive,
-                    onChanged: (v) => setState(() {
-                      _isLive = v;
-                      if (v && _typeController.text.isEmpty) {
-                        _typeController.text = 'live';
-                      }
-                      _autofillUrls();
-                    }),
-                    activeThumbColor: Colors.purpleAccent,
-                  ),
-                ],
-              ),
-            ),
+            // ── Header ───────────────────────────────────────────────────────
+            _buildDialogHeader(colors),
 
+            // ── Body ─────────────────────────────────────────────────────────
             if (_isImporting)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: Column(
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('Processing Wallpaper...', style: TextStyle(color: Colors.white)),
-                      Text('Generating thumbnail and copying files.', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    ],
-                  ),
-                ),
-              )
+              _buildImportingState(colors)
             else
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              children: [
-                                _buildImagePreview(),
-                                const SizedBox(height: 12),
-                                OutlinedButton.icon(
-                                  onPressed: _pickFile,
-                                  icon: Icon(_isLive ? Icons.video_library : Icons.image_outlined),
-                                  label: Text(_localFile == null ? (_isLive ? 'Select Video' : 'Select Image') : 'Change Main File'),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.purpleAccent,
-                                    side: const BorderSide(color: Colors.purpleAccent),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (_isLive) ...[
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  _buildThumbnailPreview(),
-                                  const SizedBox(height: 12),
-                                  OutlinedButton.icon(
-                                    onPressed: _pickThumbnail,
-                                    icon: const Icon(Icons.add_a_photo_outlined),
-                                    label: Text(_localThumbnailFile == null ? 'Select Thumbnail' : 'Change Thumbnail'),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.orangeAccent,
-                                      side: const BorderSide(color: Colors.orangeAccent),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: _buildTextField(
-                              controller: _nameController,
-                              label: 'Name',
-                              hint: 'Wallpaper Name',
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            flex: 2,
-                            child: _buildCategoryDropdown(),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      if (!_isLive)
-                        _buildTextField(
-                          controller: _urlController,
-                          label: 'Image URL',
-                          hint: 'Direct link to the high-resolution image',
-                        ),
-
-                      if (_isLive) ...[
-                        _buildTextField(
-                          controller: _videoUrlController,
-                          label: 'Video URL (.mp4)',
-                          hint: 'URL to the full video file',
-                        ),
-                        const SizedBox(height: 16),
-                        _buildTextField(
-                          controller: _previewVideoController,
-                          label: 'Preview Video URL',
-                          hint: 'Often same as Video URL or a shorter version',
-                        ),
-                        const SizedBox(height: 16),
-                        _buildTextField(
-                          controller: _typeController,
-                          label: 'Type',
-                          hint: 'e.g. video',
-                        ),
-                      ],
-
-                      const SizedBox(height: 16),
-
-                      _buildTextField(
-                        controller: _thumbnailController,
-                        label: 'Thumbnail URL',
-                        onChanged: (v) => setState(() {}),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      _buildTagsField(),
-
-                      const SizedBox(height: 16),
-
-                      _buildColorsField(),
-
-                      const SizedBox(height: 16),
-
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildTextField(
-                              controller: _authorController,
-                              label: 'Author',
-                            ),
-                          ),
-                          const SizedBox(width: 32),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Premium', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                              Switch(
-                                value: _isPremium,
-                                activeTrackColor: Colors.purpleAccent,
-                                onChanged: (v) => setState(() => _isPremium = v),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 24),
-                    ],
-                  ),
+              SizedBox(
+                height: 540,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Left: preview panel
+                    _buildPreviewPanel(colors),
+                    // Divider
+                    VerticalDivider(width: 1, color: colors.borderSubtle),
+                    // Right: form fields
+                    Expanded(child: _buildFormPanel(colors)),
+                  ],
                 ),
               ),
-            ),
 
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-              child: Row(
-                children: [
-                  if (!_isLive)
-                    TextButton.icon(
-                      onPressed: _runAIAnalysis,
-                      icon: const Icon(Icons.auto_awesome, color: Colors.purpleAccent),
-                      label: Text(
-                        task?.status == AITaskStatus.analyzing ? 'Analyzing...' : 'AI Auto-fill',
-                        style: const TextStyle(color: Colors.purpleAccent),
-                      ),
-                    ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: _isImporting ? null : _submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2D2D2D),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text('Save Wallpaper'),
-                  ),
-                ],
-              ),
+            // ── Footer ───────────────────────────────────────────────────────
+            _buildDialogFooter(task, colors),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDialogHeader(AppColorScheme colors) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 18, 16, 14),
+      decoration: BoxDecoration(
+        color: colors.primary.withAlpha(18),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        border: Border(bottom: BorderSide(color: colors.borderSubtle)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: colors.primary.withAlpha(25),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(Icons.wallpaper_rounded, color: colors.primary, size: 18),
+          ),
+          const SizedBox(width: 14),
+          Text(
+            widget.initialWallpaper == null ? 'Add Wallpaper' : 'Edit Wallpaper',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: colors.textPrimary,
+            ),
+          ),
+          const Spacer(),
+          IconButton(
+            icon: Icon(Icons.close_rounded, color: colors.textSecondary, size: 20),
+            onPressed: () => Navigator.pop(context),
+            visualDensity: VisualDensity.compact,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImportingState(AppColorScheme colors) {
+    return SizedBox(
+      height: 180,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(strokeWidth: 2),
+            const SizedBox(height: 16),
+            Text(
+              'Processing Wallpaper...',
+              style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Generating thumbnail and copying files.',
+              style: TextStyle(color: colors.textSecondary, fontSize: 12),
             ),
           ],
         ),
@@ -491,49 +358,344 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
     );
   }
 
-  Widget _buildImagePreview() {
+  Widget _buildPreviewPanel(AppColorScheme colors) {
+    return SizedBox(
+      width: 280,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'PREVIEW',
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                color: colors.textSecondary,
+                letterSpacing: 1.1,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Main image / video preview — takes available height
+            Expanded(
+              flex: _isLive ? 2 : 3,
+              child: _buildImagePreview(),
+            ),
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: _pickFile,
+              icon: Icon(
+                _isLive ? Icons.video_library_rounded : Icons.image_rounded,
+                size: 15,
+              ),
+              label: Text(
+                _localFile == null
+                    ? (_isLive ? 'Select Video' : 'Select Image')
+                    : 'Change File',
+                style: const TextStyle(fontSize: 12),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: colors.primary,
+                side: BorderSide(color: colors.primary.withAlpha(120)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                visualDensity: VisualDensity.compact,
+              ),
+            ),
+
+            if (_isLive) ...[
+              const SizedBox(height: 14),
+              Text(
+                'THUMBNAIL',
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  color: colors.textSecondary,
+                  letterSpacing: 1.1,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                flex: 1,
+                child: _buildThumbnailPreview(),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: _pickThumbnail,
+                icon: const Icon(Icons.add_a_photo_rounded, size: 15),
+                label: Text(
+                  _localThumbnailFile == null ? 'Select Thumbnail' : 'Change Thumbnail',
+                  style: const TextStyle(fontSize: 12),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.orangeAccent,
+                  side: const BorderSide(color: Colors.orangeAccent),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
+            ],
+
+            const Spacer(),
+            Divider(color: colors.borderSubtle),
+            const SizedBox(height: 4),
+
+            // Live toggle
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Live Wallpaper',
+                    style: TextStyle(color: colors.textSecondary, fontSize: 12)),
+                Transform.scale(
+                  scale: 0.82,
+                  alignment: Alignment.centerRight,
+                  child: Switch(
+                    value: _isLive,
+                    activeTrackColor: colors.primary,
+                    onChanged: (v) => setState(() {
+                      _isLive = v;
+                      if (v && _typeController.text.isEmpty) {
+                        _typeController.text = 'live';
+                      }
+                      _autofillUrls();
+                    }),
+                  ),
+                ),
+              ],
+            ),
+
+            // Premium toggle
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Premium',
+                    style: TextStyle(color: colors.textSecondary, fontSize: 12)),
+                Transform.scale(
+                  scale: 0.82,
+                  alignment: Alignment.centerRight,
+                  child: Switch(
+                    value: _isPremium,
+                    activeTrackColor: colors.primary,
+                    onChanged: (v) => setState(() => _isPremium = v),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFormPanel(AppColorScheme colors) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'DETAILS',
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                color: colors.textSecondary,
+                letterSpacing: 1.1,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: _buildTextField(
+                    controller: _nameController,
+                    label: 'Name',
+                    hint: 'Wallpaper Name',
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 2,
+                  child: _buildCategoryDropdown(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            if (!_isLive)
+              _buildTextField(
+                controller: _urlController,
+                label: 'Image URL',
+                hint: 'Direct link to the high-resolution image',
+              ),
+
+            if (_isLive) ...[
+              _buildTextField(
+                controller: _videoUrlController,
+                label: 'Video URL (.mp4)',
+                hint: 'URL to the full video file',
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                controller: _previewVideoController,
+                label: 'Preview Video URL',
+                hint: 'Often same as Video URL or a shorter version',
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                controller: _typeController,
+                label: 'Type',
+                hint: 'e.g. video',
+              ),
+            ],
+
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _thumbnailController,
+              label: 'Thumbnail URL',
+              onChanged: (v) => setState(() {}),
+            ),
+            const SizedBox(height: 16),
+            _buildTagsField(),
+            const SizedBox(height: 16),
+            _buildColorsField(),
+            const SizedBox(height: 16),
+            _buildTextField(controller: _authorController, label: 'Author'),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDialogFooter(dynamic task, AppColorScheme colors) {
     return Container(
-      height: 200,
-      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 18),
       decoration: BoxDecoration(
-        color: const Color(0xFF2D2D2D),
+        border: Border(top: BorderSide(color: colors.borderSubtle)),
+      ),
+      child: Row(
+        children: [
+          if (!_isLive)
+            TextButton.icon(
+              onPressed: _runAIAnalysis,
+              icon: Icon(Icons.auto_awesome_rounded, color: colors.primary, size: 16),
+              label: Text(
+                task?.status == AITaskStatus.analyzing ? 'Analyzing...' : 'AI Auto-fill',
+                style: TextStyle(color: colors.primary, fontSize: 13),
+              ),
+            ),
+          if (task?.status == AITaskStatus.analyzing) ...[
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(strokeWidth: 2, color: colors.primary),
+            ),
+          ],
+          const Spacer(),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: colors.textSecondary)),
+          ),
+          const SizedBox(width: 12),
+          SizedBox(
+            height: 40,
+            child: FilledButton.icon(
+              onPressed: _isImporting ? null : _submit,
+              icon: const Icon(Icons.check_rounded, size: 17),
+              label: const Text('Save Wallpaper'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImagePreview() {
+    final colors = context.appColors;
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.bg,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: colors.borderSubtle),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
-        alignment: Alignment.center,
+        fit: StackFit.expand,
         children: [
           if (_localFile != null && !_isLive)
-            Image.file(_localFile!, fit: BoxFit.contain)
+            Image.file(_localFile!, fit: BoxFit.cover)
           else if (_thumbnailController.text.isNotEmpty)
             Image.network(
               _thumbnailController.text,
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.grey, size: 48),
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Center(
+                child: Icon(Icons.broken_image_rounded,
+                    color: colors.textDisabled, size: 36),
+              ),
             )
           else
-            const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.image_outlined, color: Colors.grey, size: 48),
-                SizedBox(height: 8),
-                Text('No image', style: TextStyle(color: Colors.grey, fontSize: 10)),
-              ],
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.image_outlined, color: colors.textDisabled, size: 36),
+                  const SizedBox(height: 8),
+                  Text('No preview',
+                      style: TextStyle(color: colors.textDisabled, fontSize: 11)),
+                ],
+              ),
             ),
           if (_isLive)
-            const Positioned(
+            Positioned(
               top: 8,
               left: 8,
-              child: Icon(Icons.videocam, color: Colors.purpleAccent, size: 20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                decoration: BoxDecoration(
+                  color: colors.primary.withAlpha(210),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.videocam_rounded, color: colors.onPrimary, size: 11),
+                    const SizedBox(width: 4),
+                    Text(
+                      'LIVE',
+                      style: TextStyle(
+                        color: colors.onPrimary,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           if (_localFile != null && _isLive)
             Positioned(
               bottom: 8,
+              left: 8,
+              right: 8,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(4)),
-                child: Text(p.basename(_localFile!.path), style: const TextStyle(color: Colors.white, fontSize: 10)),
+                decoration: BoxDecoration(
+                  color: colors.surfaceOverlay,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  p.basename(_localFile!.path),
+                  style: TextStyle(color: colors.textPrimary, fontSize: 10),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ),
         ],
@@ -542,24 +704,25 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
   }
 
   Widget _buildThumbnailPreview() {
+    final colors = context.appColors;
     return Container(
-      height: 200,
-      width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFF2D2D2D),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white10),
+        color: colors.bg,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: colors.borderSubtle),
       ),
       clipBehavior: Clip.antiAlias,
       child: _localThumbnailFile != null
-          ? Image.file(_localThumbnailFile!, fit: BoxFit.contain)
-          : const Center(
+          ? Image.file(_localThumbnailFile!, fit: BoxFit.cover)
+          : Center(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.add_a_photo_outlined, color: Colors.grey, size: 48),
-                  SizedBox(height: 8),
-                  Text('Upload Thumbnail', style: TextStyle(color: Colors.grey, fontSize: 10)),
+                  Icon(Icons.add_a_photo_rounded,
+                      color: colors.textDisabled, size: 28),
+                  const SizedBox(height: 6),
+                  Text('No thumbnail',
+                      style: TextStyle(color: colors.textDisabled, fontSize: 10)),
                 ],
               ),
             ),
@@ -576,24 +739,22 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-        const SizedBox(height: 4),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: context.appColors.textSecondary,
+              ),
+        ),
+        const SizedBox(height: 6),
         TextFormField(
           controller: controller,
           onChanged: onChanged,
-          style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
             helperText: helper,
-            helperStyle: const TextStyle(color: Colors.grey, fontSize: 10),
-            filled: true,
-            fillColor: Colors.transparent,
-            enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white12)),
-            focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.purpleAccent)),
           ),
           validator: (v) {
-            if (_isLive && controller == _urlController) return null; 
+            if (_isLive && controller == _urlController) return null;
             return v?.isEmpty == true ? 'Required' : null;
           },
         ),
@@ -605,12 +766,18 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Category', style: TextStyle(color: Colors.grey, fontSize: 12)),
-        const SizedBox(height: 4),
+        Text(
+          'Category',
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: context.appColors.textSecondary,
+              ),
+        ),
+        const SizedBox(height: 6),
         Autocomplete<String>(
           optionsBuilder: (TextEditingValue value) {
             if (value.text.isEmpty) return widget.existingCategories;
-            return widget.existingCategories.where((c) => c.toLowerCase().contains(value.text.toLowerCase()));
+            return widget.existingCategories.where(
+                (c) => c.toLowerCase().contains(value.text.toLowerCase()));
           },
           initialValue: TextEditingValue(text: _categoryController.text),
           onSelected: (v) => _categoryController.text = v,
@@ -621,11 +788,7 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
             return TextFormField(
               controller: controller,
               focusNode: focusNode,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white12)),
-                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.purpleAccent)),
-              ),
+              decoration: const InputDecoration(),
               onFieldSubmitted: (v) => onFieldSubmitted(),
             );
           },
@@ -638,8 +801,13 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Tags (comma separated)', style: TextStyle(color: Colors.grey, fontSize: 12)),
-        const SizedBox(height: 4),
+        Text(
+          'Tags (comma separated)',
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: context.appColors.textSecondary,
+              ),
+        ),
+        const SizedBox(height: 6),
         _buildTextFieldWithSuggestions(
           controller: _tagsController,
           suggestions: widget.existingTags,
@@ -653,8 +821,13 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Colors (comma separated hex)', style: TextStyle(color: Colors.grey, fontSize: 12)),
-        const SizedBox(height: 4),
+        Text(
+          'Colors (comma separated hex)',
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: context.appColors.textSecondary,
+              ),
+        ),
+        const SizedBox(height: 6),
         _buildTextFieldWithSuggestions(
           controller: _colorsController,
           suggestions: widget.existingColors,
@@ -693,19 +866,16 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
         return TextFormField(
           controller: controller,
           focusNode: focusNode,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
-            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white12)),
-            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.purpleAccent)),
-          ),
+          decoration: const InputDecoration(),
         );
       },
       optionsViewBuilder: (context, onSelected, options) {
+        final colors = context.appColors;
         return Align(
           alignment: Alignment.topLeft,
           child: Material(
             elevation: 4,
-            color: const Color(0xFF2D2D2D),
+            color: colors.surfaceElevated,
             child: SizedBox(
               height: 200,
               width: 300,
@@ -715,7 +885,7 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
                 itemBuilder: (context, index) {
                   final option = options.elementAt(index);
                   return ListTile(
-                    title: Text(option, style: const TextStyle(color: Colors.white)),
+                    title: Text(option, style: TextStyle(color: colors.textPrimary)),
                     onTap: () => onSelected(option),
                   );
                 },

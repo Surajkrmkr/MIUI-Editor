@@ -1,28 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/theme/theme_extensions.dart';
 import '../../../providers/workspace_provider.dart';
 import '../../lockscreen/widgets/element_info_panel.dart';
-import '../../lockscreen/widgets/element_list_panel.dart';
 import '../../lockscreen/widgets/lockscreen_functions_panel.dart';
-import '../../font_picker/font_list_panel.dart';
 import '../../home/widgets/module_preview.dart';
 import '../../icon_editor/widgets/sliders_panel.dart';
-import 'layer_manager.dart';
-import 'svg_inspector.dart';
 
 class RightInspector extends ConsumerWidget {
   const RightInspector({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.appColors;
     final page = ref.watch(workspaceProvider).page;
 
     return Container(
       width: 450,
-      decoration: const BoxDecoration(
-        color: AppTheme.proInspector,
-        border: Border(left: BorderSide(color: Colors.black, width: 1)),
+      decoration: BoxDecoration(
+        color: colors.surfaceElevated,
+        border: Border(left: BorderSide(color: colors.border)),
       ),
       child: Column(
         children: [
@@ -31,21 +28,21 @@ class RightInspector extends ConsumerWidget {
             height: 36,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             alignment: Alignment.centerLeft,
-            decoration: const BoxDecoration(
-              color: AppTheme.proSidebar,
-              border: Border(bottom: BorderSide(color: Colors.black)),
+            decoration: BoxDecoration(
+              color: colors.surface,
+              border: Border(bottom: BorderSide(color: colors.border)),
             ),
-            child: const Text(
+            child: Text(
               'INSPECTOR',
               style: TextStyle(
-                color: Colors.white70,
+                color: colors.textDisabled,
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.2,
               ),
             ),
           ),
-          
+
           // Content
           Expanded(
             child: SingleChildScrollView(
@@ -59,7 +56,6 @@ class RightInspector extends ConsumerWidget {
   }
 
   Widget _buildInspectorContent(WorkspacePage page) {
-    // Content (Context-Sensitive)
     switch (page) {
       case WorkspacePage.home:
       case WorkspacePage.dashboard:

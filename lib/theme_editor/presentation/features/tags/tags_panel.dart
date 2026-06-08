@@ -81,8 +81,8 @@ class _TagsPanelState extends ConsumerState<TagsPanel> {
             spacing: 6, runSpacing: 6,
             children: state.appliedTags.map((tag) => ActionChip(
               backgroundColor: Theme.of(context).colorScheme.primary,
-              label: Text(tag, style: const TextStyle(color: Colors.white)),
-              avatar: const Icon(Icons.close, color: Colors.white, size: 14),
+              label: Text(tag, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
+              avatar: Icon(Icons.close, color: Theme.of(context).colorScheme.onPrimary, size: 14),
               onPressed: () => notifier.removeTag(tag),
             )).toList(),
           ),

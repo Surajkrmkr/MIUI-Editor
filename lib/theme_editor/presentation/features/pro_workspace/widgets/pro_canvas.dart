@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/theme/theme_extensions.dart';
 import '../../../providers/workspace_provider.dart';
-import '../../../providers/element_provider.dart';
-import '../../../../domain/entities/element_widget.dart';
 import '../../home/widgets/image_stack.dart';
 
 class ProCanvas extends ConsumerWidget {
@@ -11,46 +9,51 @@ class ProCanvas extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.appColors;
     final page = ref.watch(workspaceProvider).page;
 
     return Container(
-      color: AppTheme.proBackground, // Pure black canvas for pro feel
+      color: colors.bg,
       child: Stack(
         children: [
-          // Infinite Canvas with Mouse Interactivity
           Positioned.fill(
             child: InteractiveViewer(
-              constrained: false, // Essential for infinite canvas / large children
+              constrained: false,
               boundaryMargin: const EdgeInsets.all(1000),
               minScale: 0.01,
               maxScale: 10.0,
               child: Center(
-                child: ImageStack(isLockscreen: page == WorkspacePage.lockscreen),
+                child: ImageStack(
+                    isLockscreen: page == WorkspacePage.lockscreen),
               ),
             ),
           ),
-          
-          // Selection / Canvas Tools Overlay
-          // Removed as per request
-          
-          // Navigation Info
+
+          // Navigation hint overlay
           Positioned(
             bottom: 16,
             right: 16,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.black54,
+                color: colors.surface,
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.white10),
+                border: Border.all(color: colors.border),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.mouse_outlined, size: 12, color: Colors.white24),
-                  SizedBox(width: 8),
+                  Icon(Icons.mouse_outlined,
+                      size: 12, color: colors.textDisabled),
+                  const SizedBox(width: 8),
                   Text(
-                    'PITCH TO ZOOM · SPACE TO PAN',
-                    style: TextStyle(color: Colors.white24, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                    'PINCH TO ZOOM · SPACE TO PAN',
+                    style: TextStyle(
+                      color: colors.textDisabled,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ],
               ),
@@ -61,4 +64,3 @@ class ProCanvas extends ConsumerWidget {
     );
   }
 }
-

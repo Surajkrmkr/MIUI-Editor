@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:miui_icon_generator/core/theme/app_theme.dart';
-import '../../providers/workspace_provider.dart';
+import '../../../../../core/theme/theme_extensions.dart';
 import 'widgets/top_command_bar.dart';
 import 'widgets/left_tool_nav.dart';
 import 'widgets/right_inspector.dart';
@@ -15,9 +14,11 @@ class ProfessionalWorkspaceShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.appColors;
     return Shortcuts(
       shortcuts: <LogicalKeySet, Intent>{
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyK): const _CommandPaletteIntent(),
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyK):
+            const _CommandPaletteIntent(),
       },
       child: Actions(
         actions: <Type, Action<Intent>>{
@@ -28,23 +29,20 @@ class ProfessionalWorkspaceShell extends ConsumerWidget {
         child: FocusScope(
           autofocus: true,
           child: Scaffold(
-            backgroundColor: const Color(0xFF1E1E1E), 
-            body: Column(
+            backgroundColor: colors.bg,
+            body: const Column(
               children: [
-                const TopCommandBar(),
+                TopCommandBar(),
                 Expanded(
                   child: Row(
                     children: [
-                      const LeftToolNav(),
-                      const SidebarContent(),
-                      const Expanded(
-                        child: ProCanvas(),
-                      ),
-                      const RightInspector(),
+                      LeftToolNav(),
+                      SidebarContent(),
+                      Expanded(child: ProCanvas()),
+                      RightInspector(),
                     ],
                   ),
                 ),
-
               ],
             ),
           ),

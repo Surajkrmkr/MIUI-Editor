@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -6,7 +7,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player_media_kit/video_player_media_kit.dart';
 
 // ── Shared theme ──────────────────────────────────────────────────────────────
+import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/app_radius.dart';
+import 'core/theme/theme_extensions.dart';
+import 'core/theme/theme_provider.dart';
 
 // ── Theme Editor imports ──────────────────────────────────────────────────────
 import 'theme_editor/core/services/window_service.dart';
@@ -24,10 +29,8 @@ import 'theme_deployment/presentation/pages/deployment_page.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'wall_rio/application/providers/router_provider.dart';
 import 'wall_rio/domain/models/cms_models.dart';
-import 'wall_rio/shared/theme.dart' as wall_rio_theme;
 
 // ── SVG Converter imports ─────────────────────────────────────────────────────
-import 'svg_converter/providers/settings_provider.dart' as svg;
 import 'svg_converter/ui/screens/home_screen.dart' as svg_screens;
 
 // =============================================================================
@@ -64,14 +67,16 @@ void main() async {
 
   // Global error widget
   ErrorWidget.builder = (details) => Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+        decoration: const BoxDecoration(
+          color: AppColors.darkSurface0,
+          borderRadius: AppRadius.radiusMd,
         ),
         alignment: Alignment.center,
+        padding: const EdgeInsets.all(16),
         child: Text(
           details.exceptionAsString(),
           textAlign: TextAlign.center,
+          style: const TextStyle(color: AppColors.errorDark, fontSize: 11),
         ),
       );
 
@@ -89,18 +94,21 @@ void main() async {
 // Root app — shows the launcher, hosts both sub-apps via Navigator
 // =============================================================================
 
-class RootApp extends StatelessWidget {
+class RootApp extends ConsumerWidget {
   const RootApp({super.key});
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-        title: 'Team Shadow Tools',
-        debugShowCheckedModeBanner: false,
-        themeMode: ThemeMode.dark,
-        theme: AppTheme.light(),
-        darkTheme: AppTheme.dark(),
-        home: const AppLauncherScreen(),
-      );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+    return MaterialApp(
+      title: 'Team Shadow Tools',
+      debugShowCheckedModeBanner: false,
+      themeMode: themeMode,
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      home: const AppLauncherScreen(),
+    );
+  }
 }
 
 // =============================================================================
@@ -114,12 +122,14 @@ class _AppEntry {
     required this.icon,
     required this.color,
     required this.builder,
+    this.bgImage,
   });
 
   final String title;
   final String subtitle;
   final IconData icon;
   final Color color;
+  final String? bgImage;
 
   /// Returns the root widget of the sub-app.
   /// Each sub-app is fully self-contained — its own MaterialApp / router.
@@ -133,50 +143,48 @@ final List<_AppEntry> _apps = [
     title: 'Theme Editor',
     subtitle: 'Lockscreen · Icons · Module · MTZ',
     icon: Icons.layers_rounded,
-    color: const Color(0xFFD27685),
+    color: AppColors.purplePrimary,
+    bgImage: 'assets/images/theme_editor.jpeg',
     builder: () => const _ThemeEditorApp(),
   ),
   _AppEntry(
     title: 'Image Utility',
     subtitle: 'Resize · Crop · Convert · Export',
     icon: Icons.image_rounded,
-    color: const Color(0xFF6C8EBF),
+    color: AppColors.purpleHover,
+    bgImage: 'assets/images/image_utility.jpeg',
     builder: () => const _ImageUtilityApp(),
   ),
   _AppEntry(
     title: 'Themes Deployment',
     subtitle: 'Upload · Designer Portal · Automation',
     icon: Icons.rocket_launch,
-    color: const Color(0xFF7DAF7A),
+    color: AppColors.purpleSelection,
+    bgImage: 'assets/images/deployment.jpeg',
     builder: () => const _ThemeDeploymentApp(),
   ),
   _AppEntry(
     title: 'WallRio CMS',
     subtitle: 'Wallpapers · Git · Analytics · Push',
     icon: Icons.wallpaper_rounded,
-    color: const Color(0xFF7C4DFF),
+    color: AppColors.purplePressed,
+    bgImage: 'assets/images/wallrio.jpeg',
     builder: () => const _WallRioCMSApp(),
   ),
   _AppEntry(
     title: 'SVG Converter',
     subtitle: 'Image to SVG · Batch · VTracer',
     icon: Icons.auto_awesome_rounded,
-    color: const Color(0xFF9D50FF),
+    color: AppColors.purpleDark,
+    bgImage: 'assets/images/svg_generator.jpeg',
     builder: () => const _SvgConverterApp(),
   ),
   // ── Add more apps below — no other code changes needed ────────────────────
-  // _AppEntry(
-  //   title:   'New Tool',
-  //   subtitle: 'Description',
-  //   icon:    Icons.build_rounded,
-  //   color:   Color(0xFF7DAF7A),
-  //   builder: () => const NewToolApp(),
-  // ),
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-class AppLauncherScreen extends StatelessWidget {
+class AppLauncherScreen extends ConsumerWidget {
   const AppLauncherScreen({super.key});
 
   void _launch(BuildContext context, _AppEntry app) {
@@ -193,7 +201,11 @@ class AppLauncherScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.appColors;
+    final themeMode = ref.watch(themeModeProvider);
+    final notifier = ref.read(themeModeProvider.notifier);
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -201,21 +213,49 @@ class AppLauncherScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
-              const SizedBox(height: 20),
-              Text(
-                'Team Shadow Tools',
-                style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+              // Header row
+              Row(
+                children: [
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 20),
+                        Text(
+                          'Team Shadow Tools',
+                          style: Theme.of(context)
+                              .textTheme
+                              .displaySmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Select a tool to get started',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.copyWith(color: colors.textSecondary),
+                        ),
+                      ],
                     ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Select a tool to get started',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.white54,
+                  ),
+                  // Theme toggle
+                  Tooltip(
+                    message: themeMode == ThemeMode.dark
+                        ? 'Switch to Light Mode'
+                        : 'Switch to Dark Mode',
+                    child: IconButton(
+                      onPressed: notifier.toggle,
+                      icon: Icon(
+                        themeMode == ThemeMode.dark
+                            ? Icons.light_mode_rounded
+                            : Icons.dark_mode_rounded,
+                        color: colors.primary,
+                      ),
                     ),
+                  ),
+                ],
               ),
               const SizedBox(height: 48),
               // App grid
@@ -228,8 +268,22 @@ class AppLauncherScreen extends StatelessWidget {
                     childAspectRatio: 1.8,
                   ),
                   itemCount: _apps.length,
-                  itemBuilder: (context, i) => _AppCard(
-                      app: _apps[i], onTap: () => _launch(context, _apps[i])),
+                  itemBuilder: (context, i) => TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    duration: Duration(milliseconds: 350 + i * 70),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, v, child) => Opacity(
+                      opacity: v,
+                      child: Transform.translate(
+                        offset: Offset(0, 24 * (1 - v)),
+                        child: child,
+                      ),
+                    ),
+                    child: _AppCard(
+                      app: _apps[i],
+                      onTap: () => _launch(context, _apps[i]),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -251,67 +305,190 @@ class _AppCard extends StatefulWidget {
   State<_AppCard> createState() => _AppCardState();
 }
 
-class _AppCardState extends State<_AppCard> {
-  bool _hovering = false;
+class _AppCardState extends State<_AppCard> with SingleTickerProviderStateMixin {
+  late final AnimationController _hoverCtrl;
+  late final Animation<double> _enterAnim;
+
+  double _mouseX = 0.5;
+  double _mouseY = 0.5;
+
+  @override
+  void initState() {
+    super.initState();
+    _hoverCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 280),
+    );
+    _enterAnim = CurvedAnimation(parent: _hoverCtrl, curve: Curves.easeOut);
+  }
+
+  @override
+  void dispose() {
+    _hoverCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onHover(PointerEvent event) {
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    final local = box.globalToLocal(event.position);
+    setState(() {
+      _mouseX = (local.dx / box.size.width).clamp(0.0, 1.0);
+      _mouseY = (local.dy / box.size.height).clamp(0.0, 1.0);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovering = true),
-      onExit: (_) => setState(() => _hovering = false),
+      onEnter: (_) => _hoverCtrl.forward(),
+      onExit: (_) => _hoverCtrl.reverse(),
+      onHover: _onHover,
       child: GestureDetector(
         onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: _hovering
-                ? widget.app.color.withAlpha(40)
-                : Colors.white.withAlpha(8),
-            border: Border.all(
-              color: _hovering
-                  ? widget.app.color.withAlpha(180)
-                  : Colors.white.withAlpha(20),
-              width: _hovering ? 1.5 : 1,
-            ),
-            boxShadow: _hovering
-                ? [
+        child: AnimatedBuilder(
+          animation: _hoverCtrl,
+          builder: (context, _) {
+            final t = _enterAnim.value;
+            final color = widget.app.color;
+
+            // 3D tilt toward cursor
+            final tiltX = (_mouseY - 0.5) * -0.10 * t;
+            final tiltY = (_mouseX - 0.5) * 0.10 * t;
+            final tiltMatrix = Matrix4.identity()
+              ..setEntry(3, 2, 0.001)
+              ..rotateX(tiltX)
+              ..rotateY(tiltY);
+
+            // Spotlight alignment follows cursor
+            final spotX = (_mouseX * 2) - 1;
+            final spotY = (_mouseY * 2) - 1;
+
+            return Transform(
+              transform: tiltMatrix,
+              alignment: Alignment.center,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: AppRadius.radiusXl,
+                  boxShadow: [
                     BoxShadow(
-                      color: widget.app.color.withAlpha(60),
-                      blurRadius: 20,
-                      spreadRadius: 2,
+                      color: color.withAlpha((90 * t).toInt()),
+                      blurRadius: lerpDouble(6, 40, t)!,
+                      offset: Offset(
+                        (_mouseX - 0.5) * 10 * t,
+                        lerpDouble(2, 20, t)! + (_mouseY - 0.5) * 6 * t,
+                      ),
                     ),
-                  ]
-                : [],
-          ),
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(widget.app.icon, color: widget.app.color, size: 32),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.app.title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: AppRadius.radiusXl,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Background image
+                      if (widget.app.bgImage != null)
+                        Image.asset(widget.app.bgImage!, fit: BoxFit.cover),
+
+                      // Dark overlay — lifts on hover
+                      Container(
+                        color: Colors.black.withAlpha(
+                          lerpDouble(115, 50, t)!.toInt(),
                         ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    widget.app.subtitle,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white38,
+                      ),
+
+                      // White spotlight following cursor
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: RadialGradient(
+                                center: Alignment(spotX, spotY),
+                                radius: 0.75,
+                                colors: [
+                                  Colors.white.withAlpha((55 * t).toInt()),
+                                  Colors.transparent,
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
+                      ),
+
+                      // Accent color bloom at cursor
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: RadialGradient(
+                                center: Alignment(spotX, spotY),
+                                radius: 0.5,
+                                colors: [
+                                  color.withAlpha((50 * t).toInt()),
+                                  Colors.transparent,
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Border glow
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: AppRadius.radiusXl,
+                          border: Border.all(
+                            color: Color.lerp(
+                              Colors.white.withAlpha(30),
+                              color.withAlpha(210),
+                              t,
+                            )!,
+                            width: lerpDouble(1.0, 1.5, t)!,
+                          ),
+                        ),
+                      ),
+
+                      // Text — top right
+                      Positioned(
+                        top: 18,
+                        right: 18,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              widget.app.title,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                    shadows: [
+                                      Shadow(
+                                        color: Colors.black.withAlpha(140),
+                                        blurRadius: 8,
+                                      ),
+                                    ],
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              widget.app.subtitle,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -328,16 +505,17 @@ class _ThemeEditorApp extends ConsumerWidget {
   const _ThemeEditorApp();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => MaterialApp(
-        title: 'MIUI Theme Editor',
-        debugShowCheckedModeBanner: false,
-        themeMode: ThemeMode.dark,
-        theme: AppTheme.light(),
-        darkTheme: AppTheme.dark(),
-        home: const UserProfileScreen(),
-        // Back button on AppBar automatically pops back to launcher
-        // because this MaterialApp is pushed onto the root Navigator.
-      );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+    return MaterialApp(
+      title: 'MIUI Theme Editor',
+      debugShowCheckedModeBanner: false,
+      themeMode: themeMode,
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      home: const UserProfileScreen(),
+    );
+  }
 }
 
 // ── Image Utility ─────────────────────────────────────────────────────────────
@@ -348,12 +526,13 @@ class _ImageUtilityApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+    final themeMode = ref.watch(themeModeProvider);
     return MaterialApp.router(
       title: 'Image Utility',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       routerConfig: router,
     );
   }
@@ -361,18 +540,21 @@ class _ImageUtilityApp extends ConsumerWidget {
 
 // ── Themes Deployment ─────────────────────────────────────────────────────────
 
-class _ThemeDeploymentApp extends StatelessWidget {
+class _ThemeDeploymentApp extends ConsumerWidget {
   const _ThemeDeploymentApp();
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-        title: 'Themes Deployment',
-        debugShowCheckedModeBanner: false,
-        themeMode: ThemeMode.dark,
-        theme: AppTheme.light(),
-        darkTheme: AppTheme.dark(),
-        home: const DeploymentPage(),
-      );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+    return MaterialApp(
+      title: 'Themes Deployment',
+      debugShowCheckedModeBanner: false,
+      themeMode: themeMode,
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      home: const DeploymentPage(),
+    );
+  }
 }
 
 // ── SVG Converter ─────────────────────────────────────────────────────────────
@@ -380,67 +562,15 @@ class _ThemeDeploymentApp extends StatelessWidget {
 class _SvgConverterApp extends ConsumerWidget {
   const _SvgConverterApp();
 
-  static const _purple = Color(0xFF9D50FF);
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(svg.settingsProvider);
+    final themeMode = ref.watch(themeModeProvider);
     return MaterialApp(
       title: 'SVG Converter',
       debugShowCheckedModeBanner: false,
-      themeMode: settings.darkMode ? ThemeMode.dark : ThemeMode.light,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: _purple,
-          primary: _purple,
-          onPrimary: Colors.white,
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-        cardTheme: CardThemeData(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24)),
-          elevation: 0,
-          color: Colors.grey[100],
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _purple,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16)),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          ),
-        ),
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: _purple,
-          primary: _purple,
-          onPrimary: Colors.white,
-          brightness: Brightness.dark,
-          surface: const Color(0xFF0A0A0A),
-        ),
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFF000000),
-        cardTheme: CardThemeData(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24)),
-          elevation: 0,
-          color: Colors.white.withValues(alpha: 0.05),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _purple,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16)),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          ),
-        ),
-      ),
+      themeMode: themeMode,
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
       home: const svg_screens.HomeScreen(),
     );
   }
@@ -454,12 +584,13 @@ class _WallRioCMSApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(wallRioRouterProvider);
+    final themeMode = ref.watch(themeModeProvider);
     return MaterialApp.router(
       title: 'WallRio CMS',
       debugShowCheckedModeBanner: false,
-      theme: wall_rio_theme.AppTheme.light,
-      darkTheme: wall_rio_theme.AppTheme.dark,
-      themeMode: ThemeMode.dark,
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: themeMode,
       routerConfig: router,
     );
   }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:miui_icon_generator/core/theme/app_radius.dart';
 import '../../../providers/directory_provider.dart';
 import '../../../providers/service_providers.dart';
 import '../../../providers/wallpaper_provider.dart';
-import '../../../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/path_constants.dart';
 import '../../../../data/models/theme_settings_model.dart';
 
@@ -72,15 +72,15 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
             Container(
               padding: const EdgeInsets.fromLTRB(24, 20, 16, 20),
               decoration: BoxDecoration(
-                color: AppTheme.accent.withAlpha(20),
+                color: cs.primary.withAlpha(20),
                 borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(20)),
+                    const BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
                 border: Border(
                     bottom: BorderSide(color: cs.outline.withAlpha(40))),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.tune_rounded, color: AppTheme.accent),
+                  Icon(Icons.tune_rounded, color: cs.primary),
                   const SizedBox(width: 12),
                   Text('Settings',
                       style: Theme.of(context)
@@ -184,7 +184,7 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
   Widget _sectionLabel(BuildContext context, String text) => Text(
         text,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: AppTheme.accent,
+              color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.8,
             ),
@@ -254,7 +254,7 @@ class _ThemeCountRowState extends State<_ThemeCountRow> {
         const SizedBox(width: 6),
         _StepButton(
             icon: Icons.add_rounded,
-            color: AppTheme.accent,
+            color: cs.primary,
             onTap: () => _adjust(1)),
       ],
     );
@@ -271,10 +271,10 @@ class _StepButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Material(
         color: color.withAlpha(20),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           child: Padding(
             padding: const EdgeInsets.all(10),
             child: Icon(icon, size: 18, color: color),

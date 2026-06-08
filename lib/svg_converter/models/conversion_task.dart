@@ -29,9 +29,9 @@ class ConversionTask {
     Duration? duration,
   }) {
     return ConversionTask(
-      id: this.id,
-      inputPath: this.inputPath,
-      outputPath: this.outputPath,
+      id: id,
+      inputPath: inputPath,
+      outputPath: outputPath,
       status: status ?? this.status,
       errorMessage: errorMessage ?? this.errorMessage,
       fileSizeBefore: fileSizeBefore ?? this.fileSizeBefore,

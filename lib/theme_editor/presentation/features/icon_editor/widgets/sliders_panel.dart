@@ -1,7 +1,8 @@
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:miui_icon_generator/core/theme/app_theme.dart';
+import 'package:miui_icon_generator/core/theme/app_radius.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import 'package:morphable_shape/morphable_shape.dart';
 import 'package:miui_icon_generator/theme_editor/domain/entities/icon_effect.dart';
 import 'package:miui_icon_generator/theme_editor/domain/entities/icon_shape.dart';
@@ -16,20 +17,18 @@ class SlidersPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.appColors;
     final s = ref.watch(iconEditorProvider);
     final n = ref.read(iconEditorProvider.notifier);
     final scheme = Theme.of(context).colorScheme;
-    
-    const cardBg = AppTheme.proCard;
-    const borderColor = Colors.black;
 
     return Container(
       width: 450,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor),
+        color: colors.surfaceOverlay,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min, 
@@ -130,8 +129,8 @@ class _ShapeSelector extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppTheme.proSidebar,
-        borderRadius: BorderRadius.circular(12),
+        color: context.appColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -142,14 +141,14 @@ class _ShapeSelector extends StatelessWidget {
               padding: const EdgeInsets.only(right: 10),
               child: InkWell(
                 onTap: () => onSelected(shape),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   width: 80,
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
                     color: isSelected ? scheme.primary : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                     border: Border.all(
                       color: isSelected
                           ? Colors.transparent
@@ -204,13 +203,12 @@ class _EffectSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppTheme.proSidebar,
-        borderRadius: BorderRadius.circular(12),
+        color: context.appColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -221,14 +219,14 @@ class _EffectSelector extends StatelessWidget {
               padding: const EdgeInsets.only(right: 8),
               child: InkWell(
                 onTap: () => onSelected(effect),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   width: 75,
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
                     color: isSelected ? scheme.primary : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                     border: Border.all(
                       color: isSelected
                           ? Colors.transparent
@@ -286,8 +284,8 @@ class _TextureSelector extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppTheme.proSidebar,
-        borderRadius: BorderRadius.circular(12),
+        color: context.appColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -298,14 +296,14 @@ class _TextureSelector extends StatelessWidget {
               padding: const EdgeInsets.only(right: 8),
               child: InkWell(
                 onTap: () => onSelected(texture),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   width: 75,
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
                     color: isSelected ? scheme.primary : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                     border: Border.all(
                       color: isSelected
                           ? Colors.transparent
@@ -410,7 +408,7 @@ Widget _sectionLabel(String text, ColorScheme scheme) => Padding(
             height: 12,
             margin: const EdgeInsets.only(right: 6),
             decoration: BoxDecoration(
-              color: AppTheme.accent,
+              color: scheme.primary,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -461,7 +459,7 @@ class _Slider extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
                     color: scheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: Text(
                     isPercent ? '${(value * 100).toStringAsFixed(0)}%' : value.toStringAsFixed(1),
@@ -480,7 +478,7 @@ class _Slider extends StatelessWidget {
             min: min, 
             max: max, 
             onChanged: onChanged,
-            activeColor: AppTheme.accent,
+            activeColor: Theme.of(context).colorScheme.primary,
           ),
         ],
     );
@@ -505,9 +503,9 @@ class _ModernSwitch extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: AppTheme.proSidebar,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black),
+        color: context.appColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: context.appColors.border),
       ),
       child: Row(
         children: [
@@ -523,7 +521,7 @@ class _ModernSwitch extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: AppTheme.accent,
+            activeThumbColor: Theme.of(context).colorScheme.primary,
           ),
         ],
       ),
@@ -543,9 +541,9 @@ class _RandomColorsRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppTheme.proSidebar,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black),
+        color: context.appColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: context.appColors.border),
       ),
       child: Wrap(
         spacing: 8,
@@ -564,7 +562,7 @@ class _RandomColorsRow extends StatelessWidget {
                   height: 34,
                   decoration: BoxDecoration(
                     color: c,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                     border: Border.all(
                         color: Colors.white.withAlpha(50), width: 1.5),
                   ),

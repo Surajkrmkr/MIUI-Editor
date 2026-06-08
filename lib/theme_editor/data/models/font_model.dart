@@ -1,4 +1,5 @@
 import 'package:dynamic_cached_fonts/dynamic_cached_fonts.dart';
+import 'package:flutter/foundation.dart';
 
 class FontEntry {
   FontEntry({required this.id, required this.name, required this.url})
@@ -18,7 +19,7 @@ class FontEntry {
       await dynamicFont.load();
     } catch (e) {
       // Catching errors to prevent 404s or network issues from crashing the app
-      print('Font loading failed for $name ($url): $e');
+      debugPrint('Font loading failed for $name ($url): $e');
     }
   }
 

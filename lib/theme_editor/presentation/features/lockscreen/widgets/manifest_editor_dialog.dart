@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:code_text_field/code_text_field.dart';
 import 'package:highlight/languages/xml.dart';
 import 'package:flutter_highlight/themes/vs2015.dart';
-import 'package:miui_icon_generator/core/theme/app_theme.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import '../../../../core/constants/path_constants.dart';
 import '../../../providers/wallpaper_provider.dart';
 import '../../../providers/service_providers.dart';
@@ -63,22 +63,23 @@ class _ManifestEditorDialogState extends ConsumerState<ManifestEditorDialog> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    
-    // Customizing theme to match app's navy style and rose accent
+    final colors = context.appColors;
+
+    // Customizing theme to match app's AMOLED purple style
     final customTheme = Map<String, TextStyle>.from(vs2015Theme);
     customTheme['root'] = TextStyle(
-      backgroundColor: AppTheme.scaffoldDark,
-      color: Colors.white.withAlpha(220),
+      backgroundColor: colors.bg,
+      color: colors.textPrimary,
     );
-    customTheme['tag'] = const TextStyle(color: AppTheme.accent);
-    customTheme['keyword'] = const TextStyle(color: AppTheme.accent);
-    customTheme['selector-tag'] = const TextStyle(color: AppTheme.accent);
+    customTheme['tag'] = TextStyle(color: colors.primary);
+    customTheme['keyword'] = TextStyle(color: colors.primary);
+    customTheme['selector-tag'] = TextStyle(color: colors.primary);
     customTheme['attr'] = const TextStyle(color: Color(0xFF569CD6)); // VS Code blue for attributes
     customTheme['string'] = const TextStyle(color: Color(0xFFCE9178)); // VS Code orange for strings
 
     return AlertDialog(
       title: const Text('Manifest Editor'),
-      backgroundColor: AppTheme.cardDark,
+      backgroundColor: colors.surfaceOverlay,
       surfaceTintColor: Colors.transparent,
       content: SizedBox(
         width: MediaQuery.of(context).size.width * 0.9,
@@ -91,8 +92,8 @@ class _ManifestEditorDialogState extends ConsumerState<ManifestEditorDialog> {
                     child: Container(
                       clipBehavior: Clip.antiAlias,
                       decoration: BoxDecoration(
-                        color: AppTheme.scaffoldDark,
-                        border: Border.all(color: Colors.white.withAlpha(15)),
+                        color: colors.bg,
+                        border: Border.all(color: colors.borderSubtle),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: CodeTheme(
@@ -109,12 +110,12 @@ class _ManifestEditorDialogState extends ConsumerState<ManifestEditorDialog> {
                             margin: 15,
                             textAlign: TextAlign.right,
                             textStyle: TextStyle(
-                              color: Colors.white.withAlpha(40),
+                              color: colors.textDisabled,
                               fontSize: 13,
                               height: 1.5,
                             ),
                           ),
-                          background: AppTheme.scaffoldDark,
+                          background: colors.bg,
                           expands: true,
                           maxLines: null,
                           wrap: false,

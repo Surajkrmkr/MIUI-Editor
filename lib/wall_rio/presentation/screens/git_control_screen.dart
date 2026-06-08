@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import '../../application/providers/git_provider.dart';
 import '../widgets/sidebar.dart';
 
@@ -23,6 +24,7 @@ class _GitControlScreenState extends ConsumerState<GitControlScreen> {
   Widget build(BuildContext context) {
     final gitStatus = ref.watch(gitStateProvider);
     final activeTarget = ref.watch(activeGitTargetProvider);
+    final colors = context.appColors;
 
     return Scaffold(
       appBar: AppBar(
@@ -55,7 +57,7 @@ class _GitControlScreenState extends ConsumerState<GitControlScreen> {
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.white10),
+                border: Border.all(color: colors.border),
               ),
               child: Row(
                 children: [
@@ -188,13 +190,14 @@ class _GitControlScreenState extends ConsumerState<GitControlScreen> {
   }
 
   Widget _buildTargetBtn(String label, GitRepoTarget target, bool isSelected) {
+    final colors = context.appColors;
     return Expanded(
       child: InkWell(
         onTap: () => ref.read(activeGitTargetProvider.notifier).set(target),
         borderRadius: BorderRadius.circular(8),
         child: Container(
           decoration: BoxDecoration(
-            color: isSelected ? Colors.purpleAccent.withValues(alpha: 0.1) : Colors.transparent,
+            color: isSelected ? colors.primarySelection : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
           alignment: Alignment.center,
@@ -202,7 +205,7 @@ class _GitControlScreenState extends ConsumerState<GitControlScreen> {
             label,
             style: TextStyle(
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              color: isSelected ? Colors.purpleAccent : Colors.grey,
+              color: isSelected ? colors.primary : colors.textSecondary,
             ),
           ),
         ),
@@ -266,10 +269,10 @@ class _SectionHeader extends StatelessWidget {
         children: [
           Text(
             '$title ($count)',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: Colors.grey,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           IconButton(

@@ -7,6 +7,7 @@ import 'package:miui_icon_generator/image_utility/features/wallpapers/presentati
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/widgets/wallpaper_card.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/widgets/source_selector.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/widgets/shimmer_widgets.dart';
+import 'package:miui_icon_generator/widgets/app_icon_button.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -56,9 +57,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Team Shadow Tools'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          tooltip: 'Back to Launcher',
+        leading: AppBackButton(
           onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
         ),
         actions: [
@@ -123,7 +122,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         Icon(
                           Icons.photo_library_outlined,
                           size: 64,
-                          color: Colors.grey[400],
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -161,8 +160,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline,
-                        size: 48, color: Colors.red),
+                    Icon(Icons.error_outline,
+                        size: 48, color: Theme.of(context).colorScheme.error),
                     const SizedBox(height: 16),
                     Text(
                       'Error: ${error.toString()}',

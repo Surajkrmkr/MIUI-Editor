@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../../core/theme/app_theme.dart';
+import 'package:miui_icon_generator/core/theme/app_radius.dart';
+import '../../../../../core/theme/theme_extensions.dart';
 import '../../../providers/directory_provider.dart';
 import '../../home/home_screen.dart';
 
@@ -38,6 +39,7 @@ class _FolderWeekOptionsState extends ConsumerState<FolderWeekOptions> {
   @override
   Widget build(BuildContext context) {
     final dirState = ref.watch(directoryProvider);
+    final colors = context.appColors;
     final cs = Theme.of(context).colorScheme;
 
     return SizedBox(
@@ -51,8 +53,8 @@ class _FolderWeekOptionsState extends ConsumerState<FolderWeekOptions> {
             // ── Section heading ─────────────────────────────────────────────
             Row(
               children: [
-                const Icon(Icons.folder_open_rounded,
-                    color: AppTheme.accent, size: 20),
+                Icon(Icons.folder_open_rounded,
+                    color: colors.primary, size: 20),
                 const SizedBox(width: 8),
                 Text('Select Folder',
                     style: Theme.of(context)
@@ -68,7 +70,7 @@ class _FolderWeekOptionsState extends ConsumerState<FolderWeekOptions> {
               constraints: const BoxConstraints(maxHeight: 180),
               decoration: BoxDecoration(
                 color: cs.surface,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
                 border: Border.all(color: cs.outline.withAlpha(40)),
               ),
               child: SingleChildScrollView(
@@ -103,20 +105,20 @@ class _FolderWeekOptionsState extends ConsumerState<FolderWeekOptions> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: AppTheme.accent.withAlpha(15),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppTheme.accent.withAlpha(40)),
+                  color: colors.primary.withAlpha(15),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  border: Border.all(color: colors.primary.withAlpha(40)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline_rounded,
-                        size: 16, color: AppTheme.accent),
+                    Icon(Icons.info_outline_rounded,
+                        size: 16, color: colors.primary),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         dirState.status,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppTheme.accent,
+                              color: colors.primary,
                               fontWeight: FontWeight.w500,
                             ),
                       ),
@@ -131,8 +133,8 @@ class _FolderWeekOptionsState extends ConsumerState<FolderWeekOptions> {
             // ── Week number ─────────────────────────────────────────────────
             Row(
               children: [
-                const Icon(Icons.calendar_today_rounded,
-                    color: AppTheme.accent, size: 20),
+                Icon(Icons.calendar_today_rounded,
+                    color: colors.primary, size: 20),
                 const SizedBox(width: 8),
                 Text('Week Number',
                     style: Theme.of(context)
@@ -158,10 +160,13 @@ class _FolderWeekOptionsState extends ConsumerState<FolderWeekOptions> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                FilledButton.icon(
-                  icon: const Icon(Icons.arrow_forward_rounded, size: 18),
-                  label: const Text('Continue'),
-                  onPressed: _submit,
+                SizedBox(
+                  height: 44,
+                  child: FilledButton.icon(
+                    icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                    label: const Text('Continue'),
+                    onPressed: _submit,
+                  ),
                 ),
               ],
             ),

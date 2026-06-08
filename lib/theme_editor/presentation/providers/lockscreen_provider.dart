@@ -15,7 +15,6 @@ import 'wallpaper_provider.dart';
 import 'directory_provider.dart';
 import 'service_providers.dart';
 import 'usecase_providers.dart';
-import '../../core/utils/svg_generator.dart';
 
 class LockscreenState {
   const LockscreenState({
@@ -257,12 +256,10 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
             svgBytes,
           ));
           final zipBytes = ZipEncoder().encode(archive);
-          if (zipBytes != null) {
-            final zipPath = '$svgFolder${ws.currentThemeName}.zip';
-            await File(zipPath).writeAsBytes(zipBytes);
-            debugPrint('Generated ZIP at: $zipPath');
-          }
-        } catch (e) {
+          final zipPath = '$svgFolder${ws.currentThemeName}.zip';
+          await File(zipPath).writeAsBytes(zipBytes);
+          debugPrint('Generated ZIP at: $zipPath');
+                } catch (e) {
           debugPrint('Error creating ZIP: $e');
         }
 

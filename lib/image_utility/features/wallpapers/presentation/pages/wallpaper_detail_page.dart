@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,7 @@ import 'package:miui_icon_generator/image_utility/features/wallpapers/presentati
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/widgets/crop_dialog.dart';
 import 'package:http/http.dart' as http;
 import 'package:miui_icon_generator/theme_editor/core/constants/app_constants.dart';
+import 'package:miui_icon_generator/widgets/app_icon_button.dart';
 import 'package:miui_icon_generator/widgets/iphone_frame.dart';
 
 class WallpaperDetailPageEnhanced extends ConsumerStatefulWidget {
@@ -73,7 +75,7 @@ class _WallpaperDetailPageEnhancedState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Crop failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -117,7 +119,7 @@ class _WallpaperDetailPageEnhancedState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Download failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -143,10 +145,7 @@ class _WallpaperDetailPageEnhancedState
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
+        leading: AppBackButton(onPressed: () => context.pop()),
         title: const Text('Wallpaper Detail'),
       ),
       body: wallpaperAsync.when(
@@ -448,11 +447,11 @@ class _WallpaperDetailPageEnhancedState
                   onPressed:
                       _isDownloading ? null : () => _handleDownload(wallpaper),
                   icon: _isDownloading
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 16,
                           height: 16,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
+                              strokeWidth: 2, color: Theme.of(context).colorScheme.onPrimary),
                         )
                       : const Icon(Icons.download, size: 18),
                   label: Text(_isDownloading
@@ -544,7 +543,7 @@ class _RenameDialogState extends State<_RenameDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Renamed to "${renamed.aiName}"'),
-            backgroundColor: Colors.green,
+            backgroundColor: context.appColors.success,
           ),
         );
       }
@@ -561,11 +560,11 @@ class _RenameDialogState extends State<_RenameDialog> {
     final nameChanged = _nameController.text.trim() != _current.aiName;
 
     return AlertDialog(
-      title: const Row(
+      title: Row(
         children: [
-          Icon(Icons.check_circle, color: Colors.green),
-          SizedBox(width: 8),
-          Text('Download Complete'),
+          Icon(Icons.check_circle, color: context.appColors.success),
+          const SizedBox(width: 8),
+          const Text('Download Complete'),
         ],
       ),
       content: SizedBox(

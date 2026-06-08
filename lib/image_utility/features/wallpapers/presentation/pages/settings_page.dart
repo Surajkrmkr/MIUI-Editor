@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:miui_icon_generator/core/theme/app_theme.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import 'package:miui_icon_generator/image_utility/core/config/app_config.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/providers/wallpaper_providers.dart';
 import 'package:path_provider/path_provider.dart';
@@ -166,7 +166,7 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog>
             Container(
               padding: const EdgeInsets.fromLTRB(24, 20, 16, 0),
               decoration: BoxDecoration(
-                color: AppTheme.accent.withAlpha(20),
+                color: Theme.of(context).colorScheme.primary.withAlpha(20),
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(20)),
                 border: Border(
@@ -177,7 +177,7 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog>
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.settings_rounded, color: AppTheme.accent),
+                      Icon(Icons.settings_rounded, color: context.appColors.primary),
                       const SizedBox(width: 12),
                       Text('Image Utility Settings',
                           style: Theme.of(context)
@@ -199,9 +199,9 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog>
                       Tab(icon: Icon(Icons.key_rounded, size: 16), text: 'API Keys'),
                       Tab(icon: Icon(Icons.folder_outlined, size: 16), text: 'File Paths'),
                     ],
-                    labelColor: AppTheme.accent,
+                    labelColor: Theme.of(context).colorScheme.primary,
                     unselectedLabelColor: cs.onSurfaceVariant,
-                    indicatorColor: AppTheme.accent,
+                    indicatorColor: Theme.of(context).colorScheme.primary,
                     dividerColor: Colors.transparent,
                     labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
@@ -324,7 +324,7 @@ class _ApiKeysTab extends StatelessWidget {
   Widget _sectionLabel(BuildContext context, String text) => Text(
         text,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: AppTheme.accent,
+              color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.8,
             ),

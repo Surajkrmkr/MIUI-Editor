@@ -4,10 +4,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/domain/entities/wallpaper.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/providers/bulk_download_provider.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/providers/wallpaper_providers.dart';
 import 'package:miui_icon_generator/theme_editor/core/constants/app_constants.dart';
+import 'package:miui_icon_generator/widgets/app_icon_button.dart';
 import 'package:miui_icon_generator/widgets/iphone_frame.dart';
 
 class BulkDownloadPage extends ConsumerStatefulWidget {
@@ -74,8 +76,7 @@ class _BulkDownloadPageState extends ConsumerState<BulkDownloadPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(_titleForStep(state.step)),
-          leading: IconButton(
-            icon: const Icon(Icons.close),
+          leading: AppBackButton.close(
             onPressed: () => _handleBack(context, state.step),
           ),
         ),
@@ -121,7 +122,7 @@ class _BulkDownloadPageState extends ConsumerState<BulkDownloadPage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Exit', style: TextStyle(color: Colors.red)),
+            child: Text('Exit', style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
         ],
       ),
@@ -217,6 +218,7 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
   ) {
     final state = ref.watch(bulkDownloadProvider);
     final sourcesAsync = ref.watch(availableSourcesProvider);
+    final scheme = Theme.of(context).colorScheme;
     final isFetching = state.isFetching;
     final batchSize = state.batchSize;
     final fetchError = state.fetchError;
@@ -333,9 +335,9 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                           ?.copyWith(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       'All fields are optional',
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                      style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
                     ),
                     const SizedBox(height: 16),
 
@@ -460,20 +462,20 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.red.withValues(alpha: 0.1),
+                          color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                              color: Colors.red.withValues(alpha: 0.3)),
+                              color: Theme.of(context).colorScheme.error.withValues(alpha: 0.3)),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.error_outline,
-                                color: Colors.red, size: 18),
+                            Icon(Icons.error_outline,
+                                color: Theme.of(context).colorScheme.error, size: 18),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(fetchError,
-                                  style: const TextStyle(
-                                      color: Colors.red, fontSize: 13)),
+                                  style: TextStyle(
+                                      color: Theme.of(context).colorScheme.error, fontSize: 13)),
                             ),
                           ],
                         ),
@@ -492,11 +494,11 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                 child: FilledButton.icon(
                   onPressed: isFetching ? null : _onFetch,
                   icon: isFetching
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
+                              strokeWidth: 2, color: scheme.onPrimary),
                         )
                       : const Icon(Icons.download_for_offline),
                   label: Padding(
@@ -537,6 +539,7 @@ class _SelectionStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Column(
       children: [
         // Info bar
@@ -594,7 +597,7 @@ class _SelectionStep extends StatelessWidget {
             color: Theme.of(context).scaffoldBackgroundColor,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
+                color: colors.surfaceOverlay,
                 blurRadius: 8,
                 offset: const Offset(0, -2),
               ),
@@ -637,6 +640,7 @@ class _WallpaperSelectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return MouseRegion(
       cursor:
           isReplacing ? SystemMouseCursors.progress : SystemMouseCursors.click,
@@ -666,16 +670,16 @@ class _WallpaperSelectionCard extends StatelessWidget {
 
             // ── Replace spinner overlay ───────────────────────────────────────
             if (isReplacing)
-              const Center(
-                child: CircularProgressIndicator(color: Colors.white),
+              Center(
+                child: CircularProgressIndicator(color: colors.textPrimary),
               )
             else
               // ── Refresh icon hint ───────────────────────────────────────────
-              const Positioned(
+              Positioned(
                 bottom: 80,
                 child: CircleAvatar(
                     child:
-                        Icon(Icons.refresh, color: Colors.white70, size: 16)),
+                        Icon(Icons.refresh, color: colors.textSecondary, size: 16)),
               ),
 
             // ── Index badge ───────────────────────────────────────────────────
@@ -685,13 +689,13 @@ class _WallpaperSelectionCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.black54,
+                  color: colors.surfaceOverlay,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   '${index + 1}',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -720,6 +724,7 @@ class _ProcessingStep extends StatelessWidget {
     final done = state.results.length;
     final progress = total > 0 ? done / total : 0.0;
     final current = state.currentWallpaper;
+    final scheme = Theme.of(context).colorScheme;
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -738,7 +743,7 @@ class _ProcessingStep extends StatelessWidget {
                 child: CircularProgressIndicator(
                   value: progress,
                   strokeWidth: 10,
-                  backgroundColor: Colors.grey[200],
+                  backgroundColor: scheme.surfaceContainerHighest,
                 ),
               ),
               Column(
@@ -807,12 +812,12 @@ class _ProcessingStep extends StatelessWidget {
               children: [
                 _StatChip(
                   icon: Icons.check_circle,
-                  color: Colors.green,
+                  color: context.appColors.success,
                   label: '${state.results.where((r) => r.success).length} done',
                 ),
                 _StatChip(
                   icon: Icons.error_outline,
-                  color: Colors.red,
+                  color: Theme.of(context).colorScheme.error,
                   label:
                       '${state.results.where((r) => !r.success).length} failed',
                 ),
@@ -866,14 +871,14 @@ class _CompleteStep extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(24),
           color: success > 0
-              ? Colors.green.withValues(alpha: 0.1)
-              : Colors.red.withValues(alpha: 0.1),
+              ? context.appColors.success.withValues(alpha: 0.1)
+              : Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
           child: Column(
             children: [
               Icon(
                 success > 0 ? Icons.check_circle : Icons.error,
                 size: 56,
-                color: success > 0 ? Colors.green : Colors.red,
+                color: success > 0 ? context.appColors.success : Theme.of(context).colorScheme.error,
               ),
               const SizedBox(height: 12),
               Text(
@@ -888,14 +893,14 @@ class _CompleteStep extends StatelessWidget {
                 children: [
                   _StatChip(
                     icon: Icons.check_circle,
-                    color: Colors.green,
+                    color: context.appColors.success,
                     label: '$success downloaded',
                   ),
                   if (failed > 0) ...[
                     const SizedBox(width: 16),
                     _StatChip(
                       icon: Icons.error_outline,
-                      color: Colors.red,
+                      color: Theme.of(context).colorScheme.error,
                       label: '$failed failed',
                     ),
                   ],
@@ -945,7 +950,7 @@ class _CompleteStep extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style:
-                              const TextStyle(color: Colors.red, fontSize: 11),
+                              TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 11),
                         ),
                   trailing: result.success
                       ? Row(
@@ -961,11 +966,11 @@ class _CompleteStep extends StatelessWidget {
                                 result.wallpaper,
                               ),
                             ),
-                            const Icon(Icons.check_circle,
-                                color: Colors.green, size: 20),
+                            Icon(Icons.check_circle,
+                                color: context.appColors.success, size: 20),
                           ],
                         )
-                      : const Icon(Icons.error, color: Colors.red),
+                      : Icon(Icons.error, color: Theme.of(context).colorScheme.error),
                 ),
               );
             },
@@ -1072,6 +1077,7 @@ class _RenameDialogState extends State<_RenameDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return AlertDialog(
       title: const Text('Rename Wallpaper'),
       content: Column(
@@ -1089,12 +1095,12 @@ class _RenameDialogState extends State<_RenameDialog> {
                     : widget.wallpaper.originalUrl,
                 fit: BoxFit.cover,
                 placeholder: (_, __) => Container(
-                  color: Colors.grey[800],
+                  color: colors.surface,
                   child: const Center(
                       child: CircularProgressIndicator(strokeWidth: 2)),
                 ),
                 errorWidget: (_, __, ___) =>
-                    Container(color: Colors.grey[800]),
+                    Container(color: colors.surface),
               ),
             ),
           ),
@@ -1174,9 +1180,10 @@ class _DeferredImageState extends State<_DeferredImage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     if (!_ready) {
       return Container(
-        color: Colors.grey[800],
+        color: colors.surface,
         width: AppConstants.screenWidth,
         height: AppConstants.screenHeight,
         child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
@@ -1188,13 +1195,13 @@ class _DeferredImageState extends State<_DeferredImage> {
       width: AppConstants.screenWidth,
       height: AppConstants.screenHeight,
       placeholder: (_, __) => Container(
-        color: Colors.grey[800],
+        color: colors.surface,
         width: AppConstants.screenWidth,
         height: AppConstants.screenHeight,
         child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
       ),
       errorWidget: (_, __, ___) => Container(
-        color: Colors.grey[800],
+        color: colors.surface,
         width: AppConstants.screenWidth,
         height: AppConstants.screenHeight,
         child: const Icon(Icons.broken_image),

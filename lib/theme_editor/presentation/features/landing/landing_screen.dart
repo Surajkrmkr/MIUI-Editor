@@ -5,6 +5,7 @@ import '../../providers/font_provider.dart';
 import '../../providers/icon_editor_provider.dart';
 import '../../providers/tag_provider.dart';
 import '../../providers/wallpaper_provider.dart';
+import 'package:miui_icon_generator/widgets/app_icon_button.dart';
 import 'widgets/folder_week_options.dart';
 import 'widgets/preview_walls.dart';
 import 'widgets/settings_dialog.dart';
@@ -41,15 +42,14 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
     final dirState = ref.watch(directoryProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Welcome to MIUI World'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          tooltip: 'Back to Launcher',
+        title: const Text('MIUI Editor'),
+        leading: AppBackButton(
           onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: const Icon(Icons.settings_rounded),
+            tooltip: 'Settings',
             onPressed: () => showDialog(
               context: context,
               builder: (_) => const SettingsDialog(),

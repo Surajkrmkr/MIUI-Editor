@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class VTracerOptions {
@@ -39,11 +40,11 @@ class VTracerService {
       if (result.exitCode == 0) {
         return outputPath;
       } else {
-        print('VTracer failed: ${result.stderr}');
+        debugPrint('VTracer failed: ${result.stderr}');
         return null;
       }
     } catch (e) {
-      print('VTracer error: $e');
+      debugPrint('VTracer error: $e');
       return null;
     }
   }

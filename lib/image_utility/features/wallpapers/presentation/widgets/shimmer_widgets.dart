@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import 'package:shimmer/shimmer.dart';
 
 /// Shimmer loading widget for wallpaper cards
@@ -14,12 +15,12 @@ class WallpaperCardShimmer extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Shimmer.fromColors(
-        baseColor: Colors.grey[300]!,
-        highlightColor: Colors.grey[100]!,
+        baseColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        highlightColor: Theme.of(context).colorScheme.surface,
         child: AspectRatio(
           aspectRatio: 6.0 / 13.0,
           child: Container(
-            color: Colors.white,
+            color: context.appColors.surface,
           ),
         ),
       ),
@@ -59,8 +60,8 @@ class WallpaperDetailShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
+      baseColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+      highlightColor: Theme.of(context).colorScheme.surface,
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,7 +71,7 @@ class WallpaperDetailShimmer extends StatelessWidget {
               height: 400,
               width: double.infinity,
               child: Container(
-                color: Colors.white,
+                color: context.appColors.surface,
               ),
             ),
 
@@ -82,8 +83,8 @@ class WallpaperDetailShimmer extends StatelessWidget {
                   // Photographer info
                   Row(
                     children: [
-                      const CircleAvatar(
-                        backgroundColor: Colors.white,
+                      CircleAvatar(
+                        backgroundColor: context.appColors.surface,
                         radius: 24,
                       ),
                       const SizedBox(width: 12),
@@ -94,13 +95,13 @@ class WallpaperDetailShimmer extends StatelessWidget {
                             Container(
                               width: 120,
                               height: 16,
-                              color: Colors.white,
+                              color: context.appColors.surface,
                             ),
                             const SizedBox(height: 4),
                             Container(
                               width: 80,
                               height: 12,
-                              color: Colors.white,
+                              color: context.appColors.surface,
                             ),
                           ],
                         ),
@@ -113,19 +114,19 @@ class WallpaperDetailShimmer extends StatelessWidget {
                   Container(
                     width: 100,
                     height: 16,
-                    color: Colors.white,
+                    color: context.appColors.surface,
                   ),
                   const SizedBox(height: 8),
                   Container(
                     width: double.infinity,
                     height: 12,
-                    color: Colors.white,
+                    color: context.appColors.surface,
                   ),
                   const SizedBox(height: 4),
                   Container(
                     width: double.infinity,
                     height: 12,
-                    color: Colors.white,
+                    color: context.appColors.surface,
                   ),
                   const SizedBox(height: 24),
 
@@ -139,13 +140,13 @@ class WallpaperDetailShimmer extends StatelessWidget {
                             Container(
                               width: 80,
                               height: 14,
-                              color: Colors.white,
+                              color: context.appColors.surface,
                             ),
                             const SizedBox(height: 4),
                             Container(
                               width: 100,
                               height: 12,
-                              color: Colors.white,
+                              color: context.appColors.surface,
                             ),
                           ],
                         ),
@@ -153,7 +154,7 @@ class WallpaperDetailShimmer extends StatelessWidget {
                       Container(
                         width: 20,
                         height: 20,
-                        color: Colors.white,
+                        color: context.appColors.surface,
                       ),
                       Expanded(
                         child: Column(
@@ -162,13 +163,13 @@ class WallpaperDetailShimmer extends StatelessWidget {
                             Container(
                               width: 80,
                               height: 14,
-                              color: Colors.white,
+                              color: context.appColors.surface,
                             ),
                             const SizedBox(height: 4),
                             Container(
                               width: 100,
                               height: 12,
-                              color: Colors.white,
+                              color: context.appColors.surface,
                             ),
                           ],
                         ),
@@ -181,7 +182,7 @@ class WallpaperDetailShimmer extends StatelessWidget {
                   Container(
                     width: 60,
                     height: 16,
-                    color: Colors.white,
+                    color: context.appColors.surface,
                   ),
                   const SizedBox(height: 8),
                   Wrap(
@@ -193,7 +194,7 @@ class WallpaperDetailShimmer extends StatelessWidget {
                         width: 60 + (index * 10.0),
                         height: 32,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: context.appColors.surface,
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
@@ -216,21 +217,21 @@ class ListItemShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
+      baseColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+      highlightColor: Theme.of(context).colorScheme.surface,
       child: ListTile(
-        leading: const CircleAvatar(
-          backgroundColor: Colors.white,
+        leading: CircleAvatar(
+          backgroundColor: context.appColors.surface,
         ),
         title: Container(
           width: double.infinity,
           height: 12,
-          color: Colors.white,
+          color: context.appColors.surface,
         ),
         subtitle: Container(
           width: double.infinity,
           height: 10,
-          color: Colors.white,
+          color: context.appColors.surface,
           margin: const EdgeInsets.only(top: 4),
         ),
       ),

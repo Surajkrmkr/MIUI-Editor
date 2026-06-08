@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:miui_icon_generator/core/theme/app_theme.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import '../../../../domain/entities/lock_widget.dart';
 import '../../../providers/element_provider.dart';
 
@@ -10,6 +10,7 @@ class WidgetCenterDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
 
     // Group widgets by category
     final grouped = <String, List<LockWidget>>{};
@@ -18,7 +19,7 @@ class WidgetCenterDialog extends ConsumerWidget {
     }
 
     return Dialog(
-      backgroundColor: AppTheme.proSidebar,
+      backgroundColor: context.appColors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Container(
         width: 800,
@@ -35,7 +36,7 @@ class WidgetCenterDialog extends ConsumerWidget {
                   height: 24,
                   margin: const EdgeInsets.only(right: 12),
                   decoration: BoxDecoration(
-                    color: AppTheme.accent,
+                    color: colors.primary,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -76,7 +77,7 @@ class WidgetCenterDialog extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
-                              color: AppTheme.accent.withAlpha(200),
+                              color: colors.primary.withAlpha(200),
                               letterSpacing: 1.5,
                             ),
                           ),
@@ -117,9 +118,10 @@ class _WidgetCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
-    
+    final colors = context.appColors;
+
     return Material(
-      color: AppTheme.proCard,
+      color: colors.surfaceOverlay,
       borderRadius: BorderRadius.circular(16),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -130,7 +132,7 @@ class _WidgetCard extends ConsumerWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.white10),
+            border: Border.all(color: colors.border),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -141,18 +143,18 @@ class _WidgetCard extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppTheme.accent.withAlpha(30),
+                      color: colors.primary.withAlpha(30),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       _getIconForCategory(widget.category),
                       size: 18,
-                      color: AppTheme.accent,
+                      color: colors.primary,
                     ),
                   ),
                   const Spacer(),
-                  const Icon(Icons.add_circle_outline_rounded,
-                      size: 20, color: Colors.white24),
+                  Icon(Icons.add_circle_outline_rounded,
+                      size: 20, color: scheme.onSurface.withAlpha(60)),
                 ],
               ),
               const Spacer(),

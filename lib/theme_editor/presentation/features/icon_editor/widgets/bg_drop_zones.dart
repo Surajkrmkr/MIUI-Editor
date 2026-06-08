@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:miui_icon_generator/core/theme/app_theme.dart';
+import 'package:miui_icon_generator/core/theme/app_radius.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import '../../../../presentation/common/widgets/drop_zone.dart';
 import '../../../../presentation/providers/icon_editor_provider.dart';
 import '../../../../presentation/providers/wallpaper_provider.dart';
@@ -12,17 +13,15 @@ class BgDropZones extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
-    
-    const cardBg = AppTheme.proCard;
-    const borderColor = Colors.black;
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor),
+        color: colors.surfaceOverlay,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,7 +36,7 @@ class BgDropZones extends ConsumerWidget {
                   height: 12,
                   margin: const EdgeInsets.only(right: 6),
                   decoration: BoxDecoration(
-                    color: AppTheme.accent,
+                    color: colors.primary,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),

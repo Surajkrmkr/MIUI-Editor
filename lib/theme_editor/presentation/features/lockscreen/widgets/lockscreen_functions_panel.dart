@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:miui_icon_generator/core/theme/app_theme.dart';
+import '../../../../../core/theme/theme_extensions.dart';
 import 'package:miui_icon_generator/theme_editor/presentation/providers/wallpaper_provider.dart';
 import '../../../../core/constants/path_constants.dart';
 import '../../../providers/element_provider.dart';
@@ -16,248 +16,246 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
     final lsState = ref.watch(lockscreenProvider);
     final aiState = ref.watch(aiProvider);
     final busy = lsState.isExporting || aiState.isLoading;
-    final scheme = Theme.of(context).colorScheme;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-            // ── Background section ─────────────────────────────────────
-            _SectionCard(
-              title: 'BACKGROUND',
-              child: Column(
+        // ── Background section ───────────────────────────────────────────
+        _SectionCard(
+          title: 'BACKGROUND',
+          child: Column(
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _DropTile(
-                          icon: Icons.image_rounded,
-                          label: 'Image',
-                          sublabel: 'PNG / JPG',
-                          child: AppDropZone(
-                            label: 'Drop BG',
-                            allowedExtensions: const ['.png', '.jpg'],
-                            onDropped: (path) => _dropBg(ref, path),
-                            size: const Size(75, 60),
-                          ),
-                        ),
+                  Expanded(
+                    child: _DropTile(
+                      icon: Icons.image_rounded,
+                      label: 'Image',
+                      sublabel: 'PNG / JPG',
+                      child: AppDropZone(
+                        label: 'Drop BG',
+                        allowedExtensions: const ['.png', '.jpg'],
+                        onDropped: (path) => _dropBg(ref, path),
+                        size: const Size(75, 60),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _DropTile(
-                          icon: Icons.videocam_rounded,
-                          label: 'Video',
-                          sublabel: 'MP4',
-                          child: AppDropZone(
-                            label: 'Drop MP4',
-                            allowedExtensions: const ['.mp4'],
-                            onDropped: (path) => _dropVideo(ref, path),
-                            size: const Size(75, 60),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  Consumer(builder: (_, ref, __) {
-                    final alpha = ref.watch(elementProvider).bgAlpha;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _DropTile(
+                      icon: Icons.videocam_rounded,
+                      label: 'Video',
+                      sublabel: 'MP4',
+                      child: AppDropZone(
+                        label: 'Drop MP4',
+                        allowedExtensions: const ['.mp4'],
+                        onDropped: (path) => _dropVideo(ref, path),
+                        size: const Size(75, 60),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Consumer(builder: (_, ref, __) {
+                final alpha = ref.watch(elementProvider).bgAlpha;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Darken',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                                color: scheme.onSurfaceVariant,
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 7, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: scheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                '${(alpha * 100).toStringAsFixed(0)}%',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: scheme.onPrimaryContainer,
-                                ),
-                              ),
-                            ),
-                          ],
+                        Text(
+                          'Darken',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: scheme.onSurfaceVariant,
+                          ),
                         ),
-                        Slider(
-                          value: alpha,
-                          min: 0,
-                          max: 1,
-                          divisions: 20,
-                          onChanged: (v) =>
-                              ref.read(elementProvider.notifier).setBgAlpha(v),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: scheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '${(alpha * 100).toStringAsFixed(0)}%',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: scheme.onPrimaryContainer,
+                            ),
+                          ),
                         ),
                       ],
-                    );
-                  }),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // ── AI + Presets section ───────────────────────────────────
-            _SectionCard(
-              title: 'TOOLS',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _ActionButton(
-                    icon: Icons.auto_awesome_rounded,
-                    label: 'AI Generate',
-                    onPressed: busy ? null : () => _showAiDialog(context, ref),
-                    isPrimary: true,
-                  ),
-                  const SizedBox(height: 8),
-                  _ActionButton(
-                    icon: Icons.code_rounded,
-                    label: 'Manifest Editor',
-                    onPressed: () => _showManifestEditor(context, ref),
-                  ),
-                  const SizedBox(height: 8),
-                  _ActionButton(
-                    icon: Icons.bookmark_rounded,
-                    label: 'Save Preset',
-                    onPressed: () async {
-                      final failure = await ref
-                          .read(lockscreenProvider.notifier)
-                          .savePreset(
-                              DateTime.now().millisecondsSinceEpoch.toString());
-                      if (!context.mounted) return;
-                      if (failure != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Save failed: ${failure.message}'),
-                          ),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(
-                            'Preset saved',
-                            style: TextStyle(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onPrimaryContainer),
-                          )),
-                        );
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  _ActionButton(
-                    icon: Icons.layers_rounded,
-                    label: 'Load Presets',
-                    onPressed: () => showDialog(
-                      context: context,
-                      builder: (_) => const PresetDialog(),
                     ),
-                    isOutlined: true,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // ── Export section ─────────────────────────────────────────
-            Consumer(builder: (_, ref, __) {
-              final s = ref.watch(lockscreenProvider);
-              return _SectionCard(
-                title: 'EXPORT',
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _DualVersionToggle(
-                      value: s.dualMtzExport,
-                      onChanged: (_) => ref
-                          .read(lockscreenProvider.notifier)
-                          .toggleDualMtzExport(),
+                    Slider(
+                      value: alpha,
+                      min: 0,
+                      max: 1,
+                      divisions: 20,
+                      onChanged: (v) =>
+                          ref.read(elementProvider.notifier).setBgAlpha(v),
                     ),
-                    const SizedBox(height: 8),
-                    _ExportMainButton(
-                        state: s, onTap: () => _export(context, ref)),
-                    if (s.isExportingPngs) ...[
-                      const SizedBox(height: 8),
-                      _GradientProgress(value: s.pngsProgress),
-                      const SizedBox(height: 4),
-                      Text(
-                        s.pngsLabel,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                    const SizedBox(height: 8),
-                    _ActionButton(
-                      icon: Icons.archive_rounded,
-                      label: 'Re-pack MTZ',
-                      isOutlined: true,
-                      onPressed:
-                          s.isBusy ? null : () => _repackMtz(context, ref),
-                    ),
-                    const SizedBox(height: 8),
-                    _ActionButton(
-                      icon: Icons.auto_fix_high_rounded,
-                      label: s.isTracing ? 'Generating…' : 'Generate Copyright',
-                      isOutlined: true,
-                      onPressed: s.isBusy
-                          ? null
-                          : () async {
-                              await ref
-                                  .read(lockscreenProvider.notifier)
-                                  .generateLayeredSvg();
-                              if (context.mounted) {
-                                final err = ref.read(lockscreenProvider).error;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      backgroundColor: err != null 
-                                          ? scheme.errorContainer 
-                                          : scheme.primaryContainer,
-                                      content: Text(
-                                        err ?? 'Copyright generated in "svg" folder',
-                                        style: TextStyle(
-                                          color: err != null 
-                                              ? scheme.onErrorContainer 
-                                              : scheme.onPrimaryContainer
-                                        ),
-                                      )),
-                                );
-                              }
-                            },
-                    ),
-                    if (s.isTracing) ...[
-                      const SizedBox(height: 8),
-                      const LinearProgressIndicator(minHeight: 2),
-                    ],
                   ],
-                ),
-              );
-            }),
-          ],
-        );
-  }
+                );
+              }),
+            ],
+          ),
+        ),
 
-  // ── Drop handlers ──────────────────────────────────────────────────────────
+        const SizedBox(height: 10),
+
+        // ── AI + Presets section ─────────────────────────────────────────
+        _SectionCard(
+          title: 'TOOLS',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _ActionButton(
+                icon: Icons.auto_awesome_rounded,
+                label: 'AI Generate',
+                onPressed:
+                    busy ? null : () => _showAiDialog(context, ref),
+                isPrimary: true,
+              ),
+              const SizedBox(height: 8),
+              _ActionButton(
+                icon: Icons.code_rounded,
+                label: 'Manifest Editor',
+                onPressed: () => _showManifestEditor(context, ref),
+              ),
+              const SizedBox(height: 8),
+              _ActionButton(
+                icon: Icons.bookmark_rounded,
+                label: 'Save Preset',
+                onPressed: () async {
+                  final failure = await ref
+                      .read(lockscreenProvider.notifier)
+                      .savePreset(
+                          DateTime.now().millisecondsSinceEpoch.toString());
+                  if (!context.mounted) return;
+                  if (failure != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content:
+                            Text('Save failed: ${failure.message}'),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Preset saved')),
+                    );
+                  }
+                },
+              ),
+              const SizedBox(height: 8),
+              _ActionButton(
+                icon: Icons.layers_rounded,
+                label: 'Load Presets',
+                onPressed: () => showDialog(
+                  context: context,
+                  builder: (_) => const PresetDialog(),
+                ),
+                isOutlined: true,
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 10),
+
+        // ── Export section ───────────────────────────────────────────────
+        Consumer(builder: (_, ref, __) {
+          final s = ref.watch(lockscreenProvider);
+          return _SectionCard(
+            title: 'EXPORT',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _DualVersionToggle(
+                  value: s.dualMtzExport,
+                  onChanged: (_) => ref
+                      .read(lockscreenProvider.notifier)
+                      .toggleDualMtzExport(),
+                ),
+                const SizedBox(height: 8),
+                _ExportMainButton(
+                    state: s, onTap: () => _export(context, ref)),
+                if (s.isExportingPngs) ...[
+                  const SizedBox(height: 8),
+                  _GradientProgress(value: s.pngsProgress),
+                  const SizedBox(height: 4),
+                  Text(
+                    s.pngsLabel,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+                const SizedBox(height: 8),
+                _ActionButton(
+                  icon: Icons.archive_rounded,
+                  label: 'Re-pack MTZ',
+                  isOutlined: true,
+                  onPressed:
+                      s.isBusy ? null : () => _repackMtz(context, ref),
+                ),
+                const SizedBox(height: 8),
+                _ActionButton(
+                  icon: Icons.auto_fix_high_rounded,
+                  label: s.isTracing
+                      ? 'Generating…'
+                      : 'Generate Copyright',
+                  isOutlined: true,
+                  onPressed: s.isBusy
+                      ? null
+                      : () async {
+                          await ref
+                              .read(lockscreenProvider.notifier)
+                              .generateLayeredSvg();
+                          if (context.mounted) {
+                            final err =
+                                ref.read(lockscreenProvider).error;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: err != null
+                                    ? scheme.errorContainer
+                                    : scheme.primaryContainer,
+                                content: Text(
+                                  err ??
+                                      'Copyright generated in "svg" folder',
+                                  style: TextStyle(
+                                    color: err != null
+                                        ? scheme.onErrorContainer
+                                        : scheme.onPrimaryContainer,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                ),
+                if (s.isTracing) ...[
+                  const SizedBox(height: 8),
+                  const LinearProgressIndicator(minHeight: 2),
+                ],
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
 
   Future<void> _dropBg(WidgetRef ref, String path) async {
     final ws = ref.read(wallpaperProvider);
@@ -265,9 +263,8 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
     final tp = PathConstants.themePath(ws.weekNum!, ws.currentThemeName!);
     final dest = '${PathConstants.lockscreenAdvance(tp)}bg.png';
     await ref.read(fileServiceProvider).copyFile(path, dest);
-    ref
-        .read(elementProvider.notifier)
-        .setGuideLines(ref.read(elementProvider).activeType, false);
+    ref.read(elementProvider.notifier).setGuideLines(
+        ref.read(elementProvider).activeType, false);
   }
 
   Future<void> _dropVideo(WidgetRef ref, String path) async {
@@ -279,36 +276,37 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
   }
 
   Future<void> _export(BuildContext context, WidgetRef ref) async {
-    final failure = await ref.read(lockscreenProvider.notifier).export(context);
+    final failure =
+        await ref.read(lockscreenProvider.notifier).export(context);
     if (!context.mounted) return;
     if (failure != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Export failed: ${failure.message}')),
+        SnackBar(
+            content: Text('Export failed: ${failure.message}')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-          'Lockscreen exported',
-          style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimaryContainer),
-        )),
+        const SnackBar(content: Text('Lockscreen exported')),
       );
     }
   }
 
   Future<void> _repackMtz(BuildContext context, WidgetRef ref) async {
-    final isDual = ref.read(lockscreenProvider.select((s) => s.dualMtzExport));
+    final isDual =
+        ref.read(lockscreenProvider.select((s) => s.dualMtzExport));
     final (path, failure) =
         await ref.read(lockscreenProvider.notifier).exportMtz(context);
     if (!context.mounted) return;
     if (failure != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('MTZ failed: ${failure.message}')),
+        SnackBar(
+            content: Text('MTZ failed: ${failure.message}')),
       );
     } else if (isDual) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Exported HyperOS 1.0 & 3.0 MTZ to: $path')),
+        SnackBar(
+            content: Text(
+                'Exported HyperOS 1.0 & 3.0 MTZ to: $path')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -317,7 +315,8 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
     }
   }
 
-  Future<void> _showAiDialog(BuildContext context, WidgetRef ref) async {
+  Future<void> _showAiDialog(
+      BuildContext context, WidgetRef ref) async {
     final ctrl = TextEditingController();
     final ok = await showDialog<bool>(
       context: context,
@@ -326,8 +325,8 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
         content: TextField(
           controller: ctrl,
           autofocus: true,
-          decoration:
-              const InputDecoration(hintText: 'Describe your lockscreen…'),
+          decoration: const InputDecoration(
+              hintText: 'Describe your lockscreen…'),
           maxLines: 3,
         ),
         actions: [
@@ -347,7 +346,8 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
       if (!context.mounted) return;
       if (failure != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('AI error: ${failure.message}')),
+          SnackBar(
+              content: Text('AI error: ${failure.message}')),
         );
       } else {
         Navigator.pop(context);
@@ -375,17 +375,14 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
-    
-    const cardBg = AppTheme.proCard;
-    const borderColor = Colors.black;
-
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: cardBg,
+        color: colors.surfaceOverlay,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -399,7 +396,7 @@ class _SectionCard extends StatelessWidget {
                   height: 12,
                   margin: const EdgeInsets.only(right: 6),
                   decoration: BoxDecoration(
-                    color: AppTheme.accent,
+                    color: colors.primary,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -449,10 +446,10 @@ class _ActionButton extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.visible,
         softWrap: false,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        style:
+            const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
       ),
     );
-
     if (isPrimary) {
       return FilledButton.icon(
         icon: Icon(icon, size: 14),
@@ -499,18 +496,23 @@ class _ExportMainButton extends StatelessWidget {
 
     return FilledButton.icon(
       icon: Icon(
-        state.isExported ? Icons.check_circle_rounded : Icons.lock_rounded,
+        state.isExported
+            ? Icons.check_circle_rounded
+            : Icons.lock_rounded,
         size: 14,
       ),
       label: Text(
         label,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+        style:
+            const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
       ),
       style: FilledButton.styleFrom(
-        backgroundColor:
-            state.isExported ? scheme.primaryContainer : scheme.primary,
-        foregroundColor:
-            state.isExported ? scheme.onPrimaryContainer : scheme.onPrimary,
+        backgroundColor: state.isExported
+            ? scheme.primaryContainer
+            : scheme.primary,
+        foregroundColor: state.isExported
+            ? scheme.onPrimaryContainer
+            : scheme.onPrimary,
       ),
       onPressed: state.isBusy ? null : onTap,
     );
@@ -525,21 +527,19 @@ class _GradientProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = context.appColors;
     return ClipRRect(
       borderRadius: BorderRadius.circular(4),
       child: Stack(
         children: [
-          Container(
-              height: 5,
-              color: isDark ? AppTheme.surfaceDark : const Color(0xFFF0F0F5)),
+          Container(height: 5, color: colors.border),
           FractionallySizedBox(
             widthFactor: value,
             child: Container(
               height: 5,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppTheme.accent, AppTheme.accentDark],
+                  colors: [colors.primary, colors.primaryPressed],
                 ),
               ),
             ),
@@ -553,18 +553,20 @@ class _GradientProgress extends StatelessWidget {
 // ── Dual Version Toggle ───────────────────────────────────────────────────────
 
 class _DualVersionToggle extends StatelessWidget {
-  const _DualVersionToggle({required this.value, required this.onChanged});
+  const _DualVersionToggle(
+      {required this.value, required this.onChanged});
   final bool value;
   final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding:
+          const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.surfaceDark : const Color(0xFFF0F0F5),
+        color: colors.surface,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -632,10 +634,9 @@ class _DropTile extends StatelessWidget {
             color: scheme.onSurface,
           ),
         ),
-        Text(
-          sublabel,
-          style: TextStyle(fontSize: 9, color: scheme.onSurfaceVariant),
-        ),
+        Text(sublabel,
+            style: TextStyle(
+                fontSize: 9, color: scheme.onSurfaceVariant)),
       ],
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:miui_icon_generator/core/theme/app_theme.dart';
+import 'package:miui_icon_generator/core/theme/app_radius.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import '../../../domain/entities/user_profile.dart';
 import '../../../presentation/providers/font_provider.dart';
 import '../../../presentation/providers/element_provider.dart';
@@ -13,6 +14,7 @@ class FontListPanel extends ConsumerWidget {
     final fontsAsync = ref.watch(fontListProvider);
     final elState = ref.watch(elementProvider);
     final selectedUser = ref.watch(fontUserSelectionProvider);
+    final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
     final activeFont = elState.active?.font;
 
@@ -29,7 +31,7 @@ class FontListPanel extends ConsumerWidget {
                   height: 16,
                   margin: const EdgeInsets.only(right: 8),
                   decoration: BoxDecoration(
-                    color: AppTheme.accent,
+                    color: colors.primary,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -48,7 +50,7 @@ class FontListPanel extends ConsumerWidget {
                         const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(
                       color: scheme.secondaryContainer,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Text(
                       'Active',
@@ -82,7 +84,7 @@ class FontListPanel extends ConsumerWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: isSelected ? AppTheme.accent : Colors.transparent,
+                            color: isSelected ? colors.primary : Colors.transparent,
                             width: 2,
                           ),
                         ),
@@ -97,7 +99,7 @@ class FontListPanel extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color: isSelected ? AppTheme.accent : scheme.onSurfaceVariant,
+                          color: isSelected ? colors.primary : scheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -131,25 +133,25 @@ class FontListPanel extends ConsumerWidget {
                     margin: const EdgeInsets.only(bottom: 4),
                     decoration: BoxDecoration(
                       color: sel
-                          ? AppTheme.accent.withAlpha(30)
+                          ? colors.primary.withAlpha(30)
                           : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                       border: Border.all(
-                        color: sel ? AppTheme.accent.withAlpha(80) : Colors.black,
+                        color: sel ? colors.primary.withAlpha(80) : colors.border,
                         width: 1.0,
                       ),
                     ),
                     child: Material(
                       color: Colors.transparent,
                       clipBehavior: Clip.antiAlias,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                       child: ListTile(
                         dense: true,
                         contentPadding:
                             const EdgeInsets.symmetric(horizontal: 12),
                         leading: sel
-                            ? const Icon(Icons.check_rounded,
-                                size: 16, color: AppTheme.accent)
+                            ? Icon(Icons.check_rounded,
+                                size: 16, color: colors.primary)
                             : null,
                         title: Text(
                           font.name,
@@ -158,7 +160,7 @@ class FontListPanel extends ConsumerWidget {
                           style: TextStyle(
                             fontFamily: font.name,
                             fontSize: 20,
-                            color: sel ? AppTheme.accent : scheme.onSurface,
+                            color: sel ? colors.primary : scheme.onSurface,
                             fontWeight: sel ? FontWeight.w700 : FontWeight.normal,
                           ),
                         ),

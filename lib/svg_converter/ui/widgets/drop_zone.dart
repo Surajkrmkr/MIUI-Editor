@@ -32,7 +32,7 @@ class _FolderDropZoneState extends ConsumerState<FolderDropZone> {
           border: _isDragging 
             ? Border.all(color: Theme.of(context).colorScheme.primary, width: 2)
             : null,
-          color: _isDragging ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3) : null,
+          color: _isDragging ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
         ),
         child: widget.child,
       ),

@@ -17,7 +17,7 @@ class LockWidget {
 
 final List<LockWidget> kPresetWidgets = [
   // ── Date/Calendar ──────────────────────────────────────────────────────────
-  LockWidget(
+  const LockWidget(
     name: 'Glass Calendar',
     description: 'Frosted glass effect calendar with adaptive background.',
     category: 'Date',
@@ -28,11 +28,11 @@ final List<LockWidget> kPresetWidgets = [
         height: 120,
         radius: 24,
         dx: 0, dy: -300,
-        color: const Color(0x30FFFFFF),
-        colorSecondary: const Color(0x10FFFFFF),
+        color: Color(0x30FFFFFF),
+        colorSecondary: Color(0x10FFFFFF),
         blurRadius: 15,
         borderWidth: 1,
-        borderColor: const Color(0x20FFFFFF),
+        borderColor: Color(0x20FFFFFF),
       ),
       LockElement(
         type: ElementType.monthClock,
@@ -52,7 +52,7 @@ final List<LockWidget> kPresetWidgets = [
   ),
 
   // ── Music ──────────────────────────────────────────────────────────────────
-  LockWidget(
+  const LockWidget(
     name: 'Floating Music',
     description: 'Minimal music player with adaptive blur.',
     category: 'Music',
@@ -63,7 +63,7 @@ final List<LockWidget> kPresetWidgets = [
         height: 100,
         radius: 30,
         dx: 0, dy: 300,
-        color: const Color(0x40000000),
+        color: Color(0x40000000),
         blurRadius: 20,
       ),
       LockElement(
@@ -90,7 +90,7 @@ final List<LockWidget> kPresetWidgets = [
   ),
 
   // ── Weather ────────────────────────────────────────────────────────────────
-  LockWidget(
+  const LockWidget(
     name: 'Adaptive Weather',
     description: 'Clean weather widget that adapts to dark/light wallpapers.',
     category: 'Weather',
@@ -101,7 +101,7 @@ final List<LockWidget> kPresetWidgets = [
         height: 180,
         radius: 40,
         dx: 0, dy: 0,
-        color: const Color(0x20000000),
+        color: Color(0x20000000),
         blurRadius: 10,
       ),
       LockElement(
@@ -119,7 +119,7 @@ final List<LockWidget> kPresetWidgets = [
   ),
 
   // ── Shortcuts ──────────────────────────────────────────────────────────────
-  LockWidget(
+  const LockWidget(
     name: 'Quick Dock',
     description: 'Adaptive dock for your most used apps.',
     category: 'Shortcuts',
@@ -130,7 +130,7 @@ final List<LockWidget> kPresetWidgets = [
         height: 80,
         radius: 20,
         dx: 0, dy: 450,
-        color: const Color(0x15FFFFFF),
+        color: Color(0x15FFFFFF),
         blurRadius: 25,
       ),
       LockElement(type: ElementType.dialerIcon, dx: -140, dy: 450, scale: 0.35),
@@ -141,7 +141,7 @@ final List<LockWidget> kPresetWidgets = [
     ],
   ),
   // ── Designer Series ───────────────────────────────────────────────────────
-  LockWidget(
+  const LockWidget(
     name: 'Desert Minimal',
     description: 'Ultra-thin minimal clock and date from "Black & White Desert" theme.',
     category: 'Designer Series',
@@ -177,7 +177,7 @@ final List<LockWidget> kPresetWidgets = [
     ],
   ),
 
-  LockWidget(
+  const LockWidget(
     name: 'Glass Music Dock',
     description: 'Premium music player with frosted glass and progress mask.',
     category: 'Designer Series',
@@ -186,17 +186,17 @@ final List<LockWidget> kPresetWidgets = [
         type: ElementType.containerBG1,
         width: 380, height: 180, radius: 40,
         dx: 0, dy: 300,
-        color: const Color(0x30000000),
+        color: Color(0x30000000),
         blurRadius: 30,
         borderWidth: 1,
-        borderColor: const Color(0x20FFFFFF),
+        borderColor: Color(0x20FFFFFF),
       ),
       LockElement(type: ElementType.musicPrev, dx: -100, dy: 300, scale: 0.6),
       LockElement(type: ElementType.musicPlay, dx: 0, dy: 300, scale: 0.8),
       LockElement(type: ElementType.musicNext, dx: 100, dy: 300, scale: 0.6),
     ],
   ),
-  LockWidget(
+  const LockWidget(
     name: 'Bento Desert',
     description: 'High-quality bento-box layout with analog clock, calendar, and weather.',
     category: 'Designer Series',
@@ -218,7 +218,7 @@ final List<LockWidget> kPresetWidgets = [
         type: ElementType.containerBG2,
         width: 380, height: 220, radius: 40,
         dx: 280, dy: -460,
-        color: const Color(0xFFE0E0E0),
+        color: Color(0xFFE0E0E0),
       ),
       LockElement(type: ElementType.hourClock, dx: 180, dy: -490, fontSize: 60, color: Colors.black, fontWeight: FontWeight.w300),
       LockElement(type: ElementType.minClock, dx: 380, dy: -490, fontSize: 60, color: Colors.black, fontWeight: FontWeight.w300),
@@ -229,7 +229,7 @@ final List<LockWidget> kPresetWidgets = [
         type: ElementType.containerBG3,
         width: 380, height: 180, radius: 40,
         dx: 280, dy: -240,
-        color: const Color(0xFF1A1A1A),
+        color: Color(0xFF1A1A1A),
       ),
       LockElement(type: ElementType.weatherIconClock, dx: 160, dy: -240, scale: 2.0),
       LockElement(type: ElementType.weatherTemp, dx: 340, dy: -260, fontSize: 32, color: Colors.white),
@@ -263,7 +263,7 @@ final List<LockWidget> kPresetWidgets = [
       LockElement(type: ElementType.missedCalls, dx: 380, dy: 280, scale: 0.4), // Placeholder for notes/doc icon
 
       // ── DRINKING WATER (Bottom Left) ──────────────────────────────────────
-      LockElement(type: ElementType.containerBG4, width: 380, height: 320, radius: 40, dx: -280, dy: 600, color: const Color(0xFFE0E0E0)),
+      LockElement(type: ElementType.containerBG4, width: 380, height: 320, radius: 40, dx: -280, dy: 600, color: Color(0xFFE0E0E0)),
       LockElement(type: ElementType.stepsCount, dx: -280, dy: 600, fontSize: 32, fontWeight: FontWeight.bold), // Using steps as % placeholder
 
       // ── MUSIC DISC (Bottom Right) ──────────────────────────────────────────

@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/theme/theme_extensions.dart';
 import '../../../providers/element_provider.dart';
 import '../../../../domain/entities/element_widget.dart';
-import 'package:miui_icon_generator/core/theme/app_theme.dart';
-
 
 class LayerManager extends ConsumerWidget {
   const LayerManager({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.appColors;
     final state = ref.watch(elementProvider);
     final notifier = ref.read(elementProvider.notifier);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'LAYERS',
           style: TextStyle(
-            color: Colors.white38,
+            color: colors.textDisabled,
             fontSize: 10,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.2,
@@ -27,12 +27,12 @@ class LayerManager extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         if (state.elements.isEmpty)
-          const Center(
+          Center(
             child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 40),
+              padding: const EdgeInsets.symmetric(vertical: 40),
               child: Text(
                 'No layers in this project',
-                style: TextStyle(color: Colors.white24, fontSize: 12),
+                style: TextStyle(color: colors.textDisabled, fontSize: 12),
               ),
             ),
           )
@@ -41,17 +41,19 @@ class LayerManager extends ConsumerWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: state.elements.length,
-            onReorder: (oldIndex, newIndex) => notifier.reorder(oldIndex, newIndex),
+            onReorder: (oldIndex, newIndex) =>
+                notifier.reorder(oldIndex, newIndex),
             itemBuilder: (context, index) {
               final element = state.elements[index];
               final isActive = state.activeType == element.type;
-              
+
               return _LayerTile(
                 key: ValueKey(element.type),
                 element: element,
                 isActive: isActive,
                 onTap: () => notifier.setActive(element.type),
-                onToggleVisibility: () => notifier.toggleVisibility(element.type),
+                onToggleVisibility: () =>
+                    notifier.toggleVisibility(element.type),
                 onToggleLock: () => notifier.toggleLock(element.type),
               );
             },
@@ -79,8 +81,11 @@ class _LayerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Material(
-      color: isActive ? AppTheme.accent.withAlpha(20) : Colors.transparent,
+      color: isActive
+          ? colors.primary.withAlpha(20)
+          : Colors.transparent,
       child: InkWell(
         onTap: onTap,
         child: Container(
@@ -89,35 +94,47 @@ class _LayerTile extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border(
               left: BorderSide(
-                color: isActive ? AppTheme.accent : Colors.transparent,
+                color: isActive ? colors.primary : Colors.transparent,
                 width: 2,
               ),
             ),
           ),
           child: Row(
             children: [
-              const Icon(Icons.drag_indicator_rounded, size: 14, color: Colors.white10),
+              Icon(Icons.drag_indicator_rounded,
+                  size: 14, color: colors.textDisabled),
               const SizedBox(width: 4),
-              Icon(_getIcon(element.type), size: 14, color: isActive ? AppTheme.accent : Colors.white38),
+              Icon(
+                _getIcon(element.type),
+                size: 14,
+                color: isActive ? colors.primary : colors.textSecondary,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   element.name,
                   style: TextStyle(
-                    color: isActive ? Colors.white : Colors.white70,
+                    color: isActive
+                        ? colors.textPrimary
+                        : colors.textSecondary,
                     fontSize: 11,
-                    fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                    fontWeight:
+                        isActive ? FontWeight.bold : FontWeight.normal,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               _ActionButton(
-                icon: element.isVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined, 
+                icon: element.isVisible
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
                 isActive: element.isVisible,
                 onTap: onToggleVisibility,
               ),
               _ActionButton(
-                icon: element.isLocked ? Icons.lock_rounded : Icons.lock_outline_rounded, 
+                icon: element.isLocked
+                    ? Icons.lock_rounded
+                    : Icons.lock_outline_rounded,
                 isActive: element.isLocked,
                 onTap: onToggleLock,
               ),
@@ -139,19 +156,27 @@ class _LayerTile extends StatelessWidget {
 }
 
 class _ActionButton extends StatelessWidget {
-  const _ActionButton({required this.icon, required this.onTap, this.isActive = false});
+  const _ActionButton({
+    required this.icon,
+    required this.onTap,
+    this.isActive = false,
+  });
   final IconData icon;
   final VoidCallback onTap;
   final bool isActive;
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return IconButton(
-      icon: Icon(icon, size: 12, color: isActive ? AppTheme.accent : Colors.white24),
+      icon: Icon(
+        icon,
+        size: 12,
+        color: isActive ? colors.primary : colors.textDisabled,
+      ),
       onPressed: onTap,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-      splashRadius: 12,
     );
   }
 }

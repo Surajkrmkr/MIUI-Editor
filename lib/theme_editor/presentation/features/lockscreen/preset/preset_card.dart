@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:miui_icon_generator/core/theme/app_radius.dart';
+import '../../../../../core/theme/theme_extensions.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../domain/entities/element_widget.dart';
 import '../../../providers/directory_provider.dart';
@@ -243,21 +245,16 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: InkWell(
-        onTap: onTap,
-        mouseCursor: SystemMouseCursors.click,
-        borderRadius: BorderRadius.circular(6),
-        child: Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: color.withAlpha(20),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Icon(icon, size: 14, color: color),
-        ),
+    return IconButton(
+      icon: Icon(icon, size: 14),
+      tooltip: tooltip,
+      style: IconButton.styleFrom(
+        foregroundColor: color,
+        backgroundColor: color.withAlpha(20),
+        minimumSize: const Size(28, 28),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.radiusXs),
       ),
+      onPressed: onTap,
     );
   }
 }
@@ -269,24 +266,27 @@ class _LoadingPlaceholder extends StatelessWidget {
   static const _h = _w * AppConstants.screenHeight / AppConstants.screenWidth;
 
   @override
-  Widget build(BuildContext context) => Container(
-        width: _w,
-        height: _h,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF0D1B2A), Color(0xFF1A2744)],
-          ),
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Container(
+      width: _w,
+      height: _h,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [colors.bg, colors.surfaceElevated],
         ),
-        child: const Center(
-          child: SizedBox(
-            width: 18,
-            height: 18,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
+      ),
+      child: const Center(
+        child: SizedBox(
+          width: 18,
+          height: 18,
+          child: CircularProgressIndicator(strokeWidth: 2),
         ),
-      );
+      ),
+    );
+  }
 }
 
 class _ErrorPlaceholder extends StatelessWidget {
@@ -294,12 +294,16 @@ class _ErrorPlaceholder extends StatelessWidget {
   static const _h = _w * AppConstants.screenHeight / AppConstants.screenWidth;
 
   @override
-  Widget build(BuildContext context) => Container(
-        width: _w,
-        height: _h,
-        color: Colors.red.withAlpha(30),
-        child: const Center(child: Icon(Icons.error_outline, size: 22)),
-      );
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Container(
+      width: _w,
+      height: _h,
+      color: colors.error.withAlpha(30),
+      child: Center(
+          child: Icon(Icons.error_outline, size: 22, color: colors.error)),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -23,36 +23,36 @@ class ThemePreset {
 }
 
 final List<ThemePreset> kThemePresets = [
-  ThemePreset(
+  const ThemePreset(
     id: 'hyperos',
     name: 'HyperOS',
     description: 'Modern, clean, vibrant design.',
-    primaryColor: const Color(0xFFFFC300),
-    effect: const IconEffectModel(type: IconEffect.holographic, intensity: 0.6),
-    texture: const IconTextureModel(type: IconTexture.frostedGlass, opacity: 0.1),
+    primaryColor: Color(0xFFFFC300),
+    effect: IconEffectModel(type: IconEffect.holographic, intensity: 0.6),
+    texture: IconTextureModel(type: IconTexture.frostedGlass, opacity: 0.1),
   ),
-  ThemePreset(
+  const ThemePreset(
     id: 'ios',
     name: 'iOS Style',
     description: 'The classic glassmorphism feel.',
-    primaryColor: const Color(0xFF007AFF),
-    effect: const IconEffectModel(type: IconEffect.glass, blur: 20, intensity: 0.8),
-    texture: const IconTextureModel(type: IconTexture.none),
+    primaryColor: Color(0xFF007AFF),
+    effect: IconEffectModel(type: IconEffect.glass, blur: 20, intensity: 0.8),
+    texture: IconTextureModel(type: IconTexture.none),
   ),
-  ThemePreset(
+  const ThemePreset(
     id: 'neon',
     name: 'Cyber Neon',
     description: 'High contrast glow for night modes.',
-    primaryColor: const Color(0xFF00FF00),
-    effect: const IconEffectModel(type: IconEffect.neon, intensity: 1.0),
-    texture: const IconTextureModel(type: IconTexture.none),
+    primaryColor: Color(0xFF00FF00),
+    effect: IconEffectModel(type: IconEffect.neon, intensity: 1.0),
+    texture: IconTextureModel(type: IconTexture.none),
   ),
-  ThemePreset(
+  const ThemePreset(
     id: 'leather',
     name: 'Premium Leather',
     description: 'Sophisticated tactile feel.',
-    primaryColor: const Color(0xFF3E2723),
-    effect: const IconEffectModel(type: IconEffect.glass, intensity: 0.4),
-    texture: const IconTextureModel(type: IconTexture.leather, opacity: 0.6),
+    primaryColor: Color(0xFF3E2723),
+    effect: IconEffectModel(type: IconEffect.glass, intensity: 0.4),
+    texture: IconTextureModel(type: IconTexture.leather, opacity: 0.6),
   ),
 ];

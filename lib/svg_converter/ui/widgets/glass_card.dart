@@ -25,13 +25,20 @@ class GlassCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: hasGlow ? [
-          BoxShadow(
-            color: accent.withOpacity(0.15),
-            blurRadius: 40,
-            spreadRadius: -10,
-          ),
-        ] : null,
+        boxShadow: [
+          if (hasGlow)
+            BoxShadow(
+              color: accent.withValues(alpha: 0.2),
+              blurRadius: 40,
+              spreadRadius: -10,
+            ),
+          if (!isDark)
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
@@ -40,23 +47,28 @@ class GlassCard extends StatelessWidget {
           child: Container(
             padding: padding,
             decoration: BoxDecoration(
-              color: isDark 
-                ? Colors.black.withOpacity(0.4) 
-                : Colors.white.withOpacity(0.2),
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.4)
+                  : Colors.white.withValues(alpha: 0.75),
               borderRadius: BorderRadius.circular(borderRadius),
               border: Border.all(
-                color: isDark 
-                  ? Colors.white.withOpacity(0.1) 
-                  : Colors.white.withOpacity(0.3),
-                width: 1.5,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.black.withValues(alpha: 0.07),
+                width: 1.0,
               ),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withOpacity(0.1),
-                  Colors.white.withOpacity(0.02),
-                ],
+                colors: isDark
+                    ? [
+                        Colors.white.withValues(alpha: 0.08),
+                        Colors.white.withValues(alpha: 0.02),
+                      ]
+                    : [
+                        Colors.white.withValues(alpha: 0.95),
+                        Colors.white.withValues(alpha: 0.65),
+                      ],
               ),
             ),
             child: child,

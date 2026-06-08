@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
+import 'package:miui_icon_generator/widgets/iphone_frame.dart';
 import '../../models/conversion_task.dart';
-import 'glass_card.dart';
 
 class WallpaperCarousel extends StatefulWidget {
   final List<ConversionTask> tasks;
@@ -18,7 +19,7 @@ class _WallpaperCarouselState extends State<WallpaperCarousel> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(viewportFraction: 0.35);
+    _pageController = PageController(viewportFraction: 0.38);
     _pageController.addListener(() {
       setState(() {
         _currentPage = _pageController.page ?? 0.0;
@@ -41,21 +42,16 @@ class _WallpaperCarouselState extends State<WallpaperCarousel> {
       itemCount: widget.tasks.length,
       itemBuilder: (context, index) {
         final task = widget.tasks[index];
-        final offset = index - _currentPage;
-        
-        // 3D Perspective Transformation - Subtle stacking like the reference
-        final transform = Matrix4.identity()
-          ..setEntry(3, 2, 0.001) // perspective
-          ..translate(offset * 250, 0.0, -offset.abs() * 300)
-          ..rotateY(-offset * 0.4)
-          ..scale(1 - offset.abs() * 0.1);
+        final offset = (index - _currentPage).abs();
+        final scale = (1.0 - offset * 0.15).clamp(0.7, 1.0);
+        final opacity = (1.0 - offset * 0.4).clamp(0.4, 1.0);
 
         return Center(
-          child: Transform(
-            transform: transform,
-            alignment: Alignment.center,
+          child: AnimatedScale(
+            scale: scale,
+            duration: const Duration(milliseconds: 200),
             child: Opacity(
-              opacity: (1 - offset.abs()).clamp(0.2, 1.0),
+              opacity: opacity,
               child: _CarouselItem(task: task),
             ),
           ),
@@ -71,34 +67,27 @@ class _CarouselItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 9 / 16,
-      child: GlassCard(
-        borderRadius: 20,
-        padding: const EdgeInsets.all(4),
-        hasGlow: task.status == TaskStatus.processing,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Image.file(
-                File(task.inputPath),
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: Colors.grey[900],
-                  child: const Icon(Icons.image_not_supported, color: Colors.white24),
-                ),
-              ),
-              _buildOverlay(context),
-            ],
+    final colors = context.appColors;
+    return IPhoneFrame(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.file(
+            File(task.inputPath),
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              color: colors.surface,
+              child: Icon(Icons.image_not_supported, color: colors.textDisabled),
+            ),
           ),
-        ),
+          _buildOverlay(context),
+        ],
       ),
     );
   }
 
   Widget _buildOverlay(BuildContext context) {
+    final colors = context.appColors;
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -106,7 +95,7 @@ class _CarouselItem extends StatelessWidget {
           end: Alignment.bottomCenter,
           colors: [
             Colors.transparent,
-            Colors.black.withOpacity(0.8),
+            Colors.black.withValues(alpha: 0.8),
           ],
         ),
       ),
@@ -119,8 +108,8 @@ class _CarouselItem extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             task.inputPath.split(Platform.pathSeparator).last,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: colors.textPrimary,
               fontSize: 12,
               fontWeight: FontWeight.bold,
             ),
@@ -133,7 +122,7 @@ class _CarouselItem extends StatelessWidget {
   }
 
   Widget _buildStatusBadge(BuildContext context) {
-    Color color = Colors.grey;
+    Color color = Theme.of(context).colorScheme.onSurfaceVariant;
     IconData icon = Icons.timer_outlined;
 
     if (task.status == TaskStatus.processing) {
@@ -150,9 +139,9 @@ class _CarouselItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withOpacity(0.5)),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

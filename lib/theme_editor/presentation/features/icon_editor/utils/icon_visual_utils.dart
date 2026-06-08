@@ -104,7 +104,7 @@ class IconVisualUtils {
 
   static void _drawLeather(ui.Canvas canvas, ui.Rect rect, double scale, double opacity) {
     final rnd = math.Random(42);
-    final paint = ui.Paint()..color = Colors.black.withOpacity(0.15 * opacity);
+    final paint = ui.Paint()..color = Colors.black.withValues(alpha: 0.15 * opacity);
     final count = (200 / scale).clamp(10, 1000).toInt();
     for (var i = 0; i < count; i++) {
       final x = rect.left + rnd.nextDouble() * rect.width;
@@ -115,7 +115,7 @@ class IconVisualUtils {
 
   static void _drawPaper(ui.Canvas canvas, ui.Rect rect, double scale, double opacity) {
     final paint = ui.Paint()
-      ..color = Colors.white.withOpacity(0.27 * opacity)
+      ..color = Colors.white.withValues(alpha: 0.27 * opacity)
       ..strokeWidth = 2.0 * scale;
     final rnd = math.Random(123);
     final count = (120 / scale).clamp(5, 500).toInt();
@@ -128,7 +128,7 @@ class IconVisualUtils {
 
   static void _drawMetal(ui.Canvas canvas, ui.Rect rect, double scale, double opacity) {
     final linePaint = ui.Paint()
-      ..color = Colors.white.withOpacity(0.23 * opacity)
+      ..color = Colors.white.withValues(alpha: 0.23 * opacity)
       ..strokeWidth = 1.8 * scale;
     final step = (8 * scale).clamp(2, 100).toDouble();
     for (var i = 0.0; i < rect.height; i += step) {
@@ -139,8 +139,8 @@ class IconVisualUtils {
 
   static void _drawCarbonFiber(ui.Canvas canvas, ui.Rect rect, double scale, double opacity) {
     final size = 12.0 * scale; 
-    final p1 = ui.Paint()..color = Colors.black.withOpacity(0.3 * opacity);
-    final p2 = ui.Paint()..color = Colors.white.withOpacity(0.12 * opacity);
+    final p1 = ui.Paint()..color = Colors.black.withValues(alpha: 0.3 * opacity);
+    final p2 = ui.Paint()..color = Colors.white.withValues(alpha: 0.12 * opacity);
     for (var x = rect.left; x < rect.right; x += size) {
       for (var y = rect.top; y < rect.bottom; y += size) {
         if ((x / size).floor() % 2 == (y / size).floor() % 2) {
@@ -154,7 +154,7 @@ class IconVisualUtils {
 
   static void _drawWood(ui.Canvas canvas, ui.Rect rect, double scale, double opacity) {
     final paint = ui.Paint()
-      ..color = Colors.black.withOpacity(0.23 * opacity)
+      ..color = Colors.black.withValues(alpha: 0.23 * opacity)
       ..style = ui.PaintingStyle.stroke
       ..strokeWidth = 5.0 * scale;
     final step = (20 * scale).clamp(5, 100).toDouble();
@@ -172,7 +172,7 @@ class IconVisualUtils {
     final count = (150 / scale).clamp(10, 800).toInt();
     for (var i = 0; i < count; i++) {
       final p = ui.Paint()
-        ..color = (rnd.nextBool() ? Colors.black : Colors.white).withOpacity(0.3 * opacity);
+        ..color = (rnd.nextBool() ? Colors.black : Colors.white).withValues(alpha: 0.3 * opacity);
       final dotSize = 10.0 * scale;
       canvas.drawRect(
           ui.Rect.fromLTWH(rect.left + rnd.nextDouble() * rect.width,
@@ -183,7 +183,7 @@ class IconVisualUtils {
 
   static void _drawJeans(ui.Canvas canvas, ui.Rect rect, double scale, double opacity) {
     final paint = ui.Paint()
-      ..color = Colors.white.withOpacity(0.2 * opacity)
+      ..color = Colors.white.withValues(alpha: 0.2 * opacity)
       ..strokeWidth = 2.5 * scale;
     final step = (12 * scale).clamp(2, 50).toDouble();
     for (var i = -rect.height; i < rect.width; i += step) {
@@ -198,7 +198,7 @@ class IconVisualUtils {
           rect.center,
           (rect.width / 1.1) * scale,
           [
-            Colors.white.withOpacity(0.39 * opacity),
+            Colors.white.withValues(alpha: 0.39 * opacity),
             Colors.transparent,
           ],
           const [0.0, 1.0]);
@@ -211,7 +211,7 @@ class IconVisualUtils {
     final count = (100 / scale).clamp(10, 500).toInt();
     for (var i = 0; i < count; i++) {
       final p = ui.Paint()
-        ..color = rustColor.withOpacity(0.55 * opacity)
+        ..color = rustColor.withValues(alpha: 0.55 * opacity)
         ..maskFilter = ui.MaskFilter.blur(ui.BlurStyle.normal, 8 * scale);
       canvas.drawCircle(
           Offset(rect.left + rnd.nextDouble() * rect.width,
@@ -223,7 +223,7 @@ class IconVisualUtils {
 
   static void _drawConcrete(ui.Canvas canvas, ui.Rect rect, double scale, double opacity) {
     final rnd = math.Random(88);
-    final paint = ui.Paint()..color = Colors.black.withOpacity(0.27 * opacity);
+    final paint = ui.Paint()..color = Colors.black.withValues(alpha: 0.27 * opacity);
     final count = (300 / scale).clamp(20, 1500).toInt();
     for (var i = 0; i < count; i++) {
       canvas.drawCircle(
@@ -240,9 +240,9 @@ class IconVisualUtils {
           rect.topLeft,
           rect.bottomRight,
           [
-            Colors.white.withOpacity(0.47 * opacity),
+            Colors.white.withValues(alpha: 0.47 * opacity),
             Colors.transparent,
-            Colors.white.withOpacity(0.47 * opacity),
+            Colors.white.withValues(alpha: 0.47 * opacity),
           ],
           const [0.0, 0.5, 1.0]);
     canvas.drawRect(rect, paint);
@@ -258,9 +258,9 @@ class IconVisualUtils {
               rect.topLeft,
               rect.bottomRight,
               [
-                Colors.white.withOpacity(0.7 * intensity),
-                Colors.white.withOpacity(0.2 * intensity),
-                Colors.white.withOpacity(0.47 * intensity),
+                Colors.white.withValues(alpha: 0.7 * intensity),
+                Colors.white.withValues(alpha: 0.2 * intensity),
+                Colors.white.withValues(alpha: 0.47 * intensity),
               ],
               const [
                 0.0,
@@ -275,7 +275,7 @@ class IconVisualUtils {
           ..shader = ui.Gradient.linear(
               rect.topLeft,
               rect.bottomRight,
-              [Colors.white.withOpacity(intensity), Colors.white.withAlpha(0)],
+              [Colors.white.withValues(alpha: intensity), Colors.white.withAlpha(0)],
               const [0.0, 1.0]));
   }
 
@@ -283,7 +283,7 @@ class IconVisualUtils {
     final glowPaint = ui.Paint()
       ..style = ui.PaintingStyle.stroke
       ..strokeWidth = elevation * 4
-      ..color = color.withOpacity(intensity)
+      ..color = color.withValues(alpha: intensity)
       ..maskFilter = ui.MaskFilter.blur(ui.BlurStyle.outer, blur);
     canvas.drawPath(path, glowPaint);
 
@@ -292,7 +292,7 @@ class IconVisualUtils {
         ui.Paint()
           ..style = ui.PaintingStyle.stroke
           ..strokeWidth = elevation
-          ..color = Colors.white.withOpacity(intensity));
+          ..color = Colors.white.withValues(alpha: intensity));
   }
 
   static void _drawLiquid(ui.Canvas canvas, ui.Rect rect, Color color, double intensity, double blur, double elevation) {
@@ -302,14 +302,14 @@ class IconVisualUtils {
           ..shader = ui.Gradient.radial(
               rect.center,
               rect.width,
-              [color.withOpacity(0.7 * intensity), Colors.black.withOpacity(0.39 * intensity)],
+              [color.withValues(alpha: 0.7 * intensity), Colors.black.withValues(alpha: 0.39 * intensity)],
               const [0.0, 1.0])
           ..blendMode = ui.BlendMode.screen); 
 
     final rnd = math.Random(99);
     for (var i = 0; i < 15; i++) {
       final p = ui.Paint()
-        ..color = Colors.white.withOpacity(0.23 * intensity) 
+        ..color = Colors.white.withValues(alpha: 0.23 * intensity) 
         ..maskFilter = ui.MaskFilter.blur(ui.BlurStyle.normal, blur / 6);
       canvas.drawCircle(
           Offset(rect.left + rnd.nextDouble() * rect.width,
@@ -321,14 +321,14 @@ class IconVisualUtils {
 
   static void _drawHolographic(ui.Canvas canvas, ui.Rect rect, double intensity, double blur, double elevation) {
     final colors = [
-      Colors.cyanAccent.withOpacity(intensity),
-      Colors.purpleAccent.withOpacity(intensity),
-      Colors.blueAccent.withOpacity(intensity),
-      Colors.pinkAccent.withOpacity(intensity),
-      Colors.yellowAccent.withOpacity(intensity),
-      Colors.cyanAccent.withOpacity(intensity),
+      Colors.cyanAccent.withValues(alpha: intensity),
+      Colors.purpleAccent.withValues(alpha: intensity),
+      Colors.blueAccent.withValues(alpha: intensity),
+      Colors.pinkAccent.withValues(alpha: intensity),
+      Colors.yellowAccent.withValues(alpha: intensity),
+      Colors.cyanAccent.withValues(alpha: intensity),
     ];
-    final stops = const [0.0, 0.2, 0.4, 0.6, 0.8, 1.0];
+    const stops = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0];
 
     canvas.drawRect(
         rect,
@@ -348,7 +348,7 @@ class IconVisualUtils {
             rect.topCenter,
             rect.bottomCenter,
             [
-              Colors.white.withOpacity(0.31 * intensity),
+              Colors.white.withValues(alpha: 0.31 * intensity),
               Colors.transparent,
             ],
             const [0.0, 1.0]),
@@ -363,7 +363,7 @@ class IconVisualUtils {
               rect.width, elevation * 2),
           ui.Paint()
             ..color = (rnd.nextBool() ? Colors.cyanAccent : Colors.purpleAccent)
-                .withOpacity(0.86 * intensity));
+                .withValues(alpha: 0.86 * intensity));
     }
   }
 
@@ -374,7 +374,7 @@ class IconVisualUtils {
           ..shader = ui.Gradient.radial(
             rect.bottomCenter,
             rect.height,
-            [Colors.orangeAccent.withOpacity(intensity), Colors.redAccent.withOpacity(intensity), Colors.black],
+            [Colors.orangeAccent.withValues(alpha: intensity), Colors.redAccent.withValues(alpha: intensity), Colors.black],
             const [0.0, 0.5, 1.0],
           ));
   }
@@ -386,7 +386,7 @@ class IconVisualUtils {
           ..shader = ui.Gradient.linear(
             rect.topCenter,
             rect.bottomCenter,
-            [Colors.cyanAccent.withOpacity(intensity), Colors.blueAccent.withOpacity(intensity), Colors.indigoAccent.withOpacity(intensity)],
+            [Colors.cyanAccent.withValues(alpha: intensity), Colors.blueAccent.withValues(alpha: intensity), Colors.indigoAccent.withValues(alpha: intensity)],
             const [0.0, 0.5, 1.0],
           ));
   }
@@ -398,13 +398,13 @@ class IconVisualUtils {
         ui.Paint()
           ..style = ui.PaintingStyle.stroke
           ..strokeWidth = elevation * 2
-          ..color = Colors.yellowAccent.withOpacity(intensity));
+          ..color = Colors.yellowAccent.withValues(alpha: intensity));
     canvas.drawPath(
         path,
         ui.Paint()
           ..style = ui.PaintingStyle.stroke
           ..strokeWidth = elevation / 2
-          ..color = Colors.white.withOpacity(intensity));
+          ..color = Colors.white.withValues(alpha: intensity));
   }
 
   static void _drawGolden(ui.Canvas canvas, ui.Rect rect, double intensity, double blur, double elevation) {
@@ -415,10 +415,10 @@ class IconVisualUtils {
               rect.topLeft,
               rect.bottomRight,
               [
-                const Color(0xFFFFD700).withOpacity(intensity),
-                const Color(0xFFFFFACD).withOpacity(intensity),
-                const Color(0xFFDAA520).withOpacity(intensity),
-                const Color(0xFF63300D).withOpacity(intensity)
+                const Color(0xFFFFD700).withValues(alpha: intensity),
+                const Color(0xFFFFFACD).withValues(alpha: intensity),
+                const Color(0xFFDAA520).withValues(alpha: intensity),
+                const Color(0xFF63300D).withValues(alpha: intensity)
               ],
               const [
                 0.0,
@@ -429,7 +429,7 @@ class IconVisualUtils {
   }
 
   static void _drawFrost(ui.Canvas canvas, ui.Rect rect, double intensity, double blur, double elevation) {
-    canvas.drawRect(rect, ui.Paint()..color = Colors.white.withOpacity(0.9 * intensity));
+    canvas.drawRect(rect, ui.Paint()..color = Colors.white.withValues(alpha: 0.9 * intensity));
     final rnd = math.Random(55);
     for (var i = 0; i < 100; i++) {
       canvas.drawLine(
@@ -438,7 +438,7 @@ class IconVisualUtils {
           Offset(rect.left + rnd.nextDouble() * rect.width,
               rect.top + rnd.nextDouble() * rect.height),
           ui.Paint()
-            ..color = Colors.blueAccent.withOpacity(0.31 * intensity)
+            ..color = Colors.blueAccent.withValues(alpha: 0.31 * intensity)
             ..strokeWidth = elevation * 0.75);
     }
   }

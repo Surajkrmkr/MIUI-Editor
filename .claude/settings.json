@@ -9,7 +9,13 @@
       "Bash(cp /Users/surajkrmkr/Downloads/WallRioApp/WallRioApp/lib/domain/models/analytics_models.dart /Users/surajkrmkr/Github/miui_editor/lib/wall_rio/domain/models/)",
       "Bash(cp /Users/surajkrmkr/Downloads/WallRioApp/WallRioApp/lib/domain/models/credential_models.dart /Users/surajkrmkr/Github/miui_editor/lib/wall_rio/domain/models/)",
       "Bash(flutter analyze *)",
-      "Bash(flutter pub *)"
+      "Bash(flutter pub *)",
+      "Bash(dart fix *)",
+      "Bash(perl -i -pe 's/\\\\.withOpacity\\\\\\(/.withValues\\(alpha: /g' lib/theme_editor/presentation/features/icon_editor/utils/icon_visual_utils.dart lib/svg_converter/ui/widgets/wallpaper_carousel.dart lib/svg_converter/ui/widgets/drop_zone.dart lib/svg_converter/ui/widgets/stats_panel.dart lib/svg_converter/ui/widgets/task_list.dart lib/svg_converter/ui/screens/home_screen.dart lib/svg_converter/ui/widgets/glass_card.dart)",
+      "Bash(xargs ls)",
+      "Bash(grep -E \"\\\\.dart$\")",
+      "Bash(xargs ls -la)",
+      "Bash(xargs cat)"
     ]
   }
 }

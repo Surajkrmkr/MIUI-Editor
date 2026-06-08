@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:miui_icon_generator/core/theme/app_theme.dart';
+import 'package:miui_icon_generator/core/theme/app_radius.dart';
+import '../../../../../core/theme/theme_extensions.dart';
 import '../../../providers/export_provider.dart';
 
 class IconExportCard extends ConsumerWidget {
@@ -9,18 +10,15 @@ class IconExportCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final exportState = ref.watch(exportProvider);
+    final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    const cardBg = AppTheme.proCard;
-    const borderColor = Colors.black;
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor),
+        color: colors.surfaceOverlay,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -44,18 +42,14 @@ class IconExportCard extends ConsumerWidget {
               borderRadius: BorderRadius.circular(4),
               child: Stack(
                 children: [
-                  Container(
-                      height: 4,
-                      color: isDark
-                          ? AppTheme.proSidebar
-                          : const Color(0xFFF0F0F5)),
+                  Container(height: 4, color: colors.border),
                   FractionallySizedBox(
                     widthFactor: exportState.progress,
                     child: Container(
                       height: 4,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [AppTheme.accent, AppTheme.accentDark],
+                          colors: [colors.primary, colors.primaryPressed],
                         ),
                       ),
                     ),
@@ -110,9 +104,9 @@ class _ExportButton extends StatelessWidget {
 
     return Material(
       color: bgColor,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(AppRadius.lg),
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         onTap: loading ? null : onPressed,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -123,7 +117,7 @@ class _ExportButton extends StatelessWidget {
                 height: 36,
                 decoration: BoxDecoration(
                   color: iconBg,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Center(
                   child: loading
