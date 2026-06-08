@@ -26,6 +26,10 @@ import 'wall_rio/application/providers/router_provider.dart';
 import 'wall_rio/domain/models/cms_models.dart';
 import 'wall_rio/shared/theme.dart' as wall_rio_theme;
 
+// ── SVG Converter imports ─────────────────────────────────────────────────────
+import 'svg_converter/providers/settings_provider.dart' as svg;
+import 'svg_converter/ui/screens/home_screen.dart' as svg_screens;
+
 // =============================================================================
 
 void main() async {
@@ -152,6 +156,13 @@ final List<_AppEntry> _apps = [
     icon: Icons.wallpaper_rounded,
     color: const Color(0xFF7C4DFF),
     builder: () => const _WallRioCMSApp(),
+  ),
+  _AppEntry(
+    title: 'SVG Converter',
+    subtitle: 'Image to SVG · Batch · VTracer',
+    icon: Icons.auto_awesome_rounded,
+    color: const Color(0xFF9D50FF),
+    builder: () => const _SvgConverterApp(),
   ),
   // ── Add more apps below — no other code changes needed ────────────────────
   // _AppEntry(
@@ -362,6 +373,77 @@ class _ThemeDeploymentApp extends StatelessWidget {
         darkTheme: AppTheme.dark(),
         home: const DeploymentPage(),
       );
+}
+
+// ── SVG Converter ─────────────────────────────────────────────────────────────
+
+class _SvgConverterApp extends ConsumerWidget {
+  const _SvgConverterApp();
+
+  static const _purple = Color(0xFF9D50FF);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(svg.settingsProvider);
+    return MaterialApp(
+      title: 'SVG Converter',
+      debugShowCheckedModeBanner: false,
+      themeMode: settings.darkMode ? ThemeMode.dark : ThemeMode.light,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: _purple,
+          primary: _purple,
+          onPrimary: Colors.white,
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
+        cardTheme: CardThemeData(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24)),
+          elevation: 0,
+          color: Colors.grey[100],
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _purple,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16)),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          ),
+        ),
+      ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: _purple,
+          primary: _purple,
+          onPrimary: Colors.white,
+          brightness: Brightness.dark,
+          surface: const Color(0xFF0A0A0A),
+        ),
+        useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFF000000),
+        cardTheme: CardThemeData(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24)),
+          elevation: 0,
+          color: Colors.white.withValues(alpha: 0.05),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _purple,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16)),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          ),
+        ),
+      ),
+      home: const svg_screens.HomeScreen(),
+    );
+  }
 }
 
 // ── WallRio CMS ───────────────────────────────────────────────────────────────
