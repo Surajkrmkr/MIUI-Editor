@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /Users/surajkrmkr/Downloads/WallRioApp/WallRioApp -type f -name \"*.dart\" -o -name \"*.yaml\" -o -name \"*.yml\" -o -name \"*.json\" | head -100)",
+      "Read(//Users/surajkrmkr/Downloads/WallRioApp/WallRioApp/**)",
+      "Bash(cp /Users/surajkrmkr/Downloads/WallRioApp/WallRioApp/lib/domain/models/wallpaper.dart /Users/surajkrmkr/Github/miui_editor/lib/wall_rio/domain/models/)",
+      "Bash(cp /Users/surajkrmkr/Downloads/WallRioApp/WallRioApp/lib/domain/models/cms_models.dart /Users/surajkrmkr/Github/miui_editor/lib/wall_rio/domain/models/)",
+      "Bash(cp /Users/surajkrmkr/Downloads/WallRioApp/WallRioApp/lib/domain/models/ai_models.dart /Users/surajkrmkr/Github/miui_editor/lib/wall_rio/domain/models/)",
+      "Bash(cp /Users/surajkrmkr/Downloads/WallRioApp/WallRioApp/lib/domain/models/analytics_models.dart /Users/surajkrmkr/Github/miui_editor/lib/wall_rio/domain/models/)",
+      "Bash(cp /Users/surajkrmkr/Downloads/WallRioApp/WallRioApp/lib/domain/models/credential_models.dart /Users/surajkrmkr/Github/miui_editor/lib/wall_rio/domain/models/)",
+      "Bash(flutter analyze *)",
+      "Bash(flutter pub *)"
+    ]
+  }
+}

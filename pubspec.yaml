@@ -41,6 +41,16 @@ dependencies:
   # Local Storage
   shared_preferences: ^2.2.2
   path_provider: ^2.1.5
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # WallRio CMS
+  flex_color_scheme: ^8.0.0
+  flutter_secure_storage: ^9.2.2
+  googleapis_auth: ^1.6.0
+  url_launcher: ^6.3.2
+  uuid: ^4.4.0
+  intl: ^0.19.0
 
   # Image Handling
   cached_network_image: ^3.4.1
@@ -118,3 +128,4 @@ flutter:
     - assets/tags/
     - assets/lockscreen/weatherIcon/
     - assets/users/
+    - assets/wall_rio/
