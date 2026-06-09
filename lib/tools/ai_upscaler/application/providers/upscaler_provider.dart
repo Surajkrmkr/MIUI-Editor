@@ -85,7 +85,7 @@ class UpscalerNotifier extends Notifier<UpscalerState> {
     state = state.copyWith(isBinaryInstalled: installed, isCheckingBinary: false);
   }
 
-  void setInputPath(String path) {
+  void setInputPath(String? path) {
     state = state.copyWith(inputPath: path, outputPath: null, logs: [], progress: 0, queue: []);
   }
 
@@ -139,7 +139,8 @@ class UpscalerNotifier extends Notifier<UpscalerState> {
     } catch (e) {
       String errorMessage = e.toString();
       if (e is ProcessException) {
-        errorMessage = 'Failed to launch upscaler: ${e.message}\nExecutable: ${e.executable}';
+        errorMessage = '''Failed to launch upscaler: ${e.message}
+Executable: ${e.executable}''';
       }
       state = state.copyWith(
         isProcessing: false,
@@ -234,7 +235,16 @@ class UpscalerNotifier extends Notifier<UpscalerState> {
   }
 
   void clear() {
-    state = UpscalerState(isBinaryInstalled: state.isBinaryInstalled, isCheckingBinary: false);
+    state = UpscalerState(
+      isBinaryInstalled: state.isBinaryInstalled,
+      isCheckingBinary: false,
+      inputPath: null,
+      outputPath: null,
+      queue: [],
+      logs: [],
+      progress: 0,
+      error: null,
+    );
   }
 }
 

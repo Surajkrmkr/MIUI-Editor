@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:miui_icon_generator/image_utility/core/config/app_config.dart';
 import 'package:miui_icon_generator/image_utility/core/providers/image_source_registry.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/domain/entities/search_params.dart';

@@ -6,10 +6,8 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/asset_paths.dart';
 import '../../../../core/constants/path_constants.dart';
 import '../../../../core/utils/font_utils.dart';
-import '../../../../core/utils/snap_service.dart';
 import '../../../../domain/entities/element_widget.dart';
 import '../../../providers/element_provider.dart';
-import '../../../providers/snap_provider.dart';
 import '../../../providers/wallpaper_provider.dart';
 import '../../../common/widgets/gradient_text.dart';
 import 'video_wallpaper.dart';
@@ -80,9 +78,6 @@ class ElementWidgetPreview extends ConsumerWidget {
             ...els.elements
                 .where((el) => el.isVisible)
                 .map((el) => _DraggableElement(el: el)),
-
-            // 5. Magnetic snap guide lines
-            _SnapGuideOverlay(),
           ],
         ),
       ),
@@ -163,31 +158,10 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
               n.setActive(el.type);
             },
             onPanUpdate: el.isLocked ? null : (d) {
-              final newDx = el.dx + d.delta.dx;
-              final newDy = el.dy + d.delta.dy;
-              if (!Platform.isWindows) {
-                final others = ref
-                    .read(elementProvider)
-                    .elements
-                    .where((e) => e.type != el.type)
-                    .toList();
-                final result = computeSnap(
-                  dx: newDx,
-                  dy: newDy,
-                  others: others,
-                );
-                n.setPosition(el.type, result.dx, result.dy);
-                ref.read(snapGuideProvider.notifier).show(
-                  lineX: result.guideX,
-                  lineY: result.guideY,
-                );
-              } else {
-                n.setPosition(el.type, newDx, newDy);
-              }
-              setState(() => _isDragging = true);
+              n.moveElement(el.type, d.delta.dx, d.delta.dy);
+              if (!_isDragging) setState(() => _isDragging = true);
             },
             onPanEnd: el.isLocked ? null : (_) {
-              ref.read(snapGuideProvider.notifier).clear();
               setState(() => _isDragging = false);
             },
             child: AnimatedScale(
@@ -294,8 +268,8 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
               colors: [el.colorDigit1, el.colorDigit1],
               stops: const [0.0, 1.0],
             ),
-            style: TextStyle(
-                fontFamily: el.font, fontSize: 35, height: 1, color: el.colorDigit1),
+            style: fontTextStyle(
+                font: el.font, fontSize: 35, height: 1, color: el.colorDigit1),
           ),
           GradientText(
             txt[1],
@@ -305,8 +279,8 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
               colors: [el.colorDigit2, el.colorDigit2],
               stops: const [0.0, 1.0],
             ),
-            style: TextStyle(
-                fontFamily: el.font, fontSize: 35, height: 1, color: el.colorDigit2),
+            style: fontTextStyle(
+                font: el.font, fontSize: 35, height: 1, color: el.colorDigit2),
           ),
         ],
       );
@@ -403,35 +377,6 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
           fontWeight: el.fontWeight,
           height: 1,
         ));
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _SnapGuideOverlay extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final guide = ref.watch(snapGuideProvider);
-    if (!guide.hasGuides) return const SizedBox.shrink();
-
-    const w = AppConstants.screenWidth;
-    const h = AppConstants.screenHeight;
-    const color = Color(0xFF2196F3); // blue snap line
-
-    return Stack(children: [
-      if (guide.lineX != null)
-        Positioned(
-          left: guide.lineX! - 0.5,
-          top: 0,
-          child: Container(width: 1, height: h, color: color.withAlpha(210)),
-        ),
-      if (guide.lineY != null)
-        Positioned(
-          left: 0,
-          top: guide.lineY! - 0.5,
-          child: Container(width: w, height: 1, color: color.withAlpha(210)),
-        ),
-    ]);
   }
 }
 
