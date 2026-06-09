@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/theme_extensions.dart';
+import '../../providers/element_provider.dart';
+import '../../providers/wallpaper_provider.dart';
 import 'widgets/top_command_bar.dart';
 import 'widgets/left_tool_nav.dart';
 import 'widgets/right_inspector.dart';
@@ -14,6 +16,16 @@ class ProfessionalWorkspaceShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final palette = ref.read(wallpaperProvider).colorPalette;
+      if (palette.isNotEmpty) {
+        final n = ref.read(elementProvider.notifier);
+        final activeType = ref.read(elementProvider).activeType;
+        n.setColor(activeType, palette[0]);
+        n.setColorSecondary(activeType, palette[0]);
+      }
+    });
+
     final colors = context.appColors;
     return Shortcuts(
       shortcuts: <LogicalKeySet, Intent>{

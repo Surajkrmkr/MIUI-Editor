@@ -601,8 +601,7 @@ class _NumFieldState extends State<_NumField> {
   Widget build(BuildContext context) => TextField(
         controller: _c,
         decoration: InputDecoration(labelText: widget.label),
-        keyboardType:
-            const TextInputType.numberWithOptions(signed: true),
+        keyboardType: const TextInputType.numberWithOptions(signed: true),
         onChanged: (v) {
           final d = double.tryParse(v);
           if (d != null) widget.onChanged(d);
