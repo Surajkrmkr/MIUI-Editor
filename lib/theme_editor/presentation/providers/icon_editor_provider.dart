@@ -7,6 +7,19 @@ import '../../domain/entities/icon_shape.dart';
 import '../../domain/entities/icon_texture.dart';
 import 'user_profile_provider.dart';
 
+final iconAssetsProvider = FutureProvider<List<String>>((ref) async {
+  final profile = ref.watch(activeUserProfileProvider);
+  final iconFolder = profile?.iconFolder ?? 'u1';
+  final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+  final names = manifest
+      .listAssets()
+      .where((k) =>
+          k.startsWith('assets/icons/$iconFolder/') && k.endsWith('.svg'))
+      .map((k) => k.split('/').last.replaceAll('.svg', ''))
+      .toList();
+  return names;
+});
+
 class IconEditorState {
   const IconEditorState({
     this.margin = 4,
@@ -24,7 +37,6 @@ class IconEditorState {
     this.randomColors = false,
     this.beforeVectorPath = '',
     this.afterVectorPath = '',
-    this.iconAssetsPath = const [],
     this.isExporting = false,
     this.isExported = false,
     this.exportProgress = 0,
@@ -44,7 +56,6 @@ class IconEditorState {
   final List<Color> bgColors;
   final bool randomColors;
   final String beforeVectorPath, afterVectorPath;
-  final List<dynamic> iconAssetsPath;
   final bool isExporting, isExported;
   final int exportProgress;
   final IconShape shape;
@@ -69,7 +80,6 @@ class IconEditorState {
     bool? randomColors,
     String? beforeVectorPath,
     String? afterVectorPath,
-    List<dynamic>? iconAssetsPath,
     bool? isExporting,
     bool? isExported,
     int? exportProgress,
@@ -98,7 +108,6 @@ class IconEditorState {
         randomColors: randomColors ?? this.randomColors,
         beforeVectorPath: beforeVectorPath ?? this.beforeVectorPath,
         afterVectorPath: afterVectorPath ?? this.afterVectorPath,
-        iconAssetsPath: iconAssetsPath ?? this.iconAssetsPath,
         isExporting: isExporting ?? this.isExporting,
         isExported: isExported ?? this.isExported,
         exportProgress: exportProgress ?? this.exportProgress,
@@ -134,8 +143,6 @@ class IconEditorNotifier extends Notifier<IconEditorState> {
   void setRandomColors(bool v) => state = state.copyWith(randomColors: v);
   void setBeforeVector(String p) => state = state.copyWith(beforeVectorPath: p);
   void setAfterVector(String p) => state = state.copyWith(afterVectorPath: p);
-  void setIconAssetsPath(List<dynamic> p) =>
-      state = state.copyWith(iconAssetsPath: p);
   void setIconShape(IconShape s) => state = state.copyWith(shape: s);
   void setIconEffect(IconEffect e) => state = state.copyWith(effect: e);
   void setIconTexture(IconTexture t) => state = state.copyWith(texture: t);
@@ -144,19 +151,6 @@ class IconEditorNotifier extends Notifier<IconEditorState> {
   void setEffectElevation(double v) => state = state.copyWith(effectElevation: v);
   void setTextureScale(double v) => state = state.copyWith(textureScale: v);
   void setTextureOpacity(double v) => state = state.copyWith(textureOpacity: v);
-
-  Future<void> loadIconAssets() async {
-    final profile = ref.read(activeUserProfileProvider);
-    final iconFolder = profile?.iconFolder ?? 'u1';
-    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
-    final names = manifest
-        .listAssets()
-        .where((k) =>
-            k.startsWith('assets/icons/$iconFolder/') && k.endsWith('.svg'))
-        .map((k) => k.split('/').last.replaceAll('.svg', ''))
-        .toList();
-    setIconAssetsPath(names);
-  }
 
   void setExporting(bool v) => state = state.copyWith(isExporting: v);
   void setExported(bool v) => state = state.copyWith(isExported: v);

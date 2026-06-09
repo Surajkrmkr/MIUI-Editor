@@ -99,6 +99,15 @@ class ExportLockscreenPngsUseCase {
                   path: PathConstants.p('${dir("min")}min_$i.png'),
                 ));
 
+      case ElementType.secClock:
+        return List.generate(
+            60,
+            (i) => _Frame(
+                  widget: _phoneFrame(
+                      el, _clockText(el, i.toString().padLeft(2, '0'))),
+                  path: PathConstants.p('${dir("sec")}sec_$i.png'),
+                ));
+
       case ElementType.dotClock:
         return [
           _Frame(
@@ -225,20 +234,60 @@ class ExportLockscreenPngsUseCase {
 
   // ── Child widget builders ──────────────────────────────────────────────────
 
-  Widget _clockText(LockElement el, String text) => GradientText(
-        text,
-        gradient: LinearGradient(
-          begin: el.gradStartAlign as Alignment,
-          end: el.gradEndAlign as Alignment,
-          colors: [el.color, el.colorSecondary],
-        ),
-        style: fontTextStyle(
-          font: el.font,
-          fontSize: 35,
-          height: 1,
-          color: el.color,
-        ),
+  Widget _clockText(LockElement el, String text) {
+    if (el.useSeparateColors &&
+        (el.type == ElementType.hourClock || el.type == ElementType.minClock || el.type == ElementType.secClock) &&
+        text.length == 2) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GradientText(
+            text[0],
+            gradient: LinearGradient(
+              begin: el.gradStartAlign as Alignment,
+              end: el.gradEndAlign as Alignment,
+              colors: [el.colorDigit1, el.colorDigit1],
+            ),
+            style: TextStyle(
+              fontFamily: el.font,
+              fontSize: 35,
+              height: 1,
+              color: el.colorDigit1,
+            ),
+          ),
+          GradientText(
+            text[1],
+            gradient: LinearGradient(
+              begin: el.gradStartAlign as Alignment,
+              end: el.gradEndAlign as Alignment,
+              colors: [el.colorDigit2, el.colorDigit2],
+            ),
+            style: TextStyle(
+              fontFamily: el.font,
+              fontSize: 35,
+              height: 1,
+              color: el.colorDigit2,
+            ),
+          ),
+        ],
       );
+    }
+
+    return GradientText(
+      text,
+      gradient: LinearGradient(
+        begin: el.gradStartAlign as Alignment,
+        end: el.gradEndAlign as Alignment,
+        colors: [el.color, el.colorSecondary],
+      ),
+      style: TextStyle(
+        fontFamily: el.font,
+        fontSize: 35,
+        height: 1,
+        color: el.color,
+      ),
+    );
+  }
 
   Widget _containerWidget(LockElement el) => Container(
         height: el.height,

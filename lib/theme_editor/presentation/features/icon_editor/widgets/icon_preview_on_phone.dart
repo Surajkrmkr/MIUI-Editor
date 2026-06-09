@@ -17,55 +17,64 @@ class IconPreviewOnPhone extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(iconEditorProvider);
     final profile = ref.watch(activeUserProfileProvider);
-    if (profile == null || s.iconAssetsPath.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    final iconAssets = ref.watch(iconAssetsProvider);
 
-    const offset = AppConstants.iconGridPreviewOffset;
-    const count = AppConstants.iconGridPreviewCount;
-    final shown = s.iconAssetsPath.skip(offset).take(count).toList();
+    return iconAssets.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('Error: $e')),
+      data: (data) {
+        if (profile == null || data.isEmpty) {
+          return const SizedBox.shrink();
+        }
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 50, top: 50, left: 8, right: 8),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Clock preview
-          const Text('02:36',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 40,
-                  fontWeight: FontWeight.w500)),
-          // Icon grid preview
-          Column(
+        const offset = AppConstants.iconGridPreviewOffset;
+        const count = AppConstants.iconGridPreviewCount;
+        final shown = data.skip(offset).take(count).toList();
+
+        return Padding(
+          padding:
+              const EdgeInsets.only(bottom: 50, top: 50, left: 8, right: 8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: shown
-                    .take(4)
-                    .map((name) => _IconCell(
-                          name: name as String,
-                          profile: profile,
-                          state: s,
-                        ))
-                    .toList(),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: shown
-                    .skip(4)
-                    .map((name) => _IconCell(
-                          name: name as String,
-                          profile: profile,
-                          state: s,
-                        ))
-                    .toList(),
+              // Clock preview
+              const Text('02:36',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 40,
+                      fontWeight: FontWeight.w500)),
+              // Icon grid preview
+              Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: shown
+                        .take(4)
+                        .map((name) => _IconCell(
+                              name: name,
+                              profile: profile,
+                              state: s,
+                            ))
+                        .toList(),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: shown
+                        .skip(4)
+                        .map((name) => _IconCell(
+                              name: name,
+                              profile: profile,
+                              state: s,
+                            ))
+                        .toList(),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

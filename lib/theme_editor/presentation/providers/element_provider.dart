@@ -153,6 +153,12 @@ class ElementNotifier extends Notifier<ElementState> {
       update(t, (e) => e.copyWith(isLocked: !e.isLocked));
   void setGuideLines(ElementType t, bool v) =>
       update(t, (e) => e.copyWith(showGuideLines: v));
+  void setUseSeparateColors(ElementType t, bool v) =>
+      update(t, (e) => e.copyWith(useSeparateColors: v));
+  void setColorDigit1(ElementType t, Color c) =>
+      update(t, (e) => e.copyWith(colorDigit1: c));
+  void setColorDigit2(ElementType t, Color c) =>
+      update(t, (e) => e.copyWith(colorDigit2: c));
   void resetPosition(ElementType t) =>
       update(t, (e) => e.copyWith(dx: 0, dy: 0));
 }

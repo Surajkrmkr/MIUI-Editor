@@ -105,6 +105,7 @@ class ExportNotifier extends Notifier<ExportState> {
     final ws      = ref.read(wallpaperProvider);
     final editor  = ref.read(iconEditorProvider);
     final profile = ref.read(activeUserProfileProvider);
+    final iconAssets = await ref.read(iconAssetsProvider.future);
 
     // ── Guards ────────────────────────────────────────────────────────────────
     if (profile == null) {
@@ -122,14 +123,14 @@ class ExportNotifier extends Notifier<ExportState> {
           phase: ExportPhase.error, error: 'No wallpaper selected');
       return;
     }
-    if (editor.iconAssetsPath.isEmpty) {
+    if (iconAssets.isEmpty) {
       state = state.copyWith(
           phase: ExportPhase.error, error: 'Icon list is empty — did you select a user profile?');
       return;
     }
 
     final themePath   = PathConstants.themePath(ws.weekNum!, ws.currentThemeName!);
-    final iconNames   = editor.iconAssetsPath.cast<String>();
+    final iconNames   = iconAssets;
 
     state = state.copyWith(
       phase:      ExportPhase.icons,

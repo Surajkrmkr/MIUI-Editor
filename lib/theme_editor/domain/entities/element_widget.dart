@@ -7,7 +7,7 @@ enum ElementType {
   containerBG1, containerBG2, containerBG3, containerBG4, containerBG5,
   pngBG1, pngBG2, pngBG3, pngBG4, pngBG5,
   videoWallpaper,
-  hourClock, minClock, dotClock, amPmClock,
+  hourClock, minClock, secClock, dotClock, amPmClock,
   weekClock, monthClock, dateClock, weatherIconClock,
   notification,
   dateTimeText1, dateTimeText2, dateTimeText3,
@@ -49,7 +49,7 @@ extension ElementTypeX on ElementType {
   }.contains(this);
   bool get isText => isDateTime || isNormalText || this == ElementType.notification || this == ElementType.weatherDesc;
   bool get isClock => const {
-    ElementType.hourClock, ElementType.minClock, ElementType.dotClock,
+    ElementType.hourClock, ElementType.minClock, ElementType.secClock, ElementType.dotClock,
     ElementType.amPmClock, ElementType.weekClock, ElementType.monthClock,
     ElementType.dateClock, ElementType.weatherIconClock,
     ElementType.analogClockBg, ElementType.analogHourHand, 
@@ -85,7 +85,7 @@ extension ElementTypeX on ElementType {
 // ── Groups for UI panel ───────────────────────────────────────────────────────
 
 const Map<String, List<ElementType>> kElementGroups = {
-  'Clock':     [ElementType.hourClock, ElementType.minClock,
+  'Clock':     [ElementType.hourClock, ElementType.minClock, ElementType.secClock,
                 ElementType.dotClock,  ElementType.amPmClock,
                 ElementType.weekClock],
   'Date':      [ElementType.monthClock, ElementType.dateClock],
@@ -158,16 +158,19 @@ class LockElement {
     this.isShort = false, this.isWrap = false, this.showGuideLines = false,
     this.isVisible = true, this.isLocked = false,
     this.blurRadius = 0,
+    this.useSeparateColors = false,
+    this.colorDigit1 = const Color(0xFFFFFFFF),
+    this.colorDigit2 = const Color(0xFFFFFFFF),
   });
 
   final ElementType type;
   final double dx, dy, scale, height, width, radius, borderWidth, angle, fontSize, blurRadius;
-  final Color borderColor, color, colorSecondary;
+  final Color borderColor, color, colorSecondary, colorDigit1, colorDigit2;
   final GradientType gradientType;
   final AlignmentGeometry gradStartAlign, gradEndAlign, align;
   final String font, path, text;
   final FontWeight fontWeight;
-  final bool isShort, isWrap, showGuideLines, isVisible, isLocked;
+  final bool isShort, isWrap, showGuideLines, isVisible, isLocked, useSeparateColors;
 
   String get name => type.name;
 
@@ -175,13 +178,14 @@ class LockElement {
     double? dx, double? dy, double? scale, double? height, double? width,
     double? radius, double? borderWidth, double? angle, double? fontSize,
     Color? borderColor, Color? color, Color? colorSecondary,
+    Color? colorDigit1, Color? colorDigit2,
     GradientType? gradientType,
     AlignmentGeometry? gradStartAlign, AlignmentGeometry? gradEndAlign,
     AlignmentGeometry? align,
     String? font, String? path, String? text,
     FontWeight? fontWeight,
     bool? isShort, bool? isWrap, bool? showGuideLines,
-    bool? isVisible, bool? isLocked,
+    bool? isVisible, bool? isLocked, bool? useSeparateColors,
     double? blurRadius,
   }) => LockElement(
     type: type,
@@ -191,6 +195,8 @@ class LockElement {
     angle: angle ?? this.angle, fontSize: fontSize ?? this.fontSize,
     borderColor: borderColor ?? this.borderColor,
     color: color ?? this.color, colorSecondary: colorSecondary ?? this.colorSecondary,
+    colorDigit1: colorDigit1 ?? this.colorDigit1,
+    colorDigit2: colorDigit2 ?? this.colorDigit2,
     gradientType: gradientType ?? this.gradientType,
     gradStartAlign: gradStartAlign ?? this.gradStartAlign,
     gradEndAlign:   gradEndAlign   ?? this.gradEndAlign,
@@ -201,6 +207,7 @@ class LockElement {
     showGuideLines: showGuideLines ?? this.showGuideLines,
     isVisible: isVisible ?? this.isVisible,
     isLocked: isLocked ?? this.isLocked,
+    useSeparateColors: useSeparateColors ?? this.useSeparateColors,
     blurRadius: blurRadius ?? this.blurRadius,
   );
 
@@ -211,6 +218,7 @@ class LockElement {
     'borderWidth': borderWidth, 'angle': angle, 'fontSize': fontSize,
     'borderColor': borderColor.toARGB32(),
     'color': color.toARGB32(), 'colorSecondary': colorSecondary.toARGB32(),
+    'colorDigit1': colorDigit1.toARGB32(), 'colorDigit2': colorDigit2.toARGB32(),
     'gradientType': gradientType.name,
     'gradStartAlign': gradStartAlign.toString(),
     'gradEndAlign':   gradEndAlign.toString(),
@@ -218,7 +226,7 @@ class LockElement {
     'font': font, 'path': path, 'text': text,
     'fontWeight': fontWeight.toString(),
     'isShort': isShort, 'isWrap': isWrap, 'showGuideLines': showGuideLines,
-    'isVisible': isVisible, 'isLocked': isLocked,
+    'isVisible': isVisible, 'isLocked': isLocked, 'useSeparateColors': useSeparateColors,
     'blurRadius': blurRadius,
   };
 
@@ -237,6 +245,8 @@ class LockElement {
     borderColor:    Color(j['borderColor']    as int? ?? 0xFFFFFFFF),
     color:          Color(j['color']          as int? ?? 0xFFFFFFFF),
     colorSecondary: Color(j['colorSecondary'] as int? ?? 0xFFFFFFFF),
+    colorDigit1:    Color(j['colorDigit1']    as int? ?? 0xFFFFFFFF),
+    colorDigit2:    Color(j['colorDigit2']    as int? ?? 0xFFFFFFFF),
     gradientType: GradientType.values.firstWhere(
         (e) => e.name == j['gradientType'], orElse: () => GradientType.linear),
     gradStartAlign: AlignmentX.fromString(j['gradStartAlign'] ?? ''),
@@ -251,6 +261,7 @@ class LockElement {
     showGuideLines:j['showGuideLines']as bool? ?? false,
     isVisible:     j['isVisible']     as bool? ?? true,
     isLocked:      j['isLocked']      as bool? ?? false,
+    useSeparateColors: j['useSeparateColors'] as bool? ?? false,
     blurRadius:    (j['blurRadius']   as num?)?.toDouble() ?? 0,
   );
 
