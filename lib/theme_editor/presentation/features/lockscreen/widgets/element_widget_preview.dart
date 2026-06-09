@@ -161,24 +161,29 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
             onTap: () => n.setActive(el.type),
             onPanDown: el.isLocked ? null : (_) {
               n.setActive(el.type);
-              // n.setGuideLines(el.type, true);
             },
             onPanUpdate: el.isLocked ? null : (d) {
-              final others = ref
-                  .read(elementProvider)
-                  .elements
-                  .where((e) => e.type != el.type)
-                  .toList();
-              final result = computeSnap(
-                dx: el.dx + d.delta.dx,
-                dy: el.dy + d.delta.dy,
-                others: others,
-              );
-              n.setPosition(el.type, result.dx, result.dy);
-              ref.read(snapGuideProvider.notifier).show(
-                    lineX: result.guideX,
-                    lineY: result.guideY,
-                  );
+              final newDx = el.dx + d.delta.dx;
+              final newDy = el.dy + d.delta.dy;
+              if (!Platform.isWindows) {
+                final others = ref
+                    .read(elementProvider)
+                    .elements
+                    .where((e) => e.type != el.type)
+                    .toList();
+                final result = computeSnap(
+                  dx: newDx,
+                  dy: newDy,
+                  others: others,
+                );
+                n.setPosition(el.type, result.dx, result.dy);
+                ref.read(snapGuideProvider.notifier).show(
+                  lineX: result.guideX,
+                  lineY: result.guideY,
+                );
+              } else {
+                n.setPosition(el.type, newDx, newDy);
+              }
               setState(() => _isDragging = true);
             },
             onPanEnd: el.isLocked ? null : (_) {
@@ -198,7 +203,7 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
                     child: Align(
                       alignment: el.align,
                       child: MouseRegion(
-                        cursor: el.isLocked 
+                        cursor: el.isLocked
                             ? SystemMouseCursors.basic
                             : _isDragging
                                 ? SystemMouseCursors.grabbing
