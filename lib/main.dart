@@ -31,7 +31,13 @@ import 'wall_rio/application/providers/router_provider.dart';
 import 'wall_rio/domain/models/cms_models.dart';
 
 // ── SVG Converter imports ─────────────────────────────────────────────────────
-import 'svg_converter/ui/screens/home_screen.dart' as svg_screens;
+import 'tools/svg_converter/ui/screens/home_screen.dart' as svg_screens;
+
+// ── BuffyWalls CMS imports ────────────────────────────────────────────────────
+import 'buffy_walls/presentation/screens/buffy_dashboard_screen.dart';
+
+// ── AI Upscaler imports ───────────────────────────────────────────────────────
+import 'tools/ai_upscaler/presentation/screens/ai_upscaler_screen.dart';
 
 // =============================================================================
 
@@ -122,14 +128,16 @@ class _AppEntry {
     required this.icon,
     required this.color,
     required this.builder,
-    this.bgImage,
+    this.bgImageDark,
+    this.bgImageLight,
   });
 
   final String title;
   final String subtitle;
   final IconData icon;
   final Color color;
-  final String? bgImage;
+  final String? bgImageDark;
+  final String? bgImageLight;
 
   /// Returns the root widget of the sub-app.
   /// Each sub-app is fully self-contained — its own MaterialApp / router.
@@ -144,7 +152,8 @@ final List<_AppEntry> _apps = [
     subtitle: 'Lockscreen · Icons · Module · MTZ',
     icon: Icons.layers_rounded,
     color: AppColors.purplePrimary,
-    bgImage: 'assets/images/theme_editor.jpeg',
+    bgImageDark: 'assets/images/theme_editor.png',
+    bgImageLight: 'assets/images/theme_editor_light.png',
     builder: () => const _ThemeEditorApp(),
   ),
   _AppEntry(
@@ -152,7 +161,8 @@ final List<_AppEntry> _apps = [
     subtitle: 'Resize · Crop · Convert · Export',
     icon: Icons.image_rounded,
     color: AppColors.purpleHover,
-    bgImage: 'assets/images/image_utility.jpeg',
+    bgImageDark: 'assets/images/image_utility.png',
+    bgImageLight: 'assets/images/image_utility_light.png',
     builder: () => const _ImageUtilityApp(),
   ),
   _AppEntry(
@@ -160,7 +170,8 @@ final List<_AppEntry> _apps = [
     subtitle: 'Upload · Designer Portal · Automation',
     icon: Icons.rocket_launch,
     color: AppColors.purpleSelection,
-    bgImage: 'assets/images/deployment.jpeg',
+    bgImageDark: 'assets/images/deployment.png',
+    bgImageLight: 'assets/images/deployment_light.png',
     builder: () => const _ThemeDeploymentApp(),
   ),
   _AppEntry(
@@ -168,7 +179,8 @@ final List<_AppEntry> _apps = [
     subtitle: 'Wallpapers · Git · Analytics · Push',
     icon: Icons.wallpaper_rounded,
     color: AppColors.purplePressed,
-    bgImage: 'assets/images/wallrio.jpeg',
+    bgImageDark: 'assets/images/wallrio.png',
+    bgImageLight: 'assets/images/wallrio_light.png',
     builder: () => const _WallRioCMSApp(),
   ),
   _AppEntry(
@@ -176,10 +188,28 @@ final List<_AppEntry> _apps = [
     subtitle: 'Image to SVG · Batch · VTracer',
     icon: Icons.auto_awesome_rounded,
     color: AppColors.purpleDark,
-    bgImage: 'assets/images/svg_generator.jpeg',
+    bgImageDark: 'assets/images/svg_generator.png',
+    bgImageLight: 'assets/images/svg_generator_light.png',
     builder: () => const _SvgConverterApp(),
   ),
-  // ── Add more apps below — no other code changes needed ────────────────────
+  _AppEntry(
+    title: 'BuffyWalls CMS',
+    subtitle: 'Wallpapers · Categories · GitLab Push',
+    icon: Icons.dashboard_customize_rounded,
+    color: AppColors.purpleHover,
+    bgImageDark: 'assets/images/buffywalls.png',
+    bgImageLight: 'assets/images/buffywalls_light.png',
+    builder: () => const _BuffyWallsCMSApp(),
+  ),
+  _AppEntry(
+    title: 'AI Upscaler',
+    subtitle: 'AI Enhance · Wallpapers · Icons · Batch',
+    icon: Icons.auto_fix_high_rounded,
+    color: AppColors.purplePrimary,
+    bgImageDark: 'assets/images/AI_upscaler.png',
+    bgImageLight: 'assets/images/AI_upscaler_light.png',
+    builder: () => const _AiUpscalerApp(),
+  ),
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -388,12 +418,21 @@ class _AppCardState extends State<_AppCard> with SingleTickerProviderStateMixin 
                     fit: StackFit.expand,
                     children: [
                       // Background image
-                      if (widget.app.bgImage != null)
-                        Image.asset(widget.app.bgImage!, fit: BoxFit.cover),
+                      if (widget.app.bgImageDark != null || widget.app.bgImageLight != null)
+                        Image.asset(
+                          (Theme.of(context).brightness == Brightness.dark
+                                  ? widget.app.bgImageDark
+                                  : widget.app.bgImageLight) ??
+                              widget.app.bgImageDark ??
+                              widget.app.bgImageLight!,
+                          fit: BoxFit.cover,
+                        ),
 
                       // Dark overlay — lifts on hover
                       Container(
-                        color: Colors.black.withAlpha(
+                        color: (Theme.of(context).brightness == Brightness.dark 
+                                ? Colors.black 
+                                : Colors.white).withAlpha(
                           lerpDouble(115, 50, t)!.toInt(),
                         ),
                       ),
@@ -463,13 +502,17 @@ class _AppCardState extends State<_AppCard> with SingleTickerProviderStateMixin 
                                   .titleMedium
                                   ?.copyWith(
                                     fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                    shadows: [
-                                      Shadow(
-                                        color: Colors.black.withAlpha(140),
-                                        blurRadius: 8,
-                                      ),
-                                    ],
+                                    color: Theme.of(context).brightness == Brightness.dark 
+                                        ? Colors.white 
+                                        : Colors.black87,
+                                    shadows: Theme.of(context).brightness == Brightness.dark 
+                                        ? [
+                                            Shadow(
+                                              color: Colors.black.withAlpha(140),
+                                              blurRadius: 8,
+                                            ),
+                                          ]
+                                        : null,
                                   ),
                             ),
                             const SizedBox(height: 4),
@@ -478,7 +521,11 @@ class _AppCardState extends State<_AppCard> with SingleTickerProviderStateMixin 
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
-                                  ?.copyWith(color: Colors.white70),
+                                  ?.copyWith(
+                                    color: Theme.of(context).brightness == Brightness.dark 
+                                        ? Colors.white70 
+                                        : Colors.black54,
+                                  ),
                             ),
                           ],
                         ),
@@ -592,6 +639,44 @@ class _WallRioCMSApp extends ConsumerWidget {
       darkTheme: AppTheme.dark(),
       themeMode: themeMode,
       routerConfig: router,
+    );
+  }
+}
+
+// ── BuffyWalls CMS ────────────────────────────────────────────────────────────
+
+class _BuffyWallsCMSApp extends ConsumerWidget {
+  const _BuffyWallsCMSApp();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+    return MaterialApp(
+      title: 'BuffyWalls CMS',
+      debugShowCheckedModeBanner: false,
+      themeMode: themeMode,
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      home: const BuffyDashboardScreen(),
+    );
+  }
+}
+
+// ── AI Upscaler ───────────────────────────────────────────────────────────────
+
+class _AiUpscalerApp extends ConsumerWidget {
+  const _AiUpscalerApp();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+    return MaterialApp(
+      title: 'AI Upscaler',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: themeMode,
+      home: const AiUpscalerScreen(),
     );
   }
 }

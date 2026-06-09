@@ -20,7 +20,9 @@ int _parseInt(dynamic v) {
 }
 
 class GoogleApiService {
-  final _storage = SecureStorageService();
+  final dynamic _storage;
+
+  GoogleApiService([dynamic storage]) : _storage = storage ?? SecureStorageService();
 
   Future<AutoRefreshingAuthClient?> getAuthenticatedClient(List<String> scopes) async {
     final config = await _storage.getOAuthConfig();
@@ -95,6 +97,7 @@ class GoogleApiService {
 }
 
 class AdMobReportingService extends GoogleApiService {
+  AdMobReportingService([super.storage]);
   static const _scope = 'https://www.googleapis.com/auth/admob.report';
 
   /// Parses the user's input into a publisher ID (for the URL) and an optional
@@ -225,6 +228,7 @@ class AdMobReportingService extends GoogleApiService {
 }
 
 class PlayConsoleReportingService extends GoogleApiService {
+  PlayConsoleReportingService([super.storage]);
   static const _scope = 'https://www.googleapis.com/auth/playdeveloperreporting';
   static const _baseUrl = 'https://playdeveloperreporting.googleapis.com/v1beta1';
 

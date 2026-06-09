@@ -130,3 +130,6 @@ flutter:
     - assets/lockscreen/weatherIcon/
     - assets/users/
     - assets/images/
+    - bin/
+    - models/
+    - lib/tools/svg_converter/bin/

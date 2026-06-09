@@ -204,9 +204,9 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       final finalPath = '$svgFolder${ws.currentThemeName}.svg';
       final tracedSvgPath = '${svgFolder}temp_trace.svg';
 
-      // Locate vtracer.exe (Project Root)
+      // Locate vtracer.exe (Tool Directory)
       String vtracerPath = PathConstants.p(
-          '${Directory.current.path}${PathConstants.sep}vtracer.exe');
+          '${Directory.current.path}${PathConstants.sep}lib${PathConstants.sep}tools${PathConstants.sep}svg_converter${PathConstants.sep}bin${PathConstants.sep}vtracer.exe');
       if (!File(vtracerPath).existsSync()) {
         vtracerPath = 'vtracer.exe'; // Try PATH as fallback
       }

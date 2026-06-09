@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:path/path.dart' as p;
+
 class VTracerOptions {
   final String mode; // pixel, polygon, spline
   final String colorMode; // color, bw
@@ -36,10 +38,15 @@ class VTracerService {
     ];
 
     try {
-      final result = await Process.run('./vtracer.exe', args);
+      final vtracerPath = p.join(Directory.current.path, 'lib', 'tools', 'svg_converter', 'bin', 'vtracer.exe');
+      final result = await Process.run(vtracerPath, args);
       if (result.exitCode == 0) {
         return outputPath;
       } else {
+        // Try fallback to PATH
+        final resultFallback = await Process.run('vtracer.exe', args);
+        if (resultFallback.exitCode == 0) return outputPath;
+        
         debugPrint('VTracer failed: ${result.stderr}');
         return null;
       }
