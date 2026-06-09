@@ -12,7 +12,14 @@ import '../preset_dialog.dart';
 import 'manifest_editor_dialog.dart';
 
 class LockscreenFunctionsPanel extends ConsumerWidget {
-  const LockscreenFunctionsPanel({super.key});
+  const LockscreenFunctionsPanel({
+    super.key,
+    this.toolsOnly = false,
+    this.hideTools = false,
+  });
+
+  final bool toolsOnly;
+  final bool hideTools;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,7 +33,7 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // ── Background section ───────────────────────────────────────────
-        _SectionCard(
+        if (!toolsOnly) _SectionCard(
           title: 'BACKGROUND',
           child: Column(
             children: [
@@ -111,10 +118,10 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
           ),
         ),
 
-        const SizedBox(height: 10),
+        if (!toolsOnly) const SizedBox(height: 10),
 
         // ── AI + Presets section ─────────────────────────────────────────
-        _SectionCard(
+        if (!hideTools) _SectionCard(
           title: 'TOOLS',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -122,8 +129,7 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
               _ActionButton(
                 icon: Icons.auto_awesome_rounded,
                 label: 'AI Generate',
-                onPressed:
-                    busy ? null : () => _showAiDialog(context, ref),
+                onPressed: busy ? null : () => _showAiDialog(context, ref),
                 isPrimary: true,
               ),
               const SizedBox(height: 8),
@@ -145,8 +151,7 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
                   if (failure != null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content:
-                            Text('Save failed: ${failure.message}'),
+                        content: Text('Save failed: ${failure.message}'),
                       ),
                     );
                   } else {
@@ -170,10 +175,10 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
           ),
         ),
 
-        const SizedBox(height: 10),
+        if (!toolsOnly && !hideTools) const SizedBox(height: 10),
 
         // ── Export section ───────────────────────────────────────────────
-        Consumer(builder: (_, ref, __) {
+        if (!toolsOnly) Consumer(builder: (_, ref, __) {
           final s = ref.watch(lockscreenProvider);
           return _SectionCard(
             title: 'EXPORT',
@@ -187,8 +192,7 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
                       .toggleDualMtzExport(),
                 ),
                 const SizedBox(height: 8),
-                _ExportMainButton(
-                    state: s, onTap: () => _export(context, ref)),
+                _ExportMainButton(state: s, onTap: () => _export(context, ref)),
                 if (s.isExportingPngs) ...[
                   const SizedBox(height: 8),
                   _GradientProgress(value: s.pngsProgress),
@@ -207,44 +211,43 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
                   icon: Icons.archive_rounded,
                   label: 'Re-pack MTZ',
                   isOutlined: true,
-                  onPressed:
-                      s.isBusy ? null : () => _repackMtz(context, ref),
+                  onPressed: s.isBusy ? null : () => _repackMtz(context, ref),
                 ),
-                const SizedBox(height: 8),
-                _ActionButton(
-                  icon: Icons.auto_fix_high_rounded,
-                  label: s.isTracing
-                      ? 'Generating…'
-                      : 'Generate Copyright',
-                  isOutlined: true,
-                  onPressed: s.isBusy
-                      ? null
-                      : () async {
-                          await ref
-                              .read(lockscreenProvider.notifier)
-                              .generateLayeredSvg();
-                          if (context.mounted) {
-                            final err =
-                                ref.read(lockscreenProvider).error;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                backgroundColor: err != null
-                                    ? scheme.errorContainer
-                                    : scheme.primaryContainer,
-                                content: Text(
-                                  err ??
-                                      'Copyright generated in "svg" folder',
-                                  style: TextStyle(
-                                    color: err != null
-                                        ? scheme.onErrorContainer
-                                        : scheme.onPrimaryContainer,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                ),
+                // const SizedBox(height: 8),
+                // _ActionButton(
+                //   icon: Icons.auto_fix_high_rounded,
+                //   label: s.isTracing
+                //       ? 'Generating…'
+                //       : 'Generate Copyright',
+                //   isOutlined: true,
+                //   onPressed: s.isBusy
+                //       ? null
+                //       : () async {
+                //           await ref
+                //               .read(lockscreenProvider.notifier)
+                //               .generateLayeredSvg();
+                //           if (context.mounted) {
+                //             final err =
+                //                 ref.read(lockscreenProvider).error;
+                //             ScaffoldMessenger.of(context).showSnackBar(
+                //               SnackBar(
+                //                 backgroundColor: err != null
+                //                     ? scheme.errorContainer
+                //                     : scheme.primaryContainer,
+                //                 content: Text(
+                //                   err ??
+                //                       'Copyright generated in "svg" folder',
+                //                   style: TextStyle(
+                //                     color: err != null
+                //                         ? scheme.onErrorContainer
+                //                         : scheme.onPrimaryContainer,
+                //                   ),
+                //                 ),
+                //               ),
+                //             );
+                //           }
+                //         },
+                // ),
                 if (s.isTracing) ...[
                   const SizedBox(height: 8),
                   const LinearProgressIndicator(minHeight: 2),
@@ -263,8 +266,9 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
     final tp = PathConstants.themePath(ws.weekNum!, ws.currentThemeName!);
     final dest = '${PathConstants.lockscreenAdvance(tp)}bg.png';
     await ref.read(fileServiceProvider).copyFile(path, dest);
-    ref.read(elementProvider.notifier).setGuideLines(
-        ref.read(elementProvider).activeType, false);
+    ref
+        .read(elementProvider.notifier)
+        .setGuideLines(ref.read(elementProvider).activeType, false);
   }
 
   Future<void> _dropVideo(WidgetRef ref, String path) async {
@@ -276,13 +280,11 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
   }
 
   Future<void> _export(BuildContext context, WidgetRef ref) async {
-    final failure =
-        await ref.read(lockscreenProvider.notifier).export(context);
+    final failure = await ref.read(lockscreenProvider.notifier).export(context);
     if (!context.mounted) return;
     if (failure != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('Export failed: ${failure.message}')),
+        SnackBar(content: Text('Export failed: ${failure.message}')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -292,21 +294,17 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
   }
 
   Future<void> _repackMtz(BuildContext context, WidgetRef ref) async {
-    final isDual =
-        ref.read(lockscreenProvider.select((s) => s.dualMtzExport));
+    final isDual = ref.read(lockscreenProvider.select((s) => s.dualMtzExport));
     final (path, failure) =
         await ref.read(lockscreenProvider.notifier).exportMtz(context);
     if (!context.mounted) return;
     if (failure != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('MTZ failed: ${failure.message}')),
+        SnackBar(content: Text('MTZ failed: ${failure.message}')),
       );
     } else if (isDual) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Exported HyperOS 1.0 & 3.0 MTZ to: $path')),
+        SnackBar(content: Text('Exported HyperOS 1.0 & 3.0 MTZ to: $path')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -315,8 +313,7 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
     }
   }
 
-  Future<void> _showAiDialog(
-      BuildContext context, WidgetRef ref) async {
+  Future<void> _showAiDialog(BuildContext context, WidgetRef ref) async {
     final ctrl = TextEditingController();
     final ok = await showDialog<bool>(
       context: context,
@@ -325,8 +322,8 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
         content: TextField(
           controller: ctrl,
           autofocus: true,
-          decoration: const InputDecoration(
-              hintText: 'Describe your lockscreen…'),
+          decoration:
+              const InputDecoration(hintText: 'Describe your lockscreen…'),
           maxLines: 3,
         ),
         actions: [
@@ -346,8 +343,7 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
       if (!context.mounted) return;
       if (failure != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('AI error: ${failure.message}')),
+          SnackBar(content: Text('AI error: ${failure.message}')),
         );
       } else {
         Navigator.pop(context);
@@ -446,8 +442,7 @@ class _ActionButton extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.visible,
         softWrap: false,
-        style:
-            const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
       ),
     );
     if (isPrimary) {
@@ -496,23 +491,18 @@ class _ExportMainButton extends StatelessWidget {
 
     return FilledButton.icon(
       icon: Icon(
-        state.isExported
-            ? Icons.check_circle_rounded
-            : Icons.lock_rounded,
+        state.isExported ? Icons.check_circle_rounded : Icons.lock_rounded,
         size: 14,
       ),
       label: Text(
         label,
-        style:
-            const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
       ),
       style: FilledButton.styleFrom(
-        backgroundColor: state.isExported
-            ? scheme.primaryContainer
-            : scheme.primary,
-        foregroundColor: state.isExported
-            ? scheme.onPrimaryContainer
-            : scheme.onPrimary,
+        backgroundColor:
+            state.isExported ? scheme.primaryContainer : scheme.primary,
+        foregroundColor:
+            state.isExported ? scheme.onPrimaryContainer : scheme.onPrimary,
       ),
       onPressed: state.isBusy ? null : onTap,
     );
@@ -553,8 +543,7 @@ class _GradientProgress extends StatelessWidget {
 // ── Dual Version Toggle ───────────────────────────────────────────────────────
 
 class _DualVersionToggle extends StatelessWidget {
-  const _DualVersionToggle(
-      {required this.value, required this.onChanged});
+  const _DualVersionToggle({required this.value, required this.onChanged});
   final bool value;
   final ValueChanged<bool> onChanged;
 
@@ -563,8 +552,7 @@ class _DualVersionToggle extends StatelessWidget {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
     return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(10),
@@ -635,8 +623,7 @@ class _DropTile extends StatelessWidget {
           ),
         ),
         Text(sublabel,
-            style: TextStyle(
-                fontSize: 9, color: scheme.onSurfaceVariant)),
+            style: TextStyle(fontSize: 9, color: scheme.onSurfaceVariant)),
       ],
     );
   }

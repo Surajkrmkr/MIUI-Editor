@@ -7,6 +7,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/constants/asset_paths.dart';
 import '../../core/constants/path_constants.dart';
 import '../../core/errors/failures.dart';
+import '../../core/utils/font_utils.dart';
 import '../../domain/entities/element_widget.dart';
 import '../../presentation/common/widgets/gradient_text.dart';
 import '../../presentation/providers/element_provider.dart';
@@ -231,8 +232,8 @@ class ExportLockscreenPngsUseCase {
           end: el.gradEndAlign as Alignment,
           colors: [el.color, el.colorSecondary],
         ),
-        style: TextStyle(
-          fontFamily: el.font,
+        style: fontTextStyle(
+          font: el.font,
           fontSize: 35,
           height: 1,
           color: el.color,

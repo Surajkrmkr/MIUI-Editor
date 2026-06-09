@@ -16,7 +16,7 @@ class RightInspector extends ConsumerWidget {
     final page = ref.watch(workspaceProvider).page;
 
     return Container(
-      width: 450,
+      width: 400,
       decoration: BoxDecoration(
         color: colors.surfaceElevated,
         border: Border(left: BorderSide(color: colors.border)),
@@ -74,7 +74,7 @@ class RightInspector extends ConsumerWidget {
           children: [
             ElementInfoPanel(),
             SizedBox(height: 12),
-            LockscreenFunctionsPanel(),
+            LockscreenFunctionsPanel(hideTools: true),
           ],
         );
       default:

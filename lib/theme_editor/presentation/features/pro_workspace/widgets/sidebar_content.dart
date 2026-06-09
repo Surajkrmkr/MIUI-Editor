@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/theme_extensions.dart';
 import '../../../providers/workspace_provider.dart';
 import '../../lockscreen/widgets/element_list_panel.dart';
+import '../../lockscreen/widgets/lockscreen_functions_panel.dart';
 import '../../font_picker/font_list_panel.dart';
 import '../../icon_editor/icon_editor_panel.dart';
 import '../../home/widgets/icon_export_card.dart';
@@ -22,6 +23,7 @@ class SidebarContent extends ConsumerWidget {
 
     return Container(
       width: isLockscreen ? 560 : (isIcons ? 400 : 280),
+      height: double.infinity,
       decoration: BoxDecoration(
         color: colors.surface,
         border: Border(right: BorderSide(color: colors.border)),
@@ -62,11 +64,23 @@ class SidebarContent extends ConsumerWidget {
         return const Padding(
           padding: EdgeInsets.all(16),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(child: SingleChildScrollView(child: ElementListPanel())),
-              SizedBox(width: 20),
-              Expanded(child: SingleChildScrollView(child: FontListPanel())),
+              Expanded(
+                child: SingleChildScrollView(child: ElementListPanel()),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  children: [
+                    Expanded(child: FontListPanel()),
+                    SizedBox(height: 12),
+                    SingleChildScrollView(
+                      child: LockscreenFunctionsPanel(toolsOnly: true),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         );

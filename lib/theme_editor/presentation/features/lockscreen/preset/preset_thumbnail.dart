@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/font_utils.dart';
 import '../../../../core/constants/asset_paths.dart';
 import '../../../../domain/entities/element_widget.dart';
 import '../../../common/widgets/gradient_text.dart';
@@ -165,8 +166,8 @@ class _StaticElement extends StatelessWidget {
         end: el.gradEndAlign as Alignment,
         colors: [el.color, el.colorSecondary],
       ),
-      style: TextStyle(
-        fontFamily: el.font,
+      style: fontTextStyle(
+        font: el.font,
         fontSize: 35,
         height: 1,
         color: el.color,

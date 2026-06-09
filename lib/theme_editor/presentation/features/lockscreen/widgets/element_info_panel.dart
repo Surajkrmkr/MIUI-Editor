@@ -167,14 +167,26 @@ class ElementInfoPanel extends ConsumerWidget {
 
           _Section(
             title: el.type.isText ? 'FONT SIZE' : 'SCALE',
-            child: _SliderRow(
-              label: el.type.isText ? 'Font Size' : 'Scale',
-              value: el.type.isText ? el.fontSize : el.scale,
-              min: 0,
-              max: el.type.isText ? 100 : 4,
-              onChanged: (v) => el.type.isText
-                  ? n.setFontSize(el.type, v)
-                  : n.setScale(el.type, v),
+            child: Column(
+              children: [
+                _SliderRow(
+                  label: el.type.isText ? 'Font Size' : 'Scale',
+                  value: el.type.isText ? el.fontSize : el.scale,
+                  min: 0,
+                  max: el.type.isText ? 100 : 4,
+                  onChanged: (v) => el.type.isText
+                      ? n.setFontSize(el.type, v)
+                      : n.setScale(el.type, v),
+                ),
+                const SizedBox(height: 4),
+                _ScalePresets(
+                  isText: el.type.isText,
+                  value: el.type.isText ? el.fontSize : el.scale,
+                  onSelected: (v) => el.type.isText
+                      ? n.setFontSize(el.type, v)
+                      : n.setScale(el.type, v),
+                ),
+              ],
             ),
           ),
 
@@ -368,7 +380,7 @@ class _Section extends StatelessWidget {
 
 // ── Color Button ──────────────────────────────────────────────────────────────
 
-class _ColorBtn extends StatelessWidget {
+class _ColorBtn extends StatefulWidget {
   const _ColorBtn(
       {required this.color, required this.label, required this.onChanged});
   final Color color;
@@ -376,53 +388,131 @@ class _ColorBtn extends StatelessWidget {
   final ValueChanged<Color> onChanged;
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => ColorPicker(
-        color: color,
-        onColorChanged: onChanged,
-        enableOpacity: true,
-        showColorCode: true,
-        colorCodeHasColor: true,
-        copyPasteBehavior: const ColorPickerCopyPasteBehavior(
-          copyButton: true,
-          pasteButton: true,
-          longPressMenu: true,
-          copyFormat: ColorPickerCopyFormat.numHexAARRGGBB,
+  State<_ColorBtn> createState() => _ColorBtnState();
+}
+
+class _ColorBtnState extends State<_ColorBtn> {
+  static const _popupWidth = 300.0;
+  static const _popupMaxHeight = 420.0;
+
+  void _showPicker() {
+    final box = context.findRenderObject() as RenderBox;
+    final origin = box.localToGlobal(Offset.zero);
+    final btnSize = box.size;
+    final screen = MediaQuery.of(context).size;
+
+    // Prefer right of button, fall back to left
+    double left = origin.dx + btnSize.width + 10;
+    if (left + _popupWidth > screen.width - 8) {
+      left = origin.dx - _popupWidth - 10;
+    }
+    // Clamp vertically
+    double top = origin.dy;
+    if (top + _popupMaxHeight > screen.height - 8) {
+      top = screen.height - _popupMaxHeight - 8;
+    }
+
+    Color current = widget.color;
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss',
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 150),
+      transitionBuilder: (_, anim, __, child) => FadeTransition(
+        opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
+        child: ScaleTransition(
+          scale: Tween(begin: 0.92, end: 1.0)
+              .animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
+          alignment: Alignment.topLeft,
+          child: child,
         ),
-        pickersEnabled: const {
-          ColorPickerType.wheel: true,
-          ColorPickerType.primary: false,
-          ColorPickerType.accent: false,
-        },
-      ).showPickerDialog(context),
-      child: Container(
-        height: 46,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: context.appColors.border),
-          boxShadow: [
-            BoxShadow(
-              color: color.withAlpha(70),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
+      ),
+      pageBuilder: (ctx, _, __) => Stack(
+        children: [
+          Positioned(
+            left: left,
+            top: top,
+            child: StatefulBuilder(
+              builder: (ctx, setLocal) => Material(
+                elevation: 12,
+                shadowColor: Colors.black38,
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                color: Theme.of(context).colorScheme.surface,
+                child: Container(
+                  width: _popupWidth,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    border: Border.all(
+                      color: context.appColors.border,
+                    ),
+                  ),
+                  child: ColorPicker(
+                    color: current,
+                    onColorChanged: (c) {
+                      setLocal(() => current = c);
+                      widget.onChanged(c);
+                    },
+                    enableOpacity: true,
+                    showColorCode: true,
+                    colorCodeHasColor: true,
+                    copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+                      copyButton: true,
+                      pasteButton: true,
+                      longPressMenu: true,
+                      copyFormat: ColorPickerCopyFormat.numHexAARRGGBB,
+                    ),
+                    pickersEnabled: const {
+                      ColorPickerType.wheel: true,
+                      ColorPickerType.primary: false,
+                      ColorPickerType.accent: false,
+                    },
+                  ),
+                ),
+              ),
             ),
-          ],
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
-              shadows: [
-                Shadow(
-                    color: Colors.black54,
-                    offset: Offset(0, 1),
-                    blurRadius: 2),
-              ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: _showPicker,
+        child: Container(
+          height: 46,
+          decoration: BoxDecoration(
+            color: widget.color,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(color: context.appColors.border),
+            boxShadow: [
+              BoxShadow(
+                color: widget.color.withAlpha(70),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              widget.label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+                shadows: [
+                  Shadow(
+                      color: Colors.black54,
+                      offset: Offset(0, 1),
+                      blurRadius: 2),
+                ],
+              ),
             ),
           ),
         ),
@@ -469,6 +559,70 @@ class _AlignChip extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ── Scale Presets ─────────────────────────────────────────────────────────────
+
+class _ScalePresets extends StatelessWidget {
+  const _ScalePresets({
+    required this.isText,
+    required this.value,
+    required this.onSelected,
+  });
+
+  final bool isText;
+  final double value;
+  final ValueChanged<double> onSelected;
+
+  static const _scalePresets = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 3.5, 4.0];
+  static const _fontPresets = [8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0, 24.0, 28.0, 32.0, 36.0, 40.0, 48.0, 60.0, 72.0];
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+    final presets = isText ? _fontPresets : _scalePresets;
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        spacing: 4,
+        children: presets.map((preset) {
+        final selected = (value - preset).abs() < 0.01;
+        final label = isText
+            ? preset.toInt().toString()
+            : preset == preset.truncateToDouble()
+                ? '${preset.toInt()}×'
+                : '$preset×';
+        return GestureDetector(
+          onTap: () => onSelected(preset),
+          child: Container(
+            height: 22,
+            padding: const EdgeInsets.symmetric(horizontal: 7),
+            decoration: BoxDecoration(
+              color: selected ? colors.primary.withAlpha(25) : Colors.transparent,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: selected ? colors.primary.withAlpha(140) : colors.border,
+                width: 1,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+                  color: selected ? colors.primary : scheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ),
+        );
+        }).toList(),
       ),
     );
   }

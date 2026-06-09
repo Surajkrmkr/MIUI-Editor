@@ -6,6 +6,7 @@ import '../../../providers/wallpaper_provider.dart';
 import '../../../providers/element_provider.dart';
 import '../../../providers/icon_editor_provider.dart';
 import '../../../providers/export_provider.dart';
+import '../../../providers/lockscreen_provider.dart';
 
 class TopCommandBar extends ConsumerWidget {
   const TopCommandBar({super.key});
@@ -69,88 +70,133 @@ class TopCommandBar extends ConsumerWidget {
           ),
           const SizedBox(width: 4),
 
-          // Export button — lockscreen tab only
+          // Export action — lockscreen tab only
           Consumer(
             builder: (_, ref, __) {
               final page = ref.watch(workspaceProvider).page;
-              if (page != WorkspacePage.lockscreen)
-                return const SizedBox.shrink();
-              final exportState = ref.watch(exportProvider);
-              final colors = context.appColors;
-              final scheme = Theme.of(context).colorScheme;
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                margin: const EdgeInsets.only(right: 8),
-                decoration: BoxDecoration(
-                  color: exportState.isExported
-                      ? scheme.primaryContainer
-                      : exportState.isRunning
-                          ? colors.primary.withAlpha(180)
-                          : colors.primary,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(8),
-                    mouseCursor: exportState.isRunning
-                        ? SystemMouseCursors.wait
-                        : SystemMouseCursors.click,
-                    onTap: exportState.isRunning
-                        ? null
-                        : () => ref
-                            .read(exportProvider.notifier)
-                            .exportAll(context),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (exportState.isRunning)
-                            SizedBox(
-                              width: 12,
-                              height: 12,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 1.5,
-                                color: scheme.onPrimary,
-                              ),
-                            )
-                          else
-                            Icon(
-                              exportState.isExported
-                                  ? Icons.check_circle_rounded
-                                  : Icons.file_upload_outlined,
-                              size: 14,
-                              color: exportState.isExported
-                                  ? scheme.onPrimaryContainer
-                                  : scheme.onPrimary,
-                            ),
-                          const SizedBox(width: 6),
-                          Text(
-                            exportState.isRunning
-                                ? exportState.statusLabel
-                                : exportState.isExported
-                                    ? 'Exported'
+              if (page != WorkspacePage.lockscreen) return const SizedBox.shrink();
+              final ls = ref.watch(lockscreenProvider);
+              final icons = ref.watch(exportProvider);
+              final busy = ls.isBusy || icons.isRunning;
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _BarButton(
+                    label: icons.isRunning
+                        ? icons.statusLabel
+                        : ls.isExportingPngs
+                            ? ls.pngsLabel
+                            : ls.isExporting
+                                ? 'Exporting…'
+                                : ls.isExported
+                                    ? 'Re-Export'
                                     : 'Export',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: exportState.isExported
-                                  ? scheme.onPrimaryContainer
-                                  : scheme.onPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    icon: ls.isExported
+                        ? Icons.check_circle_rounded
+                        : Icons.file_upload_outlined,
+                    loading: busy,
+                    progress: ls.isExportingPngs ? ls.pngsProgress : null,
+                    filled: true,
+                    onTap: busy
+                        ? null
+                        : () async {
+                            // 1. Icons + module
+                            await ref
+                                .read(exportProvider.notifier)
+                                .exportAll(context);
+                            if (!context.mounted) return;
+                            // 2. Lockscreen + MTZ
+                            final failure = await ref
+                                .read(lockscreenProvider.notifier)
+                                .export(context);
+                            if (!context.mounted) return;
+                            if (failure != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Export failed: ${failure.message}')),
+                              );
+                            }
+                          },
                   ),
-                ),
+                  const SizedBox(width: 8),
+                ],
               );
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Bar Button ────────────────────────────────────────────────────────────────
+
+class _BarButton extends StatelessWidget {
+  const _BarButton({
+    required this.label,
+    required this.icon,
+    required this.loading,
+    required this.filled,
+    required this.onTap,
+    this.progress,
+  });
+  final String label;
+  final IconData icon;
+  final bool loading;
+  final bool filled;
+  final VoidCallback? onTap;
+  final double? progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final bg = filled ? scheme.primary : scheme.surfaceContainerHighest;
+    final fg = filled ? scheme.onPrimary : scheme.onSurfaceVariant;
+
+    return MouseRegion(
+      cursor: onTap == null ? SystemMouseCursors.basic : SystemMouseCursors.click,
+      child: Material(
+        color: bg,
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (loading)
+                  SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(strokeWidth: 1.5, color: fg),
+                  )
+                else
+                  Icon(icon, size: 14, color: fg),
+                const SizedBox(width: 5),
+                Text(
+                  label,
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: fg),
+                ),
+                if (progress != null) ...[
+                  const SizedBox(width: 6),
+                  SizedBox(
+                    width: 36,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(2),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 3,
+                        color: fg,
+                        backgroundColor: fg.withAlpha(40),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

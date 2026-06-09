@@ -15,7 +15,8 @@
       "Bash(xargs ls)",
       "Bash(grep -E \"\\\\.dart$\")",
       "Bash(xargs ls -la)",
-      "Bash(xargs cat)"
+      "Bash(xargs cat)",
+      "Bash(dart analyze *)"
     ]
   }
 }

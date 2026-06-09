@@ -79,7 +79,8 @@ class ModulePreview extends ConsumerWidget {
                         shape: IconShapeUtils.getBorder(
                           state.shape,
                           state.radius,
-                          scale: 0.8, // Slightly smaller radius for nested icons
+                          scale:
+                              0.8, // Slightly smaller radius for nested icons
                         ),
                       ),
                       child: const Icon(Icons.wifi_rounded,
@@ -102,7 +103,8 @@ class ModulePreview extends ConsumerWidget {
                           SizedBox(height: 2),
                           Text(
                             'Connected · Secure',
-                            style: TextStyle(color: Colors.white70, fontSize: 10),
+                            style:
+                                TextStyle(color: Colors.white70, fontSize: 10),
                           ),
                         ],
                       ),
@@ -136,12 +138,6 @@ class ModulePreview extends ConsumerWidget {
                   _QuickAction(
                     icon: Icons.person_rounded,
                     label: 'Contacts',
-                    color: accent,
-                    state: state,
-                  ),
-                  _QuickAction(
-                    icon: Icons.message_rounded,
-                    label: 'Messages',
                     color: accent,
                     state: state,
                   ),
