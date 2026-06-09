@@ -392,6 +392,8 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
         return "<Image name='hour' srcExp=\"'hour/hour_'+ int((#hour12)) +'.png'\" width='#sw' height='#sh'/>";
       case ElementType.minClock:
         return "<Image name='min' srcExp=\"'min/min_'+ int((#minute)) +'.png'\" width='#sw' height='#sh'/>";
+      case ElementType.secClock:
+        return "<Image name='sec' srcExp=\"'sec/sec_'+ int((#second)) +'.png'\" width='#sw' height='#sh'/>";
       case ElementType.dotClock:
         return "<Image name='dot' srcExp=\"'dot/dot.png'\" width='#sw' height='#sh'/>";
       case ElementType.weekClock:

@@ -9,6 +9,7 @@ import '../../../common/widgets/drop_zone.dart';
 import '../../../../core/constants/path_constants.dart';
 import '../../../providers/wallpaper_provider.dart';
 import '../../../providers/service_providers.dart';
+import '../../../providers/color_picker_provider.dart';
 
 class ElementInfoPanel extends ConsumerWidget {
   const ElementInfoPanel({super.key});
@@ -18,6 +19,7 @@ class ElementInfoPanel extends ConsumerWidget {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
     final state = ref.watch(elementProvider);
+    final pickerState = ref.watch(colorPickerStateProvider);
 
     if (state.elements.isEmpty || state.active == null) {
       return const SizedBox.shrink();
@@ -108,6 +110,7 @@ class ElementInfoPanel extends ConsumerWidget {
                       color: el.color,
                       label: 'Primary',
                       onChanged: (c) => n.setColor(el.type, c),
+                      colorTarget: ColorTarget.primary,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -116,6 +119,7 @@ class ElementInfoPanel extends ConsumerWidget {
                       color: el.colorSecondary,
                       label: 'Secondary',
                       onChanged: (c) => n.setColorSecondary(el.type, c),
+                      colorTarget: ColorTarget.secondary,
                     ),
                   ),
                 ],
@@ -154,7 +158,9 @@ class ElementInfoPanel extends ConsumerWidget {
                             child: _ColorBtn(
                               color: el.colorDigit1,
                               label: 'Digit 1',
-                              onChanged: (c) => n.setColorDigit1(el.type, c),
+                              onChanged: (c) =>
+                                  n.setColorDigit1(el.type, c),
+                              colorTarget: ColorTarget.digit1,
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -162,7 +168,9 @@ class ElementInfoPanel extends ConsumerWidget {
                             child: _ColorBtn(
                               color: el.colorDigit2,
                               label: 'Digit 2',
-                              onChanged: (c) => n.setColorDigit2(el.type, c),
+                              onChanged: (c) =>
+                                  n.setColorDigit2(el.type, c),
+                              colorTarget: ColorTarget.digit2,
                             ),
                           ),
                         ],
@@ -266,19 +274,11 @@ class ElementInfoPanel extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  ColorPicker(
+                  _ColorBtn(
                     color: el.borderColor,
-                    onColorChanged: (c) => n.setBorderColor(el.type, c),
-                    enableOpacity: true,
-                    showColorCode: true,
-                    colorCodeHasColor: true,
-                    copyPasteBehavior: const ColorPickerCopyPasteBehavior(
-                      copyButton: true,
-                      pasteButton: true,
-                      longPressMenu: true,
-                      copyFormat: ColorPickerCopyFormat.numHexAARRGGBB,
-                    ),
-                    pickersEnabled: const {ColorPickerType.wheel: true},
+                    label: 'Border',
+                    onChanged: (c) => n.setBorderColor(el.type, c),
+                    colorTarget: ColorTarget.border,
                   ),
                 ],
               ),
@@ -330,9 +330,89 @@ class ElementInfoPanel extends ConsumerWidget {
               onChanged: (v) => n.setAngle(el.type, v),
             ),
           ),
+          if (pickerState.type == el.type && pickerState.target != null)
+            _Section(
+              title: 'COLOR PICKER',
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () {
+                          ref.read(colorPickerStateProvider.notifier).state =
+                              const ColorPickerState();
+                        },
+                      ),
+                    ],
+                  ),
+                  ColorPicker(
+                    color: _getColorFromPickerState(el, pickerState),
+                    onColorChanged: (c) =>
+                        _onColorChangedFromPickerState(el, pickerState, n, c),
+                    enableOpacity: true,
+                    showColorCode: true,
+                    colorCodeHasColor: true,
+                    copyPasteBehavior:
+                        const ColorPickerCopyPasteBehavior(
+                      copyButton: true,
+                      pasteButton: true,
+                      longPressMenu: true,
+                      copyFormat: ColorPickerCopyFormat.numHexAARRGGBB,
+                    ),
+                    pickersEnabled: const {
+                      ColorPickerType.wheel: true,
+                      ColorPickerType.primary: false,
+                      ColorPickerType.accent: false,
+                    },
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
+  }
+
+  Color _getColorFromPickerState(LockElement el, ColorPickerState pickerState) {
+    switch (pickerState.target) {
+      case ColorTarget.primary:
+        return el.color;
+      case ColorTarget.secondary:
+        return el.colorSecondary;
+      case ColorTarget.digit1:
+        return el.colorDigit1;
+      case ColorTarget.digit2:
+        return el.colorDigit2;
+      case ColorTarget.border:
+        return el.borderColor;
+      case null:
+        return Colors.transparent;
+    }
+  }
+
+  void _onColorChangedFromPickerState(
+      LockElement el, ColorPickerState pickerState, ElementNotifier n, Color c) {
+    switch (pickerState.target) {
+      case ColorTarget.primary:
+        n.setColor(el.type, c);
+        break;
+      case ColorTarget.secondary:
+        n.setColorSecondary(el.type, c);
+        break;
+      case ColorTarget.digit1:
+        n.setColorDigit1(el.type, c);
+        break;
+      case ColorTarget.digit2:
+        n.setColorDigit2(el.type, c);
+        break;
+      case ColorTarget.border:
+        n.setBorderColor(el.type, c);
+        break;
+      case null:
+        break;
+    }
   }
 
   Future<void> _copyAsset(
@@ -344,7 +424,7 @@ class ElementInfoPanel extends ConsumerWidget {
     final ext = el.type.isVideo ? 'mp4' : 'png';
     final resolvedPath =
         el.path.isNotEmpty ? el.path : el.type.defaultPath;
-    final relative = resolvedPath.startsWith(r'\')
+    final relative = resolvedPath.startsWith(r'')
         ? resolvedPath.substring(1)
         : resolvedPath;
     final dest = PathConstants.p('$lsAdv$relative.$ext');
@@ -411,120 +491,36 @@ class _Section extends StatelessWidget {
 
 // ── Color Button ──────────────────────────────────────────────────────────────
 
-class _ColorBtn extends StatefulWidget {
+class _ColorBtn extends ConsumerWidget {
   const _ColorBtn(
-      {required this.color, required this.label, required this.onChanged});
+      {required this.color,
+      required this.label,
+      required this.onChanged,
+      required this.colorTarget});
   final Color color;
   final String label;
   final ValueChanged<Color> onChanged;
+  final ColorTarget colorTarget;
 
   @override
-  State<_ColorBtn> createState() => _ColorBtnState();
-}
-
-class _ColorBtnState extends State<_ColorBtn> {
-  static const _popupWidth = 300.0;
-  static const _popupMaxHeight = 420.0;
-
-  void _showPicker() {
-    final box = context.findRenderObject() as RenderBox;
-    final origin = box.localToGlobal(Offset.zero);
-    final btnSize = box.size;
-    final screen = MediaQuery.of(context).size;
-
-    // Prefer right of button, fall back to left
-    double left = origin.dx + btnSize.width + 10;
-    if (left + _popupWidth > screen.width - 8) {
-      left = origin.dx - _popupWidth - 10;
-    }
-    // Clamp vertically
-    double top = origin.dy;
-    if (top + _popupMaxHeight > screen.height - 8) {
-      top = screen.height - _popupMaxHeight - 8;
-    }
-
-    Color current = widget.color;
-
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: 'Dismiss',
-      barrierColor: Colors.transparent,
-      transitionDuration: const Duration(milliseconds: 150),
-      transitionBuilder: (_, anim, __, child) => FadeTransition(
-        opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
-        child: ScaleTransition(
-          scale: Tween(begin: 0.92, end: 1.0)
-              .animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
-          alignment: Alignment.topLeft,
-          child: child,
-        ),
-      ),
-      pageBuilder: (ctx, _, __) => Stack(
-        children: [
-          Positioned(
-            left: left,
-            top: top,
-            child: StatefulBuilder(
-              builder: (ctx, setLocal) => Material(
-                elevation: 12,
-                shadowColor: Colors.black38,
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-                color: Theme.of(context).colorScheme.surface,
-                child: Container(
-                  width: _popupWidth,
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                    border: Border.all(
-                      color: context.appColors.border,
-                    ),
-                  ),
-                  child: ColorPicker(
-                    color: current,
-                    onColorChanged: (c) {
-                      setLocal(() => current = c);
-                      widget.onChanged(c);
-                    },
-                    enableOpacity: true,
-                    showColorCode: true,
-                    colorCodeHasColor: true,
-                    copyPasteBehavior: const ColorPickerCopyPasteBehavior(
-                      copyButton: true,
-                      pasteButton: true,
-                      longPressMenu: true,
-                      copyFormat: ColorPickerCopyFormat.numHexAARRGGBB,
-                    ),
-                    pickersEnabled: const {
-                      ColorPickerType.wheel: true,
-                      ColorPickerType.primary: false,
-                      ColorPickerType.accent: false,
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final el = ref.watch(elementProvider).active!;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
-        onTap: _showPicker,
+        onTap: () {
+          ref.read(colorPickerStateProvider.notifier).state =
+              ColorPickerState(type: el.type, target: colorTarget);
+        },
         child: Container(
           height: 46,
           decoration: BoxDecoration(
-            color: widget.color,
+            color: color,
             borderRadius: BorderRadius.circular(AppRadius.md),
             border: Border.all(color: context.appColors.border),
             boxShadow: [
               BoxShadow(
-                color: widget.color.withAlpha(70),
+                color: color.withAlpha(70),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
               ),
@@ -532,7 +528,7 @@ class _ColorBtnState extends State<_ColorBtn> {
           ),
           child: Center(
             child: Text(
-              widget.label,
+              label,
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,

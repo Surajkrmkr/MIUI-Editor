@@ -321,6 +321,7 @@ class _AiUpscalerScreenState extends ConsumerState<AiUpscalerScreen> {
   Widget _buildActionPanel(BuildContext context, UpscalerState state, UpscalerNotifier notifier) {
     final colors = context.appColors;
     final primary = Theme.of(context).colorScheme.primary;
+    final isDone = !state.isProcessing && (state.outputPath != null || (state.queue.isNotEmpty && state.completedTasks == state.totalTasks));
 
     return GlassCard(
       padding: const EdgeInsets.all(20),
@@ -350,6 +351,14 @@ class _AiUpscalerScreenState extends ConsumerState<AiUpscalerScreen> {
                borderRadius: BorderRadius.circular(10),
                minHeight: 6,
              )
+          else if (isDone)
+            _buildPipelineButton(
+              context: context,
+              label: 'PROCESS ANOTHER',
+              icon: Icons.replay_rounded,
+              color: primary,
+              onPressed: () => notifier.clear(),
+            )
           else
             _buildPipelineButton(
               context: context,
@@ -377,6 +386,7 @@ class _AiUpscalerScreenState extends ConsumerState<AiUpscalerScreen> {
 
   Widget _buildPreviewArea(BuildContext context, UpscalerState state) {
     final colors = context.appColors;
+    final notifier = ref.read(upscalerProvider.notifier);
 
     return GlassCard(
       child: Stack(
@@ -388,21 +398,34 @@ class _AiUpscalerScreenState extends ConsumerState<AiUpscalerScreen> {
               afterImagePath: state.outputPath!,
             )
           else if (state.inputPath != null)
-             Center(
-               child: Padding(
-                 padding: const EdgeInsets.all(32),
-                 child: ClipRRect(
-                   borderRadius: BorderRadius.circular(16),
-                   child: Image.file(
-                     File(state.inputPath!),
-                     fit: BoxFit.contain,
+             Stack(
+               children: [
+                 Center(
+                   child: Padding(
+                     padding: const EdgeInsets.all(32),
+                     child: ClipRRect(
+                       borderRadius: BorderRadius.circular(16),
+                       child: Image.file(
+                         File(state.inputPath!),
+                         fit: BoxFit.contain,
+                       ),
+                     ),
                    ),
                  ),
-               ),
+                 Positioned(
+                   top: 20,
+                   right: 20,
+                   child: AppIconButton(
+                     icon: Icons.close_rounded,
+                     onPressed: () => notifier.setInputPath(null),
+                     tooltip: 'Clear Image',
+                   ),
+                 ),
+               ],
              )
           else 
             Center(child: Icon(Icons.image_search_rounded, size: 64, color: colors.textDisabled.withValues(alpha: 0.2))),
-          
+
           if (state.isProcessing || state.logs.isNotEmpty)
             Positioned(
               left: 20,
