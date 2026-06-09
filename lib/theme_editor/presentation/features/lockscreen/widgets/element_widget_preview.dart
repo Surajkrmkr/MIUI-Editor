@@ -271,6 +271,7 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
     final txt = switch (el.type) {
       ElementType.hourClock => '02',
       ElementType.minClock => '36',
+      ElementType.secClock => '55',
       ElementType.dotClock => ':',
       ElementType.amPmClock => 'AM',
       ElementType.weekClock => el.isShort ? 'Wed' : 'Wednesday',
@@ -278,6 +279,39 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
       ElementType.dateClock => '08',
       _ => '',
     };
+
+    if (el.useSeparateColors &&
+        (el.type == ElementType.hourClock || el.type == ElementType.minClock || el.type == ElementType.secClock) &&
+        txt.length == 2) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GradientText(
+            txt[0],
+            gradient: LinearGradient(
+              begin: el.gradStartAlign as Alignment,
+              end: el.gradEndAlign as Alignment,
+              colors: [el.colorDigit1, el.colorDigit1],
+              stops: const [0.0, 1.0],
+            ),
+            style: TextStyle(
+                fontFamily: el.font, fontSize: 35, height: 1, color: el.colorDigit1),
+          ),
+          GradientText(
+            txt[1],
+            gradient: LinearGradient(
+              begin: el.gradStartAlign as Alignment,
+              end: el.gradEndAlign as Alignment,
+              colors: [el.colorDigit2, el.colorDigit2],
+              stops: const [0.0, 1.0],
+            ),
+            style: TextStyle(
+                fontFamily: el.font, fontSize: 35, height: 1, color: el.colorDigit2),
+          ),
+        ],
+      );
+    }
+
     return GradientText(
       txt,
       gradient: LinearGradient(

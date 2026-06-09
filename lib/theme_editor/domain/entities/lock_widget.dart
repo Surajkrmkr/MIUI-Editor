@@ -220,8 +220,8 @@ final List<LockWidget> kPresetWidgets = [
         dx: 280, dy: -460,
         color: Color(0xFFE0E0E0),
       ),
-      LockElement(type: ElementType.hourClock, dx: 180, dy: -490, fontSize: 60, color: Colors.black, fontWeight: FontWeight.w300),
-      LockElement(type: ElementType.minClock, dx: 380, dy: -490, fontSize: 60, color: Colors.black, fontWeight: FontWeight.w300),
+      LockElement(type: ElementType.hourClock, dx: 180, dy: -490, fontSize: 60, color: Colors.black, colorSecondary: Colors.black, fontWeight: FontWeight.w300),
+      LockElement(type: ElementType.minClock, dx: 380, dy: -490, fontSize: 60, color: Colors.black, colorSecondary: Colors.black, fontWeight: FontWeight.w300),
       LockElement(type: ElementType.dateClock, dx: 280, dy: -420, fontSize: 24, color: Colors.black54),
 
       // ── WEATHER (Middle Right) ─────────────────────────────────────────────

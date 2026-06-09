@@ -34,7 +34,6 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
       ..loadPreviewWalls('1');
     ref.read(tagProvider.notifier).load();
     ref.read(fontListProvider);
-    ref.read(iconEditorProvider.notifier).loadIconAssets();
   }
 
   @override

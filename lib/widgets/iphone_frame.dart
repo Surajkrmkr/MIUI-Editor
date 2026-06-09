@@ -52,19 +52,6 @@ class IPhoneFrame extends StatelessWidget {
                   ],
                   stops: [0.0, 0.55, 1.0],
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(160),
-                    blurRadius: 45,
-                    offset: const Offset(0, 20),
-                    spreadRadius: 2,
-                  ),
-                  BoxShadow(
-                    color: Colors.white.withAlpha(14),
-                    blurRadius: 1,
-                    offset: const Offset(-1, -1),
-                  ),
-                ],
               ),
             ),
           ),
@@ -93,13 +80,6 @@ class IPhoneFrame extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.black,
                   borderRadius: BorderRadius.circular(_diHeight / 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withAlpha(120),
-                      blurRadius: 14,
-                      spreadRadius: 3,
-                    ),
-                  ],
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,

@@ -175,6 +175,7 @@ class SVGGenerator {
     return switch (type) {
       ElementType.hourClock => '02',
       ElementType.minClock => '36',
+      ElementType.secClock => '55',
       ElementType.dotClock => ':',
       ElementType.amPmClock => 'AM',
       ElementType.weekClock => isShort ? 'Wed' : 'Wednesday',

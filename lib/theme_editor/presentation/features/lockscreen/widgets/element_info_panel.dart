@@ -138,6 +138,37 @@ class ElementInfoPanel extends ConsumerWidget {
                     value: el.isWrap,
                     onChanged: (v) => n.setIsWrap(el.type, v),
                   ),
+                  if (el.type == ElementType.hourClock ||
+                      el.type == ElementType.minClock || el.type == ElementType.secClock) ...[
+                    const SizedBox(height: 6),
+                    _ToggleRow(
+                      label: 'Separate Digit Colors',
+                      value: el.useSeparateColors,
+                      onChanged: (v) => n.setUseSeparateColors(el.type, v),
+                    ),
+                    if (el.useSeparateColors) ...[
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _ColorBtn(
+                              color: el.colorDigit1,
+                              label: 'Digit 1',
+                              onChanged: (c) => n.setColorDigit1(el.type, c),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _ColorBtn(
+                              color: el.colorDigit2,
+                              label: 'Digit 2',
+                              onChanged: (c) => n.setColorDigit2(el.type, c),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
                 ],
               ),
             ),
@@ -687,21 +718,9 @@ class _SliderRow extends StatelessWidget {
                 color: scheme.onSurfaceVariant,
               ),
             ),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-              decoration: BoxDecoration(
-                color: scheme.primaryContainer,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                value.toStringAsFixed(2),
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: scheme.onPrimaryContainer,
-                ),
-              ),
+            _EditableValue(
+              value: value,
+              onChanged: onChanged,
             ),
           ],
         ),
@@ -716,6 +735,96 @@ class _SliderRow extends StatelessWidget {
     );
   }
 }
+
+class _EditableValue extends StatefulWidget {
+  const _EditableValue({required this.value, required this.onChanged});
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  @override
+  State<_EditableValue> createState() => _EditableValueState();
+}
+
+class _EditableValueState extends State<_EditableValue> {
+  late final TextEditingController _controller;
+  bool _isEditing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.value.toStringAsFixed(2));
+  }
+
+  @override
+  void didUpdateWidget(covariant _EditableValue oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.value != oldWidget.value && !_isEditing) {
+      _controller.text = widget.value.toStringAsFixed(2);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return SizedBox(
+      width: 60,
+      height: 24,
+      child: _isEditing
+          ? TextField(
+              controller: _controller,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: scheme.onPrimaryContainer,
+              ),
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.all(0),
+                filled: true,
+                fillColor: scheme.primaryContainer,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              onSubmitted: (value) {
+                final newValue = double.tryParse(value);
+                if (newValue != null) {
+                  widget.onChanged(newValue.clamp(0, 300));
+                }
+                setState(() => _isEditing = false);
+              },
+            )
+          : GestureDetector(
+              onTap: () => setState(() => _isEditing = true),
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  widget.value.toStringAsFixed(2),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: scheme.onPrimaryContainer,
+                  ),
+                ),
+              ),
+            ),
+    );
+  }
+}
+
 
 // ── Num Field ─────────────────────────────────────────────────────────────────
 

@@ -166,7 +166,7 @@ class ElementListPanel extends ConsumerWidget {
                                 colorSecondary: type ==
                                         ElementType.notification
                                     ? colors.primary.withAlpha(60)
-                                    : colors.textPrimary,
+                                    : Colors.white,
                               ));
                             } else {
                               notifier.remove(type);
