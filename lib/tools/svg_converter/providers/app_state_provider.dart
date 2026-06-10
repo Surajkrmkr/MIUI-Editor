@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:archive/archive_io.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import '../models/conversion_task.dart';
@@ -136,12 +137,26 @@ class AppStateNotifier extends Notifier<AppState> {
             filterSpeckle: settings.filterSpeckle,
           );
 
-          final outputFile = File(task.outputPath);
+          // Compress to ZIP
+          final svgFile = File(task.outputPath);
+          final zipPath = p.setExtension(task.outputPath, '.zip');
+          final encoder = ZipFileEncoder();
+          encoder.create(zipPath);
+          await encoder.addFile(svgFile);
+          encoder.close();
+
+          // Delete the original SVG
+          if (await svgFile.exists()) {
+            await svgFile.delete();
+          }
+
+          final outputFile = File(zipPath);
           final sizeAfter = await outputFile.exists() ? await outputFile.length() : 0;
 
           stopwatch.stop();
           _updateTask(index, task.copyWith(
             status: TaskStatus.success,
+            outputPath: zipPath,
             fileSizeBefore: sizeBefore,
             fileSizeAfter: sizeAfter,
             duration: stopwatch.elapsed,
