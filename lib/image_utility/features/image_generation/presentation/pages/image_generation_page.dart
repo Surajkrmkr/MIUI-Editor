@@ -151,7 +151,9 @@ class _ImageGenerationPageState extends ConsumerState<ImageGenerationPage> {
                       Text(g.displayName),
                       if (!g.isConfigured) ...[
                         const SizedBox(width: 4),
-                        Icon(Icons.lock, size: 14, color: Theme.of(context).colorScheme.tertiary),
+                        Icon(Icons.lock,
+                            size: 14,
+                            color: Theme.of(context).colorScheme.tertiary),
                       ],
                     ],
                   ),
@@ -412,27 +414,27 @@ class _SuccessBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final success = context.appColors.success;
     return Card(
-        color: success.withAlpha(30),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(children: [
-            Icon(Icons.check_circle, color: success),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Saved successfully!',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: success)),
-                  Text(path.split('/').last,
-                      style: const TextStyle(fontSize: 12)),
-                ],
-              ),
+      color: success.withAlpha(30),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(children: [
+          Icon(Icons.check_circle, color: success),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Saved successfully!',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, color: success)),
+                Text(path.split('/').last,
+                    style: const TextStyle(fontSize: 12)),
+              ],
             ),
-          ]),
-        ),
-      );
+          ),
+        ]),
+      ),
+    );
   }
 }
 
@@ -448,7 +450,7 @@ class _PhoneFrame extends StatelessWidget {
           maxWidth: MediaQuery.of(context).size.width * 0.55,
         ),
         child: AspectRatio(
-          aspectRatio: 6 / 13,
+          aspectRatio: 3 / 5,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: Container(

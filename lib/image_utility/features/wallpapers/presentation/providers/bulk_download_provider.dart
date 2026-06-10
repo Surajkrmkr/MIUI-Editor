@@ -27,15 +27,19 @@ class BulkDownloadState {
   final int batchSize;
   final bool aiNamingEnabled;
   final bool autoRetryEnabled;
-  // Last search criteria — reused by replaceWallpaper so replacements match the query.
   final String? lastQuery;
   final String? lastSourceId;
   final String? lastOrientation;
   final String? lastColor;
   final List<Wallpaper> wallpapers;
-  final Set<int> replacingIndices;
+  final Set<String> selectedWallpaperIds;
   final bool isFetching;
   final String? fetchError;
+  // Pagination
+  final int currentPage;
+  final bool isLoadingMore;
+  final bool hasMorePages;
+  // Processing
   final int processingIndex;
   final List<BulkProcessResult> results;
   final String? processingStatus;
@@ -51,9 +55,12 @@ class BulkDownloadState {
     this.lastOrientation,
     this.lastColor,
     this.wallpapers = const [],
-    this.replacingIndices = const {},
+    this.selectedWallpaperIds = const {},
     this.isFetching = false,
     this.fetchError,
+    this.currentPage = 1,
+    this.isLoadingMore = false,
+    this.hasMorePages = true,
     this.processingIndex = -1,
     this.results = const [],
     this.processingStatus,
@@ -62,6 +69,8 @@ class BulkDownloadState {
 
   bool get isComplete => step == BulkDownloadStep.complete;
   int get failedCount => results.where((r) => !r.success).length;
+  List<Wallpaper> get selectedWallpapers =>
+      wallpapers.where((w) => selectedWallpaperIds.contains(w.id)).toList();
 
   BulkDownloadState copyWith({
     BulkDownloadStep? step,
@@ -73,10 +82,13 @@ class BulkDownloadState {
     String? lastOrientation,
     String? lastColor,
     List<Wallpaper>? wallpapers,
-    Set<int>? replacingIndices,
+    Set<String>? selectedWallpaperIds,
     bool? isFetching,
     String? fetchError,
     bool clearFetchError = false,
+    int? currentPage,
+    bool? isLoadingMore,
+    bool? hasMorePages,
     int? processingIndex,
     List<BulkProcessResult>? results,
     String? processingStatus,
@@ -94,9 +106,12 @@ class BulkDownloadState {
       lastOrientation: lastOrientation ?? this.lastOrientation,
       lastColor: lastColor ?? this.lastColor,
       wallpapers: wallpapers ?? this.wallpapers,
-      replacingIndices: replacingIndices ?? this.replacingIndices,
+      selectedWallpaperIds: selectedWallpaperIds ?? this.selectedWallpaperIds,
       isFetching: isFetching ?? this.isFetching,
       fetchError: clearFetchError ? null : fetchError ?? this.fetchError,
+      currentPage: currentPage ?? this.currentPage,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      hasMorePages: hasMorePages ?? this.hasMorePages,
       processingIndex: processingIndex ?? this.processingIndex,
       results: results ?? this.results,
       processingStatus: clearProcessingStatus
@@ -114,18 +129,19 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
 
   final Ref ref;
   final ImageSourceRegistry _registry = ImageSourceRegistry();
-  final List<Wallpaper> _reservoir = [];
 
-  void setBatchSize(int size) {
-    state = state.copyWith(batchSize: size);
-  }
+  void setBatchSize(int size) => state = state.copyWith(batchSize: size);
+  void setAiNaming(bool v) => state = state.copyWith(aiNamingEnabled: v);
+  void setAutoRetry(bool v) => state = state.copyWith(autoRetryEnabled: v);
 
-  void setAiNaming(bool enabled) {
-    state = state.copyWith(aiNamingEnabled: enabled);
-  }
-
-  void setAutoRetry(bool enabled) {
-    state = state.copyWith(autoRetryEnabled: enabled);
+  void toggleSelection(String id) {
+    final updated = Set<String>.from(state.selectedWallpaperIds);
+    if (updated.contains(id)) {
+      updated.remove(id);
+    } else {
+      updated.add(id);
+    }
+    state = state.copyWith(selectedWallpaperIds: updated);
   }
 
   Future<void> _ensureRegistryInitialized() async {
@@ -144,20 +160,17 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
     String? color,
   }) async {
     state = state.copyWith(isFetching: true, clearFetchError: true);
-    _reservoir.clear();
 
     try {
       await _ensureRegistryInitialized();
-
-      final batchSize = state.batchSize;
-      final fetchCount = batchSize + 15; // fetch extra to fill reservoir
 
       final fetched = await _fetchFromSources(
         query: query,
         sourceId: sourceId,
         orientation: orientation,
         color: color,
-        perPage: fetchCount,
+        perPage: state.batchSize,
+        page: 1,
       );
 
       if (fetched.isEmpty) {
@@ -169,15 +182,15 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
       }
 
       fetched.shuffle();
-      final displayed = fetched.take(batchSize).toList();
-      _reservoir.addAll(fetched.skip(batchSize));
 
       state = state.copyWith(
         step: BulkDownloadStep.selection,
-        wallpapers: displayed,
+        wallpapers: fetched,
+        selectedWallpaperIds: {},
         isFetching: false,
-        replacingIndices: {},
-        // Persist criteria so replaceWallpaper refetches from the same query.
+        currentPage: 1,
+        hasMorePages: fetched.length >= state.batchSize,
+        isLoadingMore: false,
         lastQuery: query,
         lastSourceId: sourceId,
         lastOrientation: orientation,
@@ -191,57 +204,49 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
     }
   }
 
-  Future<void> replaceWallpaper(int index) async {
-    if (index < 0 || index >= state.wallpapers.length) return;
-    if (state.replacingIndices.contains(index)) return;
+  Future<void> loadMoreWallpapers() async {
+    if (state.isLoadingMore || !state.hasMorePages) return;
+    if (state.step != BulkDownloadStep.selection) return;
 
-    state = state.copyWith(
-      replacingIndices: {...state.replacingIndices, index},
-    );
+    state = state.copyWith(isLoadingMore: true);
 
     try {
-      Wallpaper? replacement;
+      await _ensureRegistryInitialized();
+      final nextPage = state.currentPage + 1;
 
-      if (_reservoir.isNotEmpty) {
-        replacement = _reservoir.removeAt(0);
-      } else {
-        // Fetch more using the same criteria as the original search.
-        await _ensureRegistryInitialized();
-        final more = await _fetchFromSources(
-          query: state.lastQuery,
-          sourceId: state.lastSourceId,
-          orientation: state.lastOrientation,
-          color: state.lastColor,
-          perPage: 20,
-        );
-        more.shuffle();
-        if (more.isNotEmpty) {
-          replacement = more.first;
-          _reservoir.addAll(more.skip(1));
-        }
-      }
-
-      if (replacement != null) {
-        final updated = List<Wallpaper>.from(state.wallpapers);
-        updated[index] = replacement;
-        state = state.copyWith(
-          wallpapers: updated,
-          replacingIndices: Set.from(state.replacingIndices)..remove(index),
-        );
-      } else {
-        state = state.copyWith(
-          replacingIndices: Set.from(state.replacingIndices)..remove(index),
-        );
-      }
-    } catch (_) {
-      state = state.copyWith(
-        replacingIndices: Set.from(state.replacingIndices)..remove(index),
+      final fetched = await _fetchFromSources(
+        query: state.lastQuery,
+        sourceId: state.lastSourceId,
+        orientation: state.lastOrientation,
+        color: state.lastColor,
+        perPage: state.batchSize,
+        page: nextPage,
       );
+
+      if (fetched.isEmpty) {
+        state = state.copyWith(isLoadingMore: false, hasMorePages: false);
+        return;
+      }
+
+      // De-duplicate against existing list.
+      final existingIds = state.wallpapers.map((w) => w.id).toSet();
+      final fresh =
+          fetched.where((w) => !existingIds.contains(w.id)).toList();
+
+      state = state.copyWith(
+        wallpapers: [...state.wallpapers, ...fresh],
+        currentPage: nextPage,
+        isLoadingMore: false,
+        hasMorePages: fresh.isNotEmpty,
+      );
+    } catch (_) {
+      state = state.copyWith(isLoadingMore: false);
     }
   }
 
   Future<void> startProcessing() async {
-    if (state.wallpapers.isEmpty) return;
+    final wallpapers = state.selectedWallpapers;
+    if (wallpapers.isEmpty) return;
 
     state = state.copyWith(
       step: BulkDownloadStep.processing,
@@ -260,12 +265,10 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
       error: (e, _) => throw e,
     );
 
-    final wallpapers = List<Wallpaper>.from(state.wallpapers);
     final results = <BulkProcessResult>[];
-
     final aiNaming = state.aiNamingEnabled;
+
     for (int i = 0; i < wallpapers.length; i++) {
-      // Minimum gap between downloads to avoid hitting rate limits.
       if (i > 0) await Future.delayed(const Duration(milliseconds: 800));
 
       final wallpaper = wallpapers[i];
@@ -296,7 +299,6 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
       state = state.copyWith(results: List.from(results));
     }
 
-    // Auto-retry failed items if enabled
     if (state.autoRetryEnabled) {
       const maxAutoRetries = 3;
       for (int attempt = 1; attempt <= maxAutoRetries; attempt++) {
@@ -307,8 +309,8 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
           if (i > 0) await Future.delayed(const Duration(milliseconds: 800));
 
           final failed = failedItems[i];
-          final resultIndex =
-              results.indexWhere((r) => r.wallpaper.id == failed.wallpaper.id);
+          final resultIndex = results
+              .indexWhere((r) => r.wallpaper.id == failed.wallpaper.id);
 
           state = state.copyWith(
             processingIndex: i,
@@ -430,10 +432,7 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
     state = state.copyWith(results: updated);
   }
 
-  void reset() {
-    _reservoir.clear();
-    state = const BulkDownloadState();
-  }
+  void reset() => state = const BulkDownloadState();
 
   Future<List<Wallpaper>> _fetchFromSources({
     String? query,
@@ -441,9 +440,10 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
     String? orientation,
     String? color,
     int perPage = 20,
+    int page = 1,
   }) async {
     final params = SearchParams(
-      page: 1,
+      page: page,
       perPage: perPage,
       orientation: orientation,
       color: color,
@@ -454,7 +454,6 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
       if (provider == null) {
         throw Exception('Provider not configured: $sourceId');
       }
-
       return query != null && query.isNotEmpty
           ? await provider.searchImages(query: query, params: params)
           : await provider.getCuratedImages(params: params);
@@ -479,6 +478,6 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
 }
 
 final bulkDownloadProvider =
-    StateNotifierProvider.autoDispose<BulkDownloadNotifier, BulkDownloadState>(
+    StateNotifierProvider<BulkDownloadNotifier, BulkDownloadState>(
   (ref) => BulkDownloadNotifier(ref),
 );

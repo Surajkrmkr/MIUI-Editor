@@ -13,7 +13,7 @@ class DeploymentService {
     final controller = StreamController<String>();
 
     Process.start(
-      'python3',
+      '/Library/Frameworks/Python.framework/Versions/3.12/bin/python3',
       [
         '${config.scriptsDir}/script_main.py',
         '--base-path', config.basePath,

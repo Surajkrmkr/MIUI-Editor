@@ -8,9 +8,7 @@ import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/domain/entities/wallpaper.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/providers/bulk_download_provider.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/providers/wallpaper_providers.dart';
-import 'package:miui_icon_generator/theme_editor/core/constants/app_constants.dart';
 import 'package:miui_icon_generator/widgets/app_icon_button.dart';
-import 'package:miui_icon_generator/widgets/iphone_frame.dart';
 
 class BulkDownloadPage extends ConsumerStatefulWidget {
   const BulkDownloadPage({super.key});
@@ -39,7 +37,12 @@ class _BulkDownloadPageState extends ConsumerState<BulkDownloadPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _showCriteriaDialog());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Only show criteria dialog when there is no cached selection to restore.
+      if (ref.read(bulkDownloadProvider).step == BulkDownloadStep.criteria) {
+        _showCriteriaDialog();
+      }
+    });
   }
 
   Future<void> _showCriteriaDialog() async {
@@ -53,7 +56,6 @@ class _BulkDownloadPageState extends ConsumerState<BulkDownloadPage> {
       ),
     );
     if (!mounted) return;
-    // If user dismissed without fetching, go back
     if (ref.read(bulkDownloadProvider).step == BulkDownloadStep.criteria) {
       context.pop();
     }
@@ -122,7 +124,9 @@ class _BulkDownloadPageState extends ConsumerState<BulkDownloadPage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('Exit', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            child: Text('Exit',
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
         ],
       ),
@@ -136,16 +140,19 @@ class _BulkDownloadPageState extends ConsumerState<BulkDownloadPage> {
   Widget _bodyForStep(BuildContext context, BulkDownloadState state) {
     switch (state.step) {
       case BulkDownloadStep.criteria:
-        // Criteria is shown as a dialog via initState / _handleBack
         return const SizedBox.shrink();
       case BulkDownloadStep.selection:
         return _SelectionStep(
           wallpapers: state.wallpapers,
-          replacingIndices: state.replacingIndices,
-          onReplace: (i) =>
-              ref.read(bulkDownloadProvider.notifier).replaceWallpaper(i),
+          selectedWallpaperIds: state.selectedWallpaperIds,
+          isLoadingMore: state.isLoadingMore,
+          hasMorePages: state.hasMorePages,
+          onToggle: (id) =>
+              ref.read(bulkDownloadProvider.notifier).toggleSelection(id),
           onProceed: () =>
               ref.read(bulkDownloadProvider.notifier).startProcessing(),
+          onLoadMore: () =>
+              ref.read(bulkDownloadProvider.notifier).loadMoreWallpapers(),
         );
       case BulkDownloadStep.processing:
         return _ProcessingStep(state: state);
@@ -205,7 +212,6 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
           orientation: _selectedOrientation,
           color: _selectedColor,
         );
-    // Close dialog once step has moved past criteria
     if (mounted &&
         ref.read(bulkDownloadProvider).step != BulkDownloadStep.criteria) {
       Navigator.of(context).pop();
@@ -213,9 +219,7 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
   }
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     final state = ref.watch(bulkDownloadProvider);
     final sourcesAsync = ref.watch(availableSourcesProvider);
     final scheme = Theme.of(context).colorScheme;
@@ -231,18 +235,17 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── Header ──────────────────────────────────────────────────
             Container(
               padding: const EdgeInsets.fromLTRB(24, 20, 16, 16),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
+                color: scheme.primaryContainer,
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(20)),
               ),
               child: Row(
                 children: [
                   Icon(Icons.collections_bookmark,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer),
+                      color: scheme.onPrimaryContainer),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -253,18 +256,14 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                           style:
                               Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onPrimaryContainer,
+                                    color: scheme.onPrimaryContainer,
                                   ),
                         ),
                         Text(
                           'Set criteria to fetch wallpapers',
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onPrimaryContainer
+                                    color: scheme.onPrimaryContainer
                                         .withValues(alpha: 0.7),
                                   ),
                         ),
@@ -279,14 +278,12 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
               ),
             ),
 
-            // ── Form body ────────────────────────────────────────────────
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Count picker
                     Row(
                       children: [
                         Text(
@@ -337,11 +334,11 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                     const SizedBox(height: 4),
                     Text(
                       'All fields are optional',
-                      style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
+                      style: TextStyle(
+                          color: scheme.onSurfaceVariant, fontSize: 12),
                     ),
                     const SizedBox(height: 16),
 
-                    // Query
                     TextField(
                       controller: _queryController,
                       enabled: !isFetching,
@@ -353,7 +350,6 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Source
                     sourcesAsync.when(
                       data: (sources) => DropdownButtonFormField<String>(
                         initialValue: _selectedSource,
@@ -381,7 +377,6 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Orientation
                     DropdownButtonFormField<String>(
                       initialValue: _selectedOrientation,
                       decoration: const InputDecoration(
@@ -395,17 +390,18 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                         ...widget.orientations.map(
                           (o) => DropdownMenuItem(
                             value: o,
-                            child: Text(o[0].toUpperCase() + o.substring(1)),
+                            child:
+                                Text(o[0].toUpperCase() + o.substring(1)),
                           ),
                         ),
                       ],
                       onChanged: isFetching
                           ? null
-                          : (v) => setState(() => _selectedOrientation = v),
+                          : (v) =>
+                              setState(() => _selectedOrientation = v),
                     ),
                     const SizedBox(height: 12),
 
-                    // Color
                     DropdownButtonFormField<String>(
                       initialValue: _selectedColor,
                       decoration: const InputDecoration(
@@ -419,7 +415,8 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                         ...widget.colors.map(
                           (c) => DropdownMenuItem(
                             value: c,
-                            child: Text(c[0].toUpperCase() + c.substring(1)),
+                            child:
+                                Text(c[0].toUpperCase() + c.substring(1)),
                           ),
                         ),
                       ],
@@ -428,33 +425,29 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                           : (v) => setState(() => _selectedColor = v),
                     ),
 
-                    const SizedBox(height: 16),
-                    // AI naming toggle
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text('AI Naming'),
-                      subtitle: const Text(
-                          'Use Gemini to generate creative file names'),
-                      secondary: const Icon(Icons.auto_awesome_outlined),
+                    const SizedBox(height: 20),
+                    _ToggleCard(
+                      icon: Icons.auto_awesome_rounded,
+                      iconColor: Colors.amber,
+                      title: 'AI Naming',
+                      subtitle: 'Use Gemini to generate creative file names',
                       value: state.aiNamingEnabled,
-                      onChanged: isFetching
-                          ? null
-                          : (v) => ref
-                              .read(bulkDownloadProvider.notifier)
-                              .setAiNaming(v),
+                      enabled: !isFetching,
+                      onChanged: (v) => ref
+                          .read(bulkDownloadProvider.notifier)
+                          .setAiNaming(v),
                     ),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text('Auto Retry'),
-                      subtitle: const Text(
-                          'Automatically retry failed downloads (up to 3×)'),
-                      secondary: const Icon(Icons.replay_outlined),
+                    const SizedBox(height: 10),
+                    _ToggleCard(
+                      icon: Icons.replay_rounded,
+                      iconColor: scheme.primary,
+                      title: 'Auto Retry',
+                      subtitle: 'Retry failed downloads automatically (up to 3×)',
                       value: state.autoRetryEnabled,
-                      onChanged: isFetching
-                          ? null
-                          : (v) => ref
-                              .read(bulkDownloadProvider.notifier)
-                              .setAutoRetry(v),
+                      enabled: !isFetching,
+                      onChanged: (v) => ref
+                          .read(bulkDownloadProvider.notifier)
+                          .setAutoRetry(v),
                     ),
 
                     if (fetchError != null) ...[
@@ -462,20 +455,20 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
+                          color: scheme.error.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                              color: Theme.of(context).colorScheme.error.withValues(alpha: 0.3)),
+                              color: scheme.error.withValues(alpha: 0.3)),
                         ),
                         child: Row(
                           children: [
                             Icon(Icons.error_outline,
-                                color: Theme.of(context).colorScheme.error, size: 18),
+                                color: scheme.error, size: 18),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(fetchError,
                                   style: TextStyle(
-                                      color: Theme.of(context).colorScheme.error, fontSize: 13)),
+                                      color: scheme.error, fontSize: 13)),
                             ),
                           ],
                         ),
@@ -486,7 +479,6 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
               ),
             ),
 
-            // ── Action button ────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
               child: SizedBox(
@@ -521,103 +513,606 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
 }
 
 // ─────────────────────────────────────────────
-// Step 2: Selection Grid
+// Reusable toggle card for criteria dialog
 // ─────────────────────────────────────────────
 
-class _SelectionStep extends StatelessWidget {
-  final List<Wallpaper> wallpapers;
-  final Set<int> replacingIndices;
-  final ValueChanged<int> onReplace;
-  final VoidCallback onProceed;
+class _ToggleCard extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String subtitle;
+  final bool value;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
 
-  const _SelectionStep({
-    required this.wallpapers,
-    required this.replacingIndices,
-    required this.onReplace,
-    required this.onProceed,
+  const _ToggleCard({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.enabled,
+    required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-    return Column(
-      children: [
-        // Info bar
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+    final scheme = Theme.of(context).colorScheme;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        color: value
+            ? iconColor.withValues(alpha: 0.08)
+            : scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: value
+              ? iconColor.withValues(alpha: 0.45)
+              : scheme.outlineVariant,
+          width: value ? 1.5 : 1,
+        ),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: enabled ? () => onChanged(!value) : null,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
             children: [
-              const Icon(Icons.info_outline, size: 16),
-              const SizedBox(width: 8),
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: iconColor, size: 20),
+              ),
+              const SizedBox(width: 14),
               Expanded(
-                child: Text(
-                  'Tap a wallpaper to replace it with a new random one.',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-              Text(
-                '${wallpapers.length}/25',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
-              ),
-            ],
-          ),
-        ),
-
-        // Grid
-        Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.all(12),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 5,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-              childAspectRatio: 6 / 13,
-            ),
-            itemCount: wallpapers.length,
-            itemBuilder: (context, index) {
-              final wallpaper = wallpapers[index];
-              final isReplacing = replacingIndices.contains(index);
-              return _WallpaperSelectionCard(
-                wallpaper: wallpaper,
-                isReplacing: isReplacing,
-                index: index,
-                onReplace: onReplace,
-              );
-            },
-          ),
-        ),
-
-        // Proceed button
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            boxShadow: [
-              BoxShadow(
-                color: colors.surfaceOverlay,
-                blurRadius: 8,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: replacingIndices.isEmpty && wallpapers.isNotEmpty
-                  ? onProceed
-                  : null,
-              icon: const Icon(Icons.rocket_launch),
-              label: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Text(
-                  'Start Bulk Download (${wallpapers.length} wallpapers)',
-                  style: const TextStyle(fontSize: 15),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
                 ),
               ),
-            ),
+              const SizedBox(width: 8),
+              Switch(
+                value: value,
+                onChanged: enabled ? onChanged : null,
+                activeThumbColor: iconColor,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Step 2: Selection — split panel (grid + right panel)
+// ─────────────────────────────────────────────
+
+class _SelectionStep extends StatefulWidget {
+  final List<Wallpaper> wallpapers;
+  final Set<String> selectedWallpaperIds;
+  final bool isLoadingMore;
+  final bool hasMorePages;
+  final ValueChanged<String> onToggle;
+  final VoidCallback onProceed;
+  final VoidCallback onLoadMore;
+
+  const _SelectionStep({
+    required this.wallpapers,
+    required this.selectedWallpaperIds,
+    required this.isLoadingMore,
+    required this.hasMorePages,
+    required this.onToggle,
+    required this.onProceed,
+    required this.onLoadMore,
+  });
+
+  @override
+  State<_SelectionStep> createState() => _SelectionStepState();
+}
+
+class _SelectionStepState extends State<_SelectionStep> {
+  String? _providerFilter;
+  String? _orientationFilter; // null | 'portrait' | 'landscape'
+  String? _colorFilter;
+  final _searchController = TextEditingController();
+  final _scrollController = ScrollController();
+
+  static const _colorSwatches = {
+    'red': Color(0xFFE53935),
+    'orange': Color(0xFFFF7043),
+    'yellow': Color(0xFFFFCA28),
+    'green': Color(0xFF43A047),
+    'turquoise': Color(0xFF00BCD4),
+    'blue': Color(0xFF1E88E5),
+    'violet': Color(0xFF8E24AA),
+    'pink': Color(0xFFE91E63),
+    'brown': Color(0xFF6D4C41),
+    'black': Color(0xFF212121),
+    'gray': Color(0xFF757575),
+    'white': Color(0xFFEEEEEE),
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() => setState(() {}));
+    _scrollController.addListener(_onScroll);
+    _precacheImages();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.9) {
+      widget.onLoadMore();
+    }
+  }
+
+  void _precacheImages() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      for (int i = 0; i < widget.wallpapers.length; i++) {
+        final w = widget.wallpapers[i];
+        final url = w.mediumUrl.isNotEmpty ? w.mediumUrl : w.originalUrl;
+        Future.delayed(Duration(milliseconds: (i ~/ 3) * 800), () {
+          if (mounted) precacheImage(CachedNetworkImageProvider(url), context);
+        });
+      }
+    });
+  }
+
+  Set<String> get _availableProviders =>
+      widget.wallpapers.map((w) => w.source).toSet();
+
+  List<Wallpaper> get _filtered => widget.wallpapers.where((w) {
+        // Provider
+        if (_providerFilter != null && w.source != _providerFilter) {
+          return false;
+        }
+        // Orientation
+        if (_orientationFilter == 'portrait' && w.width >= w.height) {
+          return false;
+        }
+        if (_orientationFilter == 'landscape' && w.width < w.height) {
+          return false;
+        }
+        // Color — match against tags and description
+        if (_colorFilter != null) {
+          final haystack = [
+            ...(w.tags ?? []),
+            w.description ?? '',
+          ].join(' ').toLowerCase();
+          if (!haystack.contains(_colorFilter!)) return false;
+        }
+        // Query search — photographer, description, tags
+        final query = _searchController.text.trim().toLowerCase();
+        if (query.isNotEmpty) {
+          final haystack = [
+            w.photographer,
+            w.description ?? '',
+            ...(w.tags ?? []),
+          ].join(' ').toLowerCase();
+          if (!haystack.contains(query)) return false;
+        }
+        return true;
+      }).toList();
+
+  bool get _hasActiveFilter =>
+      _providerFilter != null ||
+      _orientationFilter != null ||
+      _colorFilter != null ||
+      _searchController.text.trim().isNotEmpty;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final filtered = _filtered;
+    final selectedWallpapers = widget.wallpapers
+        .where((w) => widget.selectedWallpaperIds.contains(w.id))
+        .toList();
+    final providers = _availableProviders.toList()..sort();
+
+    return Row(
+      children: [
+        // ── Left: browse grid ───────────────────────────────────────────
+        Expanded(
+          flex: 7,
+          child: Column(
+            children: [
+              // ── Filter panel ──────────────────────────────────────────
+              Container(
+                color: scheme.surface,
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Search box
+                    TextField(
+                      controller: _searchController,
+                      style: const TextStyle(fontSize: 13),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        hintText:
+                            'Search by photographer, tag, description…',
+                        hintStyle: TextStyle(
+                            fontSize: 13, color: scheme.onSurfaceVariant),
+                        prefixIcon:
+                            const Icon(Icons.search, size: 18),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.close, size: 16),
+                                onPressed: () =>
+                                    _searchController.clear(),
+                                padding: EdgeInsets.zero,
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide:
+                              BorderSide(color: scheme.outlineVariant),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide:
+                              BorderSide(color: scheme.outlineVariant),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Provider + Orientation row
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          // Provider chips
+                          if (providers.length > 1) ...[
+                            const _FilterLabel('Provider'),
+                            const SizedBox(width: 6),
+                            _FilterChip(
+                              label: 'All',
+                              selected: _providerFilter == null,
+                              onTap: () =>
+                                  setState(() => _providerFilter = null),
+                            ),
+                            ...providers.map((p) => Padding(
+                                  padding: const EdgeInsets.only(left: 6),
+                                  child: _FilterChip(
+                                    label: p[0].toUpperCase() +
+                                        p.substring(1),
+                                    selected: _providerFilter == p,
+                                    onTap: () => setState(
+                                        () => _providerFilter = p),
+                                  ),
+                                )),
+                            const SizedBox(width: 14),
+                            const _FilterDivider(),
+                            const SizedBox(width: 14),
+                          ],
+                          // Orientation chips
+                          const _FilterLabel('Orientation'),
+                          const SizedBox(width: 6),
+                          _FilterChip(
+                            label: 'All',
+                            selected: _orientationFilter == null,
+                            onTap: () =>
+                                setState(() => _orientationFilter = null),
+                          ),
+                          const SizedBox(width: 6),
+                          _FilterChip(
+                            label: 'Portrait',
+                            icon: Icons.stay_current_portrait_outlined,
+                            selected: _orientationFilter == 'portrait',
+                            onTap: () => setState(
+                                () => _orientationFilter = 'portrait'),
+                          ),
+                          const SizedBox(width: 6),
+                          _FilterChip(
+                            label: 'Landscape',
+                            icon: Icons.stay_current_landscape_outlined,
+                            selected: _orientationFilter == 'landscape',
+                            onTap: () => setState(
+                                () => _orientationFilter = 'landscape'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Color swatch row
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          const _FilterLabel('Color'),
+                          const SizedBox(width: 8),
+                          // "All" swatch
+                          _ColorSwatchChip(
+                            colorName: null,
+                            color: null,
+                            selected: _colorFilter == null,
+                            onTap: () =>
+                                setState(() => _colorFilter = null),
+                          ),
+                          ..._colorSwatches.entries.map((e) => Padding(
+                                padding: const EdgeInsets.only(left: 6),
+                                child: _ColorSwatchChip(
+                                  colorName: e.key,
+                                  color: e.value,
+                                  selected: _colorFilter == e.key,
+                                  onTap: () => setState(
+                                      () => _colorFilter = e.key),
+                                ),
+                              )),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Info bar
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                color: scheme.surfaceContainerHighest,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Tap to select · ${filtered.length} of ${widget.wallpapers.length} shown',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: scheme.onSurfaceVariant),
+                      ),
+                    ),
+                    if (_hasActiveFilter)
+                      InkWell(
+                        onTap: () => setState(() {
+                          _providerFilter = null;
+                          _orientationFilter = null;
+                          _colorFilter = null;
+                          _searchController.clear();
+                        }),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.filter_list_off,
+                                  size: 14,
+                                  color: scheme.primary),
+                              const SizedBox(width: 4),
+                              Text('Clear',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: scheme.primary,
+                                      fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              const Divider(height: 1),
+
+              // Grid
+              Expanded(
+                child: filtered.isEmpty && !widget.isLoadingMore
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.filter_list_off,
+                                size: 48, color: scheme.onSurfaceVariant),
+                            const SizedBox(height: 12),
+                            Text('No wallpapers match the filters',
+                                style: TextStyle(
+                                    color: scheme.onSurfaceVariant)),
+                          ],
+                        ),
+                      )
+                    : CustomScrollView(
+                        controller: _scrollController,
+                        slivers: [
+                          SliverPadding(
+                            padding: const EdgeInsets.all(12),
+                            sliver: SliverGrid(
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 4,
+                                crossAxisSpacing: 8,
+                                mainAxisSpacing: 8,
+                                childAspectRatio: 3.0 / 5.0,
+                              ),
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  final wallpaper = filtered[index];
+                                  return _WallpaperSelectionCard(
+                                    wallpaper: wallpaper,
+                                    isSelected: widget.selectedWallpaperIds
+                                        .contains(wallpaper.id),
+                                    index: index,
+                                    onToggle: widget.onToggle,
+                                  );
+                                },
+                                childCount: filtered.length,
+                              ),
+                            ),
+                          ),
+                          // Pagination footer
+                          SliverToBoxAdapter(
+                            child: widget.isLoadingMore
+                                ? const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 20),
+                                    child: Center(
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
+                                    ),
+                                  )
+                                : !widget.hasMorePages
+                                    ? Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 16),
+                                        child: Center(
+                                          child: Text(
+                                            'All ${widget.wallpapers.length} images loaded',
+                                            style: TextStyle(
+                                                fontSize: 12,
+                                                color:
+                                                    scheme.onSurfaceVariant),
+                                          ),
+                                        ),
+                                      )
+                                    : const SizedBox(height: 16),
+                          ),
+                        ],
+                      ),
+              ),
+            ],
+          ),
+        ),
+
+        // ── Divider ─────────────────────────────────────────────────────
+        const VerticalDivider(width: 1, thickness: 1),
+
+        // ── Right: selected panel ────────────────────────────────────────
+        SizedBox(
+          width: 280,
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 12),
+                color: scheme.surfaceContainerHighest,
+                child: Row(
+                  children: [
+                    Icon(Icons.check_circle_outline,
+                        size: 18, color: scheme.primary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Selected',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleSmall
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: selectedWallpapers.isNotEmpty
+                            ? scheme.primary
+                            : scheme.outlineVariant,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${selectedWallpapers.length}',
+                        style: TextStyle(
+                          color: selectedWallpapers.isNotEmpty
+                              ? scheme.onPrimary
+                              : scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Selected list
+              Expanded(
+                child: selectedWallpapers.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.touch_app_outlined,
+                                size: 48, color: scheme.onSurfaceVariant),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Tap wallpapers\nto select them',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: scheme.onSurfaceVariant,
+                                  fontSize: 13),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: selectedWallpapers.length,
+                        itemBuilder: (context, index) {
+                          final w = selectedWallpapers[index];
+                          return _SelectedWallpaperItem(
+                            wallpaper: w,
+                            onRemove: () => widget.onToggle(w.id),
+                          );
+                        },
+                      ),
+              ),
+
+              // Proceed button
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: selectedWallpapers.isNotEmpty
+                        ? widget.onProceed
+                        : null,
+                    icon: const Icon(Icons.rocket_launch, size: 18),
+                    label: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        selectedWallpapers.isEmpty
+                            ? 'Select wallpapers'
+                            : 'Download (${selectedWallpapers.length})',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -625,77 +1120,259 @@ class _SelectionStep extends StatelessWidget {
   }
 }
 
-class _WallpaperSelectionCard extends StatelessWidget {
-  final Wallpaper wallpaper;
-  final bool isReplacing;
-  final int index;
-  final ValueChanged<int> onReplace;
+// ─────────────────────────────────────────────
+// Filter bar helper widgets
+// ─────────────────────────────────────────────
 
-  const _WallpaperSelectionCard({
-    required this.wallpaper,
-    required this.isReplacing,
-    required this.index,
-    required this.onReplace,
+class _FilterLabel extends StatelessWidget {
+  final String text;
+  const _FilterLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.icon,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-    return MouseRegion(
-      cursor:
-          isReplacing ? SystemMouseCursors.progress : SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: isReplacing ? null : () => onReplace(index),
-        child: Stack(
-          alignment: Alignment.center,
+    final scheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: selected ? scheme.primary : scheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? scheme.primary : scheme.outlineVariant,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // ── iPhone frame ─────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: FittedBox(
-                fit: BoxFit.contain,
-                child: IPhoneFrame(
-                  child: _DeferredImage(
-                    // Use mediumUrl (webformatURL ~640px) for previews — the
-                    // originalUrl (largeImageURL) is more tightly rate-limited
-                    // on Pixabay's CDN. Fall back to originalUrl if medium is empty.
-                    url: wallpaper.mediumUrl.isNotEmpty
-                        ? wallpaper.mediumUrl
-                        : wallpaper.originalUrl,
-                    index: index,
+            if (icon != null) ...[
+              Icon(icon,
+                  size: 13,
+                  color: selected
+                      ? scheme.onPrimary
+                      : scheme.onSurfaceVariant),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight:
+                    selected ? FontWeight.w600 : FontWeight.normal,
+                color: selected
+                    ? scheme.onPrimary
+                    : scheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ColorSwatchChip extends StatelessWidget {
+  final String? colorName;
+  final Color? color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ColorSwatchChip({
+    required this.colorName,
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+
+  // Pick a contrasting icon color for the checkmark.
+  Color _checkColor() {
+    if (color == null) return Colors.black;
+    final luminance = color!.computeLuminance();
+    return luminance > 0.4 ? Colors.black87 : Colors.white;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isAll = colorName == null;
+
+    return Tooltip(
+      message: isAll ? 'All colors' : colorName![0].toUpperCase() + colorName!.substring(1),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isAll ? null : color,
+            gradient: isAll
+                ? const SweepGradient(colors: [
+                    Color(0xFFE53935),
+                    Color(0xFFFF7043),
+                    Color(0xFFFFCA28),
+                    Color(0xFF43A047),
+                    Color(0xFF1E88E5),
+                    Color(0xFF8E24AA),
+                    Color(0xFFE53935),
+                  ])
+                : null,
+            border: Border.all(
+              color: selected ? scheme.primary : scheme.outlineVariant,
+              width: selected ? 2.5 : 1,
+            ),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: scheme.primary.withValues(alpha: 0.4),
+                      blurRadius: 4,
+                      spreadRadius: 1,
+                    )
+                  ]
+                : null,
+          ),
+          child: selected
+              ? Icon(Icons.check,
+                  size: 14, color: isAll ? Colors.white : _checkColor())
+              : null,
+        ),
+      ),
+    );
+  }
+}
+
+class _FilterDivider extends StatelessWidget {
+  const _FilterDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 22,
+      child: VerticalDivider(
+        width: 1,
+        thickness: 1,
+        color: Theme.of(context).colorScheme.outlineVariant,
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Grid card with checkbox overlay (4:3, no iPhone frame)
+// ─────────────────────────────────────────────
+
+class _WallpaperSelectionCard extends StatelessWidget {
+  final Wallpaper wallpaper;
+  final bool isSelected;
+  final int index;
+  final ValueChanged<String> onToggle;
+
+  const _WallpaperSelectionCard({
+    required this.wallpaper,
+    required this.isSelected,
+    required this.index,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => onToggle(wallpaper.id),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Image
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: _DeferredImage(
+                url: wallpaper.mediumUrl.isNotEmpty
+                    ? wallpaper.mediumUrl
+                    : wallpaper.originalUrl,
+                index: index,
+              ),
+            ),
+
+            // Selection tint overlay
+            if (isSelected)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  color: scheme.primary.withValues(alpha: 0.35),
+                ),
+              ),
+
+            // Check badge (top-right)
+            Positioned(
+              top: 6,
+              right: 6,
+              child: Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? scheme.primary
+                      : Colors.black.withValues(alpha: 0.45),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    width: 1.5,
                   ),
+                ),
+                child: Icon(
+                  isSelected ? Icons.check : null,
+                  size: 14,
+                  color: scheme.onPrimary,
                 ),
               ),
             ),
 
-            // ── Replace spinner overlay ───────────────────────────────────────
-            if (isReplacing)
-              Center(
-                child: CircularProgressIndicator(color: colors.textPrimary),
-              )
-            else
-              // ── Refresh icon hint ───────────────────────────────────────────
-              Positioned(
-                bottom: 80,
-                child: CircleAvatar(
-                    child:
-                        Icon(Icons.refresh, color: colors.textSecondary, size: 16)),
-              ),
-
-            // ── Index badge ───────────────────────────────────────────────────
+            // Index badge (top-left)
             Positioned(
-              top: 4,
-              left: 4,
+              top: 6,
+              left: 6,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                 decoration: BoxDecoration(
-                  color: colors.surfaceOverlay,
+                  color: Colors.black.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   '${index + 1}',
-                  style: TextStyle(
-                    color: colors.textPrimary,
+                  style: const TextStyle(
+                    color: Colors.white,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -710,120 +1387,785 @@ class _WallpaperSelectionCard extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────
-// Step 3: Processing
+// Right-panel selected item row
 // ─────────────────────────────────────────────
 
-class _ProcessingStep extends StatelessWidget {
-  final BulkDownloadState state;
+class _SelectedWallpaperItem extends StatelessWidget {
+  final Wallpaper wallpaper;
+  final VoidCallback onRemove;
 
-  const _ProcessingStep({required this.state});
+  const _SelectedWallpaperItem({
+    required this.wallpaper,
+    required this.onRemove,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final total = state.wallpapers.length;
-    final done = state.results.length;
-    final progress = total > 0 ? done / total : 0.0;
-    final current = state.currentWallpaper;
+    return ListTile(
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      leading: SizedBox(
+        width: 36,
+        height: 60,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: CachedNetworkImage(
+            imageUrl: wallpaper.smallUrl.isNotEmpty
+                ? wallpaper.smallUrl
+                : wallpaper.mediumUrl,
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+      title: Text(
+        wallpaper.photographer,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+      ),
+      subtitle: Text(
+        wallpaper.source.toUpperCase(),
+        style: const TextStyle(fontSize: 10),
+      ),
+      trailing: IconButton(
+        icon: const Icon(Icons.close, size: 18),
+        tooltip: 'Remove',
+        onPressed: onRemove,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Step 3: Processing
+// ─────────────────────────────────────────────
+
+// ─────────────────────────────────────────────
+// Step 3: Processing — modern animated layout
+// ─────────────────────────────────────────────
+
+class _ProcessingStep extends StatefulWidget {
+  final BulkDownloadState state;
+  const _ProcessingStep({required this.state});
+
+  @override
+  State<_ProcessingStep> createState() => _ProcessingStepState();
+}
+
+class _ProcessingStepState extends State<_ProcessingStep>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulseCtrl;
+  late final Animation<double> _pulseAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+    _pulseAnim =
+        CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut);
+  }
+
+  @override
+  void dispose() {
+    _pulseCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final done = widget.state.results.length;
+    final total = widget.state.selectedWallpapers.length;
+    final progress = total > 0 ? done / total : 0.0;
+    final current = widget.state.currentWallpaper;
+    final successCount =
+        widget.state.results.where((r) => r.success).length;
+    final failCount =
+        widget.state.results.where((r) => !r.success).length;
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(height: 24),
-
-          // Progress ring
-          Stack(
-            alignment: Alignment.center,
+    return Row(
+      children: [
+        // ── Left: progress panel ────────────────────────────────────────
+        Container(
+          width: 300,
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerLow,
+            border: Border(
+              right: BorderSide(color: scheme.outlineVariant),
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(
-                width: 120,
-                height: 120,
-                child: CircularProgressIndicator(
-                  value: progress,
-                  strokeWidth: 10,
-                  backgroundColor: scheme.surfaceContainerHighest,
+              // Animated progress ring
+              _PulsingProgressRing(
+                progress: progress,
+                pulseAnim: _pulseAnim,
+                done: done,
+                total: total,
+              ),
+
+              const SizedBox(height: 28),
+
+              // Animated status text
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 350),
+                  transitionBuilder: (child, anim) => FadeTransition(
+                    opacity: anim,
+                    child: SlideTransition(
+                      position: Tween(
+                              begin: const Offset(0, 0.3),
+                              end: Offset.zero)
+                          .animate(anim),
+                      child: child,
+                    ),
+                  ),
+                  child: Text(
+                    widget.state.processingStatus ?? 'Starting…',
+                    key: ValueKey(widget.state.processingStatus),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '$done',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+
+              const SizedBox(height: 32),
+
+              // Stats card
+              AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+                child: done == 0
+                    ? const SizedBox.shrink()
+                    : Container(
+                        margin:
+                            const EdgeInsets.symmetric(horizontal: 28),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 14, horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: scheme.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border:
+                              Border.all(color: scheme.outlineVariant),
+                          boxShadow: [
+                            BoxShadow(
+                              color: scheme.shadow.withValues(alpha: 0.06),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                  ),
-                  Text(
-                    'of $total',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
+                        child: Row(
+                          children: [
+                            _ProcessingStat(
+                              count: successCount,
+                              label: 'Done',
+                              icon: Icons.check_circle_rounded,
+                              color: Colors.green,
+                            ),
+                            Container(
+                              width: 1,
+                              height: 36,
+                              color: scheme.outlineVariant,
+                            ),
+                            _ProcessingStat(
+                              count: failCount,
+                              label: 'Failed',
+                              icon: Icons.cancel_rounded,
+                              color: scheme.error,
+                            ),
+                          ],
+                        ),
+                      ),
               ),
             ],
           ),
+        ),
 
-          const SizedBox(height: 24),
-
-          // Status text
-          if (state.processingStatus != null)
-            Text(
-              state.processingStatus!,
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-
-          const SizedBox(height: 32),
-
-          // Current wallpaper thumbnail
-          if (current != null) ...[
-            Text(
-              'Current wallpaper',
-              style: Theme.of(context).textTheme.labelMedium,
-            ),
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: SizedBox(
-                width: 100,
-                height: 200,
-                child: CachedNetworkImage(
-                  imageUrl: current.smallUrl,
-                  fit: BoxFit.cover,
+        // ── Right: current item + live feed ────────────────────────────
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Header bar
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 24, vertical: 12),
+                color: scheme.surfaceContainerHighest,
+                child: Row(
+                  children: [
+                    _PulsingDot(color: scheme.primary),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Now Processing',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const Spacer(),
+                    if (done > 0)
+                      Text(
+                        '$done of $total complete',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: scheme.onSurfaceVariant),
+                      ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              current.photographer,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
 
-          const SizedBox(height: 32),
-
-          // Results so far
-          if (state.results.isNotEmpty) ...[
-            const Divider(),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _StatChip(
-                  icon: Icons.check_circle,
-                  color: context.appColors.success,
-                  label: '${state.results.where((r) => r.success).length} done',
+              // Current wallpaper — animated on change
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 450),
+                  transitionBuilder: (child, anim) => FadeTransition(
+                    opacity: anim,
+                    child: SlideTransition(
+                      position: Tween(
+                              begin: const Offset(0.1, 0),
+                              end: Offset.zero)
+                          .animate(CurvedAnimation(
+                              parent: anim, curve: Curves.easeOut)),
+                      child: child,
+                    ),
+                  ),
+                  child: current != null
+                      ? _CurrentWallpaperCard(
+                          key: ValueKey(current.id),
+                          wallpaper: current,
+                        )
+                      : const SizedBox.shrink(),
                 ),
-                _StatChip(
-                  icon: Icons.error_outline,
-                  color: Theme.of(context).colorScheme.error,
-                  label:
-                      '${state.results.where((r) => !r.success).length} failed',
+              ),
+
+              // Live results feed
+              if (widget.state.results.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    children: [
+                      Icon(Icons.history,
+                          size: 14,
+                          color: scheme.onSurfaceVariant),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Recent',
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelMedium
+                            ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: scheme.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 4),
+                    reverse: true,
+                    itemCount: widget.state.results.length,
+                    itemBuilder: (context, index) {
+                      final result = widget.state.results[
+                          widget.state.results.length - 1 - index];
+                      return _ResultFeedItem(
+                        result: result,
+                        isLatest: index == 0,
+                      );
+                    },
+                  ),
+                ),
+              ] else
+                const Spacer(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Animated progress ring ─────────────────────────────────────────────
+
+class _PulsingProgressRing extends StatelessWidget {
+  final double progress;
+  final Animation<double> pulseAnim;
+  final int done;
+  final int total;
+
+  const _PulsingProgressRing({
+    required this.progress,
+    required this.pulseAnim,
+    required this.done,
+    required this.total,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return SizedBox(
+      width: 200,
+      height: 200,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Pulsing glow halo
+          AnimatedBuilder(
+            animation: pulseAnim,
+            builder: (context, _) => Container(
+              width: 170 + pulseAnim.value * 18,
+              height: 170 + pulseAnim.value * 18,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: scheme.primary
+                        .withValues(alpha: pulseAnim.value * 0.22),
+                    blurRadius: 24 + pulseAnim.value * 16,
+                    spreadRadius: pulseAnim.value * 6,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Track ring
+          SizedBox(
+            width: 168,
+            height: 168,
+            child: CircularProgressIndicator(
+              value: 1,
+              strokeWidth: 12,
+              color: scheme.surfaceContainerHighest,
+            ),
+          ),
+
+          // Animated progress ring
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: progress),
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.easeOut,
+            builder: (context, value, _) => SizedBox(
+              width: 168,
+              height: 168,
+              child: CircularProgressIndicator(
+                value: value,
+                strokeWidth: 12,
+                strokeCap: StrokeCap.round,
+                color: scheme.primary,
+              ),
+            ),
+          ),
+
+          // Center: animated count + percentage
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, anim) => ScaleTransition(
+                  scale: Tween(begin: 0.7, end: 1.0).animate(
+                      CurvedAnimation(parent: anim, curve: Curves.easeOut)),
+                  child: FadeTransition(opacity: anim, child: child),
+                ),
+                child: Text(
+                  '$done',
+                  key: ValueKey(done),
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+              Text(
+                'of $total',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: progress),
+                duration: const Duration(milliseconds: 700),
+                curve: Curves.easeOut,
+                builder: (context, value, _) => Text(
+                  '${(value * 100).toStringAsFixed(0)}%',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Current wallpaper card ─────────────────────────────────────────────
+
+class _CurrentWallpaperCard extends StatelessWidget {
+  final Wallpaper wallpaper;
+
+  const _CurrentWallpaperCard({super.key, required this.wallpaper});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Preview image
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: SizedBox(
+            width: 108,
+            height: 180,
+            child: CachedNetworkImage(
+              imageUrl: wallpaper.mediumUrl.isNotEmpty
+                  ? wallpaper.mediumUrl
+                  : wallpaper.originalUrl,
+              fit: BoxFit.cover,
+              placeholder: (_, __) => Container(
+                color: scheme.surfaceContainerHighest,
+                child: const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2)),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 20),
+
+        // Info
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  wallpaper.source.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: scheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                wallpaper.photographer,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              if (wallpaper.description != null &&
+                  wallpaper.description!.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  wallpaper.description!,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
+              const SizedBox(height: 14),
+              // Processing pill
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: scheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 12,
+                      height: 12,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.8,
+                        color: scheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 7),
+                    Text(
+                      'Processing…',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Animated result feed item ──────────────────────────────────────────
+
+class _ResultFeedItem extends StatefulWidget {
+  final BulkProcessResult result;
+  final bool isLatest;
+
+  const _ResultFeedItem({required this.result, required this.isLatest});
+
+  @override
+  State<_ResultFeedItem> createState() => _ResultFeedItemState();
+}
+
+class _ResultFeedItemState extends State<_ResultFeedItem>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _fade;
+  late final Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 380));
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+    _slide = Tween(begin: const Offset(0, -0.4), end: Offset.zero).animate(
+        CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final success = widget.result.success;
+
+    return FadeTransition(
+      opacity: _fade,
+      child: SlideTransition(
+        position: _slide,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 400),
+          margin: const EdgeInsets.only(bottom: 6),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: widget.isLatest
+                ? (success
+                    ? Colors.green.withValues(alpha: 0.08)
+                    : scheme.error.withValues(alpha: 0.08))
+                : scheme.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: widget.isLatest
+                  ? (success
+                      ? Colors.green.withValues(alpha: 0.35)
+                      : scheme.error.withValues(alpha: 0.35))
+                  : scheme.outlineVariant.withValues(alpha: 0.4),
+              width: widget.isLatest ? 1.5 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: SizedBox(
+                  width: 36,
+                  height: 60,
+                  child: CachedNetworkImage(
+                    imageUrl: widget.result.wallpaper.smallUrl.isNotEmpty
+                        ? widget.result.wallpaper.smallUrl
+                        : widget.result.wallpaper.mediumUrl,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      success
+                          ? (widget.result.downloadResult?.aiName ??
+                              widget.result.wallpaper.photographer)
+                          : widget.result.wallpaper.photographer,
+                      style: const TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w500),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (!success && widget.result.error != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        widget.result.error!,
+                        style: TextStyle(
+                            fontSize: 10, color: scheme.error),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                success
+                    ? Icons.check_circle_rounded
+                    : Icons.cancel_rounded,
+                color: success ? Colors.green : scheme.error,
+                size: 18,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Pulsing status dot ─────────────────────────────────────────────────
+
+class _PulsingDot extends StatefulWidget {
+  final Color color;
+  const _PulsingDot({required this.color});
+
+  @override
+  State<_PulsingDot> createState() => _PulsingDotState();
+}
+
+class _PulsingDotState extends State<_PulsingDot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl =
+        AnimationController(vsync: this, duration: const Duration(seconds: 1))
+          ..repeat(reverse: true);
+    _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (context, _) => Container(
+        width: 10,
+        height: 10,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: widget.color.withValues(alpha: 0.5 + _anim.value * 0.5),
+          boxShadow: [
+            BoxShadow(
+              color: widget.color.withValues(alpha: _anim.value * 0.5),
+              blurRadius: 6 + _anim.value * 4,
+              spreadRadius: _anim.value * 2,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Stats tile ─────────────────────────────────────────────────────────
+
+class _ProcessingStat extends StatelessWidget {
+  final int count;
+  final String label;
+  final IconData icon;
+  final Color color;
+
+  const _ProcessingStat({
+    required this.count,
+    required this.label,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: color, size: 16),
+              const SizedBox(width: 5),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                transitionBuilder: (child, anim) => ScaleTransition(
+                  scale: Tween(begin: 0.6, end: 1.0).animate(
+                      CurvedAnimation(
+                          parent: anim, curve: Curves.easeOut)),
+                  child: FadeTransition(opacity: anim, child: child),
+                ),
+                child: Text(
+                  '$count',
+                  key: ValueKey(count),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 3),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
         ],
       ),
     );
@@ -847,8 +2189,8 @@ class _CompleteStep extends StatelessWidget {
     required this.onRename,
   });
 
-  void _showRenameDialog(
-      BuildContext context, int index, String currentName, Wallpaper wallpaper) {
+  void _showRenameDialog(BuildContext context, int index, String currentName,
+      Wallpaper wallpaper) {
     showDialog<void>(
       context: context,
       builder: (_) => _RenameDialog(
@@ -866,7 +2208,6 @@ class _CompleteStep extends StatelessWidget {
 
     return Column(
       children: [
-        // Summary header
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(24),
@@ -878,14 +2219,17 @@ class _CompleteStep extends StatelessWidget {
               Icon(
                 success > 0 ? Icons.check_circle : Icons.error,
                 size: 56,
-                color: success > 0 ? context.appColors.success : Theme.of(context).colorScheme.error,
+                color: success > 0
+                    ? context.appColors.success
+                    : Theme.of(context).colorScheme.error,
               ),
               const SizedBox(height: 12),
               Text(
                 'Bulk Download Complete',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Row(
@@ -910,7 +2254,6 @@ class _CompleteStep extends StatelessWidget {
           ),
         ),
 
-        // Results list
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -923,8 +2266,8 @@ class _CompleteStep extends StatelessWidget {
                   leading: ClipRRect(
                     borderRadius: BorderRadius.circular(6),
                     child: SizedBox(
-                      width: 40,
-                      height: 80,
+                      width: 36,
+                      height: 60,
                       child: CachedNetworkImage(
                         imageUrl: result.wallpaper.smallUrl,
                         fit: BoxFit.cover,
@@ -940,7 +2283,8 @@ class _CompleteStep extends StatelessWidget {
                   ),
                   subtitle: result.success
                       ? Text(
-                          result.downloadResult?.tags.take(3).join(', ') ?? '',
+                          result.downloadResult?.tags.take(3).join(', ') ??
+                              '',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontSize: 11),
@@ -949,8 +2293,9 @@ class _CompleteStep extends StatelessWidget {
                           result.error ?? 'Failed',
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style:
-                              TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 11),
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                              fontSize: 11),
                         ),
                   trailing: result.success
                       ? Row(
@@ -970,14 +2315,14 @@ class _CompleteStep extends StatelessWidget {
                                 color: context.appColors.success, size: 20),
                           ],
                         )
-                      : Icon(Icons.error, color: Theme.of(context).colorScheme.error),
+                      : Icon(Icons.error,
+                          color: Theme.of(context).colorScheme.error),
                 ),
               );
             },
           ),
         ),
 
-        // Action buttons
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: Column(
@@ -1083,12 +2428,11 @@ class _RenameDialogState extends State<_RenameDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Wallpaper preview
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: SizedBox(
               width: double.infinity,
-              height: 200,
+              height: 160,
               child: CachedNetworkImage(
                 imageUrl: widget.wallpaper.mediumUrl.isNotEmpty
                     ? widget.wallpaper.mediumUrl
@@ -1142,8 +2486,10 @@ class _RenameDialogState extends State<_RenameDialog> {
 // Staggered image loader (avoids 429 rate limits)
 // ─────────────────────────────────────────────
 
-/// Delays the CachedNetworkImage request by `(index ~/ 5) * 500 ms` so that
-/// at most 5 images are fired per 500 ms window instead of all 25 at once.
+// URLs that have already passed their stagger window — future widget rebuilds
+// (e.g. after scroll recycling) skip the delay and show from cache immediately.
+final _fetchedUrls = <String>{};
+
 class _DeferredImage extends StatefulWidget {
   final String url;
   final int index;
@@ -1161,13 +2507,22 @@ class _DeferredImageState extends State<_DeferredImage> {
   @override
   void initState() {
     super.initState();
-    // 3 images per 800 ms window — conservative enough for Pixabay's CDN.
+    // Already fetched once (e.g. scrolled away and back) — show immediately.
+    if (_fetchedUrls.contains(widget.url)) {
+      _ready = true;
+      return;
+    }
+    // First time: stagger 3 images per 800 ms window to avoid 429s.
     final delay = (widget.index ~/ 3) * 800;
     if (delay == 0) {
       _ready = true;
+      _fetchedUrls.add(widget.url);
     } else {
       _timer = Timer(Duration(milliseconds: delay), () {
-        if (mounted) setState(() => _ready = true);
+        if (mounted) {
+          _fetchedUrls.add(widget.url);
+          setState(() => _ready = true);
+        }
       });
     }
   }
@@ -1184,26 +2539,18 @@ class _DeferredImageState extends State<_DeferredImage> {
     if (!_ready) {
       return Container(
         color: colors.surface,
-        width: AppConstants.screenWidth,
-        height: AppConstants.screenHeight,
         child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
       );
     }
     return CachedNetworkImage(
       imageUrl: widget.url,
       fit: BoxFit.cover,
-      width: AppConstants.screenWidth,
-      height: AppConstants.screenHeight,
       placeholder: (_, __) => Container(
         color: colors.surface,
-        width: AppConstants.screenWidth,
-        height: AppConstants.screenHeight,
         child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
       ),
       errorWidget: (_, __, ___) => Container(
         color: colors.surface,
-        width: AppConstants.screenWidth,
-        height: AppConstants.screenHeight,
         child: const Icon(Icons.broken_image),
       ),
     );

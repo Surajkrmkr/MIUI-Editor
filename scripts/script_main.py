@@ -73,11 +73,19 @@ def main():
     options = Options()
     options.binary_location = brave_path
     options.add_experimental_option("excludeSwitches", ["enable-logging"])
+    options.add_argument(f"--user-data-dir={data.get_Brave_Selenium_Profile_Dir()}")
+    # options.add_argument("--headless=new")
+    # options.add_argument("--window-size=1920,1080")
+    # options.add_argument("--disable-gpu")
     web_browser = webdriver.Chrome(options=options)
-    web_browser.maximize_window()
+    for handle in web_browser.window_handles[1:]:
+        web_browser.switch_to.window(handle)
+        web_browser.close()
+    web_browser.switch_to.window(web_browser.window_handles[0])
     log("BROWSER", "Browser window opened")
 
     home_url = "https://in.zhuti.designer.intl.xiaomi.com/"
+    home_url2 = "https://in.zhuti.designer.intl.xiaomi.com/?productState=ALL&perPage=30&currentPage=1"
     log("BROWSER", f"Navigating to: {home_url}")
     web_browser.get(home_url)
 
@@ -88,31 +96,30 @@ def main():
     wait.until(EC.presence_of_element_located((By.XPATH, xpath_miui.signIn)))
     web_browser.find_element(By.XPATH, xpath_miui.signIn).click()
 
-    log("LOGIN", "Entering credentials...")
-    wait.until(EC.presence_of_element_located((By.XPATH, xpath_miui.emailId)))
-    web_browser.find_element(By.XPATH, xpath_miui.emailId).send_keys(args.email)
-    wait.until(EC.presence_of_element_located((By.NAME, xpath_miui.pw)))
-    web_browser.find_element(By.NAME, xpath_miui.pw).send_keys(args.password)
-    wait.until(EC.presence_of_element_located((By.XPATH, xpath_miui.agree)))
-    web_browser.find_element(By.XPATH, xpath_miui.agree).click()
+    # log("LOGIN", "Entering credentials...")
+    # wait.until(EC.presence_of_element_located((By.XPATH, xpath_miui.emailId)))
+    # web_browser.find_element(By.XPATH, xpath_miui.emailId).send_keys(args.email)
+    # wait.until(EC.presence_of_element_located((By.NAME, xpath_miui.pw)))
+    # web_browser.find_element(By.NAME, xpath_miui.pw).send_keys(args.password)
+    # wait.until(EC.presence_of_element_located((By.XPATH, xpath_miui.agree)))
+    # web_browser.find_element(By.XPATH, xpath_miui.agree).click()
 
-    log("LOGIN", "Submitting login form...")
-    wait.until(EC.presence_of_element_located((By.XPATH, xpath_miui.submit)))
-    web_browser.find_element(By.XPATH, xpath_miui.submit).click()
+    # log("LOGIN", "Submitting login form...")
+    # wait.until(EC.presence_of_element_located((By.XPATH, xpath_miui.submit)))
+    # web_browser.find_element(By.XPATH, xpath_miui.submit).click()
 
-    log("LOGIN", "Waiting for 2FA code entry...")
-    wait.until(EC.presence_of_element_located((By.XPATH, xpath_miui.sendEmail)))
-    web_browser.find_element(By.XPATH, xpath_miui.sendEmail).click()
+    # log("LOGIN", "Waiting for 2FA code entry...")
+    # wait.until(EC.presence_of_element_located((By.XPATH, xpath_miui.sendEmail)))
+    # web_browser.find_element(By.XPATH, xpath_miui.sendEmail).click()
 
-    wait.until(EC.presence_of_element_located((By.XPATH, xpath_miui.cookieBtn)))
-    web_browser.find_element(By.XPATH, xpath_miui.cookieBtn).click()
+    # wait.until(EC.presence_of_element_located((By.XPATH, xpath_miui.cookieBtn)))
+    # web_browser.find_element(By.XPATH, xpath_miui.cookieBtn).click()
     log("LOGIN", "Handling post-login dialogs...")
     wait.until(EC.presence_of_element_located((By.XPATH, xpath_miui.dialogOkBtn)))
     web_browser.find_element(By.XPATH, xpath_miui.dialogOkBtn).click()
 
     log("LOGIN", "Again navigating to landing page...")
     web_browser.get(home_url)
-
     log("LOGIN", "Login successful!")
     print(flush=True)
 

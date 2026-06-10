@@ -12,6 +12,15 @@ def get_Brave_Path():
     return ""
 
 
+def get_Brave_Selenium_Profile_Dir():
+    import os
+    if isMac:
+        return os.path.expanduser("~/.miui-editor-brave-profile")
+    elif isWindows:
+        return os.path.join(os.environ.get("USERPROFILE", ""), ".miui-editor-brave-profile")
+    return ""
+
+
 def get_Path_Separator():
     return "\\" if isWindows else "/"
 

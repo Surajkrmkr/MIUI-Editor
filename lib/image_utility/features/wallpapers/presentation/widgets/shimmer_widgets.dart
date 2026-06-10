@@ -18,7 +18,7 @@ class WallpaperCardShimmer extends StatelessWidget {
         baseColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         highlightColor: Theme.of(context).colorScheme.surface,
         child: AspectRatio(
-          aspectRatio: 6.0 / 13.0,
+          aspectRatio: 3.0 / 5.0,
           child: Container(
             color: context.appColors.surface,
           ),
@@ -42,10 +42,10 @@ class WallpaperGridShimmer extends StatelessWidget {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 5,
+        crossAxisCount: 4,
         mainAxisSpacing: 8,
         crossAxisSpacing: 8,
-        childAspectRatio: 6.0 / 13.0,
+        childAspectRatio: 3.0 / 5.0,
       ),
       itemCount: itemCount,
       itemBuilder: (context, index) => const WallpaperCardShimmer(),

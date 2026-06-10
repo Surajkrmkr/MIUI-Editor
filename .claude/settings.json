@@ -16,7 +16,10 @@
       "Bash(grep -E \"\\\\.dart$\")",
       "Bash(xargs ls -la)",
       "Bash(xargs cat)",
-      "Bash(dart analyze *)"
+      "Bash(dart analyze *)",
+      "Bash(python3 -m pip install selenium)",
+      "Read(//usr/bin/**)",
+      "Bash(/usr/bin/python3 -m pip show selenium)"
     ]
   }
 }
