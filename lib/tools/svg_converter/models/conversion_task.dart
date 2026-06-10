@@ -22,6 +22,7 @@ class ConversionTask {
   });
 
   ConversionTask copyWith({
+    String? outputPath,
     TaskStatus? status,
     String? errorMessage,
     int? fileSizeBefore,
@@ -31,7 +32,7 @@ class ConversionTask {
     return ConversionTask(
       id: id,
       inputPath: inputPath,
-      outputPath: outputPath,
+      outputPath: outputPath ?? this.outputPath,
       status: status ?? this.status,
       errorMessage: errorMessage ?? this.errorMessage,
       fileSizeBefore: fileSizeBefore ?? this.fileSizeBefore,
