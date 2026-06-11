@@ -165,6 +165,8 @@ class _BulkDownloadPageState extends ConsumerState<BulkDownloadPage> {
           onRename: (index, newName) => ref
               .read(bulkDownloadProvider.notifier)
               .renameResult(index, newName),
+          onBulkRename: (baseName) =>
+              ref.read(bulkDownloadProvider.notifier).bulkRename(baseName),
           onDone: () {
             ref.read(bulkDownloadProvider.notifier).reset();
             context.pop();
@@ -658,7 +660,6 @@ class _SelectionStepState extends State<_SelectionStep> {
     super.initState();
     _searchController.addListener(() => setState(() {}));
     _scrollController.addListener(_onScroll);
-    _precacheImages();
   }
 
   @override
@@ -673,18 +674,6 @@ class _SelectionStepState extends State<_SelectionStep> {
         _scrollController.position.maxScrollExtent * 0.9) {
       widget.onLoadMore();
     }
-  }
-
-  void _precacheImages() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      for (int i = 0; i < widget.wallpapers.length; i++) {
-        final w = widget.wallpapers[i];
-        final url = w.mediumUrl.isNotEmpty ? w.mediumUrl : w.originalUrl;
-        Future.delayed(Duration(milliseconds: (i ~/ 3) * 800), () {
-          if (mounted) precacheImage(CachedNetworkImageProvider(url), context);
-        });
-      }
-    });
   }
 
   Set<String> get _availableProviders =>
@@ -2176,187 +2165,483 @@ class _ProcessingStat extends StatelessWidget {
 // Step 4: Complete
 // ─────────────────────────────────────────────
 
-class _CompleteStep extends StatelessWidget {
+/// Normalises a tag into a filename-friendly base (lowercase alphanumerics).
+String _tagToBaseName(String tag) =>
+    tag.toLowerCase().trim().replaceAll(RegExp(r'[^a-z0-9]+'), '');
+
+class _CompleteStep extends StatefulWidget {
   final BulkDownloadState state;
   final VoidCallback onDone;
   final VoidCallback? onRetryFailed;
   final Future<void> Function(int index, String newName) onRename;
+  final Future<void> Function(String baseName) onBulkRename;
 
   const _CompleteStep({
     required this.state,
     required this.onDone,
     required this.onRetryFailed,
     required this.onRename,
+    required this.onBulkRename,
   });
 
-  void _showRenameDialog(BuildContext context, int index, String currentName,
-      Wallpaper wallpaper) {
+  @override
+  State<_CompleteStep> createState() => _CompleteStepState();
+}
+
+class _CompleteStepState extends State<_CompleteStep> {
+  final _bulkController = TextEditingController();
+  bool _isRenamingAll = false;
+
+  @override
+  void dispose() {
+    _bulkController.dispose();
+    super.dispose();
+  }
+
+  /// Most frequent tags across all successful results — used as quick-pick
+  /// base names for bulk renaming.
+  List<String> get _suggestedBaseNames {
+    final counts = <String, int>{};
+    for (final r in widget.state.results) {
+      if (!r.success) continue;
+      final tags = <String>[
+        ...?r.wallpaper.tags,
+        ...?r.downloadResult?.tags,
+      ];
+      for (final t in tags) {
+        final base = _tagToBaseName(t);
+        if (base.isEmpty || base.length < 3) continue;
+        counts[base] = (counts[base] ?? 0) + 1;
+      }
+    }
+    final sorted = counts.keys.toList()
+      ..sort((a, b) => counts[b]!.compareTo(counts[a]!));
+    return sorted.take(8).toList();
+  }
+
+  Future<void> _applyBulkRename() async {
+    final base = _bulkController.text.trim();
+    if (base.isEmpty || _isRenamingAll) return;
+    setState(() => _isRenamingAll = true);
+    try {
+      await widget.onBulkRename(base);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Renamed all to "${base}_1, ${base}_2, …"')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isRenamingAll = false);
+    }
+  }
+
+  void _showRenameDialog(
+      int index, String currentName, Wallpaper wallpaper) {
+    final result = widget.state.results[index];
     showDialog<void>(
       context: context,
       builder: (_) => _RenameDialog(
         initialName: currentName,
         wallpaper: wallpaper,
-        onConfirm: (newName) => onRename(index, newName),
+        suggestions: <String>{
+          ...?wallpaper.tags,
+          ...?result.downloadResult?.tags,
+        }.where((t) => t.trim().isNotEmpty).toList(),
+        onConfirm: (newName) => widget.onRename(index, newName),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final success = state.results.where((r) => r.success).length;
-    final failed = state.results.where((r) => !r.success).length;
+    final scheme = Theme.of(context).colorScheme;
+    final success = widget.state.results.where((r) => r.success).length;
+    final failed = widget.state.results.where((r) => !r.success).length;
 
     return Column(
       children: [
+        // ── Summary header (compact) ───────────────────────────────────
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
           color: success > 0
-              ? context.appColors.success.withValues(alpha: 0.1)
-              : Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
-          child: Column(
+              ? context.appColors.success.withValues(alpha: 0.08)
+              : scheme.error.withValues(alpha: 0.08),
+          child: Row(
             children: [
               Icon(
                 success > 0 ? Icons.check_circle : Icons.error,
-                size: 56,
+                size: 36,
                 color: success > 0
                     ? context.appColors.success
-                    : Theme.of(context).colorScheme.error,
+                    : scheme.error,
               ),
-              const SizedBox(height: 12),
-              Text(
-                'Bulk Download Complete',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _StatChip(
-                    icon: Icons.check_circle,
-                    color: context.appColors.success,
-                    label: '$success downloaded',
-                  ),
-                  if (failed > 0) ...[
-                    const SizedBox(width: 16),
-                    _StatChip(
-                      icon: Icons.error_outline,
-                      color: Theme.of(context).colorScheme.error,
-                      label: '$failed failed',
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Bulk Download Complete',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        _StatChip(
+                          icon: Icons.check_circle,
+                          color: context.appColors.success,
+                          label: '$success downloaded',
+                        ),
+                        if (failed > 0) ...[
+                          const SizedBox(width: 16),
+                          _StatChip(
+                            icon: Icons.error_outline,
+                            color: scheme.error,
+                            label: '$failed failed',
+                          ),
+                        ],
+                      ],
                     ),
                   ],
-                ],
+                ),
               ),
             ],
           ),
         ),
 
+        // ── Bulk rename bar ─────────────────────────────────────────────
+        if (success > 0) _buildBulkRenameBar(context),
+
+        // ── Results grid (large, clearly-visible previews) ─────────────
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: state.results.length,
-            itemBuilder: (context, index) {
-              final result = state.results[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: SizedBox(
-                      width: 36,
-                      height: 60,
-                      child: CachedNetworkImage(
-                        imageUrl: result.wallpaper.smallUrl,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  title: Text(
-                    result.success
-                        ? result.downloadResult?.aiName ?? 'Unknown'
-                        : result.wallpaper.photographer,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: result.success
-                      ? Text(
-                          result.downloadResult?.tags.take(3).join(', ') ??
-                              '',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 11),
-                        )
-                      : Text(
-                          result.error ?? 'Failed',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                              fontSize: 11),
-                        ),
-                  trailing: result.success
-                      ? Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit_outlined, size: 20),
-                              tooltip: 'Rename',
-                              onPressed: () => _showRenameDialog(
-                                context,
-                                index,
-                                result.downloadResult!.aiName,
-                                result.wallpaper,
-                              ),
-                            ),
-                            Icon(Icons.check_circle,
-                                color: context.appColors.success, size: 20),
-                          ],
-                        )
-                      : Icon(Icons.error,
-                          color: Theme.of(context).colorScheme.error),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final crossAxisCount =
+                  (constraints.maxWidth ~/ 200).clamp(2, 6);
+              return GridView.builder(
+                padding: const EdgeInsets.all(16),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 0.62,
                 ),
+                itemCount: widget.state.results.length,
+                itemBuilder: (context, index) {
+                  final result = widget.state.results[index];
+                  return _ResultCard(
+                    result: result,
+                    onRename: result.success
+                        ? () => _showRenameDialog(
+                              index,
+                              result.downloadResult!.aiName,
+                              result.wallpaper,
+                            )
+                        : null,
+                  );
+                },
               );
             },
           ),
         ),
 
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: Column(
-            children: [
-              if (onRetryFailed != null)
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: onRetryFailed,
-                    icon: const Icon(Icons.refresh),
-                    label: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Text(
-                        'Retry ${state.failedCount} Failed',
-                        style: const TextStyle(fontSize: 15),
+        // ── Bottom actions ──────────────────────────────────────────────
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: Row(
+              children: [
+                if (widget.onRetryFailed != null) ...[
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: widget.onRetryFailed,
+                      icon: const Icon(Icons.refresh),
+                      label: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Text('Retry ${widget.state.failedCount} Failed'),
                       ),
                     ),
                   ),
-                ),
-              if (onRetryFailed != null) const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: onDone,
-                  child: const Padding(
-                    padding: EdgeInsets.all(14),
-                    child: Text('Done', style: TextStyle(fontSize: 16)),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: widget.onDone,
+                    child: const Padding(
+                      padding: EdgeInsets.all(14),
+                      child: Text('Done', style: TextStyle(fontSize: 16)),
+                    ),
                   ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBulkRenameBar(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final suggestions = _suggestedBaseNames;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        border: Border(bottom: BorderSide(color: scheme.outlineVariant)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.drive_file_rename_outline,
+                  size: 18, color: scheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                'Bulk rename',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'all files → name_1, name_2 …',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _bulkController,
+                  enabled: !_isRenamingAll,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _applyBulkRename(),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    hintText: 'Base name (e.g. nature, abstract…)',
+                    prefixIcon: const Icon(Icons.label_outline, size: 18),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              FilledButton.icon(
+                onPressed: _isRenamingAll ? null : _applyBulkRename,
+                icon: _isRenamingAll
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.done_all, size: 18),
+                label: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Text(_isRenamingAll ? 'Renaming…' : 'Apply to all'),
                 ),
               ),
             ],
           ),
+          if (suggestions.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(Icons.auto_awesome,
+                    size: 13, color: scheme.onSurfaceVariant),
+                const SizedBox(width: 5),
+                Text(
+                  'Suggested from tags',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: suggestions
+                  .map((s) => ActionChip(
+                        label: Text(s),
+                        labelStyle: const TextStyle(fontSize: 12),
+                        visualDensity: VisualDensity.compact,
+                        onPressed: _isRenamingAll
+                            ? null
+                            : () => setState(() {
+                                  _bulkController.text = s;
+                                  _bulkController.selection =
+                                      TextSelection.collapsed(
+                                          offset: s.length);
+                                }),
+                      ))
+                  .toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Complete-step result card (large preview)
+// ─────────────────────────────────────────────
+
+class _ResultCard extends StatelessWidget {
+  final BulkProcessResult result;
+  final VoidCallback? onRename;
+
+  const _ResultCard({required this.result, required this.onRename});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final success = result.success;
+    final name = success
+        ? (result.downloadResult?.aiName ?? 'Unknown')
+        : result.wallpaper.photographer;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: success
+              ? scheme.outlineVariant
+              : scheme.error.withValues(alpha: 0.4),
         ),
-      ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Preview image — large and clearly visible.
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                CachedNetworkImage(
+                  imageUrl: result.wallpaper.mediumUrl.isNotEmpty
+                      ? result.wallpaper.mediumUrl
+                      : result.wallpaper.originalUrl,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => Container(
+                    color: scheme.surfaceContainerHighest,
+                    child: const Center(
+                        child: CircularProgressIndicator(strokeWidth: 2)),
+                  ),
+                  errorWidget: (_, __, ___) => Container(
+                    color: scheme.surfaceContainerHighest,
+                    child: const Icon(Icons.broken_image),
+                  ),
+                ),
+                // Status badge
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.45),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      success ? Icons.check_circle : Icons.error,
+                      size: 18,
+                      color: success ? context.appColors.success : scheme.error,
+                    ),
+                  ),
+                ),
+                // Rename affordance
+                if (success)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Material(
+                      color: Colors.black.withValues(alpha: 0.45),
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: onRename,
+                        child: const Padding(
+                          padding: EdgeInsets.all(5),
+                          child: Icon(Icons.edit_outlined,
+                              size: 16, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          // Caption
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 8, 6, 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        success
+                            ? (result.downloadResult?.tags
+                                    .take(3)
+                                    .join(', ') ??
+                                '')
+                            : (result.error ?? 'Failed'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: success
+                              ? scheme.onSurfaceVariant
+                              : scheme.error,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (success)
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    tooltip: 'Rename',
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints:
+                        const BoxConstraints(minWidth: 32, minHeight: 32),
+                    onPressed: onRename,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -2368,11 +2653,13 @@ class _CompleteStep extends StatelessWidget {
 class _RenameDialog extends StatefulWidget {
   final String initialName;
   final Wallpaper wallpaper;
+  final List<String> suggestions;
   final Future<void> Function(String newName) onConfirm;
 
   const _RenameDialog({
     required this.initialName,
     required this.wallpaper,
+    required this.suggestions,
     required this.onConfirm,
   });
 
@@ -2460,6 +2747,52 @@ class _RenameDialogState extends State<_RenameDialog> {
             ),
             onSubmitted: (_) => _submit(),
           ),
+          if (widget.suggestions.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Row(
+                children: [
+                  Icon(Icons.auto_awesome,
+                      size: 13,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  const SizedBox(width: 5),
+                  Text(
+                    'Suggestions from tags',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: widget.suggestions
+                  .map((s) => ActionChip(
+                        label: Text(s),
+                        labelStyle: const TextStyle(fontSize: 12),
+                        visualDensity: VisualDensity.compact,
+                        onPressed: _isLoading
+                            ? null
+                            : () {
+                                final base = _tagToBaseName(s);
+                                if (base.isEmpty) return;
+                                setState(() {
+                                  _controller.text = base;
+                                  _controller.selection =
+                                      TextSelection.collapsed(
+                                          offset: base.length);
+                                });
+                              },
+                      ))
+                  .toList(),
+            ),
+          ],
         ],
       ),
       actions: [
@@ -2490,6 +2823,31 @@ class _RenameDialogState extends State<_RenameDialog> {
 // (e.g. after scroll recycling) skip the delay and show from cache immediately.
 final _fetchedUrls = <String>{};
 
+/// Spaces out image loads that mount close together in time so we don't fire
+/// a burst of CDN requests at once (which can trigger 429s). Crucially, the
+/// delay is relative to *now*, not the grid index — so images on a freshly
+/// loaded page never wait longer than [_maxDelay], no matter how far down the
+/// list they are.
+class _LoadStagger {
+  static const _gap = Duration(milliseconds: 120);
+  static const _maxDelay = Duration(milliseconds: 1200);
+  static DateTime? _nextSlot;
+
+  /// Reserves the next load slot and returns how long the caller should wait.
+  static Duration reserve() {
+    final now = DateTime.now();
+    var slot = (_nextSlot == null || _nextSlot!.isBefore(now))
+        ? now
+        : _nextSlot!;
+    // Never make a just-mounted image wait more than the cap.
+    if (slot.difference(now) > _maxDelay) {
+      slot = now.add(_maxDelay);
+    }
+    _nextSlot = slot.add(_gap);
+    return slot.difference(now);
+  }
+}
+
 class _DeferredImage extends StatefulWidget {
   final String url;
   final int index;
@@ -2512,13 +2870,13 @@ class _DeferredImageState extends State<_DeferredImage> {
       _ready = true;
       return;
     }
-    // First time: stagger 3 images per 800 ms window to avoid 429s.
-    final delay = (widget.index ~/ 3) * 800;
-    if (delay == 0) {
+    // First time: take a slot in the rolling stagger window.
+    final delay = _LoadStagger.reserve();
+    if (delay == Duration.zero) {
       _ready = true;
       _fetchedUrls.add(widget.url);
     } else {
-      _timer = Timer(Duration(milliseconds: delay), () {
+      _timer = Timer(delay, () {
         if (mounted) {
           _fetchedUrls.add(widget.url);
           setState(() => _ready = true);

@@ -432,6 +432,38 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
     state = state.copyWith(results: updated);
   }
 
+  /// Renames every successful result to `<baseName>_<n>` (1-based, in order).
+  /// Failed items are skipped. Individual rename failures are ignored so the
+  /// rest still get renamed.
+  Future<void> bulkRename(String baseName) async {
+    final base = baseName.trim();
+    if (base.isEmpty) return;
+
+    final downloadService = await ref.read(downloadServiceProvider.future);
+    final updated = List<BulkProcessResult>.from(state.results);
+
+    int n = 1;
+    for (int i = 0; i < updated.length; i++) {
+      final r = updated[i];
+      if (!r.success || r.downloadResult == null) continue;
+
+      final target = '${base}_$n';
+      n++;
+      try {
+        final renamed =
+            await downloadService.renameWallpaper(r.downloadResult!, target);
+        updated[i] = BulkProcessResult(
+          wallpaper: r.wallpaper,
+          success: true,
+          downloadResult: renamed,
+        );
+        state = state.copyWith(results: List.from(updated));
+      } catch (_) {
+        // Keep the original name for this item and continue.
+      }
+    }
+  }
+
   void reset() => state = const BulkDownloadState();
 
   Future<List<Wallpaper>> _fetchFromSources({
