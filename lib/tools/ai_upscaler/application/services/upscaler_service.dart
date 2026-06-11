@@ -8,38 +8,52 @@ class UpscalerService {
   static String? _resolvedBinary;
   static String? _resolvedModels;
 
-  static final List<String> _binaryCandidates = [
-    p.join(Directory.current.path, 'bin', 'realesrgan-ncnn-vulkan.exe'),
-    p.join(Directory.current.path, 'realesrgan-ncnn-vulkan.exe'),
-    p.join(Directory.current.path, 'bin', 'upscayl-bin.exe'),
-    p.join(Directory.current.path, 'upscayl-bin.exe'),
-    p.join(Directory.current.path, 'bin', 'realesrgan-ncnn-vulkan'),
-    p.join(Directory.current.path, 'realesrgan-ncnn-vulkan'),
-    if (Platform.isWindows) ...[
-       'C:\\Users\\Piyush KPV\\Downloads\\upscayl-main\\resources\\win\\bin\\upscayl-bin.exe',
-       'C:\\Program Files\\Upscayl\\resources\\bin\\upscayl-bin.exe',
-       p.join(Platform.environment['APPDATA'] ?? '', 'Upscayl', 'resources', 'bin', 'upscayl-bin.exe'),
-       'C:\\Users\\Piyush KPV\\Downloads\\upscayl-main\\resources\\bin\\realesrgan-ncnn-vulkan.exe',
-       'C:\\Program Files\\Upscayl\\resources\\bin\\realesrgan-ncnn-vulkan.exe',
-       p.join(Platform.environment['APPDATA'] ?? '', 'Upscayl', 'resources', 'bin', 'realesrgan-ncnn-vulkan.exe'),
-    ],
-    if (Platform.isLinux) ...[
-      '/usr/bin/realesrgan-ncnn-vulkan',
-      '/usr/local/bin/realesrgan-ncnn-vulkan',
-      '/usr/bin/upscayl-bin',
-      p.join(Platform.environment['HOME'] ?? '', '.local', 'bin', 'realesrgan-ncnn-vulkan'),
-      p.join(Platform.environment['HOME'] ?? '', '.local', 'bin', 'upscayl-bin'),
-    ],
-  ];
+  static List<String> get _binaryCandidates {
+    final exeDir = p.dirname(Platform.resolvedExecutable);
+    return [
+      p.join(Directory.current.path, 'bin', 'realesrgan-ncnn-vulkan.exe'),
+      p.join(Directory.current.path, 'realesrgan-ncnn-vulkan.exe'),
+      p.join(Directory.current.path, 'bin', 'upscayl-bin.exe'),
+      p.join(Directory.current.path, 'upscayl-bin.exe'),
+      
+      // Release mode candidates (relative to executable on Windows)
+      p.join(exeDir, 'bin', 'realesrgan-ncnn-vulkan.exe'),
+      p.join(exeDir, 'realesrgan-ncnn-vulkan.exe'),
+      p.join(exeDir, 'bin', 'upscayl-bin.exe'),
+      p.join(exeDir, 'upscayl-bin.exe'),
+      
+      p.join(Directory.current.path, 'bin', 'realesrgan-ncnn-vulkan'),
+      p.join(Directory.current.path, 'realesrgan-ncnn-vulkan'),
+      if (Platform.isWindows) ...[
+         'C:\\Users\\Piyush KPV\\Downloads\\upscayl-main\\resources\\win\\bin\\upscayl-bin.exe',
+         'C:\\Program Files\\Upscayl\\resources\\bin\\upscayl-bin.exe',
+         p.join(Platform.environment['APPDATA'] ?? '', 'Upscayl', 'resources', 'bin', 'upscayl-bin.exe'),
+         'C:\\Users\\Piyush KPV\\Downloads\\upscayl-main\\resources\\bin\\realesrgan-ncnn-vulkan.exe',
+         'C:\\Program Files\\Upscayl\\resources\\bin\\realesrgan-ncnn-vulkan.exe',
+         p.join(Platform.environment['APPDATA'] ?? '', 'Upscayl', 'resources', 'bin', 'realesrgan-ncnn-vulkan.exe'),
+      ],
+      if (Platform.isLinux) ...[
+        '/usr/bin/realesrgan-ncnn-vulkan',
+        '/usr/local/bin/realesrgan-ncnn-vulkan',
+        '/usr/bin/upscayl-bin',
+        p.join(Platform.environment['HOME'] ?? '', '.local', 'bin', 'realesrgan-ncnn-vulkan'),
+        p.join(Platform.environment['HOME'] ?? '', '.local', 'bin', 'upscayl-bin'),
+      ],
+    ];
+  }
 
-  static final List<String> _modelsCandidates = [
-    p.join(Directory.current.path, 'models'),
-    if (Platform.isWindows) ...[
-      'C:\\Users\\Piyush KPV\\Downloads\\upscayl-main\\resources\\models',
-      'C:\\Program Files\\Upscayl\\resources\\models',
-      p.join(Platform.environment['APPDATA'] ?? '', 'Upscayl', 'resources', 'models'),
-    ],
-  ];
+  static List<String> get _modelsCandidates {
+    final exeDir = p.dirname(Platform.resolvedExecutable);
+    return [
+      p.join(Directory.current.path, 'models'),
+      p.join(exeDir, 'models'), // Release mode
+      if (Platform.isWindows) ...[
+        'C:\\Users\\Piyush KPV\\Downloads\\upscayl-main\\resources\\models',
+        'C:\\Program Files\\Upscayl\\resources\\models',
+        p.join(Platform.environment['APPDATA'] ?? '', 'Upscayl', 'resources', 'models'),
+      ],
+    ];
+  }
 
   static Future<bool> isBinaryInstalled({String? customPath, String? customModelsPath}) async {
     if (customPath != null && File(customPath).existsSync()) {

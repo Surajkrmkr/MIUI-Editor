@@ -49,11 +49,13 @@ class PresetRepositoryImpl implements PresetRepository {
     try {
       final dir = Directory(PathConstants.presetPath);
       if (!await dir.exists()) return (const <String>[], null);
-      final paths = (await dir.list().toList())
-          .whereType<Directory>()
-          .map((d) => d.path)
-          .toList();
-      paths.sort();
+      final entities = (await dir.list().toList());
+      
+      final dirs = entities.whereType<Directory>().toList();
+      // Sort by last modified time (most recent first)
+      dirs.sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
+      
+      final paths = dirs.map((d) => d.path).toList();
       return (paths, null);
     } catch (e) {
       return (const <String>[], FileFailure(e.toString()));

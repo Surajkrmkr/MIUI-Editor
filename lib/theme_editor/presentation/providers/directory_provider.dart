@@ -111,8 +111,12 @@ class DirectoryNotifier extends Notifier<DirectoryState> {
       final dir = Directory(PathConstants.presetPath);
       if (!await dir.exists()) await dir.create(recursive: true);
       final entities = await dir.list().toList();
-      final paths = entities.whereType<Directory>().map((d) => d.path).toList()
-        ..sort();
+      
+      // Sort by last modified time (most recent first)
+      final dirs = entities.whereType<Directory>().toList();
+      dirs.sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
+      
+      final paths = dirs.map((d) => d.path).toList();
       state = state.copyWith(presetPaths: paths, isLoadingPresets: false);
     } catch (_) {
       state = state.copyWith(isLoadingPresets: false);

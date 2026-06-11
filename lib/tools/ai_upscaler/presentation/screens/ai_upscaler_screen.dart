@@ -104,14 +104,8 @@ class _AiUpscalerScreenState extends ConsumerState<AiUpscalerScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
       child: Row(
         children: [
-          GlassCard(
-            padding: const EdgeInsets.all(8),
-            borderRadius: 12,
-            child: InkWell(
-              onTap: () => Navigator.of(context, rootNavigator: true).pop(),
-              child: Icon(Icons.arrow_back_rounded,
-                  color: colors.textPrimary, size: 16),
-            ),
+          AppBackButton.close(
+            onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
           ),
           const SizedBox(width: 16),
           Text(
@@ -398,33 +392,35 @@ class _AiUpscalerScreenState extends ConsumerState<AiUpscalerScreen> {
               afterImagePath: state.outputPath!,
             )
           else if (state.inputPath != null)
-             Stack(
-               children: [
-                 Center(
-                   child: Padding(
-                     padding: const EdgeInsets.all(32),
-                     child: ClipRRect(
-                       borderRadius: BorderRadius.circular(16),
-                       child: Image.file(
-                         File(state.inputPath!),
-                         fit: BoxFit.contain,
-                       ),
-                     ),
-                   ),
-                 ),
-                 Positioned(
-                   top: 20,
-                   right: 20,
-                   child: AppIconButton(
-                     icon: Icons.close_rounded,
-                     onPressed: () => notifier.setInputPath(null),
-                     tooltip: 'Clear Image',
-                   ),
-                 ),
-               ],
-             )
-          else 
-            Center(child: Icon(Icons.image_search_rounded, size: 64, color: colors.textDisabled.withValues(alpha: 0.2))),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.file(
+                    File(state.inputPath!),
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+            )
+          else
+            Center(
+                child: Icon(Icons.image_search_rounded,
+                    size: 64,
+                    color: colors.textDisabled.withValues(alpha: 0.2))),
+
+          // Global clear button (top-right of preview)
+          if (state.inputPath != null && !state.isProcessing)
+            Positioned(
+              top: 16,
+              right: 16,
+              child: AppIconButton(
+                icon: Icons.close_rounded,
+                tooltip: 'Clear Workspace',
+                onPressed: () => notifier.clear(),
+              ),
+            ),
 
           if (state.isProcessing || state.logs.isNotEmpty)
             Positioned(

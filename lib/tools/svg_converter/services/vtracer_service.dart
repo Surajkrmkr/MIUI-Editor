@@ -11,8 +11,13 @@ class VTracerService {
   static Future<String?> _resolveBinary() async {
     if (_resolvedBinary != null) return _resolvedBinary;
 
+    final exeDir = p.dirname(Platform.resolvedExecutable);
+    
     final candidates = [
+      // Debug mode (project root)
       p.join(Directory.current.path, 'lib', 'tools', 'svg_converter', 'bin', 'vtracer.exe'),
+      // Release mode (relative to executable on Windows)
+      p.join(exeDir, 'data', 'flutter_assets', 'lib', 'tools', 'svg_converter', 'bin', 'vtracer.exe'),
       'vtracer.exe',
       'vtracer',
     ];

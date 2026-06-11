@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import '../../domain/models/upscale_options.dart';
 import '../services/upscaler_service.dart';
 import 'upscaler_settings_provider.dart';
@@ -106,11 +105,11 @@ class UpscalerNotifier extends Notifier<UpscalerState> {
     );
 
     try {
-      final tempDir = await getTemporaryDirectory();
+      final baseDir = p.dirname(state.inputPath!);
       final fileName = p.basenameWithoutExtension(state.inputPath!);
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final outPath = p.join(
-        tempDir.path, 
+        baseDir, 
         '${fileName}_upscaled_$timestamp.${state.format.label.toLowerCase()}'
       );
 

@@ -232,7 +232,8 @@ class _StaticElement extends StatelessWidget {
     }
     return Text(
       t,
-      style: TextStyle(
+      style: fontTextStyle(
+        font: el.font,
         color: el.color,
         fontSize: el.fontSize,
         fontWeight: el.fontWeight,

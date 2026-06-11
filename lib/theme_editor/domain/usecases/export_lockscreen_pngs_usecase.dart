@@ -248,8 +248,8 @@ class ExportLockscreenPngsUseCase {
               end: el.gradEndAlign as Alignment,
               colors: [el.colorDigit1, el.colorDigit1],
             ),
-            style: TextStyle(
-              fontFamily: el.font,
+            style: fontTextStyle(
+              font: el.font,
               fontSize: 35,
               height: 1,
               color: el.colorDigit1,
@@ -262,8 +262,8 @@ class ExportLockscreenPngsUseCase {
               end: el.gradEndAlign as Alignment,
               colors: [el.colorDigit2, el.colorDigit2],
             ),
-            style: TextStyle(
-              fontFamily: el.font,
+            style: fontTextStyle(
+              font: el.font,
               fontSize: 35,
               height: 1,
               color: el.colorDigit2,
@@ -280,8 +280,8 @@ class ExportLockscreenPngsUseCase {
         end: el.gradEndAlign as Alignment,
         colors: [el.color, el.colorSecondary],
       ),
-      style: TextStyle(
-        fontFamily: el.font,
+      style: fontTextStyle(
+        font: el.font,
         fontSize: 35,
         height: 1,
         color: el.color,
