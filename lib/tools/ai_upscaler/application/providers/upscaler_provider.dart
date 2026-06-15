@@ -10,6 +10,7 @@ class UpscalerState {
   final bool isCheckingBinary;
   final String? inputPath;
   final String? outputPath;
+  final String? batchFolderPath;
   final UpscalePreset preset;
   final UpscaleScale scale;
   final OutputFormat format;
@@ -24,6 +25,7 @@ class UpscalerState {
     this.isCheckingBinary = true,
     this.inputPath,
     this.outputPath,
+    this.batchFolderPath,
     this.preset = UpscalePreset.standard,
     this.scale = UpscaleScale.x4,
     this.format = OutputFormat.png,
@@ -39,6 +41,7 @@ class UpscalerState {
     bool? isCheckingBinary,
     String? inputPath,
     String? outputPath,
+    String? batchFolderPath,
     UpscalePreset? preset,
     UpscaleScale? scale,
     OutputFormat? format,
@@ -53,6 +56,7 @@ class UpscalerState {
       isCheckingBinary: isCheckingBinary ?? this.isCheckingBinary,
       inputPath: inputPath ?? this.inputPath,
       outputPath: outputPath ?? this.outputPath,
+      batchFolderPath: batchFolderPath ?? this.batchFolderPath,
       preset: preset ?? this.preset,
       scale: scale ?? this.scale,
       format: format ?? this.format,
@@ -85,16 +89,68 @@ class UpscalerNotifier extends Notifier<UpscalerState> {
   }
 
   void setInputPath(String? path) {
-    state = state.copyWith(inputPath: path, outputPath: null, logs: [], progress: 0, queue: []);
+    state = state.copyWith(
+      inputPath: path, 
+      outputPath: null, 
+      batchFolderPath: null,
+      logs: [], 
+      progress: 0, 
+      queue: []
+    );
   }
 
   void setPreset(UpscalePreset preset) => state = state.copyWith(preset: preset);
   void setScale(UpscaleScale scale) => state = state.copyWith(scale: scale);
   void setFormat(OutputFormat format) => state = state.copyWith(format: format);
 
-  Future<void> startUpscale() async {
-    if (state.inputPath == null || state.isProcessing || !state.isBinaryInstalled) return;
+  void loadBatch(String folderPath) {
+    if (state.isProcessing || !state.isBinaryInstalled) return;
 
+    final dir = Directory(folderPath);
+    if (!dir.existsSync()) return;
+
+    final files = dir.listSync().whereType<File>().where((f) {
+      final ext = p.extension(f.path).toLowerCase();
+      return ['.png', '.jpg', '.jpeg', '.webp'].contains(ext);
+    }).toList();
+
+    if (files.isEmpty) {
+      state = state.copyWith(
+        error: 'No valid images found in folder',
+        logs: ['Empty folder: $folderPath']
+      );
+      return;
+    }
+
+    final tasks = files.map((f) => UpscaleTask(
+      id: f.path,
+      inputPath: f.path,
+      outputPath: '', // Set during processing
+    )).toList();
+
+    state = state.copyWith(
+      inputPath: null,
+      outputPath: null,
+      batchFolderPath: folderPath,
+      queue: tasks,
+      logs: ['Batch folder loaded: $folderPath', '${tasks.length} files detected'],
+      progress: 0,
+      isProcessing: false,
+      error: null,
+    );
+  }
+
+  Future<void> startUpscale() async {
+    if (state.isProcessing || !state.isBinaryInstalled) return;
+
+    if (state.inputPath != null) {
+      await _processSingleUpscale();
+    } else if (state.queue.isNotEmpty && state.batchFolderPath != null) {
+      await _processBatchUpscale();
+    }
+  }
+
+  Future<void> _processSingleUpscale() async {
     final settings = ref.read(upscalerSettingsProvider);
 
     state = state.copyWith(
@@ -136,47 +192,29 @@ class UpscalerNotifier extends Notifier<UpscalerState> {
         logs: [...state.logs, 'Upscale complete: $outPath'],
       );
     } catch (e) {
-      String errorMessage = e.toString();
-      if (e is ProcessException) {
-        errorMessage = '''Failed to launch upscaler: ${e.message}
-Executable: ${e.executable}''';
-      }
-      state = state.copyWith(
-        isProcessing: false,
-        error: errorMessage,
-        logs: [...state.logs, 'Error: $errorMessage'],
-      );
+      _handleError(e);
     }
   }
 
-  Future<void> startBatchUpscale(String folderPath) async {
-    if (state.isProcessing || !state.isBinaryInstalled) return;
-
+  Future<void> _processBatchUpscale() async {
     final settings = ref.read(upscalerSettingsProvider);
-    final dir = Directory(folderPath);
-    if (!dir.existsSync()) return;
-
-    final files = dir.listSync().whereType<File>().where((f) {
-      final ext = p.extension(f.path).toLowerCase();
-      return ['.png', '.jpg', '.jpeg', '.webp'].contains(ext);
-    }).toList();
-
-    if (files.isEmpty) return;
+    final folderPath = state.batchFolderPath!;
 
     final outDir = Directory(p.join(folderPath, 'upscaled_${DateTime.now().millisecondsSinceEpoch}'));
     await outDir.create(recursive: true);
 
-    final tasks = files.map((f) => UpscaleTask(
-      id: f.path,
-      inputPath: f.path,
-      outputPath: p.join(outDir.path, p.basename(f.path)),
+    // Re-initialize tasks with correct output paths
+    final tasks = state.queue.map((t) => UpscaleTask(
+      id: t.id,
+      inputPath: t.inputPath,
+      outputPath: p.join(outDir.path, p.basename(t.inputPath)),
     )).toList();
 
     state = state.copyWith(
       isProcessing: true,
       progress: 0,
       queue: tasks,
-      logs: ['Starting batch upscale for ${tasks.length} files...'],
+      logs: ['Starting batch upscale for ${tasks.length} files...', 'Destination: ${outDir.path}'],
       error: null,
     );
 
@@ -215,6 +253,19 @@ Executable: ${e.executable}''';
     );
   }
 
+  void _handleError(dynamic e) {
+    String errorMessage = e.toString();
+    if (e is ProcessException) {
+      errorMessage = '''Failed to launch upscaler: ${e.message}
+Executable: ${e.executable}''';
+    }
+    state = state.copyWith(
+      isProcessing: false,
+      error: errorMessage,
+      logs: [...state.logs, 'Error: $errorMessage'],
+    );
+  }
+
   void _updateTaskStatus(int index, UpscaleTaskStatus status) {
     final newQueue = List<UpscaleTask>.from(state.queue);
     newQueue[index] = newQueue[index].copyWith(status: status);
@@ -239,6 +290,7 @@ Executable: ${e.executable}''';
       isCheckingBinary: false,
       inputPath: null,
       outputPath: null,
+      batchFolderPath: null,
       queue: [],
       logs: [],
       progress: 0,

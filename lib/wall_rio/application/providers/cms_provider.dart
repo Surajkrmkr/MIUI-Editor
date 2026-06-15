@@ -31,6 +31,21 @@ class CmsNotifier extends AsyncNotifier<RioData?> {
       final versionRepo = ref.read(wallRioVersionRepositoryProvider);
 
       final currentJson = await repository.loadData(filePath);
+      
+      // Filter data if it's rio.json (JSON 3)
+      // These 3 values (videoUrl, previewVideo, type) are only for JSON 2 (live_json)
+      RioData dataToSave = data;
+      final fileName = filePath.split('/').last.split('\\').last.toLowerCase();
+      if (fileName.contains('rio.json')) {
+        dataToSave = data.copyWith(
+          walls: data.walls.map((w) => w.copyWith(
+            videoUrl: null,
+            previewVideo: null,
+            type: null,
+          )).toList(),
+        );
+      }
+
       final snapshot = LocalVersion(
         id: const Uuid().v4(),
         filePath: filePath,
@@ -39,7 +54,7 @@ class CmsNotifier extends AsyncNotifier<RioData?> {
         jsonData: jsonEncode(currentJson.toJson()),
       );
       await versionRepo.saveVersion(snapshot);
-      await repository.saveData(filePath, data);
+      await repository.saveData(filePath, dataToSave);
     });
   }
 

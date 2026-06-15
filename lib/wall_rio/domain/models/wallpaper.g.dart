@@ -26,22 +26,31 @@ _Wallpaper _$WallpaperFromJson(Map<String, dynamic> json) => _Wallpaper(
       type: json['type'] as String?,
     );
 
-Map<String, dynamic> _$WallpaperToJson(_Wallpaper instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'author': instance.author,
-      'url': instance.url,
-      'thumbnail': instance.thumbnail,
-      'tags': instance.tags,
-      'category': instance.category,
-      'color': instance.color,
-      'isPremium': instance.isPremium,
-      'subjectId': instance.subjectId,
-      'videoUrl': instance.videoUrl,
-      'previewVideo': instance.previewVideo,
-      'type': instance.type,
-    };
+Map<String, dynamic> _$WallpaperToJson(_Wallpaper instance) {
+  final val = <String, dynamic>{
+    'id': instance.id,
+    'name': instance.name,
+    'author': instance.author,
+    'url': instance.url,
+    'thumbnail': instance.thumbnail,
+    'tags': instance.tags,
+    'category': instance.category,
+    'color': instance.color,
+    'isPremium': instance.isPremium,
+    'subjectId': instance.subjectId,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('videoUrl', instance.videoUrl);
+  writeNotNull('previewVideo', instance.previewVideo);
+  writeNotNull('type', instance.type);
+  return val;
+}
 
 _RioData _$RioDataFromJson(Map<String, dynamic> json) => _RioData(
       subscription: (json['subscription'] as List<dynamic>?)

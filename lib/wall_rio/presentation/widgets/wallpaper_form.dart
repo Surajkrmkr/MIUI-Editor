@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import '../../application/providers/ai_provider.dart';
@@ -10,6 +11,7 @@ import '../../application/providers/cms_provider.dart';
 import '../../application/services/wallpaper_import_service.dart';
 import '../../domain/models/ai_models.dart';
 import '../../domain/models/wallpaper.dart';
+import 'tag_color_selectors.dart';
 
 class WallpaperForm extends ConsumerStatefulWidget {
   final Wallpaper? initialWallpaper;
@@ -35,13 +37,13 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
   late TextEditingController _nameController;
   late TextEditingController _urlController;
   late TextEditingController _thumbnailController;
-  late TextEditingController _tagsController;
   late TextEditingController _categoryController;
   late TextEditingController _authorController;
-  late TextEditingController _colorsController;
   late TextEditingController _videoUrlController;
   late TextEditingController _previewVideoController;
   late TextEditingController _typeController;
+  late List<String> _selectedTags;
+  late List<String> _selectedColors;
   late bool _isPremium;
   late bool _isLive;
   
@@ -60,13 +62,13 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
     _nameController = TextEditingController(text: w?.name ?? '');
     _urlController = TextEditingController(text: w?.url ?? '');
     _thumbnailController = TextEditingController(text: w?.thumbnail ?? '');
-    _tagsController = TextEditingController(text: w?.tags.join(', ') ?? '');
     _categoryController = TextEditingController(text: w?.category ?? '');
     _authorController = TextEditingController(text: w?.author ?? 'WallRio');
-    _colorsController = TextEditingController(text: w?.color.join(', ') ?? '');
     _videoUrlController = TextEditingController(text: w?.videoUrl ?? '');
     _previewVideoController = TextEditingController(text: w?.previewVideo ?? '');
     _typeController = TextEditingController(text: w?.type ?? '');
+    _selectedTags = List.from(w?.tags ?? []);
+    _selectedColors = List.from(w?.color ?? []);
     _isPremium = w?.isPremium ?? false;
     _isLive = w?.videoUrl != null && w!.videoUrl!.isNotEmpty || w?.type == 'video' || w?.type == 'live';
 
@@ -108,8 +110,83 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
               .join(' ');
         }
         _autofillUrls();
+        _detectTagsAndColors(_localFile!, _nameController.text);
+        if (!_isLive) {
+          _runAIAnalysis();
+        }
       });
     }
+  }
+
+  Future<void> _detectTagsAndColors(File file, String name) async {
+    // 1. Detect Colors using PaletteGenerator
+    if (!_isLive) {
+      try {
+        final gen = await PaletteGenerator.fromImageProvider(FileImage(file));
+        final detectedNames = <String>{};
+        
+        for (var paletteColor in gen.colors.take(5)) {
+          final name = _findNearestColorName(paletteColor);
+          if (name != null) detectedNames.add(name);
+        }
+        
+        if (mounted) {
+          setState(() {
+            for (var colorName in detectedNames) {
+              if (!_selectedColors.contains(colorName)) {
+                _selectedColors.add(colorName);
+              }
+            }
+          });
+        }
+      } catch (e) {
+        debugPrint('Error detecting colors: $e');
+      }
+    }
+
+    // 2. Detect Tags from Name
+    // ... (rest of method remains same)
+  }
+
+  String? _findNearestColorName(Color color) {
+    const mapping = {
+      'Black': Colors.black,
+      'White': Colors.white,
+      'Red': Colors.red,
+      'Blue': Colors.blue,
+      'Green': Colors.green,
+      'Yellow': Colors.yellow,
+      'Orange': Colors.orange,
+      'Purple': Colors.purple,
+      'Pink': Colors.pink,
+      'Brown': Colors.brown,
+      'Grey': Colors.grey,
+      'Cyan': Colors.cyan,
+      'Teal': Colors.teal,
+      'Lime': Colors.lime,
+      'Indigo': Colors.indigo,
+      'Amber': Colors.amber,
+    };
+
+    String? nearestName;
+    double minDistance = double.maxFinite;
+
+    for (var entry in mapping.entries) {
+      final dist = _colorDistance(color, entry.value);
+      if (dist < minDistance) {
+        minDistance = dist;
+        nearestName = entry.key;
+      }
+    }
+
+    // Only return if it's reasonably close (threshold)
+    return minDistance < 100 ? nearestName : null;
+  }
+
+  double _colorDistance(Color c1, Color c2) {
+    return (c1.red - c2.red).abs() + 
+           (c1.green - c2.green).abs() + 
+           (c1.blue - c2.blue).abs().toDouble();
   }
 
   Future<void> _pickThumbnail() async {
@@ -239,10 +316,8 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
     _nameController.dispose();
     _urlController.dispose();
     _thumbnailController.dispose();
-    _tagsController.dispose();
     _categoryController.dispose();
     _authorController.dispose();
-    _colorsController.dispose();
     _videoUrlController.dispose();
     _previewVideoController.dispose();
     _typeController.dispose();
@@ -561,9 +636,45 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
               onChanged: (v) => setState(() {}),
             ),
             const SizedBox(height: 16),
-            _buildTagsField(),
+            MultiSelectChipField(
+              label: 'Tags',
+              selectedItems: _selectedTags,
+              suggestions: widget.existingTags,
+              onAdded: (tag) => setState(() => _selectedTags.add(tag)),
+              onAddPressed: () async {
+                final result = await showDialog<List<String>>(
+                  context: context,
+                  builder: (context) => TagSelectionDialog(
+                    initialSelected: _selectedTags,
+                    existingTags: widget.existingTags,
+                  ),
+                );
+                if (result != null) {
+                  setState(() => _selectedTags = result);
+                }
+              },
+              onDeleted: (tag) => setState(() => _selectedTags.remove(tag)),
+            ),
             const SizedBox(height: 16),
-            _buildColorsField(),
+            MultiSelectChipField(
+              label: 'Colors',
+              isColor: true,
+              selectedItems: _selectedColors,
+              suggestions: widget.existingColors,
+              onAdded: (color) => setState(() => _selectedColors.add(color)),
+              onAddPressed: () async {
+                final result = await showDialog<List<String>>(
+                  context: context,
+                  builder: (context) => ColorSelectionDialog(
+                    initialSelected: _selectedColors,
+                  ),
+                );
+                if (result != null) {
+                  setState(() => _selectedColors = result);
+                }
+              },
+              onDeleted: (color) => setState(() => _selectedColors.remove(color)),
+            ),
             const SizedBox(height: 16),
             _buildTextField(controller: _authorController, label: 'Author'),
             const SizedBox(height: 20),
@@ -797,106 +908,6 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
     );
   }
 
-  Widget _buildTagsField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Tags (comma separated)',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: context.appColors.textSecondary,
-              ),
-        ),
-        const SizedBox(height: 6),
-        _buildTextFieldWithSuggestions(
-          controller: _tagsController,
-          suggestions: widget.existingTags,
-          focusNode: _tagsFocusNode,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildColorsField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Colors (comma separated hex)',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: context.appColors.textSecondary,
-              ),
-        ),
-        const SizedBox(height: 6),
-        _buildTextFieldWithSuggestions(
-          controller: _colorsController,
-          suggestions: widget.existingColors,
-          focusNode: _colorsFocusNode,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTextFieldWithSuggestions({
-    required TextEditingController controller,
-    required List<String> suggestions,
-    required FocusNode focusNode,
-  }) {
-    return RawAutocomplete<String>(
-      textEditingController: controller,
-      focusNode: focusNode,
-      optionsBuilder: (TextEditingValue value) {
-        if (value.text.isEmpty) return const Iterable<String>.empty();
-        final parts = value.text.split(RegExp(r',\s*'));
-        final lastPart = parts.last.trim();
-        if (lastPart.isEmpty) return const Iterable<String>.empty();
-        return suggestions.where((s) => s.toLowerCase().contains(lastPart.toLowerCase()));
-      },
-      onSelected: (String selection) {
-        final text = controller.text;
-        final lastCommaIndex = text.lastIndexOf(',');
-        if (lastCommaIndex == -1) {
-          controller.text = '$selection, ';
-        } else {
-          controller.text = '${text.substring(0, lastCommaIndex).trim()}, $selection, ';
-        }
-        controller.selection = TextSelection.fromPosition(TextPosition(offset: controller.text.length));
-      },
-      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-        return TextFormField(
-          controller: controller,
-          focusNode: focusNode,
-          decoration: const InputDecoration(),
-        );
-      },
-      optionsViewBuilder: (context, onSelected, options) {
-        final colors = context.appColors;
-        return Align(
-          alignment: Alignment.topLeft,
-          child: Material(
-            elevation: 4,
-            color: colors.surfaceElevated,
-            child: SizedBox(
-              height: 200,
-              width: 300,
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                itemCount: options.length,
-                itemBuilder: (context, index) {
-                  final option = options.elementAt(index);
-                  return ListTile(
-                    title: Text(option, style: TextStyle(color: colors.textPrimary)),
-                    onTap: () => onSelected(option),
-                  );
-                },
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> _runAIAnalysis() async {
     if (_localFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -912,8 +923,25 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
       if (result != null && mounted) {
         setState(() {
           _nameController.text = result.name;
-          _tagsController.text = result.tags.join(', ');
-          _colorsController.text = result.colors.join(', ');
+          _selectedTags = List.from(result.tags);
+          
+          // Map AI hex colors to names if they look like hex
+          final aiColors = <String>[];
+          for (var col in result.colors) {
+            if (col.startsWith('#')) {
+              try {
+                final color = Color(int.parse(col.replaceFirst('#', '0xFF')));
+                final name = _findNearestColorName(color);
+                if (name != null) aiColors.add(name);
+              } catch (_) {
+                aiColors.add(col);
+              }
+            } else {
+              aiColors.add(col);
+            }
+          }
+          _selectedColors = aiColors;
+          
           if (result.category != null) {
             _categoryController.text = result.category!;
           }
@@ -936,8 +964,8 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
           file: _localFile!,
           category: _categoryController.text.trim(),
           name: _nameController.text.trim(),
-          tags: _tagsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
-          colors: _colorsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
+          tags: _selectedTags,
+          colors: _selectedColors,
           isPremium: _isPremium,
         );
       } else {
@@ -951,9 +979,9 @@ class _WallpaperFormState extends ConsumerState<WallpaperForm> {
           author: _authorController.text.trim(),
           url: _urlController.text.trim(),
           thumbnail: _thumbnailController.text.trim(),
-          tags: _tagsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
+          tags: _selectedTags,
           category: _categoryController.text.trim(),
-          color: _colorsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
+          color: _selectedColors,
           isPremium: _isPremium,
           subjectId: widget.initialWallpaper?.subjectId ?? const Uuid().v4(),
           videoUrl: _isLive ? _videoUrlController.text.trim() : null,

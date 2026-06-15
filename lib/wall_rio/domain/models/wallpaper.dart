@@ -17,9 +17,9 @@ abstract class Wallpaper with _$Wallpaper {
     @Default(false) bool isPremium,
     @Default('') String subjectId,
     // Live Wallpaper specific fields
-    String? videoUrl,
-    String? previewVideo,
-    String? type,
+    @JsonKey(includeIfNull: false) String? videoUrl,
+    @JsonKey(includeIfNull: false) String? previewVideo,
+    @JsonKey(includeIfNull: false) String? type,
   }) = _Wallpaper;
 
   factory Wallpaper.fromJson(Map<String, dynamic> json) => _$WallpaperFromJson(json);

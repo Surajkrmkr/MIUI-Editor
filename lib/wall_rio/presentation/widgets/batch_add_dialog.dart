@@ -3,12 +3,14 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import '../../application/providers/ai_provider.dart';
 import '../../application/providers/cms_provider.dart';
 import '../../application/services/wallpaper_import_service.dart';
 import '../../domain/models/wallpaper.dart';
+import 'tag_color_selectors.dart';
 
 class BatchAddDialog extends ConsumerStatefulWidget {
   final List<String> existingCategories;
@@ -53,10 +55,10 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
             final item = _BatchItem(
               file: f,
               nameController: TextEditingController(text: name),
-              tagsController: TextEditingController(),
+              selectedTags: [],
               urlController: TextEditingController(),
               thumbnailController: TextEditingController(),
-              colorsController: TextEditingController(),
+              selectedColors: [],
               videoUrlController: TextEditingController(),
               previewVideoController: TextEditingController(),
               typeController: TextEditingController(text: isVideo ? 'live' : ''),
@@ -72,10 +74,101 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
             
             _items.add(item);
             _autofillItemUrls(item);
+            _detectItemTagsAndColors(item);
+            _analyzeItem(item);
           }
         }
       });
     }
+  }
+
+  Future<void> _detectItemTagsAndColors(_BatchItem item) async {
+    // 1. Detect Colors using PaletteGenerator
+    if (!item.isLive) {
+      try {
+        final gen = await PaletteGenerator.fromImageProvider(FileImage(item.file));
+        final detectedNames = <String>{};
+        
+        for (var paletteColor in gen.colors.take(5)) {
+          final name = _findNearestColorName(paletteColor);
+          if (name != null) detectedNames.add(name);
+        }
+        
+        if (mounted) {
+          setState(() {
+            for (var colorName in detectedNames) {
+              if (!item.selectedColors.contains(colorName)) {
+                item.selectedColors.add(colorName);
+              }
+            }
+          });
+        }
+      } catch (e) {
+        debugPrint('Error detecting colors: $e');
+      }
+    }
+
+    // 2. Detect Tags from Name
+    final name = item.nameController.text;
+    final words = name.toLowerCase().split(RegExp(r'[-_ ]'));
+    final matchedTags = <String>{};
+    
+    // Check against existing tags
+    for (var tag in widget.existingTags) {
+      if (words.contains(tag.toLowerCase()) || name.toLowerCase().contains(tag.toLowerCase())) {
+        matchedTags.add(tag);
+      }
+    }
+    
+    if (matchedTags.isNotEmpty && mounted) {
+      setState(() {
+        for (var tag in matchedTags) {
+          if (!item.selectedTags.contains(tag)) {
+            item.selectedTags.add(tag);
+          }
+        }
+      });
+    }
+  }
+
+  String? _findNearestColorName(Color color) {
+    const mapping = {
+      'Black': Colors.black,
+      'White': Colors.white,
+      'Red': Colors.red,
+      'Blue': Colors.blue,
+      'Green': Colors.green,
+      'Yellow': Colors.yellow,
+      'Orange': Colors.orange,
+      'Purple': Colors.purple,
+      'Pink': Colors.pink,
+      'Brown': Colors.brown,
+      'Grey': Colors.grey,
+      'Cyan': Colors.cyan,
+      'Teal': Colors.teal,
+      'Lime': Colors.lime,
+      'Indigo': Colors.indigo,
+      'Amber': Colors.amber,
+    };
+
+    String? nearestName;
+    double minDistance = double.maxFinite;
+
+    for (var entry in mapping.entries) {
+      final dist = _colorDistance(color, entry.value);
+      if (dist < minDistance) {
+        minDistance = dist;
+        nearestName = entry.key;
+      }
+    }
+
+    return minDistance < 100 ? nearestName : null;
+  }
+
+  double _colorDistance(Color c1, Color c2) {
+    return (c1.red - c2.red).abs() + 
+           (c1.green - c2.green).abs() + 
+           (c1.blue - c2.blue).abs().toDouble();
   }
 
   void _autofillItemUrls(_BatchItem item) {
@@ -175,26 +268,51 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
     return prefix;
   }
 
+  Future<void> _analyzeItem(_BatchItem item) async {
+    if (item.isProcessed || item.isAnalyzing || item.isLive) return;
+    
+    setState(() => item.isAnalyzing = true);
+    try {
+      await ref.read(aiStateProvider.notifier).analyzeImage(item.taskId, item.file.path);
+      final result = ref.read(aiStateProvider)[item.taskId]?.result;
+      if (result != null && mounted) {
+        setState(() {
+          item.nameController.text = result.name;
+          item.selectedTags = List.from(result.tags);
+          
+          final aiColors = <String>[];
+          for (var col in result.colors) {
+            if (col.startsWith('#')) {
+              try {
+                final color = Color(int.parse(col.replaceFirst('#', '0xFF')));
+                final name = _findNearestColorName(color);
+                if (name != null) aiColors.add(name);
+              } catch (_) {
+                aiColors.add(col);
+              }
+            } else {
+              aiColors.add(col);
+            }
+          }
+          item.selectedColors = aiColors;
+
+          if (result.category != null) {
+            item.categoryController.text = result.category!;
+          }
+          item.isProcessed = true;
+        });
+      }
+    } catch (_) {
+    } finally {
+      if (mounted) {
+        setState(() => item.isAnalyzing = false);
+      }
+    }
+  }
+
   Future<void> _analyzeAll() async {
     for (var item in _items) {
-      if (!item.isProcessed && !item.isAnalyzing && !item.isLive) {
-        setState(() => item.isAnalyzing = true);
-        try {
-          await ref.read(aiStateProvider.notifier).analyzeImage(item.taskId, item.file.path);
-          final result = ref.read(aiStateProvider)[item.taskId]?.result;
-          if (result != null) {
-            item.nameController.text = result.name;
-            item.tagsController.text = result.tags.join(', ');
-            item.colorsController.text = result.colors.join(', ');
-            if (result.category != null) {
-              item.categoryController.text = result.category!;
-            }
-            item.isProcessed = true;
-          }
-        } catch (_) {} finally {
-          setState(() => item.isAnalyzing = false);
-        }
-      }
+      await _analyzeItem(item);
     }
   }
 
@@ -209,8 +327,8 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
           file: item.file,
           category: item.categoryController.text.trim(),
           name: item.nameController.text.trim(),
-          tags: item.tagsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
-          colors: item.colorsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
+          tags: item.selectedTags,
+          colors: item.selectedColors,
           isPremium: item.isPremium,
         );
       }
@@ -361,6 +479,10 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
                       ),
                     ],
                   ),
+                  if (item.isAnalyzing) ...[
+                    const SizedBox(width: 8),
+                    const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                  ],
                   IconButton(
                     icon: Icon(Icons.delete_outline, color: cs.error),
                     onPressed: () => setState(() => _items.remove(item)),
@@ -370,9 +492,49 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(child: _buildItemSuggestionField(item.tagsController, 'Tags', widget.existingTags, item.tagsFocusNode)),
+                  Expanded(
+                    child: MultiSelectChipField(
+                      label: 'Tags',
+                      selectedItems: item.selectedTags,
+                      suggestions: widget.existingTags,
+                      onAdded: (tag) => setState(() => item.selectedTags.add(tag)),
+                      onAddPressed: () async {
+                        final result = await showDialog<List<String>>(
+                          context: context,
+                          builder: (context) => TagSelectionDialog(
+                            initialSelected: item.selectedTags,
+                            existingTags: widget.existingTags,
+                          ),
+                        );
+                        if (result != null) {
+                          setState(() => item.selectedTags = result);
+                        }
+                      },
+                      onDeleted: (tag) => setState(() => item.selectedTags.remove(tag)),
+                    ),
+                  ),
                   const SizedBox(width: 16),
-                  Expanded(child: _buildItemSuggestionField(item.colorsController, 'Colors', widget.existingColors, item.colorsFocusNode)),
+                  Expanded(
+                    child: MultiSelectChipField(
+                      label: 'Colors',
+                      isColor: true,
+                      selectedItems: item.selectedColors,
+                      suggestions: widget.existingColors,
+                      onAdded: (color) => setState(() => item.selectedColors.add(color)),
+                      onAddPressed: () async {
+                        final result = await showDialog<List<String>>(
+                          context: context,
+                          builder: (context) => ColorSelectionDialog(
+                            initialSelected: item.selectedColors,
+                          ),
+                        );
+                        if (result != null) {
+                          setState(() => item.selectedColors = result);
+                        }
+                      },
+                      onDeleted: (color) => setState(() => item.selectedColors.remove(color)),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -410,81 +572,19 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
       },
     );
   }
-
-  Widget _buildItemSuggestionField(TextEditingController controller, String label, List<String> suggestions, FocusNode focusNode) {
-    return RawAutocomplete<String>(
-      textEditingController: controller,
-      focusNode: focusNode,
-      optionsBuilder: (TextEditingValue value) {
-        if (value.text.isEmpty) return const Iterable<String>.empty();
-        final parts = value.text.split(RegExp(r',\s*'));
-        final lastPart = parts.last.trim();
-        if (lastPart.isEmpty) return const Iterable<String>.empty();
-        return suggestions.where((s) => s.toLowerCase().contains(lastPart.toLowerCase()));
-      },
-      onSelected: (String selection) {
-        final text = controller.text;
-        final lastCommaIndex = text.lastIndexOf(',');
-        if (lastCommaIndex == -1) {
-          controller.text = '$selection, ';
-        } else {
-          controller.text = '${text.substring(0, lastCommaIndex).trim()}, $selection, ';
-        }
-        controller.selection = TextSelection.fromPosition(TextPosition(offset: controller.text.length));
-      },
-      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-        return TextField(
-          controller: controller,
-          focusNode: focusNode,
-          style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurface),
-          decoration: InputDecoration(
-            labelText: label,
-            isDense: true,
-            labelStyle: const TextStyle(fontSize: 12),
-          ),
-        );
-      },
-      optionsViewBuilder: (context, onSelected, options) {
-        return Align(
-          alignment: Alignment.topLeft,
-          child: Material(
-            elevation: 4,
-            color: Theme.of(context).colorScheme.surface,
-            child: SizedBox(
-              height: 200,
-              width: 250,
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                itemCount: options.length,
-                itemBuilder: (context, index) {
-                  final option = options.elementAt(index);
-                  return ListTile(
-                    title: Text(option, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 12)),
-                    onTap: () => onSelected(option),
-                  );
-                },
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
 }
 
 class _BatchItem {
   final File file;
   final TextEditingController nameController;
-  final TextEditingController tagsController;
+  List<String> selectedTags;
   final TextEditingController urlController;
   final TextEditingController thumbnailController;
-  final TextEditingController colorsController;
+  List<String> selectedColors;
   final TextEditingController videoUrlController;
   final TextEditingController previewVideoController;
   final TextEditingController typeController;
   final TextEditingController categoryController;
-  final FocusNode tagsFocusNode = FocusNode();
-  final FocusNode colorsFocusNode = FocusNode();
   bool isPremium = false;
   bool isAnalyzing = false;
   bool isProcessed = false;
@@ -494,10 +594,10 @@ class _BatchItem {
   _BatchItem({
     required this.file,
     required this.nameController,
-    required this.tagsController,
+    required this.selectedTags,
     required this.urlController,
     required this.thumbnailController,
-    required this.colorsController,
+    required this.selectedColors,
     required this.videoUrlController,
     required this.previewVideoController,
     required this.typeController,
@@ -508,15 +608,11 @@ class _BatchItem {
 
   void dispose() {
     nameController.dispose();
-    tagsController.dispose();
     urlController.dispose();
     thumbnailController.dispose();
-    colorsController.dispose();
     categoryController.dispose();
     videoUrlController.dispose();
     previewVideoController.dispose();
     typeController.dispose();
-    tagsFocusNode.dispose();
-    colorsFocusNode.dispose();
   }
 }

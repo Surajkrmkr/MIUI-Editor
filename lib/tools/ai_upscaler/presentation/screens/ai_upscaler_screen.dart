@@ -6,8 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import 'package:miui_icon_generator/widgets/app_icon_button.dart';
 import 'package:miui_icon_generator/widgets/glass_card.dart';
-import 'package:path/path.dart' as p;
-import 'package:url_launcher/url_launcher.dart';
 import '../../application/providers/upscaler_provider.dart';
 import '../../domain/models/upscale_options.dart';
 import '../widgets/comparison_slider.dart';
@@ -22,14 +20,11 @@ class AiUpscalerScreen extends ConsumerStatefulWidget {
 }
 
 class _AiUpscalerScreenState extends ConsumerState<AiUpscalerScreen> {
-  bool _isDragging = false;
-
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(upscalerProvider);
     final notifier = ref.read(upscalerProvider.notifier);
     final colors = context.appColors;
-    final primary = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
       backgroundColor: colors.bg,
@@ -46,8 +41,6 @@ class _AiUpscalerScreenState extends ConsumerState<AiUpscalerScreen> {
                       notifier.setInputPath(details.files.first.path);
                     }
                   },
-                  onDragEntered: (_) => setState(() => _isDragging = true),
-                  onDragExited: (_) => setState(() => _isDragging = false),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: !state.isBinaryInstalled
@@ -216,7 +209,7 @@ class _AiUpscalerScreenState extends ConsumerState<AiUpscalerScreen> {
                 onPressed: () async {
                   final path = await FilePicker.platform.getDirectoryPath();
                   if (path != null) {
-                    ref.read(upscalerProvider.notifier).startBatchUpscale(path);
+                    ref.read(upscalerProvider.notifier).loadBatch(path);
                   }
                 },
                 icon: const Icon(Icons.folder_special_rounded),
