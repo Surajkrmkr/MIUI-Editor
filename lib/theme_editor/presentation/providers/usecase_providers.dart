@@ -15,6 +15,7 @@ import '../../domain/usecases/download_wallpaper_usecase.dart';
 import '../../domain/usecases/export_lockscreen_pngs_usecase.dart';
 import '../../domain/usecases/export_mtz_usecase.dart';
 import '../../domain/usecases/generate_ai_lockscreen_usecase.dart';
+import '../../domain/usecases/generate_ai_variants_usecase.dart';
 import '../../domain/usecases/load_preset_usecase.dart';
 import '../../domain/usecases/load_tag_file_usecase.dart';
 import '../../domain/usecases/save_preset_usecase.dart';
@@ -38,8 +39,13 @@ final wallpaperDownloadRepositoryProvider =
 );
 
 final aiRepositoryProvider = Provider<AiRepository>((ref) {
-  final key = ref.watch(geminiApiKeyProvider);
-  return AiRepositoryImpl(AiRemoteDataSource(key));
+  return AiRepositoryImpl(AiRemoteDataSource(
+    provider:     ref.watch(aiProviderProvider),
+    geminiKey:    ref.watch(geminiApiKeyProvider),
+    groqKey:      ref.watch(groqApiKeyProvider),
+    ollamaHost:   ref.watch(ollamaHostProvider),
+    ollamaModel:  ref.watch(ollamaModelProvider),
+  ));
 });
 
 // ── Use cases ─────────────────────────────────────────────────────────────────
@@ -60,7 +66,11 @@ final downloadWallpaperUseCaseProvider =
 
 final generateAiLockscreenUseCaseProvider =
     Provider<GenerateAiLockscreenUseCase>(
-        (ref) => GenerateAiLockscreenUseCase(ref.read(aiRepositoryProvider)));
+        (ref) => GenerateAiLockscreenUseCase(ref.watch(aiRepositoryProvider)));
+
+final generateAiVariantsUseCaseProvider =
+    Provider<GenerateAiVariantsUseCase>(
+        (ref) => GenerateAiVariantsUseCase(ref.watch(aiRepositoryProvider)));
 
 final savePresetUseCaseProvider = Provider<SavePresetUseCase>(
     (ref) => SavePresetUseCase(ref.read(presetRepositoryProvider)));

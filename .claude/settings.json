@@ -19,7 +19,14 @@
       "Bash(dart analyze *)",
       "Bash(python3 -m pip install selenium)",
       "Read(//usr/bin/**)",
-      "Bash(/usr/bin/python3 -m pip show selenium)"
+      "Bash(/usr/bin/python3 -m pip show selenium)",
+      "Bash(cat > *)",
+      "Skill(claude-api)",
+      "Skill(claude-api:*)",
+      "Bash(grep -n '\\\\${i' /Users/surajkrmkr/Github/miui_editor/lib/theme_editor/data/datasources/remote/ai_remote_datasource.dart)"
+    ],
+    "additionalDirectories": [
+      "/tmp"
     ]
   }
 }

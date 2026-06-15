@@ -6,4 +6,10 @@ abstract interface class AiRepository {
     required List<LockElement> currentElements,
     required String prompt,
   });
+
+  Future<(List<List<LockElement>>, Failure?)> generateVariants({
+    required List<LockElement> currentElements,
+    required String prompt,
+    required int count,
+  });
 }

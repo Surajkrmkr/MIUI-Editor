@@ -431,23 +431,43 @@ class BulkDownloadNotifier extends StateNotifier<BulkDownloadState> {
     state = state.copyWith(results: updated);
   }
 
-  /// Renames every successful result to `<baseName>_<n>` (1-based, in order).
+  /// Bulk-renames successful results, in order.
+  ///
+  /// - A single name (no commas) renames every file to `<name>_1`, `<name>_2`…
+  /// - A comma-separated list assigns each name to the corresponding wallpaper
+  ///   from start to end (1st name → 1st wall, 2nd → 2nd, …). Walls beyond the
+  ///   supplied names are left unchanged.
+  ///
   /// Failed items are skipped. Individual rename failures are ignored so the
-  /// rest still get renamed.
-  Future<void> bulkRename(String baseName) async {
-    final base = baseName.trim();
-    if (base.isEmpty) return;
+  /// rest still get renamed. Duplicate target names are de-duplicated by the
+  /// download service.
+  Future<void> bulkRename(String input) async {
+    final names = input
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+    if (names.isEmpty) return;
+
+    final useList = names.length > 1;
 
     final downloadService = await ref.read(downloadServiceProvider.future);
     final updated = List<BulkProcessResult>.from(state.results);
 
-    int n = 1;
+    int n = 0; // index over successful results
     for (int i = 0; i < updated.length; i++) {
       final r = updated[i];
       if (!r.success || r.downloadResult == null) continue;
 
-      final target = '${base}_$n';
+      final String target;
+      if (useList) {
+        if (n >= names.length) break; // ran out of names — leave the rest
+        target = names[n];
+      } else {
+        target = '${names.first}_${n + 1}';
+      }
       n++;
+
       try {
         final renamed =
             await downloadService.renameWallpaper(r.downloadResult!, target);

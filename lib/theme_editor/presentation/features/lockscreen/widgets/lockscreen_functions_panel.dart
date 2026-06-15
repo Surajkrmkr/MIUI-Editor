@@ -8,6 +8,7 @@ import '../../../providers/lockscreen_provider.dart';
 import '../../../providers/service_providers.dart';
 import '../../../providers/ai_provider.dart';
 import '../../../common/widgets/drop_zone.dart';
+import 'ai_generate_dialog.dart';
 import '../preset_dialog.dart';
 import 'manifest_editor_dialog.dart';
 
@@ -314,44 +315,11 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
   }
 
   Future<void> _showAiDialog(BuildContext context, WidgetRef ref) async {
-    final ctrl = TextEditingController();
-    final ok = await showDialog<bool>(
+    await showDialog<void>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('AI Lockscreen'),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          decoration:
-              const InputDecoration(hintText: 'Describe your lockscreen…'),
-          maxLines: 3,
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel')),
-          FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Generate')),
-        ],
-      ),
+      barrierDismissible: false,
+      builder: (_) => const AiGenerateDialog(),
     );
-    if (ok == true && ctrl.text.trim().isNotEmpty) {
-      final failure = await ref
-          .read(aiProvider.notifier)
-          .generateLockscreen(ctrl.text.trim());
-      if (!context.mounted) return;
-      if (failure != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('AI error: ${failure.message}')),
-        );
-      } else {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('AI layout applied')),
-        );
-      }
-    }
   }
 
   void _showManifestEditor(BuildContext context, WidgetRef ref) {

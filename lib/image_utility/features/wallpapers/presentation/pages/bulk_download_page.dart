@@ -2226,8 +2226,13 @@ class _CompleteStepState extends State<_CompleteStep> {
     try {
       await widget.onBulkRename(base);
       if (mounted) {
+        final isList = base.contains(',');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Renamed all to "${base}_1, ${base}_2, …"')),
+          SnackBar(
+            content: Text(isList
+                ? 'Applied names in order'
+                : 'Renamed all to "${base}_1, ${base}_2, …"'),
+          ),
         );
       }
     } finally {
@@ -2413,11 +2418,15 @@ class _CompleteStepState extends State<_CompleteStep> {
                     ?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(width: 6),
-              Text(
-                'all files → name_1, name_2 …',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
+              Expanded(
+                child: Text(
+                  'one name → name_1, name_2 …  ·  comma-separated → one per wall',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
@@ -2432,7 +2441,7 @@ class _CompleteStepState extends State<_CompleteStep> {
                   onSubmitted: (_) => _applyBulkRename(),
                   decoration: InputDecoration(
                     isDense: true,
-                    hintText: 'Base name (e.g. nature, abstract…)',
+                    hintText: 'Base name, or comma-separated names per wall',
                     prefixIcon: const Icon(Icons.label_outline, size: 18),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),

@@ -13,8 +13,15 @@ abstract final class AppConstants {
   static const int iconGridPreviewOffset = 5;
   static const int defaultThemeCount     = 25;
 
-  static const String geminiModel = 'gemini-1.5-flash-latest';
+  static const String geminiModel      = 'gemini-2.0-flash-lite';
+  static const String groqModel        = 'llama-3.3-70b-versatile';
+  static const String ollamaDefaultModel = 'llama3.2';
+  static const String ollamaDefaultHost  = 'http://localhost:11434';
 
-  static const String prefsThemeCount = 'themeSettings';
-  static const String prefsGeminiKey  = 'gemini_api_key';
+  static const String prefsThemeCount  = 'themeSettings';
+  static const String prefsGeminiKey   = 'gemini_api_key';
+  static const String prefsAiProvider  = 'ai_provider';
+  static const String prefsGroqKey     = 'groq_api_key';
+  static const String prefsOllamaHost  = 'ollama_host';
+  static const String prefsOllamaModel = 'ollama_model';
 }
