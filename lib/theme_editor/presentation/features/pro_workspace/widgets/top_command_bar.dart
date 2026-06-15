@@ -59,6 +59,51 @@ class TopCommandBar extends ConsumerWidget {
           ),
           const Spacer(),
 
+          // Undo / Redo
+          Consumer(
+            builder: (_, ref, __) {
+              final page = ref.watch(workspaceProvider).page;
+              if (page != WorkspacePage.lockscreen &&
+                  page != WorkspacePage.lockscreenPresets) {
+                return const SizedBox.shrink();
+              }
+              final elState = ref.watch(elementProvider);
+              final n = ref.read(elementProvider.notifier);
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.undo_rounded,
+                        color: elState.canUndo
+                            ? colors.textSecondary
+                            : colors.textDisabled,
+                        size: 18),
+                    tooltip: 'Undo',
+                    visualDensity: VisualDensity.compact,
+                    mouseCursor: elState.canUndo
+                        ? SystemMouseCursors.click
+                        : SystemMouseCursors.basic,
+                    onPressed: elState.canUndo ? n.undo : null,
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.redo_rounded,
+                        color: elState.canRedo
+                            ? colors.textSecondary
+                            : colors.textDisabled,
+                        size: 18),
+                    tooltip: 'Redo',
+                    visualDensity: VisualDensity.compact,
+                    mouseCursor: elState.canRedo
+                        ? SystemMouseCursors.click
+                        : SystemMouseCursors.basic,
+                    onPressed: elState.canRedo ? n.redo : null,
+                  ),
+                  const SizedBox(width: 4),
+                ],
+              );
+            },
+          ),
+
           // Palette strip
           Consumer(
             builder: (_, ref, __) {
@@ -74,7 +119,10 @@ class TopCommandBar extends ConsumerWidget {
           Consumer(
             builder: (_, ref, __) {
               final page = ref.watch(workspaceProvider).page;
-              if (page != WorkspacePage.lockscreen) return const SizedBox.shrink();
+              if (page != WorkspacePage.lockscreen &&
+                  page != WorkspacePage.lockscreenPresets) {
+                return const SizedBox.shrink();
+              }
               final ls = ref.watch(lockscreenProvider);
               final icons = ref.watch(exportProvider);
               final busy = ls.isBusy || icons.isRunning;

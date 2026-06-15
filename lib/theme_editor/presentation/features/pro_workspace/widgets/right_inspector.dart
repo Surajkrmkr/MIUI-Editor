@@ -15,6 +15,11 @@ class RightInspector extends ConsumerWidget {
     final colors = context.appColors;
     final page = ref.watch(workspaceProvider).page;
 
+    final hasContent = page == WorkspacePage.lockscreen ||
+        page == WorkspacePage.svgEditor ||
+        page == WorkspacePage.icons;
+    if (!hasContent) return const SizedBox.shrink();
+
     return Container(
       width: 400,
       decoration: BoxDecoration(
@@ -23,26 +28,6 @@ class RightInspector extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          // Header
-          Container(
-            height: 36,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            alignment: Alignment.centerLeft,
-            decoration: BoxDecoration(
-              color: colors.surface,
-              border: Border(bottom: BorderSide(color: colors.border)),
-            ),
-            child: Text(
-              'INSPECTOR',
-              style: TextStyle(
-                color: colors.textDisabled,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
-              ),
-            ),
-          ),
-
           // Content
           Expanded(
             child: SingleChildScrollView(

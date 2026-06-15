@@ -4,6 +4,7 @@ import '../../../../../core/theme/theme_extensions.dart';
 import '../../../providers/workspace_provider.dart';
 import '../../lockscreen/widgets/element_list_panel.dart';
 import '../../lockscreen/widgets/lockscreen_functions_panel.dart';
+import '../../lockscreen/preset/inline_preset_panel.dart';
 import '../../font_picker/font_list_panel.dart';
 import '../../icon_editor/icon_editor_panel.dart';
 import '../../home/widgets/icon_export_card.dart';
@@ -18,11 +19,12 @@ class SidebarContent extends ConsumerWidget {
     if (!workspaceState.isSidebarExpanded) return const SizedBox.shrink();
 
     final isLockscreen = workspaceState.page == WorkspacePage.lockscreen;
+    final isPresets = workspaceState.page == WorkspacePage.lockscreenPresets;
     final isIcons = workspaceState.page == WorkspacePage.svgEditor ||
         workspaceState.page == WorkspacePage.icons;
 
     return Container(
-      width: isLockscreen ? 560 : (isIcons ? 400 : 280),
+      width: isPresets ? 850 : (isLockscreen ? 560 : (isIcons ? 400 : 280)),
       height: double.infinity,
       decoration: BoxDecoration(
         color: colors.surface,
@@ -84,6 +86,8 @@ class SidebarContent extends ConsumerWidget {
             ],
           ),
         );
+      case WorkspacePage.lockscreenPresets:
+        return const InlinePresetPanel();
       default:
         return const SizedBox.shrink();
     }

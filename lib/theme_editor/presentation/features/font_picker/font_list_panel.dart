@@ -5,6 +5,7 @@ import 'package:miui_icon_generator/core/theme/app_radius.dart';
 import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import '../../../core/utils/font_utils.dart';
 import '../../../data/models/unified_font.dart';
+import '../../../domain/entities/element_widget.dart';
 import '../../../domain/entities/user_profile.dart';
 import '../../../presentation/providers/font_provider.dart';
 import '../../../presentation/providers/element_provider.dart';
@@ -41,8 +42,15 @@ class _FontListPanelState extends ConsumerState<FontListPanel> {
     }
 
     if (!mounted) return;
-    final type = ref.read(elementProvider).activeType;
-    ref.read(elementProvider.notifier).setFont(type, key);
+    final elState = ref.read(elementProvider);
+    final type = elState.activeType;
+    final n = ref.read(elementProvider.notifier);
+    final link = elState.linkHourMinFont;
+    n.setFontBatch({
+      type: key,
+      if (link && type == ElementType.hourClock) ElementType.minClock: key,
+      if (link && type == ElementType.minClock) ElementType.hourClock: key,
+    });
   }
 
   @override
@@ -54,6 +62,8 @@ class _FontListPanelState extends ConsumerState<FontListPanel> {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
     final activeFont = elState.active?.font;
+    final isClockType = elState.activeType == ElementType.hourClock ||
+        elState.activeType == ElementType.minClock;
 
     return CustomScrollView(
       slivers: [
@@ -67,6 +77,10 @@ class _FontListPanelState extends ConsumerState<FontListPanel> {
                 ref.read(fontSourceProvider.notifier).select(s),
             colors: colors,
             scheme: scheme,
+            showLinkToggle: isClockType,
+            linkHourMinFont: elState.linkHourMinFont,
+            onToggleLink: () =>
+                ref.read(elementProvider.notifier).toggleLinkHourMinFont(),
           ),
         ),
 
@@ -247,6 +261,9 @@ class _FontHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.onSourceChanged,
     required this.colors,
     required this.scheme,
+    required this.showLinkToggle,
+    required this.linkHourMinFont,
+    required this.onToggleLink,
   });
 
   final String? activeFont;
@@ -255,11 +272,16 @@ class _FontHeaderDelegate extends SliverPersistentHeaderDelegate {
   final ValueChanged<FontSource> onSourceChanged;
   final AppColorScheme colors;
   final ColorScheme scheme;
+  final bool showLinkToggle;
+  final bool linkHourMinFont;
+  final VoidCallback onToggleLink;
+
+  static const double _linkRowHeight = 34.0;
 
   @override
-  double get minExtent => _kHeaderHeight;
+  double get minExtent => _kHeaderHeight + (showLinkToggle ? _linkRowHeight : 0);
   @override
-  double get maxExtent => _kHeaderHeight;
+  double get maxExtent => minExtent;
 
   @override
   Widget build(
@@ -282,6 +304,31 @@ class _FontHeaderDelegate extends SliverPersistentHeaderDelegate {
             colors: colors,
             scheme: scheme,
           ),
+          if (showLinkToggle)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.link_rounded, size: 14, color: linkHourMinFont ? colors.primary : scheme.onSurfaceVariant),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Link Hour & Min font',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: scheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Switch.adaptive(value: linkHourMinFont, onChanged: (_) => onToggleLink()),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -291,7 +338,9 @@ class _FontHeaderDelegate extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(_FontHeaderDelegate old) =>
       old.activeFont != activeFont ||
       old.hoveredKey != hoveredKey ||
-      old.source != source;
+      old.source != source ||
+      old.showLinkToggle != showLinkToggle ||
+      old.linkHourMinFont != linkHourMinFont;
 }
 
 // ---------------------------------------------------------------------------

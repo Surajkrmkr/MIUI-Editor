@@ -17,6 +17,7 @@ class WallpaperState {
     this.paths = const [],
     this.index = 0,
     this.colorPalette = const [],
+    this.accentColor,
     this.themeCount = 25,
     this.isLoading = false,
     this.designerName = '',
@@ -29,6 +30,7 @@ class WallpaperState {
   final List<String> paths;
   final int index;
   final List<Color> colorPalette;
+  final Color? accentColor;
   final int themeCount;
   final bool isLoading;
   final String designerName;
@@ -41,6 +43,7 @@ class WallpaperState {
     List<String>? paths,
     int? index,
     List<Color>? colorPalette,
+    Color? accentColor,
     int? themeCount,
     bool? isLoading,
     String? designerName,
@@ -53,6 +56,7 @@ class WallpaperState {
         paths: paths ?? this.paths,
         index: index ?? this.index,
         colorPalette: colorPalette ?? this.colorPalette,
+        accentColor: accentColor ?? this.accentColor,
         themeCount: themeCount ?? this.themeCount,
         isLoading: isLoading ?? this.isLoading,
         designerName: designerName ?? this.designerName,
@@ -158,7 +162,10 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
       final gen =
           await PaletteGenerator.fromImageProvider(FileImage(File(wallPath)));
       final colors = gen.colors.toList();
-      state = state.copyWith(colorPalette: colors);
+      state = state.copyWith(
+        colorPalette: colors,
+        accentColor: gen.dominantColor?.color,
+      );
 
       final icon = ref.read(iconEditorProvider.notifier);
       if (ref.read(iconEditorProvider).randomColors) {

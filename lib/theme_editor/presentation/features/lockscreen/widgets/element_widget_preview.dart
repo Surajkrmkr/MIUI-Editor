@@ -64,9 +64,13 @@ class ElementWidgetPreview extends ConsumerWidget {
             // 2. Video layer
             if (hasVideo) VideoWallpaperWidget(path: videoPath),
 
-            // 3. Darken overlay (tap to deselect)
+            // 3. Darken overlay (tap to deselect / exit group mode)
             GestureDetector(
-              onTap: () => ref.read(elementProvider.notifier).deselect(),
+              onTap: () {
+                final n = ref.read(elementProvider.notifier);
+                n.deselect();
+                n.exitGroupMode();
+              },
               child: Container(
                 width: AppConstants.screenWidth,
                 height: AppConstants.screenHeight,
@@ -75,9 +79,13 @@ class ElementWidgetPreview extends ConsumerWidget {
             ),
 
             // 4. Elements
-            ...els.elements
-                .where((el) => el.isVisible)
-                .map((el) => _DraggableElement(el: el)),
+            ...els.elements.where((el) => el.isVisible).map(
+                  (el) => _DraggableElement(
+                    el: el,
+                    isGroupMode: els.isGroupMode,
+                    isGroupSelected: els.selectedTypes.contains(el.type),
+                  ),
+                ),
           ],
         ),
       ),
@@ -88,8 +96,14 @@ class ElementWidgetPreview extends ConsumerWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _DraggableElement extends ConsumerStatefulWidget {
-  const _DraggableElement({required this.el});
+  const _DraggableElement({
+    required this.el,
+    required this.isGroupMode,
+    required this.isGroupSelected,
+  });
   final LockElement el;
+  final bool isGroupMode;
+  final bool isGroupSelected;
 
   @override
   ConsumerState<_DraggableElement> createState() => _DraggableElementState();
@@ -153,17 +167,47 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
           left: el.dx,
           top: el.dy,
           child: GestureDetector(
-            onTap: () => n.setActive(el.type),
-            onPanDown: el.isLocked ? null : (_) {
-              n.setActive(el.type);
+            onTap: () {
+              if (widget.isGroupMode) {
+                n.toggleGroupSelect(el.type);
+              } else {
+                n.setActive(el.type);
+              }
             },
-            onPanUpdate: el.isLocked ? null : (d) {
-              n.moveElement(el.type, d.delta.dx, d.delta.dy);
-              if (!_isDragging) setState(() => _isDragging = true);
-            },
-            onPanEnd: el.isLocked ? null : (_) {
-              setState(() => _isDragging = false);
-            },
+            onLongPress: el.isLocked
+                ? null
+                : () {
+                    if (widget.isGroupMode) {
+                      n.toggleGroupSelect(el.type);
+                    } else {
+                      n.enterGroupMode(el.type);
+                    }
+                  },
+            onPanDown: el.isLocked
+                ? null
+                : (_) {
+                    if (widget.isGroupMode && widget.isGroupSelected) {
+                      n.snapshotForGroupDrag();
+                    } else {
+                      n.snapshotForDrag();
+                      n.setActive(el.type);
+                    }
+                  },
+            onPanUpdate: el.isLocked
+                ? null
+                : (d) {
+                    if (widget.isGroupMode && widget.isGroupSelected) {
+                      n.moveGroupElements(d.delta.dx, d.delta.dy);
+                    } else {
+                      n.moveElement(el.type, d.delta.dx, d.delta.dy);
+                    }
+                    if (!_isDragging) setState(() => _isDragging = true);
+                  },
+            onPanEnd: el.isLocked
+                ? null
+                : (_) {
+                    setState(() => _isDragging = false);
+                  },
             child: AnimatedScale(
               scale: _isDragging ? 1.05 : 1.0,
               duration: const Duration(milliseconds: 100),
@@ -182,7 +226,7 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
                             : _isDragging
                                 ? SystemMouseCursors.grabbing
                                 : SystemMouseCursors.grab,
-                        child: _buildChild(el),
+                        child: _buildWithGroupHighlight(_buildChild(el)),
                       ),
                     ),
                   ),
@@ -192,6 +236,20 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildWithGroupHighlight(Widget child) {
+    if (!widget.isGroupSelected) return child;
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Colors.blue.withAlpha(200),
+          width: 2,
+        ),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: child,
     );
   }
 

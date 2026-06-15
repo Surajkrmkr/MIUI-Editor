@@ -23,7 +23,9 @@
       "Bash(cat > *)",
       "Skill(claude-api)",
       "Skill(claude-api:*)",
-      "Bash(grep -n '\\\\${i' /Users/surajkrmkr/Github/miui_editor/lib/theme_editor/data/datasources/remote/ai_remote_datasource.dart)"
+      "Bash(grep -n '\\\\${i' /Users/surajkrmkr/Github/miui_editor/lib/theme_editor/data/datasources/remote/ai_remote_datasource.dart)",
+      "Bash(grep -n \"error\\\\|warning\" /dev/null; flutter analyze lib/theme_editor/presentation/features/lockscreen/preset/preset_preview_dialog.dart 2>&1 | head -30)",
+      "Read(//dev/**)"
     ],
     "additionalDirectories": [
       "/tmp"

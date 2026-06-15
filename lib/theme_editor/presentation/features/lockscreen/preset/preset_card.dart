@@ -12,13 +12,21 @@ import '../../../providers/directory_provider.dart';
 import '../../../providers/lockscreen_provider.dart';
 import '../../../../../widgets/iphone_frame.dart';
 import 'preset_thumbnail.dart';
+import 'preset_preview_dialog.dart';
 
-// IPhoneFrame adds _bezelH*2 + _btnGap*2 = 26 px wide, 16 px tall
+// ── Frame geometry (must match IPhoneFrame constants) ────────────────────────
 const _frameW = AppConstants.screenWidth + 26; // 302.92
 const _frameH = AppConstants.screenHeight + 16; // 616
 const _displayW = 140.0;
 const _displayH = _frameH * _displayW / _frameW; // ≈ 284.7
 const _frameScale = _displayW / _frameW;
+
+// IPhoneFrame internals (mirrored here for hover-glow math)
+const _iphoneBtnGap = 5.0;
+const _iphoneBodyRadius = 48.0;
+// Scaled versions for the card thumbnail size
+const _glowInset = _iphoneBtnGap * _frameScale; // ≈ 2.31 px
+const _glowRadius = _iphoneBodyRadius * _frameScale; // ≈ 22.2 px
 
 /// Loads a preset's JSON, renders a phone-canvas thumbnail, and applies it on tap.
 class PresetCard extends ConsumerWidget {
@@ -26,10 +34,15 @@ class PresetCard extends ConsumerWidget {
     super.key,
     required this.path,
     required this.index,
+    this.onApplied,
   });
 
   final String path;
   final int index;
+
+  /// Called after the preset is loaded. When non-null the card does NOT call
+  /// [Navigator.pop] — the caller decides what happens next (inline use).
+  final VoidCallback? onApplied;
 
   Future<List<LockElement>> _load() async {
     final file = File('$path${Platform.pathSeparator}preset.json');
@@ -50,7 +63,7 @@ class PresetCard extends ConsumerWidget {
       future: _load(),
       builder: (context, snapshot) {
         Widget phoneContent;
-        
+
         if (previewFile.existsSync()) {
           phoneContent = Image.file(
             previewFile,
@@ -69,6 +82,8 @@ class PresetCard extends ConsumerWidget {
           };
         }
 
+        final elements = snapshot.data ?? [];
+
         return _PresetCardFrame(
           name: name,
           index: index,
@@ -76,35 +91,64 @@ class PresetCard extends ConsumerWidget {
             await ref
                 .read(lockscreenProvider.notifier)
                 .loadPreset('$path${Platform.pathSeparator}preset.json');
-            if (context.mounted) Navigator.pop(context);
+            if (!context.mounted) return;
+            if (onApplied != null) {
+              onApplied!();
+            } else {
+              Navigator.pop(context);
+            }
           },
+          onPreview: elements.isEmpty
+              ? null
+              : () => showDialog<void>(
+                    context: context,
+                    builder: (_) => PresetPreviewDialog(
+                      elements: elements,
+                      presetName: name,
+                      onApply: (mappedElements) async {
+                        await ref
+                            .read(lockscreenProvider.notifier)
+                            .applyElements(mappedElements);
+                        if (context.mounted && onApplied == null) {
+                          Navigator.pop(context);
+                        }
+                        onApplied?.call();
+                      },
+                    ),
+                  ),
           onDelete: () async {
             final confirmed = await showDialog<bool>(
               context: context,
-              builder: (_) => AlertDialog(
+              builder: (dlgCtx) => AlertDialog(
                 title: const Text('Delete Preset'),
                 content: Text('Delete "$name"? This cannot be undone.'),
                 actions: [
                   TextButton(
-                    onPressed: () => Navigator.pop(context, false),
+                    onPressed: () => Navigator.pop(dlgCtx, false),
                     child: const Text('Cancel'),
                   ),
                   FilledButton(
-                    onPressed: () => Navigator.pop(context, true),
+                    onPressed: () => Navigator.pop(dlgCtx, true),
                     style: FilledButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.error,
+                      backgroundColor: Theme.of(dlgCtx).colorScheme.error,
                     ),
                     child: const Text('Delete'),
                   ),
                 ],
               ),
             );
-            if (confirmed == true) {
+            if (confirmed != true) return;
+            try {
               await Directory(path).delete(recursive: true);
+            } catch (e) {
               if (context.mounted) {
-                ref.read(directoryProvider.notifier).loadPresetPaths();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Delete failed: $e')),
+                );
               }
+              return;
             }
+            ref.read(directoryProvider.notifier).loadPresetPaths();
           },
           onRename: () async {
             final newName = await showDialog<String>(
@@ -150,6 +194,7 @@ class _PresetCardFrame extends StatefulWidget {
     required this.onDelete,
     required this.onRename,
     required this.phone,
+    this.onPreview,
   });
 
   final String name;
@@ -157,14 +202,44 @@ class _PresetCardFrame extends StatefulWidget {
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final VoidCallback onRename;
+  final VoidCallback? onPreview;
   final Widget phone;
 
   @override
   State<_PresetCardFrame> createState() => _PresetCardFrameState();
 }
 
-class _PresetCardFrameState extends State<_PresetCardFrame> {
+class _PresetCardFrameState extends State<_PresetCardFrame>
+    with SingleTickerProviderStateMixin {
   bool _hovering = false;
+  late final AnimationController _ctrl;
+  late final Animation<double> _fade;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _onEnter(_) {
+    setState(() => _hovering = true);
+    _ctrl.forward();
+  }
+
+  void _onExit(_) {
+    setState(() => _hovering = false);
+    _ctrl.reverse();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -173,8 +248,8 @@ class _PresetCardFrameState extends State<_PresetCardFrame> {
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovering = true),
-      onExit: (_) => setState(() => _hovering = false),
+      onEnter: _onEnter,
+      onExit: _onExit,
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedScale(
@@ -182,10 +257,99 @@ class _PresetCardFrameState extends State<_PresetCardFrame> {
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
           child: Column(
-            // mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(child: widget.phone),
-              const SizedBox(height: 8),
+              // ── Phone with overlays ──────────────────────────────────────
+              Expanded(
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.topLeft,
+                  children: [
+                    widget.phone,
+
+                    // Hover glow — matches IPhoneFrame body shape exactly:
+                    // inset by _glowInset on each side, radius = _glowRadius.
+                    FadeTransition(
+                      opacity: _fade,
+                      child: IgnorePointer(
+                        child: SizedBox(
+                          width: _displayW,
+                          height: _displayH,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: _glowInset),
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                borderRadius:
+                                    BorderRadius.circular(_glowRadius),
+                                border: Border.all(
+                                  color: cs.primary.withAlpha(200),
+                                  width: 2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: cs.primary.withAlpha(55),
+                                    blurRadius: 16,
+                                    spreadRadius: 3,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // "Tap to apply" fade-in bar at the bottom of the phone body
+                    FadeTransition(
+                      opacity: _fade,
+                      child: IgnorePointer(
+                        child: SizedBox(
+                          width: _displayW,
+                          height: _displayH,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: _glowInset),
+                            child: Align(
+                              alignment: Alignment.bottomCenter,
+                              child: Container(
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  borderRadius: const BorderRadius.vertical(
+                                    bottom: Radius.circular(_glowRadius),
+                                  ),
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.transparent,
+                                      cs.primary.withAlpha(200),
+                                    ],
+                                  ),
+                                ),
+                                alignment: Alignment.bottomCenter,
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Text(
+                                  'Tap to apply',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 8,
+                                    letterSpacing: 0.4,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 6),
+
+              // Preset name
               Text(
                 widget.name,
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -196,21 +360,32 @@ class _PresetCardFrameState extends State<_PresetCardFrame> {
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
               ),
+
               const SizedBox(height: 4),
-              AnimatedOpacity(
-                opacity: _hovering ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 180),
+
+              // Action buttons — fade in on hover
+              FadeTransition(
+                opacity: _fade,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    if (widget.onPreview != null) ...[
+                      _ActionButton(
+                        icon: Icons.visibility_rounded,
+                        color: cs.secondary,
+                        tooltip: 'Preview',
+                        onTap: widget.onPreview!,
+                      ),
+                      const SizedBox(width: 4),
+                    ],
                     _ActionButton(
                       icon: Icons.drive_file_rename_outline_rounded,
                       color: cs.primary,
                       tooltip: 'Rename',
                       onTap: widget.onRename,
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     _ActionButton(
                       icon: Icons.delete_outline_rounded,
                       color: cs.error,

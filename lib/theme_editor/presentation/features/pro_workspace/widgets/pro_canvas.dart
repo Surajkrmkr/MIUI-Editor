@@ -24,7 +24,8 @@ class ProCanvas extends ConsumerWidget {
               maxScale: 10.0,
               child: Center(
                 child: ImageStack(
-                    isLockscreen: page == WorkspacePage.lockscreen),
+                    isLockscreen: page == WorkspacePage.lockscreen ||
+                        page == WorkspacePage.lockscreenPresets),
               ),
             ),
           ),

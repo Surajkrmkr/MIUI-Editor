@@ -9,7 +9,6 @@ import '../../../common/widgets/drop_zone.dart';
 import '../../../../core/constants/path_constants.dart';
 import '../../../providers/wallpaper_provider.dart';
 import '../../../providers/service_providers.dart';
-import '../../../providers/color_picker_provider.dart';
 
 class ElementInfoPanel extends ConsumerWidget {
   const ElementInfoPanel({super.key});
@@ -19,14 +18,18 @@ class ElementInfoPanel extends ConsumerWidget {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
     final state = ref.watch(elementProvider);
-    final pickerState = ref.watch(colorPickerStateProvider);
 
-    if (state.elements.isEmpty || state.active == null) {
-      return const SizedBox.shrink();
+    if (state.elements.isEmpty) return const SizedBox.shrink();
+
+    final n = ref.read(elementProvider.notifier);
+
+    if (state.isGroupMode && state.selectedTypes.isNotEmpty) {
+      return _GroupPanel(state: state, n: n);
     }
 
+    if (state.active == null) return const SizedBox.shrink();
+
     final el = state.active!;
-    final n = ref.read(elementProvider.notifier);
 
     return SizedBox(
       width: 450,
@@ -110,7 +113,6 @@ class ElementInfoPanel extends ConsumerWidget {
                       color: el.color,
                       label: 'Primary',
                       onChanged: (c) => n.setColor(el.type, c),
-                      colorTarget: ColorTarget.primary,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -119,7 +121,6 @@ class ElementInfoPanel extends ConsumerWidget {
                       color: el.colorSecondary,
                       label: 'Secondary',
                       onChanged: (c) => n.setColorSecondary(el.type, c),
-                      colorTarget: ColorTarget.secondary,
                     ),
                   ),
                 ],
@@ -158,9 +159,7 @@ class ElementInfoPanel extends ConsumerWidget {
                             child: _ColorBtn(
                               color: el.colorDigit1,
                               label: 'Digit 1',
-                              onChanged: (c) =>
-                                  n.setColorDigit1(el.type, c),
-                              colorTarget: ColorTarget.digit1,
+                              onChanged: (c) => n.setColorDigit1(el.type, c),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -168,9 +167,7 @@ class ElementInfoPanel extends ConsumerWidget {
                             child: _ColorBtn(
                               color: el.colorDigit2,
                               label: 'Digit 2',
-                              onChanged: (c) =>
-                                  n.setColorDigit2(el.type, c),
-                              colorTarget: ColorTarget.digit2,
+                              onChanged: (c) => n.setColorDigit2(el.type, c),
                             ),
                           ),
                         ],
@@ -199,6 +196,20 @@ class ElementInfoPanel extends ConsumerWidget {
                     value: el.dy,
                     onChanged: (v) => n.setPosition(el.type, el.dx, v),
                   ),
+                ),
+                const SizedBox(width: 6),
+                IconButton.outlined(
+                  icon: const Icon(Icons.align_horizontal_center, size: 18),
+                  tooltip: 'Center horizontally',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => n.centerHorizontal(el.type),
+                ),
+                const SizedBox(width: 4),
+                IconButton.outlined(
+                  icon: const Icon(Icons.align_vertical_center, size: 18),
+                  tooltip: 'Center vertically',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => n.centerVertical(el.type),
                 ),
               ],
             ),
@@ -278,7 +289,6 @@ class ElementInfoPanel extends ConsumerWidget {
                     color: el.borderColor,
                     label: 'Border',
                     onChanged: (c) => n.setBorderColor(el.type, c),
-                    colorTarget: ColorTarget.border,
                   ),
                 ],
               ),
@@ -330,89 +340,9 @@ class ElementInfoPanel extends ConsumerWidget {
               onChanged: (v) => n.setAngle(el.type, v),
             ),
           ),
-          if (pickerState.type == el.type && pickerState.target != null)
-            _Section(
-              title: 'COLOR PICKER',
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () {
-                          ref.read(colorPickerStateProvider.notifier).state =
-                              const ColorPickerState();
-                        },
-                      ),
-                    ],
-                  ),
-                  ColorPicker(
-                    color: _getColorFromPickerState(el, pickerState),
-                    onColorChanged: (c) =>
-                        _onColorChangedFromPickerState(el, pickerState, n, c),
-                    enableOpacity: true,
-                    showColorCode: true,
-                    colorCodeHasColor: true,
-                    copyPasteBehavior:
-                        const ColorPickerCopyPasteBehavior(
-                      copyButton: true,
-                      pasteButton: true,
-                      longPressMenu: true,
-                      copyFormat: ColorPickerCopyFormat.numHexAARRGGBB,
-                    ),
-                    pickersEnabled: const {
-                      ColorPickerType.wheel: true,
-                      ColorPickerType.primary: false,
-                      ColorPickerType.accent: false,
-                    },
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     );
-  }
-
-  Color _getColorFromPickerState(LockElement el, ColorPickerState pickerState) {
-    switch (pickerState.target) {
-      case ColorTarget.primary:
-        return el.color;
-      case ColorTarget.secondary:
-        return el.colorSecondary;
-      case ColorTarget.digit1:
-        return el.colorDigit1;
-      case ColorTarget.digit2:
-        return el.colorDigit2;
-      case ColorTarget.border:
-        return el.borderColor;
-      case null:
-        return Colors.transparent;
-    }
-  }
-
-  void _onColorChangedFromPickerState(
-      LockElement el, ColorPickerState pickerState, ElementNotifier n, Color c) {
-    switch (pickerState.target) {
-      case ColorTarget.primary:
-        n.setColor(el.type, c);
-        break;
-      case ColorTarget.secondary:
-        n.setColorSecondary(el.type, c);
-        break;
-      case ColorTarget.digit1:
-        n.setColorDigit1(el.type, c);
-        break;
-      case ColorTarget.digit2:
-        n.setColorDigit2(el.type, c);
-        break;
-      case ColorTarget.border:
-        n.setBorderColor(el.type, c);
-        break;
-      case null:
-        break;
-    }
   }
 
   Future<void> _copyAsset(
@@ -430,6 +360,184 @@ class ElementInfoPanel extends ConsumerWidget {
     final dest = PathConstants.p('$lsAdv$relative.$ext');
     await ref.read(fileServiceProvider).copyFile(src, dest);
     ref.read(elementProvider.notifier).setGuideLines(el.type, false);
+  }
+}
+
+// ── Group Mode Panel ──────────────────────────────────────────────────────────
+
+class _GroupPanel extends StatefulWidget {
+  const _GroupPanel({required this.state, required this.n});
+  final ElementState state;
+  final ElementNotifier n;
+
+  @override
+  State<_GroupPanel> createState() => _GroupPanelState();
+}
+
+class _GroupPanelState extends State<_GroupPanel> {
+  final _xController = TextEditingController(text: '0');
+  final _yController = TextEditingController(text: '0');
+
+  @override
+  void dispose() {
+    _xController.dispose();
+    _yController.dispose();
+    super.dispose();
+  }
+
+  void _applyOffset() {
+    final dx = double.tryParse(_xController.text) ?? 0;
+    final dy = double.tryParse(_yController.text) ?? 0;
+    if (dx != 0 || dy != 0) {
+      widget.n.nudgeGroupElements(dx, dy);
+      _xController.text = '0';
+      _yController.text = '0';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final state = widget.state;
+    final n = widget.n;
+
+    final selectedElements = state.elements
+        .where((e) => state.selectedTypes.contains(e.type))
+        .toList();
+    final colorableElements = selectedElements
+        .where((e) => !e.type.isIcon && !e.type.isMusic && !e.type.isVideo && !e.type.isPng)
+        .toList();
+
+    final firstColor = colorableElements.isNotEmpty ? colorableElements.first.color : Colors.white;
+
+    return SizedBox(
+      width: 450,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Group header
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: context.appColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              border: Border.all(color: context.appColors.border),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.select_all_rounded, size: 16, color: context.appColors.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Group — ${state.selectedTypes.length} elements',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: scheme.onSurface,
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: n.exitGroupMode,
+                  icon: const Icon(Icons.close, size: 14),
+                  label: const Text('Exit', style: TextStyle(fontSize: 12)),
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    foregroundColor: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          // Position offset section
+          _Section(
+            title: 'POSITION OFFSET',
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _xController,
+                        decoration: const InputDecoration(labelText: 'X'),
+                        keyboardType: const TextInputType.numberWithOptions(signed: true),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        controller: _yController,
+                        decoration: const InputDecoration(labelText: 'Y'),
+                        keyboardType: const TextInputType.numberWithOptions(signed: true),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    IconButton.outlined(
+                      icon: const Icon(Icons.align_horizontal_center, size: 18),
+                      tooltip: 'Center all horizontally',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () {
+                        for (final t in state.selectedTypes) {
+                          n.centerHorizontal(t);
+                        }
+                      },
+                    ),
+                    const SizedBox(width: 4),
+                    IconButton.outlined(
+                      icon: const Icon(Icons.align_vertical_center, size: 18),
+                      tooltip: 'Center all vertically',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () {
+                        for (final t in state.selectedTypes) {
+                          n.centerVertical(t);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.tonal(
+                    onPressed: _applyOffset,
+                    child: const Text('Apply Offset'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Color section (only if there are colorable elements)
+          if (colorableElements.isNotEmpty)
+            _Section(
+              title: 'COLOR',
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _ColorBtn(
+                      color: firstColor,
+                      label: 'Primary',
+                      onChanged: (c) => n.setGroupColor(c),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _ColorBtn(
+                      color: colorableElements.first.colorSecondary,
+                      label: 'Secondary',
+                      onChanged: (c) => n.setGroupColorSecondary(c),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
 
@@ -491,27 +599,70 @@ class _Section extends StatelessWidget {
 
 // ── Color Button ──────────────────────────────────────────────────────────────
 
-class _ColorBtn extends ConsumerWidget {
-  const _ColorBtn(
-      {required this.color,
-      required this.label,
-      required this.onChanged,
-      required this.colorTarget});
+class _ColorBtn extends StatelessWidget {
+  const _ColorBtn({
+    required this.color,
+    required this.label,
+    required this.onChanged,
+  });
   final Color color;
   final String label;
   final ValueChanged<Color> onChanged;
-  final ColorTarget colorTarget;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final el = ref.watch(elementProvider).active!;
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: () {
-          ref.read(colorPickerStateProvider.notifier).state =
-              ColorPickerState(type: el.type, target: colorTarget);
-        },
+  Widget build(BuildContext context) {
+    return PopupMenuButton<void>(
+      offset: const Offset(0, 52),
+      constraints: const BoxConstraints(minWidth: 260, maxWidth: 260),
+      padding: EdgeInsets.zero,
+      elevation: 8,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      itemBuilder: (_) {
+        var pickerColor = color;
+        return [
+          PopupMenuItem<void>(
+            enabled: false,
+            padding: EdgeInsets.zero,
+            height: 0,
+            child: StatefulBuilder(
+              builder: (_, setMenuState) => ColorPicker(
+                color: pickerColor,
+                onColorChanged: (c) {
+                  setMenuState(() => pickerColor = c);
+                  onChanged(c);
+                },
+                enableOpacity: true,
+                opacityTrackHeight: 20,
+                enableShadesSelection: false,
+                showColorName: false,
+                showMaterialName: false,
+                showColorCode: true,
+                colorCodeHasColor: true,
+                wheelDiameter: 200,
+                wheelWidth: 16,
+                wheelSquarePadding: 8,
+                columnSpacing: 4,
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+                  copyButton: true,
+                  pasteButton: true,
+                  longPressMenu: true,
+                  copyFormat: ColorPickerCopyFormat.numHexAARRGGBB,
+                ),
+                pickersEnabled: const {
+                  ColorPickerType.wheel: true,
+                  ColorPickerType.primary: false,
+                  ColorPickerType.accent: false,
+                },
+              ),
+            ),
+          ),
+        ];
+      },
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
         child: Container(
           height: 46,
           decoration: BoxDecoration(
@@ -534,10 +685,7 @@ class _ColorBtn extends ConsumerWidget {
                 fontWeight: FontWeight.w700,
                 fontSize: 12,
                 shadows: [
-                  Shadow(
-                      color: Colors.black54,
-                      offset: Offset(0, 1),
-                      blurRadius: 2),
+                  Shadow(color: Colors.black54, offset: Offset(0, 1), blurRadius: 2),
                 ],
               ),
             ),
@@ -837,28 +985,36 @@ class _NumField extends StatefulWidget {
 
 class _NumFieldState extends State<_NumField> {
   late final TextEditingController _c;
+  late final FocusNode _focus;
 
   @override
   void initState() {
     super.initState();
     _c = TextEditingController(text: widget.value.toStringAsFixed(0));
+    _focus = FocusNode();
   }
 
   @override
   void didUpdateWidget(_NumField o) {
     super.didUpdateWidget(o);
-    if (o.value != widget.value) _c.text = widget.value.toStringAsFixed(0);
+    // Only sync from external value changes when the user isn't typing in the field.
+    // Updating the controller while focused resets the selection mid-edit.
+    if (o.value != widget.value && !_focus.hasFocus) {
+      _c.text = widget.value.toStringAsFixed(0);
+    }
   }
 
   @override
   void dispose() {
     _c.dispose();
+    _focus.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) => TextField(
         controller: _c,
+        focusNode: _focus,
         decoration: InputDecoration(labelText: widget.label),
         keyboardType: const TextInputType.numberWithOptions(signed: true),
         onChanged: (v) {

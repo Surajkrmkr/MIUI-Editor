@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:archive/archive_io.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:miui_icon_generator/theme_editor/core/extensions/color_ext.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:xml/xml.dart';
@@ -288,9 +289,32 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
         await ref.read(loadPresetUseCaseProvider).call(jsonPath);
     if (failure != null) return failure;
     if (elements != null) {
-      ref.read(elementProvider.notifier).setAll(elements);
+      await applyElements(elements);
     }
     return null;
+  }
+
+  /// Applies [elements] to the lockscreen, pre-loading any Google Fonts first.
+  Future<void> applyElements(List<LockElement> elements) async {
+    final gfStyles = elements
+        .map((e) => e.font)
+        .toSet()
+        .where((f) => f.startsWith('gf:'))
+        .map((f) {
+          try {
+            return GoogleFonts.getFont(f.substring(3));
+          } catch (_) {
+            return null;
+          }
+        })
+        .whereType<TextStyle>()
+        .toList();
+    if (gfStyles.isNotEmpty) {
+      try {
+        await GoogleFonts.pendingFonts(gfStyles);
+      } catch (_) {}
+    }
+    ref.read(elementProvider.notifier).setAll(elements);
   }
 
   // ── MTZ — delegates to use case ───────────────────────────────────────────
