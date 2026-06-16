@@ -10,8 +10,9 @@ _AIAnalysisResult _$AIAnalysisResultFromJson(Map<String, dynamic> json) =>
     _AIAnalysisResult(
       name: json['name'] as String,
       tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
-      colors:
-          (json['colors'] as List<dynamic>).map((e) => e as String).toList(),
+      colors: (json['colors'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       category: json['category'] as String?,
     );
 
