@@ -17,6 +17,7 @@ class DeploymentPage extends ConsumerStatefulWidget {
 class _DeploymentPageState extends ConsumerState<DeploymentPage> {
   final _scriptsDirCtrl = TextEditingController();
   final _basePathCtrl = TextEditingController();
+  final _v2PathCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _descriptionCtrl = TextEditingController();
@@ -29,6 +30,7 @@ class _DeploymentPageState extends ConsumerState<DeploymentPage> {
   void dispose() {
     _scriptsDirCtrl.dispose();
     _basePathCtrl.dispose();
+    _v2PathCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     _descriptionCtrl.dispose();
@@ -40,6 +42,7 @@ class _DeploymentPageState extends ConsumerState<DeploymentPage> {
     if (!_initialized) {
       _scriptsDirCtrl.text = config.scriptsDir;
       _basePathCtrl.text = config.basePath;
+      _v2PathCtrl.text = config.v2Path;
       _emailCtrl.text = config.email;
       _passwordCtrl.text = config.password;
       _descriptionCtrl.text = config.description;
@@ -50,6 +53,7 @@ class _DeploymentPageState extends ConsumerState<DeploymentPage> {
   DeploymentConfig _buildConfig(int maxTab) => DeploymentConfig(
         scriptsDir: _scriptsDirCtrl.text.trim(),
         basePath: _basePathCtrl.text.trim(),
+        v2Path: _v2PathCtrl.text.trim(),
         maxTab: maxTab,
         email: _emailCtrl.text.trim(),
         password: _passwordCtrl.text,
@@ -102,14 +106,18 @@ class _DeploymentPageState extends ConsumerState<DeploymentPage> {
             SizedBox(
               width: 380,
               child: _ConfigPanel(
+                mode: state.mode,
                 scriptsDirCtrl: _scriptsDirCtrl,
                 basePathCtrl: _basePathCtrl,
+                v2PathCtrl: _v2PathCtrl,
                 emailCtrl: _emailCtrl,
                 passwordCtrl: _passwordCtrl,
                 descriptionCtrl: _descriptionCtrl,
                 maxTab: state.config.maxTab,
                 showPassword: _showPassword,
                 isRunning: state.isRunning,
+                onModeChanged: (mode) =>
+                    ref.read(deploymentProvider.notifier).setMode(mode),
                 onTogglePassword: () =>
                     setState(() => _showPassword = !_showPassword),
                 onPickDir: (ctrl) => _pickDir(ctrl, state.config.maxTab),
@@ -147,14 +155,17 @@ class _DeploymentPageState extends ConsumerState<DeploymentPage> {
 
 class _ConfigPanel extends StatelessWidget {
   const _ConfigPanel({
+    required this.mode,
     required this.scriptsDirCtrl,
     required this.basePathCtrl,
+    required this.v2PathCtrl,
     required this.emailCtrl,
     required this.passwordCtrl,
     required this.descriptionCtrl,
     required this.maxTab,
     required this.showPassword,
     required this.isRunning,
+    required this.onModeChanged,
     required this.onTogglePassword,
     required this.onPickDir,
     required this.onSave,
@@ -163,14 +174,17 @@ class _ConfigPanel extends StatelessWidget {
     required this.onStop,
   });
 
+  final DeploymentMode mode;
   final TextEditingController scriptsDirCtrl;
   final TextEditingController basePathCtrl;
+  final TextEditingController v2PathCtrl;
   final TextEditingController emailCtrl;
   final TextEditingController passwordCtrl;
   final TextEditingController descriptionCtrl;
   final int maxTab;
   final bool showPassword;
   final bool isRunning;
+  final ValueChanged<DeploymentMode> onModeChanged;
   final VoidCallback onTogglePassword;
   final Future<void> Function(TextEditingController) onPickDir;
   final VoidCallback onSave;
@@ -180,6 +194,8 @@ class _ConfigPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isUpdate = mode == DeploymentMode.update;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -196,6 +212,26 @@ class _ConfigPanel extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
+            // Upload / Update mode switch
+            SegmentedButton<DeploymentMode>(
+              segments: const [
+                ButtonSegment(
+                  value: DeploymentMode.upload,
+                  label: Text('Upload'),
+                  icon: Icon(Icons.upload_rounded, size: 16),
+                ),
+                ButtonSegment(
+                  value: DeploymentMode.update,
+                  label: Text('Update'),
+                  icon: Icon(Icons.sync_rounded, size: 16),
+                ),
+              ],
+              selected: {mode},
+              onSelectionChanged:
+                  isRunning ? null : (s) => onModeChanged(s.first),
+            ),
+            const SizedBox(height: 20),
+
             // Scripts directory
             _PathField(
               label: 'Scripts Directory',
@@ -206,15 +242,29 @@ class _ConfigPanel extends StatelessWidget {
             ),
             const SizedBox(height: 14),
 
-            // Base path (mtz folder)
-            _PathField(
-              label: 'Base Path (MTZ folder)',
-              hint: '/path/to/week_XX/mtz',
-              controller: basePathCtrl,
-              onChanged: (_) => onSave(),
-              onPick: () => onPickDir(basePathCtrl),
-            ),
-            const SizedBox(height: 14),
+            // Base path (mtz folder) — Upload mode
+            if (!isUpdate) ...[
+              _PathField(
+                label: 'Base Path (MTZ folder)',
+                hint: '/path/to/week_XX/mtz',
+                controller: basePathCtrl,
+                onChanged: (_) => onSave(),
+                onPick: () => onPickDir(basePathCtrl),
+              ),
+              const SizedBox(height: 14),
+            ],
+
+            // V2 themes path — Update mode
+            if (isUpdate) ...[
+              _PathField(
+                label: 'V2 Themes Path (MTZ folder)',
+                hint: '/path/to/week_XX/v2_mtz',
+                controller: v2PathCtrl,
+                onChanged: (_) => onSave(),
+                onPick: () => onPickDir(v2PathCtrl),
+              ),
+              const SizedBox(height: 14),
+            ],
 
             // Max Tab stepper
             _LabeledField(
@@ -288,7 +338,7 @@ class _ConfigPanel extends StatelessWidget {
                     )
                   : FilledButton.icon(
                       icon: const Icon(Icons.rocket_launch_rounded, size: 18),
-                      label: const Text('Run Deployment'),
+                      label: Text(isUpdate ? 'Run Update' : 'Run Deployment'),
                       onPressed: onRun,
                     ),
             ),

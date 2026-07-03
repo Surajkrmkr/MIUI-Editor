@@ -20,24 +20,28 @@ class DeploymentState {
     this.completed = false,
     this.outputLines = const [],
     this.config = const DeploymentConfig(),
+    this.mode = DeploymentMode.upload,
   });
 
   final bool isRunning;
   final bool completed;
   final List<String> outputLines;
   final DeploymentConfig config;
+  final DeploymentMode mode;
 
   DeploymentState copyWith({
     bool? isRunning,
     bool? completed,
     List<String>? outputLines,
     DeploymentConfig? config,
+    DeploymentMode? mode,
   }) =>
       DeploymentState(
         isRunning: isRunning ?? this.isRunning,
         completed: completed ?? this.completed,
         outputLines: outputLines ?? this.outputLines,
         config: config ?? this.config,
+        mode: mode ?? this.mode,
       );
 }
 
@@ -53,6 +57,7 @@ class DeploymentNotifier extends Notifier<DeploymentState> {
       config: DeploymentConfig(
         scriptsDir: prefs.getString('deploy_scripts_dir') ?? '',
         basePath: prefs.getString('deploy_base_path') ?? '',
+        v2Path: prefs.getString('deploy_v2_path') ?? '',
         maxTab: prefs.getInt('deploy_max_tab') ?? 9,
         email: prefs.getString('deploy_email') ?? '',
         password: prefs.getString('deploy_password') ?? '',
@@ -66,11 +71,16 @@ class DeploymentNotifier extends Notifier<DeploymentState> {
     _persistConfig(config);
   }
 
+  void setMode(DeploymentMode mode) {
+    if (state.isRunning) return;
+    state = state.copyWith(mode: mode);
+  }
+
   Future<void> run() async {
     if (state.isRunning) return;
     state = state.copyWith(isRunning: true, completed: false, outputLines: []);
 
-    _sub = ref.read(deploymentServiceProvider).start(state.config).listen(
+    _sub = ref.read(deploymentServiceProvider).start(state.config, state.mode).listen(
       (line) => state = state.copyWith(
         outputLines: [...state.outputLines, line],
       ),
@@ -101,6 +111,7 @@ class DeploymentNotifier extends Notifier<DeploymentState> {
     final prefs = ref.read(sharedPrefsProvider);
     prefs.setString('deploy_scripts_dir', c.scriptsDir);
     prefs.setString('deploy_base_path', c.basePath);
+    prefs.setString('deploy_v2_path', c.v2Path);
     prefs.setInt('deploy_max_tab', c.maxTab);
     prefs.setString('deploy_email', c.email);
     prefs.setString('deploy_password', c.password);

@@ -9,19 +9,30 @@ class DeploymentService {
 
   /// Starts the Python script and returns a stream of output lines.
   /// stdout lines are emitted as-is; stderr lines are prefixed with [ERR].
-  Stream<String> start(DeploymentConfig config) {
+  Stream<String> start(DeploymentConfig config, DeploymentMode mode) {
     final controller = StreamController<String>();
+
+    final args = mode == DeploymentMode.upload
+        ? [
+            '${config.scriptsDir}/script_main.py',
+            '--base-path', config.basePath,
+            '--max-tab', config.maxTab.toString(),
+            '--email', config.email,
+            '--password', config.password,
+            '--description', config.description,
+          ]
+        : [
+            '${config.scriptsDir}/script_update.py',
+            '--v2-path', config.v2Path,
+            '--max-tab', config.maxTab.toString(),
+            '--email', config.email,
+            '--password', config.password,
+            '--description', config.description,
+          ];
 
     Process.start(
       '/Library/Frameworks/Python.framework/Versions/3.12/bin/python3',
-      [
-        '${config.scriptsDir}/script_main.py',
-        '--base-path', config.basePath,
-        '--max-tab', config.maxTab.toString(),
-        '--email', config.email,
-        '--password', config.password,
-        '--description', config.description,
-      ],
+      args,
       runInShell: true,
     ).then((process) {
       _process = process;
