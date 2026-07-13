@@ -305,6 +305,7 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
       ElementType.minClock => '36',
       ElementType.secClock => '55',
       ElementType.dotClock => ':',
+      ElementType.dotClock2 => ':',
       ElementType.amPmClock => 'AM',
       ElementType.weekClock => el.isShort ? 'Wed' : 'Wednesday',
       ElementType.monthClock => el.isShort ? 'Feb' : 'February',

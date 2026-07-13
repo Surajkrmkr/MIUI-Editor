@@ -177,6 +177,7 @@ class SVGGenerator {
       ElementType.minClock => '36',
       ElementType.secClock => '55',
       ElementType.dotClock => ':',
+      ElementType.dotClock2 => ':',
       ElementType.amPmClock => 'AM',
       ElementType.weekClock => isShort ? 'Wed' : 'Wednesday',
       ElementType.monthClock => isShort ? 'Feb' : 'February',

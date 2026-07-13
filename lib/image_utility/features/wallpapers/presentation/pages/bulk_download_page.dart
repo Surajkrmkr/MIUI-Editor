@@ -50,10 +50,8 @@ class _BulkDownloadPageState extends ConsumerState<BulkDownloadPage> {
     await showDialog<void>(
       context: context,
       barrierDismissible: true,
-      builder: (_) => const _CriteriaDialog(
-        orientations: _orientations,
-        colors: _colors,
-      ),
+      builder: (_) =>
+          const _CriteriaDialog(orientations: _orientations, colors: _colors),
     );
     if (!mounted) return;
     if (ref.read(bulkDownloadProvider).step == BulkDownloadStep.criteria) {
@@ -66,7 +64,8 @@ class _BulkDownloadPageState extends ConsumerState<BulkDownloadPage> {
     final state = ref.watch(bulkDownloadProvider);
 
     return PopScope(
-      canPop: state.step == BulkDownloadStep.criteria ||
+      canPop:
+          state.step == BulkDownloadStep.criteria ||
           state.step == BulkDownloadStep.complete,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop &&
@@ -124,9 +123,10 @@ class _BulkDownloadPageState extends ConsumerState<BulkDownloadPage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('Exit',
-                style:
-                    TextStyle(color: Theme.of(context).colorScheme.error)),
+            child: Text(
+              'Exit',
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
           ),
         ],
       ),
@@ -184,10 +184,7 @@ class _CriteriaDialog extends ConsumerStatefulWidget {
   final List<String> orientations;
   final List<String> colors;
 
-  const _CriteriaDialog({
-    required this.orientations,
-    required this.colors,
-  });
+  const _CriteriaDialog({required this.orientations, required this.colors});
 
   @override
   ConsumerState<_CriteriaDialog> createState() => _CriteriaDialogState();
@@ -206,7 +203,9 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
   }
 
   Future<void> _onFetch() async {
-    await ref.read(bulkDownloadProvider.notifier).fetchWallpapers(
+    await ref
+        .read(bulkDownloadProvider.notifier)
+        .fetchWallpapers(
           query: _queryController.text.trim().isEmpty
               ? null
               : _queryController.text.trim(),
@@ -241,13 +240,16 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
               padding: const EdgeInsets.fromLTRB(24, 20, 16, 16),
               decoration: BoxDecoration(
                 color: scheme.primaryContainer,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
+                ),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.collections_bookmark,
-                      color: scheme.onPrimaryContainer),
+                  Icon(
+                    Icons.collections_bookmark,
+                    color: scheme.onPrimaryContainer,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -255,19 +257,20 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                       children: [
                         Text(
                           'Bulk Download',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: scheme.onPrimaryContainer,
-                                  ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: scheme.onPrimaryContainer,
+                              ),
                         ),
                         Text(
                           'Set criteria to fetch wallpapers',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: scheme.onPrimaryContainer
-                                        .withValues(alpha: 0.7),
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: scheme.onPrimaryContainer.withValues(
+                                  alpha: 0.7,
+                                ),
+                              ),
                         ),
                       ],
                     ),
@@ -290,9 +293,7 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                       children: [
                         Text(
                           'Wallpaper Count',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
+                          style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const Spacer(),
@@ -300,17 +301,15 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                           icon: const Icon(Icons.remove, size: 16),
                           onPressed: batchSize > 1
                               ? () => ref
-                                  .read(bulkDownloadProvider.notifier)
-                                  .setBatchSize(batchSize - 1)
+                                    .read(bulkDownloadProvider.notifier)
+                                    .setBatchSize(batchSize - 1)
                               : null,
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Text(
                             '$batchSize',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
+                            style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -318,8 +317,8 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                           icon: const Icon(Icons.add, size: 16),
                           onPressed: batchSize < 100
                               ? () => ref
-                                  .read(bulkDownloadProvider.notifier)
-                                  .setBatchSize(batchSize + 1)
+                                    .read(bulkDownloadProvider.notifier)
+                                    .setBatchSize(batchSize + 1)
                               : null,
                         ),
                       ],
@@ -328,16 +327,17 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
 
                     Text(
                       'Search Criteria',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleSmall
-                          ?.copyWith(fontWeight: FontWeight.w600),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'All fields are optional',
                       style: TextStyle(
-                          color: scheme.onSurfaceVariant, fontSize: 12),
+                        color: scheme.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
                     ),
                     const SizedBox(height: 16),
 
@@ -362,7 +362,9 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                         hint: const Text('All sources'),
                         items: [
                           const DropdownMenuItem(
-                              value: null, child: Text('All sources')),
+                            value: null,
+                            child: Text('All sources'),
+                          ),
                           ...sources.map(
                             (s) => DropdownMenuItem(
                               value: s.sourceId,
@@ -388,19 +390,19 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                       hint: const Text('Any orientation'),
                       items: [
                         const DropdownMenuItem(
-                            value: null, child: Text('Any orientation')),
+                          value: null,
+                          child: Text('Any orientation'),
+                        ),
                         ...widget.orientations.map(
                           (o) => DropdownMenuItem(
                             value: o,
-                            child:
-                                Text(o[0].toUpperCase() + o.substring(1)),
+                            child: Text(o[0].toUpperCase() + o.substring(1)),
                           ),
                         ),
                       ],
                       onChanged: isFetching
                           ? null
-                          : (v) =>
-                              setState(() => _selectedOrientation = v),
+                          : (v) => setState(() => _selectedOrientation = v),
                     ),
                     const SizedBox(height: 12),
 
@@ -413,12 +415,13 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                       hint: const Text('Any color'),
                       items: [
                         const DropdownMenuItem(
-                            value: null, child: Text('Any color')),
+                          value: null,
+                          child: Text('Any color'),
+                        ),
                         ...widget.colors.map(
                           (c) => DropdownMenuItem(
                             value: c,
-                            child:
-                                Text(c[0].toUpperCase() + c.substring(1)),
+                            child: Text(c[0].toUpperCase() + c.substring(1)),
                           ),
                         ),
                       ],
@@ -444,7 +447,8 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                       icon: Icons.replay_rounded,
                       iconColor: scheme.primary,
                       title: 'Auto Retry',
-                      subtitle: 'Retry failed downloads automatically (up to 3×)',
+                      subtitle:
+                          'Retry failed downloads automatically (up to 3×)',
                       value: state.autoRetryEnabled,
                       enabled: !isFetching,
                       onChanged: (v) => ref
@@ -460,17 +464,25 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                           color: scheme.error.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                              color: scheme.error.withValues(alpha: 0.3)),
+                            color: scheme.error.withValues(alpha: 0.3),
+                          ),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.error_outline,
-                                color: scheme.error, size: 18),
+                            Icon(
+                              Icons.error_outline,
+                              color: scheme.error,
+                              size: 18,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: Text(fetchError,
-                                  style: TextStyle(
-                                      color: scheme.error, fontSize: 13)),
+                              child: Text(
+                                fetchError,
+                                style: TextStyle(
+                                  color: scheme.error,
+                                  fontSize: 13,
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -492,7 +504,9 @@ class _CriteriaDialogState extends ConsumerState<_CriteriaDialog> {
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: scheme.onPrimary),
+                            strokeWidth: 2,
+                            color: scheme.onPrimary,
+                          ),
                         )
                       : const Icon(Icons.download_for_offline),
                   label: Padding(
@@ -579,15 +593,15 @@ class _ToggleCard extends StatelessWidget {
                     Text(
                       title,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                          ),
+                        color: scheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -680,37 +694,37 @@ class _SelectionStepState extends State<_SelectionStep> {
       widget.wallpapers.map((w) => w.source).toSet();
 
   List<Wallpaper> get _filtered => widget.wallpapers.where((w) {
-        // Provider
-        if (_providerFilter != null && w.source != _providerFilter) {
-          return false;
-        }
-        // Orientation
-        if (_orientationFilter == 'portrait' && w.width >= w.height) {
-          return false;
-        }
-        if (_orientationFilter == 'landscape' && w.width < w.height) {
-          return false;
-        }
-        // Color — match against tags and description
-        if (_colorFilter != null) {
-          final haystack = [
-            ...(w.tags ?? []),
-            w.description ?? '',
-          ].join(' ').toLowerCase();
-          if (!haystack.contains(_colorFilter!)) return false;
-        }
-        // Query search — photographer, description, tags
-        final query = _searchController.text.trim().toLowerCase();
-        if (query.isNotEmpty) {
-          final haystack = [
-            w.photographer,
-            w.description ?? '',
-            ...(w.tags ?? []),
-          ].join(' ').toLowerCase();
-          if (!haystack.contains(query)) return false;
-        }
-        return true;
-      }).toList();
+    // Provider
+    if (_providerFilter != null && w.source != _providerFilter) {
+      return false;
+    }
+    // Orientation
+    if (_orientationFilter == 'portrait' && w.width >= w.height) {
+      return false;
+    }
+    if (_orientationFilter == 'landscape' && w.width < w.height) {
+      return false;
+    }
+    // Color — match against tags and description
+    if (_colorFilter != null) {
+      final haystack = [
+        ...(w.tags ?? []),
+        w.description ?? '',
+      ].join(' ').toLowerCase();
+      if (!haystack.contains(_colorFilter!)) return false;
+    }
+    // Query search — photographer, description, tags
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isNotEmpty) {
+      final haystack = [
+        w.photographer,
+        w.description ?? '',
+        ...(w.tags ?? []),
+      ].join(' ').toLowerCase();
+      if (!haystack.contains(query)) return false;
+    }
+    return true;
+  }).toList();
 
   bool get _hasActiveFilter =>
       _providerFilter != null ||
@@ -748,30 +762,29 @@ class _SelectionStepState extends State<_SelectionStep> {
                       decoration: InputDecoration(
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                        hintText:
-                            'Search by photographer, tag, description…',
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        hintText: 'Search by photographer, tag, description…',
                         hintStyle: TextStyle(
-                            fontSize: 13, color: scheme.onSurfaceVariant),
-                        prefixIcon:
-                            const Icon(Icons.search, size: 18),
+                          fontSize: 13,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                        prefixIcon: const Icon(Icons.search, size: 18),
                         suffixIcon: _searchController.text.isNotEmpty
                             ? IconButton(
                                 icon: const Icon(Icons.close, size: 16),
-                                onPressed: () =>
-                                    _searchController.clear(),
+                                onPressed: () => _searchController.clear(),
                                 padding: EdgeInsets.zero,
                               )
                             : null,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
-                          borderSide:
-                              BorderSide(color: scheme.outlineVariant),
+                          borderSide: BorderSide(color: scheme.outlineVariant),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
-                          borderSide:
-                              BorderSide(color: scheme.outlineVariant),
+                          borderSide: BorderSide(color: scheme.outlineVariant),
                         ),
                       ),
                     ),
@@ -792,16 +805,17 @@ class _SelectionStepState extends State<_SelectionStep> {
                               onTap: () =>
                                   setState(() => _providerFilter = null),
                             ),
-                            ...providers.map((p) => Padding(
-                                  padding: const EdgeInsets.only(left: 6),
-                                  child: _FilterChip(
-                                    label: p[0].toUpperCase() +
-                                        p.substring(1),
-                                    selected: _providerFilter == p,
-                                    onTap: () => setState(
-                                        () => _providerFilter = p),
-                                  ),
-                                )),
+                            ...providers.map(
+                              (p) => Padding(
+                                padding: const EdgeInsets.only(left: 6),
+                                child: _FilterChip(
+                                  label: p[0].toUpperCase() + p.substring(1),
+                                  selected: _providerFilter == p,
+                                  onTap: () =>
+                                      setState(() => _providerFilter = p),
+                                ),
+                              ),
+                            ),
                             const SizedBox(width: 14),
                             const _FilterDivider(),
                             const SizedBox(width: 14),
@@ -820,8 +834,8 @@ class _SelectionStepState extends State<_SelectionStep> {
                             label: 'Portrait',
                             icon: Icons.stay_current_portrait_outlined,
                             selected: _orientationFilter == 'portrait',
-                            onTap: () => setState(
-                                () => _orientationFilter = 'portrait'),
+                            onTap: () =>
+                                setState(() => _orientationFilter = 'portrait'),
                           ),
                           const SizedBox(width: 6),
                           _FilterChip(
@@ -829,7 +843,8 @@ class _SelectionStepState extends State<_SelectionStep> {
                             icon: Icons.stay_current_landscape_outlined,
                             selected: _orientationFilter == 'landscape',
                             onTap: () => setState(
-                                () => _orientationFilter = 'landscape'),
+                              () => _orientationFilter = 'landscape',
+                            ),
                           ),
                         ],
                       ),
@@ -848,19 +863,20 @@ class _SelectionStepState extends State<_SelectionStep> {
                             colorName: null,
                             color: null,
                             selected: _colorFilter == null,
-                            onTap: () =>
-                                setState(() => _colorFilter = null),
+                            onTap: () => setState(() => _colorFilter = null),
                           ),
-                          ..._colorSwatches.entries.map((e) => Padding(
-                                padding: const EdgeInsets.only(left: 6),
-                                child: _ColorSwatchChip(
-                                  colorName: e.key,
-                                  color: e.value,
-                                  selected: _colorFilter == e.key,
-                                  onTap: () => setState(
-                                      () => _colorFilter = e.key),
-                                ),
-                              )),
+                          ..._colorSwatches.entries.map(
+                            (e) => Padding(
+                              padding: const EdgeInsets.only(left: 6),
+                              child: _ColorSwatchChip(
+                                colorName: e.key,
+                                color: e.value,
+                                selected: _colorFilter == e.key,
+                                onTap: () =>
+                                    setState(() => _colorFilter = e.key),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -870,18 +886,19 @@ class _SelectionStepState extends State<_SelectionStep> {
 
               // Info bar
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 6,
+                ),
                 color: scheme.surfaceContainerHighest,
                 child: Row(
                   children: [
                     Expanded(
                       child: Text(
                         'Tap to select · ${filtered.length} of ${widget.wallpapers.length} shown',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: scheme.onSurfaceVariant),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                     if (_hasActiveFilter)
@@ -895,19 +912,26 @@ class _SelectionStepState extends State<_SelectionStep> {
                         borderRadius: BorderRadius.circular(12),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.filter_list_off,
-                                  size: 14,
-                                  color: scheme.primary),
+                              Icon(
+                                Icons.filter_list_off,
+                                size: 14,
+                                color: scheme.primary,
+                              ),
                               const SizedBox(width: 4),
-                              Text('Clear',
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      color: scheme.primary,
-                                      fontWeight: FontWeight.w600)),
+                              Text(
+                                'Clear',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: scheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -925,12 +949,16 @@ class _SelectionStepState extends State<_SelectionStep> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.filter_list_off,
-                                size: 48, color: scheme.onSurfaceVariant),
+                            Icon(
+                              Icons.filter_list_off,
+                              size: 48,
+                              color: scheme.onSurfaceVariant,
+                            ),
                             const SizedBox(height: 12),
-                            Text('No wallpapers match the filters',
-                                style: TextStyle(
-                                    color: scheme.onSurfaceVariant)),
+                            Text(
+                              'No wallpapers match the filters',
+                              style: TextStyle(color: scheme.onSurfaceVariant),
+                            ),
                           ],
                         ),
                       )
@@ -942,24 +970,24 @@ class _SelectionStepState extends State<_SelectionStep> {
                             sliver: SliverGrid(
                               gridDelegate:
                                   const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 4,
-                                crossAxisSpacing: 8,
-                                mainAxisSpacing: 8,
-                                childAspectRatio: 3.0 / 5.0,
-                              ),
-                              delegate: SliverChildBuilderDelegate(
-                                (context, index) {
-                                  final wallpaper = filtered[index];
-                                  return _WallpaperSelectionCard(
-                                    wallpaper: wallpaper,
-                                    isSelected: widget.selectedWallpaperIds
-                                        .contains(wallpaper.id),
-                                    index: index,
-                                    onToggle: widget.onToggle,
-                                  );
-                                },
-                                childCount: filtered.length,
-                              ),
+                                    crossAxisCount: 6,
+                                    crossAxisSpacing: 8,
+                                    mainAxisSpacing: 8,
+                                    childAspectRatio: 3.0 / 5.0,
+                                  ),
+                              delegate: SliverChildBuilderDelegate((
+                                context,
+                                index,
+                              ) {
+                                final wallpaper = filtered[index];
+                                return _WallpaperSelectionCard(
+                                  wallpaper: wallpaper,
+                                  isSelected: widget.selectedWallpaperIds
+                                      .contains(wallpaper.id),
+                                  index: index,
+                                  onToggle: widget.onToggle,
+                                );
+                              }, childCount: filtered.length),
                             ),
                           ),
                           // Pagination footer
@@ -969,24 +997,26 @@ class _SelectionStepState extends State<_SelectionStep> {
                                     padding: EdgeInsets.symmetric(vertical: 20),
                                     child: Center(
                                       child: CircularProgressIndicator(
-                                          strokeWidth: 2),
+                                        strokeWidth: 2,
+                                      ),
                                     ),
                                   )
                                 : !widget.hasMorePages
-                                    ? Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 16),
-                                        child: Center(
-                                          child: Text(
-                                            'All ${widget.wallpapers.length} images loaded',
-                                            style: TextStyle(
-                                                fontSize: 12,
-                                                color:
-                                                    scheme.onSurfaceVariant),
-                                          ),
+                                ? Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        'All ${widget.wallpapers.length} images loaded',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: scheme.onSurfaceVariant,
                                         ),
-                                      )
-                                    : const SizedBox(height: 16),
+                                      ),
+                                    ),
+                                  )
+                                : const SizedBox(height: 16),
                           ),
                         ],
                       ),
@@ -1006,25 +1036,31 @@ class _SelectionStepState extends State<_SelectionStep> {
               // Header
               Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 12),
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 color: scheme.surfaceContainerHighest,
                 child: Row(
                   children: [
-                    Icon(Icons.check_circle_outline,
-                        size: 18, color: scheme.primary),
+                    Icon(
+                      Icons.check_circle_outline,
+                      size: 18,
+                      color: scheme.primary,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Selected',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleSmall
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: selectedWallpapers.isNotEmpty
                             ? scheme.primary
@@ -1053,15 +1089,19 @@ class _SelectionStepState extends State<_SelectionStep> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.touch_app_outlined,
-                                size: 48, color: scheme.onSurfaceVariant),
+                            Icon(
+                              Icons.touch_app_outlined,
+                              size: 48,
+                              color: scheme.onSurfaceVariant,
+                            ),
                             const SizedBox(height: 12),
                             Text(
                               'Tap wallpapers\nto select them',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                  color: scheme.onSurfaceVariant,
-                                  fontSize: 13),
+                                color: scheme.onSurfaceVariant,
+                                fontSize: 13,
+                              ),
                             ),
                           ],
                         ),
@@ -1122,9 +1162,9 @@ class _FilterLabel extends StatelessWidget {
     return Text(
       text,
       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w600,
-          ),
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+        fontWeight: FontWeight.w600,
+      ),
     );
   }
 }
@@ -1162,22 +1202,19 @@ class _FilterChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon,
-                  size: 13,
-                  color: selected
-                      ? scheme.onPrimary
-                      : scheme.onSurfaceVariant),
+              Icon(
+                icon,
+                size: 13,
+                color: selected ? scheme.onPrimary : scheme.onSurfaceVariant,
+              ),
               const SizedBox(width: 4),
             ],
             Text(
               label,
               style: TextStyle(
                 fontSize: 12,
-                fontWeight:
-                    selected ? FontWeight.w600 : FontWeight.normal,
-                color: selected
-                    ? scheme.onPrimary
-                    : scheme.onSurfaceVariant,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                color: selected ? scheme.onPrimary : scheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -1213,7 +1250,9 @@ class _ColorSwatchChip extends StatelessWidget {
     final isAll = colorName == null;
 
     return Tooltip(
-      message: isAll ? 'All colors' : colorName![0].toUpperCase() + colorName!.substring(1),
+      message: isAll
+          ? 'All colors'
+          : colorName![0].toUpperCase() + colorName!.substring(1),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
@@ -1225,15 +1264,17 @@ class _ColorSwatchChip extends StatelessWidget {
             shape: BoxShape.circle,
             color: isAll ? null : color,
             gradient: isAll
-                ? const SweepGradient(colors: [
-                    Color(0xFFE53935),
-                    Color(0xFFFF7043),
-                    Color(0xFFFFCA28),
-                    Color(0xFF43A047),
-                    Color(0xFF1E88E5),
-                    Color(0xFF8E24AA),
-                    Color(0xFFE53935),
-                  ])
+                ? const SweepGradient(
+                    colors: [
+                      Color(0xFFE53935),
+                      Color(0xFFFF7043),
+                      Color(0xFFFFCA28),
+                      Color(0xFF43A047),
+                      Color(0xFF1E88E5),
+                      Color(0xFF8E24AA),
+                      Color(0xFFE53935),
+                    ],
+                  )
                 : null,
             border: Border.all(
               color: selected ? scheme.primary : scheme.outlineVariant,
@@ -1245,13 +1286,16 @@ class _ColorSwatchChip extends StatelessWidget {
                       color: scheme.primary.withValues(alpha: 0.4),
                       blurRadius: 4,
                       spreadRadius: 1,
-                    )
+                    ),
                   ]
                 : null,
           ),
           child: selected
-              ? Icon(Icons.check,
-                  size: 14, color: isAll ? Colors.white : _checkColor())
+              ? Icon(
+                  Icons.check,
+                  size: 14,
+                  color: isAll ? Colors.white : _checkColor(),
+                )
               : null,
         ),
       ),
@@ -1317,9 +1361,7 @@ class _WallpaperSelectionCard extends StatelessWidget {
             if (isSelected)
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  color: scheme.primary.withValues(alpha: 0.35),
-                ),
+                child: Container(color: scheme.primary.withValues(alpha: 0.35)),
               ),
 
             // Check badge (top-right)
@@ -1352,8 +1394,7 @@ class _WallpaperSelectionCard extends StatelessWidget {
               top: 6,
               left: 6,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(4),
@@ -1391,8 +1432,7 @@ class _SelectedWallpaperItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
       leading: SizedBox(
         width: 36,
         height: 60,
@@ -1455,8 +1495,7 @@ class _ProcessingStepState extends State<_ProcessingStep>
       vsync: this,
       duration: const Duration(milliseconds: 1800),
     )..repeat(reverse: true);
-    _pulseAnim =
-        CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut);
+    _pulseAnim = CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut);
   }
 
   @override
@@ -1472,10 +1511,8 @@ class _ProcessingStepState extends State<_ProcessingStep>
     final total = widget.state.selectedWallpapers.length;
     final progress = total > 0 ? done / total : 0.0;
     final current = widget.state.currentWallpaper;
-    final successCount =
-        widget.state.results.where((r) => r.success).length;
-    final failCount =
-        widget.state.results.where((r) => !r.success).length;
+    final successCount = widget.state.results.where((r) => r.success).length;
+    final failCount = widget.state.results.where((r) => !r.success).length;
 
     return Row(
       children: [
@@ -1484,9 +1521,7 @@ class _ProcessingStepState extends State<_ProcessingStep>
           width: 300,
           decoration: BoxDecoration(
             color: scheme.surfaceContainerLow,
-            border: Border(
-              right: BorderSide(color: scheme.outlineVariant),
-            ),
+            border: Border(right: BorderSide(color: scheme.outlineVariant)),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1510,9 +1545,9 @@ class _ProcessingStepState extends State<_ProcessingStep>
                     opacity: anim,
                     child: SlideTransition(
                       position: Tween(
-                              begin: const Offset(0, 0.3),
-                              end: Offset.zero)
-                          .animate(anim),
+                        begin: const Offset(0, 0.3),
+                        end: Offset.zero,
+                      ).animate(anim),
                       child: child,
                     ),
                   ),
@@ -1520,8 +1555,8 @@ class _ProcessingStepState extends State<_ProcessingStep>
                     widget.state.processingStatus ?? 'Starting…',
                     key: ValueKey(widget.state.processingStatus),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
+                      color: scheme.onSurfaceVariant,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -1536,15 +1571,15 @@ class _ProcessingStepState extends State<_ProcessingStep>
                 child: done == 0
                     ? const SizedBox.shrink()
                     : Container(
-                        margin:
-                            const EdgeInsets.symmetric(horizontal: 28),
+                        margin: const EdgeInsets.symmetric(horizontal: 28),
                         padding: const EdgeInsets.symmetric(
-                            vertical: 14, horizontal: 8),
+                          vertical: 14,
+                          horizontal: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: scheme.surface,
                           borderRadius: BorderRadius.circular(16),
-                          border:
-                              Border.all(color: scheme.outlineVariant),
+                          border: Border.all(color: scheme.outlineVariant),
                           boxShadow: [
                             BoxShadow(
                               color: scheme.shadow.withValues(alpha: 0.06),
@@ -1588,7 +1623,9 @@ class _ProcessingStepState extends State<_ProcessingStep>
               // Header bar
               Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 24, vertical: 12),
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 color: scheme.surfaceContainerHighest,
                 child: Row(
                   children: [
@@ -1596,19 +1633,17 @@ class _ProcessingStepState extends State<_ProcessingStep>
                     const SizedBox(width: 10),
                     Text(
                       'Now Processing',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const Spacer(),
                     if (done > 0)
                       Text(
                         '$done of $total complete',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: scheme.onSurfaceVariant),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
                       ),
                   ],
                 ),
@@ -1622,11 +1657,16 @@ class _ProcessingStepState extends State<_ProcessingStep>
                   transitionBuilder: (child, anim) => FadeTransition(
                     opacity: anim,
                     child: SlideTransition(
-                      position: Tween(
-                              begin: const Offset(0.1, 0),
-                              end: Offset.zero)
-                          .animate(CurvedAnimation(
-                              parent: anim, curve: Curves.easeOut)),
+                      position:
+                          Tween(
+                            begin: const Offset(0.1, 0),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: anim,
+                              curve: Curves.easeOut,
+                            ),
+                          ),
                       child: child,
                     ),
                   ),
@@ -1643,22 +1683,22 @@ class _ProcessingStepState extends State<_ProcessingStep>
               if (widget.state.results.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Row(
                     children: [
-                      Icon(Icons.history,
-                          size: 14,
-                          color: scheme.onSurfaceVariant),
+                      Icon(
+                        Icons.history,
+                        size: 14,
+                        color: scheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         'Recent',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelMedium
+                        style: Theme.of(context).textTheme.labelMedium
                             ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: scheme.onSurfaceVariant),
+                              fontWeight: FontWeight.bold,
+                              color: scheme.onSurfaceVariant,
+                            ),
                       ),
                     ],
                   ),
@@ -1667,12 +1707,15 @@ class _ProcessingStepState extends State<_ProcessingStep>
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 4),
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
                     reverse: true,
                     itemCount: widget.state.results.length,
                     itemBuilder: (context, index) {
-                      final result = widget.state.results[
-                          widget.state.results.length - 1 - index];
+                      final result = widget
+                          .state
+                          .results[widget.state.results.length - 1 - index];
                       return _ResultFeedItem(
                         result: result,
                         isLatest: index == 0,
@@ -1725,8 +1768,9 @@ class _PulsingProgressRing extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: scheme.primary
-                        .withValues(alpha: pulseAnim.value * 0.22),
+                    color: scheme.primary.withValues(
+                      alpha: pulseAnim.value * 0.22,
+                    ),
                     blurRadius: 24 + pulseAnim.value * 16,
                     spreadRadius: pulseAnim.value * 6,
                   ),
@@ -1771,22 +1815,23 @@ class _PulsingProgressRing extends StatelessWidget {
                 duration: const Duration(milliseconds: 300),
                 transitionBuilder: (child, anim) => ScaleTransition(
                   scale: Tween(begin: 0.7, end: 1.0).animate(
-                      CurvedAnimation(parent: anim, curve: Curves.easeOut)),
+                    CurvedAnimation(parent: anim, curve: Curves.easeOut),
+                  ),
                   child: FadeTransition(opacity: anim, child: child),
                 ),
                 child: Text(
                   '$done',
                   key: ValueKey(done),
                   style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               Text(
                 'of $total',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
               ),
               const SizedBox(height: 4),
               TweenAnimationBuilder<double>(
@@ -1796,9 +1841,9 @@ class _PulsingProgressRing extends StatelessWidget {
                 builder: (context, value, _) => Text(
                   '${(value * 100).toStringAsFixed(0)}%',
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: scheme.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    color: scheme.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],
@@ -1837,7 +1882,8 @@ class _CurrentWallpaperCard extends StatelessWidget {
               placeholder: (_, __) => Container(
                 color: scheme.surfaceContainerHighest,
                 child: const Center(
-                    child: CircularProgressIndicator(strokeWidth: 2)),
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
               ),
             ),
           ),
@@ -1850,8 +1896,7 @@ class _CurrentWallpaperCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: scheme.primaryContainer,
                   borderRadius: BorderRadius.circular(6),
@@ -1869,10 +1914,9 @@ class _CurrentWallpaperCard extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 wallpaper.photographer,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               if (wallpaper.description != null &&
                   wallpaper.description!.isNotEmpty) ...[
@@ -1880,8 +1924,8 @@ class _CurrentWallpaperCard extends StatelessWidget {
                 Text(
                   wallpaper.description!,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
+                    color: scheme.onSurfaceVariant,
+                  ),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -1890,7 +1934,9 @@ class _CurrentWallpaperCard extends StatelessWidget {
               // Processing pill
               Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 5),
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: scheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -1948,10 +1994,14 @@ class _ResultFeedItemState extends State<_ResultFeedItem>
   void initState() {
     super.initState();
     _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 380));
+      vsync: this,
+      duration: const Duration(milliseconds: 380),
+    );
     _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
-    _slide = Tween(begin: const Offset(0, -0.4), end: Offset.zero).animate(
-        CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
+    _slide = Tween(
+      begin: const Offset(0, -0.4),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
     _ctrl.forward();
   }
 
@@ -1973,20 +2023,19 @@ class _ResultFeedItemState extends State<_ResultFeedItem>
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 400),
           margin: const EdgeInsets.only(bottom: 6),
-          padding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: widget.isLatest
                 ? (success
-                    ? Colors.green.withValues(alpha: 0.08)
-                    : scheme.error.withValues(alpha: 0.08))
+                      ? Colors.green.withValues(alpha: 0.08)
+                      : scheme.error.withValues(alpha: 0.08))
                 : scheme.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: widget.isLatest
                   ? (success
-                      ? Colors.green.withValues(alpha: 0.35)
-                      : scheme.error.withValues(alpha: 0.35))
+                        ? Colors.green.withValues(alpha: 0.35)
+                        : scheme.error.withValues(alpha: 0.35))
                   : scheme.outlineVariant.withValues(alpha: 0.4),
               width: widget.isLatest ? 1.5 : 1,
             ),
@@ -2014,10 +2063,12 @@ class _ResultFeedItemState extends State<_ResultFeedItem>
                     Text(
                       success
                           ? (widget.result.downloadResult?.aiName ??
-                              widget.result.wallpaper.photographer)
+                                widget.result.wallpaper.photographer)
                           : widget.result.wallpaper.photographer,
                       style: const TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w500),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -2025,8 +2076,7 @@ class _ResultFeedItemState extends State<_ResultFeedItem>
                       const SizedBox(height: 2),
                       Text(
                         widget.result.error!,
-                        style: TextStyle(
-                            fontSize: 10, color: scheme.error),
+                        style: TextStyle(fontSize: 10, color: scheme.error),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -2036,9 +2086,7 @@ class _ResultFeedItemState extends State<_ResultFeedItem>
               ),
               const SizedBox(width: 8),
               Icon(
-                success
-                    ? Icons.check_circle_rounded
-                    : Icons.cancel_rounded,
+                success ? Icons.check_circle_rounded : Icons.cancel_rounded,
                 color: success ? Colors.green : scheme.error,
                 size: 18,
               ),
@@ -2068,9 +2116,10 @@ class _PulsingDotState extends State<_PulsingDot>
   @override
   void initState() {
     super.initState();
-    _ctrl =
-        AnimationController(vsync: this, duration: const Duration(seconds: 1))
-          ..repeat(reverse: true);
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..repeat(reverse: true);
     _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
   }
 
@@ -2132,8 +2181,8 @@ class _ProcessingStat extends StatelessWidget {
                 duration: const Duration(milliseconds: 250),
                 transitionBuilder: (child, anim) => ScaleTransition(
                   scale: Tween(begin: 0.6, end: 1.0).animate(
-                      CurvedAnimation(
-                          parent: anim, curve: Curves.easeOut)),
+                    CurvedAnimation(parent: anim, curve: Curves.easeOut),
+                  ),
                   child: FadeTransition(opacity: anim, child: child),
                 ),
                 child: Text(
@@ -2152,8 +2201,8 @@ class _ProcessingStat extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -2204,10 +2253,7 @@ class _CompleteStepState extends State<_CompleteStep> {
     final counts = <String, int>{};
     for (final r in widget.state.results) {
       if (!r.success) continue;
-      final tags = <String>[
-        ...?r.wallpaper.tags,
-        ...?r.downloadResult?.tags,
-      ];
+      final tags = <String>[...?r.wallpaper.tags, ...?r.downloadResult?.tags];
       for (final t in tags) {
         final base = _tagToBaseName(t);
         if (base.isEmpty || base.length < 3) continue;
@@ -2229,9 +2275,11 @@ class _CompleteStepState extends State<_CompleteStep> {
         final isList = base.contains(',');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(isList
-                ? 'Applied names in order'
-                : 'Renamed all to "${base}_1, ${base}_2, …"'),
+            content: Text(
+              isList
+                  ? 'Applied names in order'
+                  : 'Renamed all to "${base}_1, ${base}_2, …"',
+            ),
           ),
         );
       }
@@ -2240,8 +2288,7 @@ class _CompleteStepState extends State<_CompleteStep> {
     }
   }
 
-  void _showRenameDialog(
-      int index, String currentName, Wallpaper wallpaper) {
+  void _showRenameDialog(int index, String currentName, Wallpaper wallpaper) {
     final result = widget.state.results[index];
     showDialog<void>(
       context: context,
@@ -2263,70 +2310,112 @@ class _CompleteStepState extends State<_CompleteStep> {
     final success = widget.state.results.where((r) => r.success).length;
     final failed = widget.state.results.where((r) => !r.success).length;
 
-    return Column(
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // ── Summary header (compact) ───────────────────────────────────
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-          color: success > 0
-              ? context.appColors.success.withValues(alpha: 0.08)
-              : scheme.error.withValues(alpha: 0.08),
-          child: Row(
+        // ── Left: summary, bulk rename & actions ────────────────────────
+        SizedBox(
+          width: 300,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Icon(
-                success > 0 ? Icons.check_circle : Icons.error,
-                size: 36,
-                color: success > 0
-                    ? context.appColors.success
-                    : scheme.error,
-              ),
-              const SizedBox(width: 14),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Bulk Download Complete',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        _StatChip(
-                          icon: Icons.check_circle,
-                          color: context.appColors.success,
-                          label: '$success downloaded',
-                        ),
-                        if (failed > 0) ...[
-                          const SizedBox(width: 16),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        success > 0 ? Icons.check_circle : Icons.error,
+                        size: 40,
+                        color: success > 0
+                            ? context.appColors.success
+                            : scheme.error,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Bulk Download Complete',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 14),
+                      Wrap(
+                        spacing: 16,
+                        runSpacing: 8,
+                        children: [
                           _StatChip(
-                            icon: Icons.error_outline,
-                            color: scheme.error,
-                            label: '$failed failed',
+                            icon: Icons.check_circle,
+                            color: context.appColors.success,
+                            label: '$success downloaded',
                           ),
+                          if (failed > 0)
+                            _StatChip(
+                              icon: Icons.error_outline,
+                              color: scheme.error,
+                              label: '$failed failed',
+                            ),
                         ],
+                      ),
+                      if (success > 0) ...[
+                        const SizedBox(height: 20),
+                        const Divider(),
+                        const SizedBox(height: 12),
+                        _buildBulkRenameBar(context),
                       ],
-                    ),
-                  ],
+                    ],
+                  ),
+                ),
+              ),
+              const Divider(height: 1),
+
+              // ── Bottom actions ──────────────────────────────────────
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      if (widget.onRetryFailed != null) ...[
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: widget.onRetryFailed,
+                            icon: const Icon(Icons.refresh),
+                            label: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Text(
+                                'Retry ${widget.state.failedCount} Failed',
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: widget.onDone,
+                          child: const Padding(
+                            padding: EdgeInsets.all(14),
+                            child: Text('Done', style: TextStyle(fontSize: 16)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
         ),
 
-        // ── Bulk rename bar ─────────────────────────────────────────────
-        if (success > 0) _buildBulkRenameBar(context),
+        const VerticalDivider(width: 1, thickness: 1),
 
-        // ── Results grid (large, clearly-visible previews) ─────────────
+        // ── Right: results grid (large, clearly-visible previews) ──────
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final crossAxisCount =
-                  (constraints.maxWidth ~/ 200).clamp(2, 6);
+              final crossAxisCount = (constraints.maxWidth ~/ 200).clamp(2, 6);
               return GridView.builder(
                 padding: const EdgeInsets.all(16),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -2342,49 +2431,15 @@ class _CompleteStepState extends State<_CompleteStep> {
                     result: result,
                     onRename: result.success
                         ? () => _showRenameDialog(
-                              index,
-                              result.downloadResult!.aiName,
-                              result.wallpaper,
-                            )
+                            index,
+                            result.downloadResult!.aiName,
+                            result.wallpaper,
+                          )
                         : null,
                   );
                 },
               );
             },
-          ),
-        ),
-
-        // ── Bottom actions ──────────────────────────────────────────────
-        SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: Row(
-              children: [
-                if (widget.onRetryFailed != null) ...[
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: widget.onRetryFailed,
-                      icon: const Icon(Icons.refresh),
-                      label: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Text('Retry ${widget.state.failedCount} Failed'),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                ],
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: widget.onDone,
-                    child: const Padding(
-                      padding: EdgeInsets.all(14),
-                      child: Text('Done', style: TextStyle(fontSize: 16)),
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ),
         ),
       ],
@@ -2395,116 +2450,106 @@ class _CompleteStepState extends State<_CompleteStep> {
     final scheme = Theme.of(context).colorScheme;
     final suggestions = _suggestedBaseNames;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
-        border: Border(bottom: BorderSide(color: scheme.outlineVariant)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.drive_file_rename_outline,
-                  size: 18, color: scheme.primary),
-              const SizedBox(width: 8),
-              Text(
-                'Bulk rename',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  'one name → name_1, name_2 …  ·  comma-separated → one per wall',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _bulkController,
-                  enabled: !_isRenamingAll,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (_) => _applyBulkRename(),
-                  decoration: InputDecoration(
-                    isDense: true,
-                    hintText: 'Base name, or comma-separated names per wall',
-                    prefixIcon: const Icon(Icons.label_outline, size: 18),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              FilledButton.icon(
-                onPressed: _isRenamingAll ? null : _applyBulkRename,
-                icon: _isRenamingAll
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.done_all, size: 18),
-                label: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Text(_isRenamingAll ? 'Renaming…' : 'Apply to all'),
-                ),
-              ),
-            ],
-          ),
-          if (suggestions.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Icon(Icons.auto_awesome,
-                    size: 13, color: scheme.onSurfaceVariant),
-                const SizedBox(width: 5),
-                Text(
-                  'Suggested from tags',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-              ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.drive_file_rename_outline,
+              size: 18,
+              color: scheme.primary,
             ),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: suggestions
-                  .map((s) => ActionChip(
-                        label: Text(s),
-                        labelStyle: const TextStyle(fontSize: 12),
-                        visualDensity: VisualDensity.compact,
-                        onPressed: _isRenamingAll
-                            ? null
-                            : () => setState(() {
-                                  _bulkController.text = s;
-                                  _bulkController.selection =
-                                      TextSelection.collapsed(
-                                          offset: s.length);
-                                }),
-                      ))
-                  .toList(),
+            const SizedBox(width: 8),
+            Text(
+              'Bulk rename',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
             ),
           ],
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'one name → name_1, name_2 …  ·  comma-separated → one per wall',
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: 10),
+        TextField(
+          controller: _bulkController,
+          enabled: !_isRenamingAll,
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => _applyBulkRename(),
+          decoration: InputDecoration(
+            isDense: true,
+            hintText: 'Base name, or comma-separated names',
+            prefixIcon: const Icon(Icons.label_outline, size: 18),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: _isRenamingAll ? null : _applyBulkRename,
+            icon: _isRenamingAll
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.done_all, size: 18),
+            label: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Text(_isRenamingAll ? 'Renaming…' : 'Apply to all'),
+            ),
+          ),
+        ),
+        if (suggestions.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(
+                Icons.auto_awesome,
+                size: 13,
+                color: scheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 5),
+              Text(
+                'Suggested from tags',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: suggestions
+                .map(
+                  (s) => ActionChip(
+                    label: Text(s),
+                    labelStyle: const TextStyle(fontSize: 12),
+                    visualDensity: VisualDensity.compact,
+                    onPressed: _isRenamingAll
+                        ? null
+                        : () => setState(() {
+                            _bulkController.text = s;
+                            _bulkController.selection = TextSelection.collapsed(
+                              offset: s.length,
+                            );
+                          }),
+                  ),
+                )
+                .toList(),
+          ),
         ],
-      ),
+      ],
     );
   }
 }
@@ -2554,7 +2599,8 @@ class _ResultCard extends StatelessWidget {
                   placeholder: (_, __) => Container(
                     color: scheme.surfaceContainerHighest,
                     child: const Center(
-                        child: CircularProgressIndicator(strokeWidth: 2)),
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
                   ),
                   errorWidget: (_, __, ___) => Container(
                     color: scheme.surfaceContainerHighest,
@@ -2591,8 +2637,11 @@ class _ResultCard extends StatelessWidget {
                         onTap: onRename,
                         child: const Padding(
                           padding: EdgeInsets.all(5),
-                          child: Icon(Icons.edit_outlined,
-                              size: 16, color: Colors.white),
+                          child: Icon(
+                            Icons.edit_outlined,
+                            size: 16,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
@@ -2614,15 +2663,15 @@ class _ResultCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                            fontSize: 13, fontWeight: FontWeight.w600),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         success
-                            ? (result.downloadResult?.tags
-                                    .take(3)
-                                    .join(', ') ??
-                                '')
+                            ? (result.downloadResult?.tags.take(3).join(', ') ??
+                                  '')
                             : (result.error ?? 'Failed'),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -2642,8 +2691,10 @@ class _ResultCard extends StatelessWidget {
                     tooltip: 'Rename',
                     visualDensity: VisualDensity.compact,
                     padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 32, minHeight: 32),
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
                     onPressed: onRename,
                   ),
               ],
@@ -2737,10 +2788,10 @@ class _RenameDialogState extends State<_RenameDialog> {
                 placeholder: (_, __) => Container(
                   color: colors.surface,
                   child: const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2)),
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
                 ),
-                errorWidget: (_, __, ___) =>
-                    Container(color: colors.surface),
+                errorWidget: (_, __, ___) => Container(color: colors.surface),
               ),
             ),
           ),
@@ -2762,17 +2813,18 @@ class _RenameDialogState extends State<_RenameDialog> {
               alignment: Alignment.centerLeft,
               child: Row(
                 children: [
-                  Icon(Icons.auto_awesome,
-                      size: 13,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  Icon(
+                    Icons.auto_awesome,
+                    size: 13,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 5),
                   Text(
                     'Suggestions from tags',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color:
-                              Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -2782,23 +2834,25 @@ class _RenameDialogState extends State<_RenameDialog> {
               spacing: 6,
               runSpacing: 6,
               children: widget.suggestions
-                  .map((s) => ActionChip(
-                        label: Text(s),
-                        labelStyle: const TextStyle(fontSize: 12),
-                        visualDensity: VisualDensity.compact,
-                        onPressed: _isLoading
-                            ? null
-                            : () {
-                                final base = _tagToBaseName(s);
-                                if (base.isEmpty) return;
-                                setState(() {
-                                  _controller.text = base;
-                                  _controller.selection =
-                                      TextSelection.collapsed(
-                                          offset: base.length);
-                                });
-                              },
-                      ))
+                  .map(
+                    (s) => ActionChip(
+                      label: Text(s),
+                      labelStyle: const TextStyle(fontSize: 12),
+                      visualDensity: VisualDensity.compact,
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              final base = _tagToBaseName(s);
+                              if (base.isEmpty) return;
+                              setState(() {
+                                _controller.text = base;
+                                _controller.selection = TextSelection.collapsed(
+                                  offset: base.length,
+                                );
+                              });
+                            },
+                    ),
+                  )
                   .toList(),
             ),
           ],
@@ -2946,8 +3000,10 @@ class _StatChip extends StatelessWidget {
       children: [
         Icon(icon, color: color, size: 18),
         const SizedBox(width: 4),
-        Text(label,
-            style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+        Text(
+          label,
+          style: TextStyle(color: color, fontWeight: FontWeight.bold),
+        ),
       ],
     );
   }

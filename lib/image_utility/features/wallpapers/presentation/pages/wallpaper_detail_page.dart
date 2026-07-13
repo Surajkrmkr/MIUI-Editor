@@ -91,11 +91,17 @@ class _WallpaperDetailPageEnhancedState
     try {
       final downloadService = ref.read(downloadServiceProvider);
       final result = await downloadService.when(
-        data: (service) => service.downloadAndProcessWallpaper(wallpaper),
+        data: (service) => service.downloadAndProcessWallpaper(
+          wallpaper,
+          croppedImageBytes: _croppedImageData,
+        ),
         loading: () async {
           setState(() => _downloadStatus = 'Initializing download service...');
           final service = await ref.watch(downloadServiceProvider.future);
-          return service.downloadAndProcessWallpaper(wallpaper);
+          return service.downloadAndProcessWallpaper(
+            wallpaper,
+            croppedImageBytes: _croppedImageData,
+          );
         },
         error: (error, stack) => throw error,
       );
@@ -493,14 +499,20 @@ class _RenameDialog extends StatefulWidget {
 class _RenameDialogState extends State<_RenameDialog> {
   late final TextEditingController _nameController;
   late DownloadResult _current;
-  bool _isRenaming = false;
-  String? _renameError;
+  late List<String> _tags;
+  bool _isSaving = false;
+  String? _error;
+
+  // Captured from Autocomplete's fieldViewBuilder so it can be cleared
+  // after a tag is added or selected.
+  TextEditingController? _tagFieldController;
 
   @override
   void initState() {
     super.initState();
     _current = widget.result;
     _nameController = TextEditingController(text: _current.aiName);
+    _tags = List<String>.from(_current.tags);
   }
 
   @override
@@ -509,20 +521,54 @@ class _RenameDialogState extends State<_RenameDialog> {
     super.dispose();
   }
 
-  Future<void> _rename() async {
+  List<String> get _suggestedTags =>
+      _current.suggestedTags.where((t) => !_tags.contains(t)).toList();
+
+  Iterable<String> _tagOptions(TextEditingValue value) {
+    final query = value.text.trim().toLowerCase();
+    if (query.isEmpty) return const Iterable<String>.empty();
+    return _current.allValidTags
+        .where((tag) => !_tags.contains(tag) && tag.toLowerCase().contains(query));
+  }
+
+  bool get _nameChanged => _nameController.text.trim() != _current.aiName;
+
+  bool get _tagsChanged {
+    final a = List<String>.from(_tags)..sort();
+    final b = List<String>.from(_current.tags)..sort();
+    if (a.length != b.length) return true;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return true;
+    }
+    return false;
+  }
+
+  void _addTag(String tag) {
+    final trimmed = tag.trim();
+    if (trimmed.isEmpty || _tags.contains(trimmed)) return;
+    setState(() => _tags.add(trimmed));
+  }
+
+  void _removeTag(String tag) {
+    setState(() => _tags.remove(tag));
+  }
+
+  Future<void> _save() async {
     final newName = _nameController.text.trim();
     if (newName.isEmpty) {
-      setState(() => _renameError = 'Name cannot be empty');
+      setState(() => _error = 'Name cannot be empty');
       return;
     }
-    if (newName == _current.aiName) {
+    final nameChanged = _nameChanged;
+    final tagsChanged = _tagsChanged;
+    if (!nameChanged && !tagsChanged) {
       Navigator.pop(context);
       return;
     }
 
     setState(() {
-      _isRenaming = true;
-      _renameError = null;
+      _isSaving = true;
+      _error = null;
     });
 
     try {
@@ -532,32 +578,41 @@ class _RenameDialogState extends State<_RenameDialog> {
         error: (e, _) async => throw e,
       );
 
-      final renamed = await service.renameWallpaper(_current, newName);
+      var updated = _current;
+      if (nameChanged) {
+        updated = await service.renameWallpaper(updated, newName);
+      }
+      if (tagsChanged) {
+        updated = await service.updateTags(updated, _tags);
+      }
+
       setState(() {
-        _current = renamed;
-        _nameController.text = renamed.aiName;
-        _isRenaming = false;
+        _current = updated;
+        _nameController.text = updated.aiName;
+        _tags = List<String>.from(updated.tags);
+        _isSaving = false;
       });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Renamed to "${renamed.aiName}"'),
+            content: const Text('Saved changes'),
             backgroundColor: context.appColors.success,
           ),
         );
       }
     } catch (e) {
       setState(() {
-        _isRenaming = false;
-        _renameError = e.toString();
+        _isSaving = false;
+        _error = e.toString();
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final nameChanged = _nameController.text.trim() != _current.aiName;
+    final changed = _nameChanged || _tagsChanged;
+    final cs = Theme.of(context).colorScheme;
 
     return AlertDialog(
       title: Row(
@@ -583,12 +638,12 @@ class _RenameDialogState extends State<_RenameDialog> {
             const SizedBox(height: 6),
             TextField(
               controller: _nameController,
-              onChanged: (_) => setState(() => _renameError = null),
+              onChanged: (_) => setState(() => _error = null),
               decoration: InputDecoration(
                 hintText: 'Enter file name',
-                errorText: _renameError,
+                errorText: _error,
                 border: const OutlineInputBorder(),
-                suffixIcon: _isRenaming
+                suffixIcon: _isSaving
                     ? const Padding(
                         padding: EdgeInsets.all(12),
                         child: SizedBox(
@@ -607,12 +662,116 @@ class _RenameDialogState extends State<_RenameDialog> {
             const Divider(),
             const SizedBox(height: 8),
 
-            // AI tags
-            _ResultRow(
-              label: 'Tags',
-              value: _current.tags.join(', '),
+            // Editable tags
+            Text(
+              'Tags',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
             ),
             const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: _tags
+                  .map((tag) => Chip(
+                        label: Text(tag, style: const TextStyle(fontSize: 12)),
+                        onDeleted: () => _removeTag(tag),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ))
+                  .toList(),
+            ),
+            const SizedBox(height: 8),
+            Autocomplete<String>(
+              optionsBuilder: _tagOptions,
+              onSelected: (selection) {
+                _addTag(selection);
+                _tagFieldController?.clear();
+              },
+              optionsViewBuilder: (context, onSelected, options) {
+                return Align(
+                  alignment: Alignment.topLeft,
+                  child: Material(
+                    elevation: 4,
+                    borderRadius: BorderRadius.circular(8),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                          maxHeight: 180, maxWidth: 380),
+                      child: ListView.builder(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        itemCount: options.length,
+                        itemBuilder: (context, index) {
+                          final option = options.elementAt(index);
+                          return InkWell(
+                            onTap: () => onSelected(option),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
+                              child: Text(option,
+                                  style: const TextStyle(fontSize: 13)),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                );
+              },
+              fieldViewBuilder:
+                  (context, controller, focusNode, onFieldSubmitted) {
+                _tagFieldController = controller;
+                return TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  decoration: InputDecoration(
+                    hintText: 'Add a tag (suggestions from tags.json)',
+                    isDense: true,
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.add, size: 18),
+                      onPressed: () {
+                        _addTag(controller.text);
+                        controller.clear();
+                      },
+                    ),
+                  ),
+                  onSubmitted: (value) {
+                    _addTag(value);
+                    controller.clear();
+                  },
+                );
+              },
+            ),
+            if (_suggestedTags.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Text(
+                'Suggested (from wallpaper & tags.json)',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: cs.outline,
+                    ),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: _suggestedTags
+                    .map((tag) => ActionChip(
+                          avatar: const Icon(Icons.add, size: 14),
+                          label:
+                              Text(tag, style: const TextStyle(fontSize: 12)),
+                          onPressed: () => _addTag(tag),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                        ))
+                    .toList(),
+              ),
+            ],
+
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 8),
+
             _ResultRow(
               label: 'Image',
               value: _current.imagePath.split('/').last,
@@ -639,13 +798,13 @@ class _RenameDialogState extends State<_RenameDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: _isRenaming ? null : () => Navigator.pop(context),
+          onPressed: _isSaving ? null : () => Navigator.pop(context),
           child: const Text('Done'),
         ),
         FilledButton.icon(
-          onPressed: _isRenaming ? null : _rename,
-          icon: const Icon(Icons.drive_file_rename_outline, size: 16),
-          label: Text(nameChanged ? 'Rename & Save' : 'Close'),
+          onPressed: _isSaving ? null : _save,
+          icon: const Icon(Icons.save_outlined, size: 16),
+          label: Text(changed ? 'Save Changes' : 'Close'),
         ),
       ],
     );

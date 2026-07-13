@@ -76,4 +76,20 @@ class TagsService {
 
   /// Get tags count
   int get tagsCount => _allTags.length;
+
+  /// Returns the subset of [validTags] that mutually match [sourceTags]
+  /// (case-insensitive), preserving the canonical casing from [validTags].
+  List<String> matchTags(List<String> sourceTags, List<String> validTags) {
+    final matched = <String>[];
+    for (final tag in sourceTags) {
+      final match = validTags.firstWhere(
+        (validTag) => validTag.toLowerCase() == tag.toLowerCase(),
+        orElse: () => '',
+      );
+      if (match.isNotEmpty && !matched.contains(match)) {
+        matched.add(match);
+      }
+    }
+    return matched;
+  }
 }

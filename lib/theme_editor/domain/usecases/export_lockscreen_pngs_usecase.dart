@@ -116,6 +116,14 @@ class ExportLockscreenPngsUseCase {
           )
         ];
 
+      case ElementType.dotClock2:
+        return [
+          _Frame(
+            widget: _phoneFrame(el, _clockText(el, ':')),
+            path: PathConstants.p('${dir("dot")}dot2.png'),
+          )
+        ];
+
       case ElementType.amPmClock:
         return List.generate(
             2,

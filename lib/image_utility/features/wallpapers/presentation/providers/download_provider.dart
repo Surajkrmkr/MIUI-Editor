@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:miui_icon_generator/image_utility/core/config/app_config.dart';
@@ -15,6 +16,12 @@ import 'package:path/path.dart' as path;
 class DownloadResult {
   final String aiName;
   final List<String> tags;
+  /// Tags present in both the wallpaper's own tags and tags.json — shown as
+  /// quick-add suggestions in the rename dialog.
+  final List<String> suggestedTags;
+  /// The full canonical tag list from tags.json — used to power autocomplete
+  /// when the user types a new tag in the rename dialog.
+  final List<String> allValidTags;
   final String imagePath;
   final String tagsFilePath;
   final String copyrightZipPath;
@@ -22,6 +29,8 @@ class DownloadResult {
   DownloadResult({
     required this.aiName,
     required this.tags,
+    this.suggestedTags = const [],
+    this.allValidTags = const [],
     required this.imagePath,
     required this.tagsFilePath,
     required this.copyrightZipPath,
@@ -48,9 +57,13 @@ class DownloadService {
 
   /// Download and process wallpaper with AI naming and tagging.
   /// Set [aiNaming] to false to skip Gemini and use the fallback name instead.
+  /// [croppedImageBytes], if provided, is the already-cropped image data from
+  /// the manual crop dialog — it's used as-is (only resized to the target
+  /// resolution) instead of re-downloading and center-cropping the original.
   Future<DownloadResult> downloadAndProcessWallpaper(
     Wallpaper wallpaper, {
     bool aiNaming = true,
+    Uint8List? croppedImageBytes,
   }) async {
     // 1. Ensure paths exist
     await _ensurePathsExist();
@@ -66,15 +79,19 @@ class DownloadService {
       }
     }
 
-    // 3. Download original image
-    final tempImagePath = await _downloadOriginalImage(wallpaper);
+    // 3. Download original image (skipped if a manually-cropped image was supplied)
+    final tempImagePath =
+        croppedImageBytes == null ? await _downloadOriginalImage(wallpaper) : null;
 
-    // 4. Generate AI metadata (name and tags)
+    // 4. Compute mutual tags (wallpaper tags ∩ tags.json) and generate metadata
+    final validTags = tagsService.getAllTags();
+    final mutualTags = tagsService.matchTags(wallpaper.tags ?? [], validTags);
+
     final metadata = aiNaming
-        ? await _generateMetadata(wallpaper)
+        ? await _generateMetadata(wallpaper, validTags, mutualTags)
         : AIGeneratedMetadata(
             name: _generateFallbackName(wallpaper),
-            tags: _selectFallbackTags(wallpaper, tagsService.getAllTags()),
+            tags: _selectFallbackTags(validTags, mutualTags),
           );
 
     // 4b. Ensure the generated name is unique in the download path
@@ -83,10 +100,11 @@ class DownloadService {
         ? metadata
         : AIGeneratedMetadata(name: uniqueName, tags: metadata.tags);
 
-    // 5. Crop and resize image to 1080x2340
+    // 5. Resize (and, if needed, crop) image to 1080x2340
     final processedImagePath = await _processImage(
-      tempImagePath,
-      uniqueMetadata.name,
+      inputPath: tempImagePath,
+      preCroppedBytes: croppedImageBytes,
+      aiName: uniqueMetadata.name,
     );
 
     // 6. Save tags to txt file
@@ -102,11 +120,15 @@ class DownloadService {
     );
 
     // 8. Cleanup temp file
-    await File(tempImagePath).delete();
+    if (tempImagePath != null) {
+      await File(tempImagePath).delete();
+    }
 
     return DownloadResult(
       aiName: uniqueMetadata.name,
       tags: uniqueMetadata.tags,
+      suggestedTags: mutualTags,
+      allValidTags: validTags,
       imagePath: processedImagePath,
       tagsFilePath: tagsFilePath,
       copyrightZipPath: copyrightZipPath,
@@ -177,13 +199,14 @@ class DownloadService {
     throw Exception('Failed to download image after $maxRetries attempts');
   }
 
-  Future<AIGeneratedMetadata> _generateMetadata(Wallpaper wallpaper) async {
+  Future<AIGeneratedMetadata> _generateMetadata(
+    Wallpaper wallpaper,
+    List<String> validTags,
+    List<String> mutualTags,
+  ) async {
     // Prepare description for AI
     final description =
         wallpaper.description ?? wallpaper.tags?.join(' ') ?? 'wallpaper';
-
-    // Get valid tags
-    final validTags = tagsService.getAllTags();
 
     // Generate metadata using AI
     try {
@@ -191,12 +214,13 @@ class DownloadService {
         imageDescription: description,
         validTags: validTags,
         imageTags: wallpaper.tags ?? [],
+        mutualTags: mutualTags,
       );
     } catch (e) {
       // Fallback to simple generation if AI fails
       return AIGeneratedMetadata(
         name: _generateFallbackName(wallpaper),
-        tags: _selectFallbackTags(wallpaper, validTags),
+        tags: _selectFallbackTags(validTags, mutualTags),
       );
     }
   }
@@ -206,22 +230,11 @@ class DownloadService {
     return 'wall$timestamp';
   }
 
+  /// Mutual tags (wallpaper tags ∩ tags.json) always come first, padded with
+  /// random valid tags up to 6 if needed.
   List<String> _selectFallbackTags(
-      Wallpaper wallpaper, List<String> validTags) {
-    // Try to match existing tags
-    final wallpaperTags = wallpaper.tags ?? [];
-    final matchedTags = <String>[];
-
-    for (final tag in wallpaperTags) {
-      final match = validTags.firstWhere(
-        (validTag) => validTag.toLowerCase() == tag.toLowerCase(),
-        orElse: () => '',
-      );
-      if (match.isNotEmpty && !matchedTags.contains(match)) {
-        matchedTags.add(match);
-        if (matchedTags.length >= 6) break;
-      }
-    }
+      List<String> validTags, List<String> mutualTags) {
+    final matchedTags = <String>[...mutualTags];
 
     // Fill remaining with random valid tags
     final shuffled = List<String>.from(validTags)..shuffle();
@@ -283,13 +296,19 @@ class DownloadService {
     return DownloadResult(
       aiName: uniqueName,
       tags: result.tags,
+      suggestedTags: result.suggestedTags,
+      allValidTags: result.allValidTags,
       imagePath: newImagePath,
       tagsFilePath: newTagsPath,
       copyrightZipPath: newZipPath,
     );
   }
 
-  Future<String> _processImage(String inputPath, String aiName) async {
+  Future<String> _processImage({
+    String? inputPath,
+    Uint8List? preCroppedBytes,
+    required String aiName,
+  }) async {
     final downloadPath = config.downloadPath;
     if (downloadPath == null || downloadPath.isEmpty) {
       throw Exception('Download path not configured');
@@ -297,10 +316,18 @@ class DownloadService {
 
     final outputPath = path.join(downloadPath, '$aiName.jpg');
 
-    await imageProcessing.cropAndResize(
-      inputFile: File(inputPath),
-      outputPath: outputPath,
-    );
+    if (preCroppedBytes != null) {
+      // Already cropped to the target aspect ratio interactively — just resize.
+      await imageProcessing.resizeToTarget(
+        bytes: preCroppedBytes,
+        outputPath: outputPath,
+      );
+    } else {
+      await imageProcessing.cropAndResize(
+        inputFile: File(inputPath!),
+        outputPath: outputPath,
+      );
+    }
 
     return outputPath;
   }
@@ -318,6 +345,29 @@ class DownloadService {
     await tagsF.writeAsString(tags.join(','));
 
     return tagsFile;
+  }
+
+  /// Updates the tags for an already-downloaded wallpaper, rewriting its tags
+  /// file on disk.
+  Future<DownloadResult> updateTags(
+      DownloadResult result, List<String> newTags) async {
+    final cleaned = newTags
+        .map((t) => t.trim())
+        .where((t) => t.isNotEmpty)
+        .toSet()
+        .toList();
+
+    await File(result.tagsFilePath).writeAsString(cleaned.join(','));
+
+    return DownloadResult(
+      aiName: result.aiName,
+      tags: cleaned,
+      suggestedTags: result.suggestedTags,
+      allValidTags: result.allValidTags,
+      imagePath: result.imagePath,
+      tagsFilePath: result.tagsFilePath,
+      copyrightZipPath: result.copyrightZipPath,
+    );
   }
 
   Future<String> _generateCopyrightZip(String aiName, String imageUrl) async {

@@ -121,6 +121,7 @@ class ElementListPanel extends ConsumerWidget {
                   backgroundColor: colors.surfaceOverlay,
                   children: entry.value.map((type) {
                     final added = state.contains(type);
+                    final isMandatory = type == ElementType.swipeUpUnlock;
                     return Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 2),
@@ -137,9 +138,11 @@ class ElementListPanel extends ConsumerWidget {
                           contentPadding:
                               const EdgeInsets.symmetric(horizontal: 12),
                           leading: Icon(
-                            added
-                                ? Icons.check_circle_rounded
-                                : Icons.radio_button_unchecked_rounded,
+                            isMandatory
+                                ? Icons.lock_rounded
+                                : added
+                                    ? Icons.check_circle_rounded
+                                    : Icons.radio_button_unchecked_rounded,
                             size: 16,
                             color: added
                                 ? colors.onPrimary
@@ -159,19 +162,21 @@ class ElementListPanel extends ConsumerWidget {
                                   : scheme.onSurface,
                             ),
                           ),
-                          onTap: () {
-                            if (!added) {
-                              notifier.add(LockElement(
-                                type: type,
-                                colorSecondary: type ==
-                                        ElementType.notification
-                                    ? colors.primary.withAlpha(60)
-                                    : Colors.white,
-                              ));
-                            } else {
-                              notifier.remove(type);
-                            }
-                          },
+                          onTap: isMandatory
+                              ? null
+                              : () {
+                                  if (!added) {
+                                    notifier.add(LockElement(
+                                      type: type,
+                                      colorSecondary: type ==
+                                              ElementType.notification
+                                          ? colors.primary.withAlpha(60)
+                                          : Colors.white,
+                                    ));
+                                  } else {
+                                    notifier.remove(type);
+                                  }
+                                },
                         ),
                       ),
                     );

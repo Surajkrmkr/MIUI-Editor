@@ -13,37 +13,43 @@ class AIService {
     );
   }
 
-  /// Generate a short name (max 10 chars) and 6 tags for a wallpaper
-  /// Tags must match the provided valid tags list
+  /// Generate a short name (max 10 chars) and up to 6 tags for a wallpaper.
+  /// [mutualTags] are the tags already confirmed to exist in both the
+  /// wallpaper's own tags and the canonical tags.json list — these are always
+  /// kept, and Gemini is only asked to fill the remaining slots (if any) from
+  /// the rest of [validTags].
   Future<AIGeneratedMetadata> generateMetadata({
     required String imageDescription,
     required List<String> validTags,
     required List<String> imageTags,
+    List<String> mutualTags = const [],
   }) async {
     if (apiKey.isEmpty) {
       throw Exception('Gemini API key not configured');
     }
 
-    final validTagsString = validTags.join(', ');
+    final remainingSlots = (6 - mutualTags.length).clamp(0, 6);
+    final candidateTags =
+        validTags.where((t) => !mutualTags.contains(t)).toList();
 
     final prompt = '''
       Given this wallpaper description: "$imageDescription"
 
-      1. Generate a creative file name based on wallpaper context (max 10 characters, only alpha, Pascal case with one space allowed) 
+      1. Generate a creative file name based on wallpaper context (max 10 characters, only alpha, Pascal case with one space allowed)
         Example: "Sunset", "Beach View", "City Light"
 
-      2. Select exactly 6 tags from this list that best match the wallpaper: $validTagsString
+      2. Select exactly $remainingSlots additional tag(s) from this list that best match the wallpaper (these are already selected, do not repeat them: ${mutualTags.join(', ')}): ${candidateTags.join(', ')}
 
       Respond ONLY with valid JSON in this exact format:
       {
         "name": "Your Name",
-        "tags": ["tag1", "tag2", "tag3", "tag4", "tag5", "tag6"]
+        "tags": []
       }
 
       Rules:
       - Name must be max 10 chars, Pascal case, one space allowed
       - All tags MUST be from the provided list
-      - Return exactly 6 tags
+      - Return exactly $remainingSlots tag(s) in the "tags" array
       ''';
 
     try {
@@ -62,13 +68,32 @@ class AIService {
       // Parse the JSON response
       final metadataJson = json.decode(responseText);
 
+      final mergedTags = <String>[...mutualTags];
+      final aiTags = (metadataJson['tags'] as List).cast<String>();
+      for (final tag in aiTags) {
+        if (mergedTags.length >= 6) break;
+        if (!mergedTags.contains(tag) && validTags.contains(tag)) {
+          mergedTags.add(tag);
+        }
+      }
+
+      // Pad if Gemini returned fewer tags than requested
+      if (mergedTags.length < 6) {
+        final shuffled = List<String>.from(candidateTags)..shuffle();
+        for (final tag in shuffled) {
+          if (mergedTags.length >= 6) break;
+          if (!mergedTags.contains(tag)) mergedTags.add(tag);
+        }
+      }
+
       return AIGeneratedMetadata(
         name: _sanitizeName(metadataJson['name'] as String),
-        tags: (metadataJson['tags'] as List).cast<String>().take(6).toList(),
+        tags: mergedTags.take(6).toList(),
       );
     } catch (e) {
       // Fallback to basic generation if AI fails
-      return _generateFallbackMetadata(imageDescription, validTags, imageTags);
+      return _generateFallbackMetadata(imageDescription, validTags, imageTags,
+          mutualTags: mutualTags);
     }
   }
 
@@ -91,26 +116,16 @@ class AIService {
   AIGeneratedMetadata _generateFallbackMetadata(
     String description,
     List<String> validTags,
-    List<String> imageTags,
-  ) {
+    List<String> imageTags, {
+    List<String> mutualTags = const [],
+  }) {
     // Generate simple name from description or image tags
     final name = imageTags.isNotEmpty && imageTags.first.isNotEmpty
         ? _sanitizeName(imageTags.first.split(" ").first)
         : 'Wallpaper';
 
-    // Match image tags with valid tags
-    final matchedTags = <String>[];
-
-    for (final tag in imageTags) {
-      final match = validTags.firstWhere(
-        (validTag) => validTag.toLowerCase() == tag.toLowerCase(),
-        orElse: () => '',
-      );
-      if (match.isNotEmpty && !matchedTags.contains(match)) {
-        matchedTags.add(match);
-        if (matchedTags.length >= 6) break;
-      }
-    }
+    // Mutual tags (wallpaper tags ∩ tags.json) always come first
+    final matchedTags = <String>[...mutualTags];
 
     // Fill remaining with random valid tags if needed
     if (matchedTags.length < 6) {

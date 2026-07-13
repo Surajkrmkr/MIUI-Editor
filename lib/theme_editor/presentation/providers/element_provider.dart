@@ -152,6 +152,7 @@ class ElementNotifier extends Notifier<ElementState> {
   }
 
   void remove(ElementType t) {
+    if (t == ElementType.swipeUpUnlock) return;
     final updated = state.elements.where((e) => e.type != t).toList();
     _record();
     state = state.copyWith(

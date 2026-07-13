@@ -76,7 +76,9 @@ class ElementInfoPanel extends ConsumerWidget {
                     foregroundColor: scheme.error,
                     side: BorderSide(color: scheme.error.withAlpha(60)),
                   ),
-                  onPressed: () => n.remove(el.type),
+                  onPressed: el.type == ElementType.swipeUpUnlock
+                      ? null
+                      : () => n.remove(el.type),
                 ),
               ],
             ),

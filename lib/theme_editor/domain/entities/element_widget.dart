@@ -7,7 +7,7 @@ enum ElementType {
   containerBG1, containerBG2, containerBG3, containerBG4, containerBG5,
   pngBG1, pngBG2, pngBG3, pngBG4, pngBG5,
   videoWallpaper,
-  hourClock, minClock, secClock, dotClock, amPmClock,
+  hourClock, minClock, secClock, dotClock, dotClock2, amPmClock,
   weekClock, monthClock, dateClock, weatherIconClock,
   notification,
   dateTimeText1, dateTimeText2, dateTimeText3,
@@ -49,7 +49,8 @@ extension ElementTypeX on ElementType {
   }.contains(this);
   bool get isText => isDateTime || isNormalText || this == ElementType.notification || this == ElementType.weatherDesc;
   bool get isClock => const {
-    ElementType.hourClock, ElementType.minClock, ElementType.secClock, ElementType.dotClock,
+    ElementType.hourClock, ElementType.minClock, ElementType.secClock,
+    ElementType.dotClock, ElementType.dotClock2,
     ElementType.amPmClock, ElementType.weekClock, ElementType.monthClock,
     ElementType.dateClock, ElementType.weatherIconClock,
     ElementType.analogClockBg, ElementType.analogHourHand, 
@@ -86,7 +87,7 @@ extension ElementTypeX on ElementType {
 
 const Map<String, List<ElementType>> kElementGroups = {
   'Clock':     [ElementType.hourClock, ElementType.minClock, ElementType.secClock,
-                ElementType.dotClock,  ElementType.amPmClock,
+                ElementType.dotClock,  ElementType.dotClock2, ElementType.amPmClock,
                 ElementType.weekClock],
   'Date':      [ElementType.monthClock, ElementType.dateClock],
   'Weather':   [ElementType.weatherIconClock, ElementType.weatherTemp, ElementType.weatherDesc],

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 
 /// Service for image processing operations
@@ -62,6 +63,34 @@ class ImageProcessingService {
     final jpegBytes = img.encodeJpg(resized, quality: 95);
 
     // Save to file
+    final outputFile = File(outputPath);
+    await outputFile.writeAsBytes(jpegBytes);
+
+    return outputFile;
+  }
+
+  /// Resize already-cropped image bytes straight to target resolution.
+  /// Used when the crop rect was already applied interactively (manual crop
+  /// dialog), so no further center-crop should be done here.
+  Future<File> resizeToTarget({
+    required Uint8List bytes,
+    required String outputPath,
+  }) async {
+    img.Image? image = img.decodeImage(bytes);
+
+    if (image == null) {
+      throw Exception('Failed to decode image');
+    }
+
+    img.Image resized = img.copyResize(
+      image,
+      width: targetWidth,
+      height: targetHeight,
+      interpolation: img.Interpolation.cubic,
+    );
+
+    final jpegBytes = img.encodeJpg(resized, quality: 95);
+
     final outputFile = File(outputPath);
     await outputFile.writeAsBytes(jpegBytes);
 

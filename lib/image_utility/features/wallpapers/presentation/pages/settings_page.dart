@@ -21,6 +21,13 @@ Future<void> showImageUtilitySettings(BuildContext context) {
   );
 }
 
+Future<void> showFilePathsDialog(BuildContext context) {
+  return showDialog(
+    context: context,
+    builder: (_) => const _FilePathsDialog(),
+  );
+}
+
 // ── Keep the old SettingsPage class as a thin wrapper so the router doesn't break
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -46,26 +53,15 @@ class _SettingsDialog extends ConsumerStatefulWidget {
   ConsumerState<_SettingsDialog> createState() => _SettingsDialogState();
 }
 
-class _SettingsDialogState extends ConsumerState<_SettingsDialog>
-    with SingleTickerProviderStateMixin {
+class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
   final _pexelsCtrl     = TextEditingController();
   final _unsplashCtrl   = TextEditingController();
   final _pixabayCtrl    = TextEditingController();
   final _fireflyCtrl    = TextEditingController();
   final _geminiCtrl     = TextEditingController();
   final _upscaylCtrl    = TextEditingController();
-  final _downloadCtrl   = TextEditingController();
-  final _tagsCtrl       = TextEditingController();
-  final _copyrightCtrl  = TextEditingController();
 
   bool _loaded = false;
-  late TabController _tabCtrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabCtrl = TabController(length: 2, vsync: this);
-  }
 
   @override
   void dispose() {
@@ -75,10 +71,6 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog>
     _fireflyCtrl.dispose();
     _geminiCtrl.dispose();
     _upscaylCtrl.dispose();
-    _downloadCtrl.dispose();
-    _tagsCtrl.dispose();
-    _copyrightCtrl.dispose();
-    _tabCtrl.dispose();
     super.dispose();
   }
 
@@ -91,10 +83,6 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog>
     _fireflyCtrl.text   = config.fireflyApiKey ?? '';
     _geminiCtrl.text    = config.geminiApiKey ?? '';
     _upscaylCtrl.text   = config.upscaylApiKey ?? '';
-    final appDir = await getApplicationDocumentsDirectory();
-    _downloadCtrl.text  = config.downloadPath  ?? '${appDir.path}/wallpapers';
-    _tagsCtrl.text      = config.tagsPath      ?? '${appDir.path}/tags';
-    _copyrightCtrl.text = config.copyrightPath ?? '${appDir.path}/copyright';
   }
 
   Future<void> _save(AppConfig config) async {
@@ -104,25 +92,8 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog>
     await config.setFireflyApiKey(_fireflyCtrl.text.trim());
     await config.setGeminiApiKey(_geminiCtrl.text.trim());
     await config.setUpscaylApiKey(_upscaylCtrl.text.trim());
-    await config.setDownloadPath(_downloadCtrl.text.trim());
-    await config.setTagsPath(_tagsCtrl.text.trim());
-    await config.setCopyrightPath(_copyrightCtrl.text.trim());
-    await _createDirs();
     ref.read(wallpaperNotifierProvider.notifier).initializeProviders();
     if (mounted) Navigator.pop(context);
-  }
-
-  Future<void> _createDirs() async {
-    for (final p in [
-      _downloadCtrl.text.trim(),
-      _tagsCtrl.text.trim(),
-      _copyrightCtrl.text.trim(),
-    ]) {
-      if (p.isNotEmpty) {
-        final d = Directory(p);
-        if (!await d.exists()) await d.create(recursive: true);
-      }
-    }
   }
 
   Future<void> _clearKeys(AppConfig config) async {
@@ -192,19 +163,6 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog>
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  TabBar(
-                    controller: _tabCtrl,
-                    tabs: const [
-                      Tab(icon: Icon(Icons.key_rounded, size: 16), text: 'API Keys'),
-                      Tab(icon: Icon(Icons.folder_outlined, size: 16), text: 'File Paths'),
-                    ],
-                    labelColor: Theme.of(context).colorScheme.primary,
-                    unselectedLabelColor: cs.onSurfaceVariant,
-                    indicatorColor: Theme.of(context).colorScheme.primary,
-                    dividerColor: Colors.transparent,
-                    labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                  ),
                 ],
               ),
             ),
@@ -217,23 +175,13 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog>
                 error: (e, _) => Center(child: Text('Error: $e')),
                 data: (config) {
                   Future.microtask(() => _load(config));
-                  return TabBarView(
-                    controller: _tabCtrl,
-                    children: [
-                      _ApiKeysTab(
-                        pexels: _pexelsCtrl,
-                        unsplash: _unsplashCtrl,
-                        pixabay: _pixabayCtrl,
-                        gemini: _geminiCtrl,
-                        upscayl: _upscaylCtrl,
-                        firefly: _fireflyCtrl,
-                      ),
-                      _FilePathsTab(
-                        download: _downloadCtrl,
-                        tags: _tagsCtrl,
-                        copyright: _copyrightCtrl,
-                      ),
-                    ],
+                  return _ApiKeysTab(
+                    pexels: _pexelsCtrl,
+                    unsplash: _unsplashCtrl,
+                    pixabay: _pixabayCtrl,
+                    gemini: _geminiCtrl,
+                    upscayl: _upscaylCtrl,
+                    firefly: _fireflyCtrl,
                   );
                 },
               ),
@@ -329,6 +277,142 @@ class _ApiKeysTab extends StatelessWidget {
               letterSpacing: 0.8,
             ),
       );
+}
+
+// ── File Paths dialog ─────────────────────────────────────────────────────────
+
+class _FilePathsDialog extends ConsumerStatefulWidget {
+  const _FilePathsDialog();
+
+  @override
+  ConsumerState<_FilePathsDialog> createState() => _FilePathsDialogState();
+}
+
+class _FilePathsDialogState extends ConsumerState<_FilePathsDialog> {
+  final _downloadCtrl  = TextEditingController();
+  final _tagsCtrl      = TextEditingController();
+  final _copyrightCtrl = TextEditingController();
+
+  bool _loaded = false;
+
+  @override
+  void dispose() {
+    _downloadCtrl.dispose();
+    _tagsCtrl.dispose();
+    _copyrightCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load(AppConfig config) async {
+    if (_loaded) return;
+    _loaded = true;
+    final appDir = await getApplicationDocumentsDirectory();
+    _downloadCtrl.text  = config.downloadPath  ?? '${appDir.path}/wallpapers';
+    _tagsCtrl.text      = config.tagsPath      ?? '${appDir.path}/tags';
+    _copyrightCtrl.text = config.copyrightPath ?? '${appDir.path}/copyright';
+  }
+
+  Future<void> _createDirs() async {
+    for (final p in [
+      _downloadCtrl.text.trim(),
+      _tagsCtrl.text.trim(),
+      _copyrightCtrl.text.trim(),
+    ]) {
+      if (p.isNotEmpty) {
+        final d = Directory(p);
+        if (!await d.exists()) await d.create(recursive: true);
+      }
+    }
+  }
+
+  Future<void> _save(AppConfig config) async {
+    await config.setDownloadPath(_downloadCtrl.text.trim());
+    await config.setTagsPath(_tagsCtrl.text.trim());
+    await config.setCopyrightPath(_copyrightCtrl.text.trim());
+    await _createDirs();
+    if (mounted) Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final configAsync = ref.watch(appConfigProvider);
+    final cs = Theme.of(context).colorScheme;
+
+    return Dialog(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520, maxHeight: 560),
+        child: Column(
+          children: [
+            // ── Header ───────────────────────────────────────────────────────
+            Container(
+              padding: const EdgeInsets.fromLTRB(24, 20, 16, 16),
+              decoration: BoxDecoration(
+                color: cs.primary.withAlpha(20),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(20)),
+                border: Border(bottom: BorderSide(color: cs.outline.withAlpha(40))),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.folder_outlined, color: context.appColors.primary),
+                  const SizedBox(width: 12),
+                  Text('File Paths',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontWeight: FontWeight.w600)),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => Navigator.pop(context),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Body ─────────────────────────────────────────────────────────
+            Expanded(
+              child: configAsync.when(
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Center(child: Text('Error: $e')),
+                data: (config) {
+                  Future.microtask(() => _load(config));
+                  return _FilePathsTab(
+                    download: _downloadCtrl,
+                    tags: _tagsCtrl,
+                    copyright: _copyrightCtrl,
+                  );
+                },
+              ),
+            ),
+
+            // ── Footer ───────────────────────────────────────────────────────
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+              decoration: BoxDecoration(
+                border: Border(top: BorderSide(color: cs.outline.withAlpha(30))),
+              ),
+              child: configAsync.maybeWhen(
+                data: (config) => Row(
+                  children: [
+                    const Spacer(),
+                    FilledButton.icon(
+                      icon: const Icon(Icons.check_rounded, size: 18),
+                      label: const Text('Save & Close'),
+                      onPressed: () => _save(config),
+                    ),
+                  ],
+                ),
+                orElse: () => const SizedBox.shrink(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ── File Paths tab ────────────────────────────────────────────────────────────

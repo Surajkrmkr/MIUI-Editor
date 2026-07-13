@@ -179,6 +179,7 @@ class _StaticElement extends StatelessWidget {
       ElementType.minClock   => '36',
       ElementType.secClock   => '55',
       ElementType.dotClock   => ':',
+      ElementType.dotClock2  => ':',
       ElementType.amPmClock  => 'AM',
       ElementType.weekClock  => el.isShort ? 'Wed' : 'Wednesday',
       ElementType.monthClock => el.isShort ? 'Feb' : 'February',

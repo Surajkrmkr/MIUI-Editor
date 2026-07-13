@@ -72,7 +72,13 @@ class _HomePageState extends ConsumerState<HomePage> {
             onPressed: () => context.push('/generate'),
           ),
           IconButton(
+            icon: const Icon(Icons.folder_outlined),
+            tooltip: 'File Paths',
+            onPressed: () => showFilePathsDialog(context),
+          ),
+          IconButton(
             icon: const Icon(Icons.settings),
+            tooltip: 'Settings',
             onPressed: () => showImageUtilitySettings(context),
           ),
         ],
@@ -100,6 +106,12 @@ class _HomePageState extends ConsumerState<HomePage> {
               onSubmitted: _performSearch,
               onChanged: (value) => setState(() {}),
             ),
+          ),
+
+          // Save path banner
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: _SavePathBanner(),
           ),
 
           // Source Selector
@@ -189,6 +201,52 @@ class _HomePageState extends ConsumerState<HomePage> {
         },
         child: const Icon(Icons.refresh),
       ),
+    );
+  }
+}
+
+class _SavePathBanner extends ConsumerWidget {
+  const _SavePathBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final configAsync = ref.watch(appConfigProvider);
+    final cs = Theme.of(context).colorScheme;
+
+    return configAsync.maybeWhen(
+      data: (config) {
+        final path = config.downloadPath;
+        return InkWell(
+          onTap: () => showFilePathsDialog(context),
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: cs.surfaceContainerHighest.withAlpha(120),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.folder_outlined, size: 16, color: cs.onSurfaceVariant),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    (path != null && path.isNotEmpty)
+                        ? path
+                        : 'Default save path — tap to configure',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                        ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Icon(Icons.chevron_right, size: 16, color: cs.onSurfaceVariant),
+              ],
+            ),
+          ),
+        );
+      },
+      orElse: () => const SizedBox.shrink(),
     );
   }
 }
