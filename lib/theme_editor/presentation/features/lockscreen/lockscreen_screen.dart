@@ -18,7 +18,8 @@ class LockscreenScreen extends ConsumerWidget {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final n = ref.read(elementProvider.notifier);
       if (!ref.read(elementProvider).contains(ElementType.swipeUpUnlock)) {
-        n.add(const LockElement(type: ElementType.swipeUpUnlock));
+        n.add(const LockElement(
+            type: ElementType.swipeUpUnlock, isLocked: true));
         n.setActive(ElementType.swipeUpUnlock);
       }
     });

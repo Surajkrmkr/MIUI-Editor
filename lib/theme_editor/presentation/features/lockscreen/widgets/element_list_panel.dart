@@ -138,7 +138,7 @@ class ElementListPanel extends ConsumerWidget {
                           contentPadding:
                               const EdgeInsets.symmetric(horizontal: 12),
                           leading: Icon(
-                            isMandatory
+                            added && isMandatory
                                 ? Icons.lock_rounded
                                 : added
                                     ? Icons.check_circle_rounded
@@ -162,7 +162,7 @@ class ElementListPanel extends ConsumerWidget {
                                   : scheme.onSurface,
                             ),
                           ),
-                          onTap: isMandatory
+                          onTap: added && isMandatory
                               ? null
                               : () {
                                   if (!added) {

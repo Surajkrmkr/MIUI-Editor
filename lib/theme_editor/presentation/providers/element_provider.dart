@@ -116,11 +116,23 @@ class ElementNotifier extends Notifier<ElementState> {
 
   // ── Structural mutations (push history) ───────────────────────────────────
 
+  /// swipeUpUnlock is mandatory — every element list (presets, AI results,
+  /// manual edits) must keep it, so it's re-added here if missing.
+  List<LockElement> _withMandatory(List<LockElement> els) =>
+      els.any((e) => e.type == ElementType.swipeUpUnlock)
+          ? els
+          : [
+              ...els,
+              const LockElement(
+                  type: ElementType.swipeUpUnlock, isLocked: true),
+            ];
+
   void setAll(List<LockElement> els) {
+    final withMandatory = _withMandatory(els);
     _record();
     state = state.copyWith(
-      elements: els,
-      activeType: els.isNotEmpty ? els.last.type : ElementType.swipeUpUnlock,
+      elements: withMandatory,
+      activeType: withMandatory.last.type,
       undoCount: _history.length,
       redoCount: 0,
     );

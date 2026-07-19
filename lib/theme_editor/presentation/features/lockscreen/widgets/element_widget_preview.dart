@@ -307,7 +307,11 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
       ElementType.dotClock => ':',
       ElementType.dotClock2 => ':',
       ElementType.amPmClock => 'AM',
-      ElementType.weekClock => el.isShort ? 'Wed' : 'Wednesday',
+      ElementType.weekClock => el.isShort
+          ? 'Wed'
+          : el.isWrap
+              ? _wrapText('Wednesday')
+              : 'Wednesday',
       ElementType.monthClock => el.isShort ? 'Feb' : 'February',
       ElementType.dateClock => '08',
       _ => '',
@@ -355,6 +359,12 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
       ),
       style: fontTextStyle(font: el.font, fontSize: 35, height: 1, color: el.color),
     );
+  }
+
+  // "Wednesday" -> "Wed\nnesday": first 3 letters, then the remainder.
+  String _wrapText(String input) {
+    if (input.length <= 3) return input;
+    return '${input.substring(0, 3)}\n${input.substring(3)}';
   }
 
   Widget _container(LockElement el) => Container(

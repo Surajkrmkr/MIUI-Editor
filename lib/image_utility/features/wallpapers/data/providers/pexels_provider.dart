@@ -30,6 +30,7 @@ class PexelsProvider implements ImageSourceProvider {
     if (!isConfigured()) throw Exception('Pexels API key not configured');
 
     final queryParams = {
+      'query': query,
       'per_page': (params?.perPage ?? 20).toString(),
       'page': (params?.page ?? 1).toString(),
       if (params?.orientation != null) 'orientation': params!.orientation!,

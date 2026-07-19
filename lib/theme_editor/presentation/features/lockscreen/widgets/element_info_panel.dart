@@ -30,6 +30,18 @@ class ElementInfoPanel extends ConsumerWidget {
     if (state.active == null) return const SizedBox.shrink();
 
     final el = state.active!;
+    final isHourMinSec = el.type == ElementType.hourClock ||
+        el.type == ElementType.minClock ||
+        el.type == ElementType.secClock;
+    // When digit colors are on, colorDigit1/colorDigit2 drive the render and
+    // Primary/Secondary have no visual effect — hide them to avoid the
+    // "picking a color does nothing" confusion.
+    final usesDigitColors = isHourMinSec && el.useSeparateColors;
+    // Only clock text and containers are actually painted with the
+    // Primary→Secondary gradient (see _clock()/_container() in the preview) —
+    // text/notification/etc. use a solid color, so gradient direction is moot there.
+    final usesGradient =
+        !usesDigitColors && (el.type.isContainer || el.type.isClock);
 
     return SizedBox(
       width: 450,
@@ -105,26 +117,40 @@ class ElementInfoPanel extends ConsumerWidget {
           if (!el.type.isIcon &&
               !el.type.isMusic &&
               !el.type.isVideo &&
-              !el.type.isPng)
+              !el.type.isPng &&
+              !usesDigitColors)
             _Section(
               title: 'COLOR',
-              child: Row(
+              child: Column(
                 children: [
-                  Expanded(
-                    child: _ColorBtn(
-                      color: el.color,
-                      label: 'Primary',
-                      onChanged: (c) => n.setColor(el.type, c),
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _ColorBtn(
+                          color: el.color,
+                          label: 'Primary',
+                          onChanged: (c) => n.setColor(el.type, c),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _ColorBtn(
+                          color: el.colorSecondary,
+                          label: 'Secondary',
+                          onChanged: (c) => n.setColorSecondary(el.type, c),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _ColorBtn(
-                      color: el.colorSecondary,
-                      label: 'Secondary',
-                      onChanged: (c) => n.setColorSecondary(el.type, c),
+                  if (usesGradient) ...[
+                    const SizedBox(height: 10),
+                    _GradAlignRow(
+                      start: el.gradStartAlign,
+                      end: el.gradEndAlign,
+                      onStart: (a) => n.setGradStart(el.type, a),
+                      onEnd: (a) => n.setGradEnd(el.type, a),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -694,6 +720,130 @@ class _ColorBtn extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ── Gradient Alignment Row ────────────────────────────────────────────────────
+
+class _GradAlignRow extends StatelessWidget {
+  const _GradAlignRow({
+    required this.start,
+    required this.end,
+    required this.onStart,
+    required this.onEnd,
+  });
+  final AlignmentGeometry start, end;
+  final ValueChanged<AlignmentGeometry> onStart;
+  final ValueChanged<AlignmentGeometry> onEnd;
+
+  static const _alignOptions = {
+    'Top Left': Alignment.topLeft,
+    'Top Center': Alignment.topCenter,
+    'Top Right': Alignment.topRight,
+    'Center Left': Alignment.centerLeft,
+    'Center': Alignment.center,
+    'Center Right': Alignment.centerRight,
+    'Bottom Left': Alignment.bottomLeft,
+    'Bottom Center': Alignment.bottomCenter,
+    'Bottom Right': Alignment.bottomRight,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'GRADIENT DIRECTION',
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: scheme.onSurfaceVariant,
+            letterSpacing: 0.6,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            Expanded(
+              child: _AlignDrop(
+                value: start,
+                options: _alignOptions,
+                label: 'From',
+                onChanged: onStart,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _AlignDrop(
+                value: end,
+                options: _alignOptions,
+                label: 'To',
+                onChanged: onEnd,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _AlignDrop extends StatelessWidget {
+  const _AlignDrop({
+    required this.value,
+    required this.options,
+    required this.label,
+    required this.onChanged,
+  });
+  final AlignmentGeometry value;
+  final Map<String, AlignmentGeometry> options;
+  final String label;
+  final ValueChanged<AlignmentGeometry> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            border: Border.all(color: colors.border),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<AlignmentGeometry>(
+              value: value,
+              isExpanded: true,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              items: options.entries
+                  .map((e) => DropdownMenuItem(
+                        value: e.value,
+                        child: Text(e.key, style: const TextStyle(fontSize: 12)),
+                      ))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) onChanged(v);
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

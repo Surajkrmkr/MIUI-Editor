@@ -315,18 +315,10 @@ class ExportLockscreenPngsUseCase {
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
+  // "Monday" -> "Mon\nday": first 3 letters, then the remainder, on their own line.
   String _wrapText(String input) {
-    const slices = [3, 2];
-    final parts = <String>[];
-    var start = 0;
-    for (final len in slices) {
-      if (start + len <= input.length) {
-        parts.add(input.substring(start, start + len));
-        start += len;
-      }
-    }
-    if (start < input.length) parts.add(input.substring(start));
-    return parts.join('\n');
+    if (input.length <= 3) return input;
+    return '${input.substring(0, 3)}\n${input.substring(3)}';
   }
 }
 
