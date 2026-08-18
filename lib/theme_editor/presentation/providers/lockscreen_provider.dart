@@ -30,12 +30,17 @@ class LockscreenState {
     this.error,
   });
 
-  final bool isExporting, isExportingPngs, isTracing, isExported, isCopyingDefaults;
+  final bool isExporting,
+      isExportingPngs,
+      isTracing,
+      isExported,
+      isCopyingDefaults;
   final bool dualMtzExport;
   final int pngsDone, pngsTotal;
   final String? error;
 
-  bool get isBusy => isExporting || isExportingPngs || isCopyingDefaults || isTracing;
+  bool get isBusy =>
+      isExporting || isExportingPngs || isCopyingDefaults || isTracing;
 
   double get pngsProgress => pngsTotal == 0 ? 0 : pngsDone / pngsTotal;
 
@@ -51,18 +56,17 @@ class LockscreenState {
     int? pngsDone,
     int? pngsTotal,
     String? error,
-  }) =>
-      LockscreenState(
-        isExporting: isExporting ?? this.isExporting,
-        isExportingPngs: isExportingPngs ?? this.isExportingPngs,
-        isTracing: isTracing ?? this.isTracing,
-        isExported: isExported ?? this.isExported,
-        isCopyingDefaults: isCopyingDefaults ?? this.isCopyingDefaults,
-        dualMtzExport: dualMtzExport ?? this.dualMtzExport,
-        pngsDone: pngsDone ?? this.pngsDone,
-        pngsTotal: pngsTotal ?? this.pngsTotal,
-        error: error,
-      );
+  }) => LockscreenState(
+    isExporting: isExporting ?? this.isExporting,
+    isExportingPngs: isExportingPngs ?? this.isExportingPngs,
+    isTracing: isTracing ?? this.isTracing,
+    isExported: isExported ?? this.isExported,
+    isCopyingDefaults: isCopyingDefaults ?? this.isCopyingDefaults,
+    dualMtzExport: dualMtzExport ?? this.dualMtzExport,
+    pngsDone: pngsDone ?? this.pngsDone,
+    pngsTotal: pngsTotal ?? this.pngsTotal,
+    error: error,
+  );
 }
 
 class LockscreenNotifier extends Notifier<LockscreenState> {
@@ -122,12 +126,10 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
         return pngFailure;
       }
 
-
-
       // ── Step 3: auto-pack MTZ and save preset ─────────────────────────────
       // No extra button tap — the full theme is ready, so zip it immediately.
       final (_, mtzFailure) = await exportMtz(context);
-      
+
       if (mtzFailure != null) {
         // MTZ failure is non-fatal — XML + PNGs are still exported correctly.
         // Surface it as a warning rather than aborting.
@@ -159,7 +161,9 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
 
     state = state.copyWith(isExportingPngs: true, pngsDone: 0, pngsTotal: 0);
 
-    final failure = await ref.read(exportLockscreenPngsUseCaseProvider).call(
+    final failure = await ref
+        .read(exportLockscreenPngsUseCaseProvider)
+        .call(
           context: context,
           elementState: els,
           themePath: tp,
@@ -181,7 +185,9 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
           ws.currentThemeName == null ||
           ws.currentPath == null) {
         state = state.copyWith(
-            isTracing: false, error: 'No active theme or wallpaper selected');
+          isTracing: false,
+          error: 'No active theme or wallpaper selected',
+        );
         return;
       }
 
@@ -197,7 +203,9 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
 
       if (!(await fs.exists(sourceWallPath))) {
         state = state.copyWith(
-            isTracing: false, error: 'Source wallpaper not found');
+          isTracing: false,
+          error: 'Source wallpaper not found',
+        );
         return;
       }
 
@@ -206,7 +214,8 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       final tracedSvgPath = '${svgFolder}temp_trace.svg';
 
       String vtracerPath = PathConstants.p(
-          '${Directory.current.path}${PathConstants.sep}bin${PathConstants.sep}vtracer.exe');
+        '${Directory.current.path}${PathConstants.sep}bin${PathConstants.sep}vtracer.exe',
+      );
       if (!File(vtracerPath).existsSync()) {
         vtracerPath = 'vtracer.exe'; // Try PATH as fallback
       }
@@ -223,20 +232,21 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
         '--mode',
         'spline',
         '--hierarchical',
-        'stacked'
+        'stacked',
       ]);
 
       if (result.exitCode != 0) {
         final err = result.stderr.toString();
         debugPrint('vtracer failed: $err');
-        state = state.copyWith(
-            isTracing: false, error: 'vtracer failed: $err');
+        state = state.copyWith(isTracing: false, error: 'vtracer failed: $err');
         return;
       }
 
       if (!(await fs.exists(tracedSvgPath))) {
         state = state.copyWith(
-            isTracing: false, error: 'vtracer did not produce output');
+          isTracing: false,
+          error: 'vtracer did not produce output',
+        );
         return;
       }
 
@@ -250,16 +260,18 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
         try {
           final archive = Archive();
           final svgBytes = await File(finalPath).readAsBytes();
-          archive.addFile(ArchiveFile(
-            '${ws.currentThemeName}.svg',
-            svgBytes.length,
-            svgBytes,
-          ));
+          archive.addFile(
+            ArchiveFile(
+              '${ws.currentThemeName}.svg',
+              svgBytes.length,
+              svgBytes,
+            ),
+          );
           final zipBytes = ZipEncoder().encode(archive);
           final zipPath = '$svgFolder${ws.currentThemeName}.zip';
           await File(zipPath).writeAsBytes(zipBytes);
           debugPrint('Generated ZIP at: $zipPath');
-                } catch (e) {
+        } catch (e) {
           debugPrint('Error creating ZIP: $e');
         }
 
@@ -281,11 +293,16 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
 
   Future<Failure?> savePreset(String name, {Uint8List? previewBytes}) => ref
       .read(savePresetUseCaseProvider)
-      .call(name, ref.read(elementProvider).elements, previewBytes: previewBytes);
+      .call(
+        name,
+        ref.read(elementProvider).elements,
+        previewBytes: previewBytes,
+      );
 
   Future<Failure?> loadPreset(String jsonPath) async {
-    final (elements, failure) =
-        await ref.read(loadPresetUseCaseProvider).call(jsonPath);
+    final (elements, failure) = await ref
+        .read(loadPresetUseCaseProvider)
+        .call(jsonPath);
     if (failure != null) return failure;
     if (elements != null) {
       await applyElements(elements);
@@ -349,7 +366,9 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       debugPrint('Auto-save preset failed: $e');
     }
 
-    return ref.read(exportMtzUseCaseProvider).call(
+    return ref
+        .read(exportMtzUseCaseProvider)
+        .call(
           themePath: tp,
           themeName: ws.currentThemeName!,
           dualVersion: state.dualMtzExport,
@@ -372,8 +391,9 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
     final ws = ref.read(wallpaperProvider);
     if (ws.weekNum == null || ws.currentThemeName == null) return;
     final tp = PathConstants.themePath(ws.weekNum!, ws.currentThemeName!);
-    final manifest =
-        PathConstants.p('${PathConstants.lockscreenAdvance(tp)}manifest.xml');
+    final manifest = PathConstants.p(
+      '${PathConstants.lockscreenAdvance(tp)}manifest.xml',
+    );
     final exists = await ref.read(fileServiceProvider).exists(manifest);
     state = state.copyWith(isExported: exists);
   }
@@ -382,6 +402,23 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
 
   XmlDocument _buildManifest(ElementState els) {
     final doc = XmlDocument.parse(_baseManifest);
+
+    final hasVideo = els.contains(ElementType.videoWallpaper);
+    if (hasVideo) {
+      // Remove Wallpaper tag when video wallpaper is active
+      for (final node in doc.findAllElements('Wallpaper').toList()) {
+        node.parent?.children.remove(node);
+      }
+    } else {
+      // Remove Video and ExternalCommands when no video wallpaper
+      for (final node in doc.findAllElements('Video').toList()) {
+        node.parent?.children.remove(node);
+      }
+      for (final node in doc.findAllElements('ExternalCommands').toList()) {
+        node.parent?.children.remove(node);
+      }
+    }
+
     // bg alpha
     doc
             .findAllElements('Group')
@@ -548,7 +585,13 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
   }
 
   String _musicXml(
-      LockElement el, String w, String h, String dx, String dy, String ang) {
+    LockElement el,
+    String w,
+    String h,
+    String dx,
+    String dy,
+    String ang,
+  ) {
     switch (el.type) {
       case ElementType.musicBg:
         return "<Group angle='$ang' x='#sw/2+$dx' y='#sh/2+$dy' align='center' alignV='center'>"
@@ -579,7 +622,13 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
   }
 
   String _iconXml(
-      LockElement el, String w, String h, String dx, String dy, String ang) {
+    LockElement el,
+    String w,
+    String h,
+    String dx,
+    String dy,
+    String ang,
+  ) {
     final meta = _iconMeta[el.type];
     if (meta == null) return '';
     return "<Group angle='$ang' x='#sw/2+$dx' y='#sh/2+$dy' align='center' alignV='center'>"
@@ -597,72 +646,73 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
     ElementType.cameraIcon: [
       'icon/camera',
       'com.android.camera',
-      'com.android.camera.Camera'
+      'com.android.camera.Camera',
     ],
     ElementType.themeIcon: [
       'icon/theme',
       'com.android.thememanager',
-      'com.android.thememanager.ThemeResourceTabActivity'
+      'com.android.thememanager.ThemeResourceTabActivity',
     ],
     ElementType.settingIcon: [
       'icon/setting',
       'com.android.settings',
-      'com.android.settings.MainSettings'
+      'com.android.settings.MainSettings',
     ],
     ElementType.galleryIcon: [
       'icon/gallery',
       'com.miui.gallery',
-      'com.miui.gallery.activity.HomePageActivity'
+      'com.miui.gallery.activity.HomePageActivity',
     ],
     ElementType.musicIcon: [
       'icon/music',
       'com.miui.player',
-      'com.miui.player.ui.MusicBrowserActivity'
+      'com.miui.player.ui.MusicBrowserActivity',
     ],
     ElementType.dialerIcon: [
       'icon/dialer',
       'com.android.contacts',
       'com.android.contacts.activities.TwelveKeyDialer',
       'com.google.android.dialer',
-      'com.google.android.dialer.extensions.GoogleDialtactsActivity'
+      'com.google.android.dialer.extensions.GoogleDialtactsActivity',
     ],
     ElementType.mmsIcon: [
       'icon/mms',
       'com.android.mms',
       'com.android.mms.ui.MmsTabActivity',
       'com.google.android.apps.messaging',
-      'com.google.android.apps.messaging.ui.ConversationListActivity'
+      'com.google.android.apps.messaging.ui.ConversationListActivity',
     ],
     ElementType.contactIcon: [
       'icon/contact',
       'com.android.contacts',
       'com.android.contacts.activities.PeopleActivity',
       'com.google.android.contacts',
-      'com.android.contacts.activities.PeopleActivity'
+      'com.android.contacts.activities.PeopleActivity',
     ],
     ElementType.whatsAppIcon: [
       'icon/whatsApp',
       'com.whatsapp',
-      'com.whatsapp.Main'
+      'com.whatsapp.Main',
     ],
     ElementType.telegramIcon: [
       'icon/telegram',
       'org.telegram.messenger',
-      'org.telegram.messenger'
+      'org.telegram.messenger',
     ],
     ElementType.instagramIcon: [
       'icon/instagram',
       'com.instagram.android',
-      'com.instagram.android.activity.MainTabActivity'
+      'com.instagram.android.activity.MainTabActivity',
     ],
     ElementType.spotifyIcon: [
       'icon/spotify',
       'com.spotify.music',
-      'com.spotify.music.MainActivity'
+      'com.spotify.music.MainActivity',
     ],
   };
 
-  static final String _baseManifest = '''<?xml version="1.0" encoding="utf-8"?>
+  static final String _baseManifest =
+      '''<?xml version="1.0" encoding="utf-8"?>
 <Lockscreen version="2" frameRate="30" displayDesktop="false" screenWidth="1080">
   <Var expression="#screen_width" name="sw"/>
   <Var expression="#screen_height" name="sh"/>
@@ -683,7 +733,7 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
   </VariableBinders>
   	<ExternalCommands>
 		<Trigger action="init">
-		  <VideoCommand command="config" loop="1" path="&apos;1.mp4&apos;" scaleMode="2" target="mamlVideo"/>
+		  <VideoCommand command="config" loop="1" path="&apos;video.mp4&apos;" scaleMode="2" target="mamlVideo"/>
 		  <VideoCommand command="play" target="mamlVideo"/>
 		  <IntentCommand action="initialization" broadcast="true">
 			<Extra expression="#btnVar" name="bg_number" type="number"/>
@@ -709,4 +759,5 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
 
 final lockscreenProvider =
     NotifierProvider<LockscreenNotifier, LockscreenState>(
-        LockscreenNotifier.new);
+      LockscreenNotifier.new,
+    );
