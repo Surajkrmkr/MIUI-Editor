@@ -19,7 +19,6 @@ class _ImageGenerationPageState extends ConsumerState<ImageGenerationPage> {
   final _promptController = TextEditingController();
   ImageGenerator? _selectedGenerator;
   String? _selectedStyle;
-  bool _upscaleEnabled = true;
 
   // Cooldown after a rate-limit error so the user doesn't hammer the API.
   int _cooldownSeconds = 0;
@@ -85,7 +84,6 @@ class _ImageGenerationPageState extends ConsumerState<ImageGenerationPage> {
   Future<void> _approveAndSave() async {
     await ref.read(generationNotifierProvider.notifier).approveAndSave(
           prompt: _promptController.text,
-          upscale: _upscaleEnabled,
         );
   }
 
@@ -110,7 +108,6 @@ class _ImageGenerationPageState extends ConsumerState<ImageGenerationPage> {
     _selectedGenerator ??= generators.isNotEmpty ? generators.first : null;
 
     final isWorking = state.step == GenerationStep.generating ||
-        state.step == GenerationStep.upscaling ||
         state.step == GenerationStep.saving;
 
     return Scaffold(
@@ -202,20 +199,7 @@ class _ImageGenerationPageState extends ConsumerState<ImageGenerationPage> {
               const SizedBox(height: 20),
             ],
 
-            // ── Upscale toggle ────────────────────────────────────────────
-            Card(
-              child: SwitchListTile(
-                title: const Text('Upscale with Upscayl AI'),
-                subtitle: const Text(
-                    '4× upscaling before saving (requires Upscayl API key)'),
-                secondary: const Icon(Icons.hd),
-                value: _upscaleEnabled,
-                onChanged: isWorking
-                    ? null
-                    : (v) => setState(() => _upscaleEnabled = v),
-              ),
-            ),
-            const SizedBox(height: 24),
+
 
             // ── Status / progress ─────────────────────────────────────────
             if (isWorking) _StatusRow(state.statusMessage ?? ''),
@@ -250,8 +234,7 @@ class _ImageGenerationPageState extends ConsumerState<ImageGenerationPage> {
                       child: ElevatedButton.icon(
                         onPressed: _approveAndSave,
                         icon: const Icon(Icons.check),
-                        label:
-                            Text(_upscaleEnabled ? 'Upscale & Save' : 'Save'),
+                        label: const Text('Save'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
                               Theme.of(context).colorScheme.primary,
@@ -339,8 +322,7 @@ class _InfoBanner extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                '1. Enter a prompt  →  2. Generate preview  →  3. Approve  →  '
-                '4. Upscale (optional) & save as 1080×2340 JPG',
+                '1. Enter a prompt  →  2. Generate preview  →  3. Approve & save as 1080×2340 JPG',
                 style: TextStyle(
                     color: Theme.of(context).colorScheme.onPrimaryContainer),
               ),

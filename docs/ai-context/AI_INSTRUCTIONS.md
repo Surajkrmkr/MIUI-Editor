@@ -427,9 +427,7 @@ Before submitting for review, verify:
 - Image Utility: Image processing, wallpapers
 - WallRio CMS: Wallpaper management
 - Theme Deployment: Upload/deploy features
-- SVG Converter: SVG-related
 - BuffyWalls: Different CMS system
-- AI Upscaler: Image enhancement
 
 ### Problem: "Should I use GoRouter or Navigator?"
 **Solution**: Check app type in MODULES.md:

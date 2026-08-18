@@ -145,20 +145,11 @@ class MyComponent extends StatelessWidget {
 - **Examples**: WallpaperGrid, AnalyticsChart, GitStatusBar
 - **Pattern**: WallRio-specific, not shared
 
-### SVG Converter Widgets
-- **Location**: `lib/tools/svg_converter/ui/widgets/`
-- **Examples**: TaskList, StatsPanel, ConversionPreview
-- **Pattern**: Tool-specific
-
 ### BuffyWalls CMS Widgets
 - **Location**: `lib/buffy_walls/presentation/widgets/`
 - **Examples**: CategoryManager, WallpaperUploader, GitPushPanel
 - **Pattern**: BuffyWalls-specific
 
-### AI Upscaler Widgets
-- **Location**: `lib/tools/ai_upscaler/presentation/widgets/`
-- **Examples**: UpscalePreview, QualitySelector, BatchProgressPanel
-- **Pattern**: AI Upscaler-specific
 
 ## Dialog & BottomSheet Components
 

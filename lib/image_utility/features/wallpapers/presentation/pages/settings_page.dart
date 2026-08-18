@@ -59,7 +59,6 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
   final _pixabayCtrl    = TextEditingController();
   final _fireflyCtrl    = TextEditingController();
   final _geminiCtrl     = TextEditingController();
-  final _upscaylCtrl    = TextEditingController();
 
   bool _loaded = false;
 
@@ -70,7 +69,6 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
     _pixabayCtrl.dispose();
     _fireflyCtrl.dispose();
     _geminiCtrl.dispose();
-    _upscaylCtrl.dispose();
     super.dispose();
   }
 
@@ -82,7 +80,6 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
     _pixabayCtrl.text   = config.pixabayApiKey ?? '';
     _fireflyCtrl.text   = config.fireflyApiKey ?? '';
     _geminiCtrl.text    = config.geminiApiKey ?? '';
-    _upscaylCtrl.text   = config.upscaylApiKey ?? '';
   }
 
   Future<void> _save(AppConfig config) async {
@@ -91,7 +88,6 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
     await config.setPixabayApiKey(_pixabayCtrl.text.trim());
     await config.setFireflyApiKey(_fireflyCtrl.text.trim());
     await config.setGeminiApiKey(_geminiCtrl.text.trim());
-    await config.setUpscaylApiKey(_upscaylCtrl.text.trim());
     ref.read(wallpaperNotifierProvider.notifier).initializeProviders();
     if (mounted) Navigator.pop(context);
   }
@@ -119,7 +115,6 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
       _pixabayCtrl.clear();
       _fireflyCtrl.clear();
       _geminiCtrl.clear();
-      _upscaylCtrl.clear();
     }
   }
 
@@ -180,7 +175,6 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
                     unsplash: _unsplashCtrl,
                     pixabay: _pixabayCtrl,
                     gemini: _geminiCtrl,
-                    upscayl: _upscaylCtrl,
                     firefly: _fireflyCtrl,
                   );
                 },
@@ -231,11 +225,10 @@ class _ApiKeysTab extends StatelessWidget {
     required this.unsplash,
     required this.pixabay,
     required this.gemini,
-    required this.upscayl,
     required this.firefly,
   });
 
-  final TextEditingController pexels, unsplash, pixabay, gemini, upscayl, firefly;
+  final TextEditingController pexels, unsplash, pixabay, gemini, firefly;
 
   @override
   Widget build(BuildContext context) {
@@ -251,7 +244,6 @@ class _ApiKeysTab extends StatelessWidget {
         _sectionLabel(context, 'AI Services'),
         const SizedBox(height: 12),
         _ApiKeyField(ctrl: gemini,   label: 'Gemini',   hint: 'AI naming & tagging'),
-        _ApiKeyField(ctrl: upscayl,  label: 'Upscayl',  hint: 'AI upscaling'),
         _ApiKeyField(
           ctrl: firefly,
           label: 'Adobe Firefly',

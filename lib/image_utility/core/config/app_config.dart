@@ -7,7 +7,6 @@ class AppConfig {
   static const String _pixabayKeyPref = 'pixabay_api_key';
   static const String _fireflyKeyPref = 'firefly_api_key';
   static const String _geminiKeyPref = 'gemini_api_key';
-  static const String _upscaylKeyPref = 'upscayl_api_key';
   static const String _downloadPathPref = 'download_path';
   static const String _tagsPathPref = 'tags_path';  // Changed from tagsJsonPath
   static const String _copyrightPathPref = 'copyright_path';
@@ -51,12 +50,6 @@ class AppConfig {
     await _prefs.setString(_geminiKeyPref, key);
   }
 
-  // Upscayl API Key
-  String? get upscaylApiKey => _prefs.getString(_upscaylKeyPref);
-  Future<void> setUpscaylApiKey(String key) async {
-    await _prefs.setString(_upscaylKeyPref, key);
-  }
-
   // Download Path
   String? get downloadPath => _prefs.getString(_downloadPathPref);
   Future<void> setDownloadPath(String path) async {
@@ -82,7 +75,6 @@ class AppConfig {
     await _prefs.remove(_pixabayKeyPref);
     await _prefs.remove(_fireflyKeyPref);
     await _prefs.remove(_geminiKeyPref);
-    await _prefs.remove(_upscaylKeyPref);
   }
 
   // Check if any provider is configured

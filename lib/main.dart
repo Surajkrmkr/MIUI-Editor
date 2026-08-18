@@ -30,14 +30,10 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'wall_rio/application/providers/router_provider.dart';
 import 'wall_rio/domain/models/cms_models.dart';
 
-// ── SVG Converter imports ─────────────────────────────────────────────────────
-import 'tools/svg_converter/ui/screens/home_screen.dart' as svg_screens;
 
 // ── BuffyWalls CMS imports ────────────────────────────────────────────────────
 import 'buffy_walls/presentation/screens/buffy_dashboard_screen.dart';
 
-// ── AI Upscaler imports ───────────────────────────────────────────────────────
-import 'tools/ai_upscaler/presentation/screens/ai_upscaler_screen.dart';
 
 // =============================================================================
 
@@ -184,15 +180,6 @@ final List<_AppEntry> _apps = [
     builder: () => const _WallRioCMSApp(),
   ),
   _AppEntry(
-    title: 'SVG Converter',
-    subtitle: 'Image to SVG · Batch · VTracer',
-    icon: Icons.auto_awesome_rounded,
-    color: AppColors.purpleDark,
-    bgImageDark: 'assets/images/svg_generator.png',
-    bgImageLight: 'assets/images/svg_generator_light.png',
-    builder: () => const _SvgConverterApp(),
-  ),
-  _AppEntry(
     title: 'BuffyWalls CMS',
     subtitle: 'Wallpapers · Categories · GitLab Push',
     icon: Icons.dashboard_customize_rounded,
@@ -200,15 +187,6 @@ final List<_AppEntry> _apps = [
     bgImageDark: 'assets/images/buffywalls.png',
     bgImageLight: 'assets/images/buffywalls_light.png',
     builder: () => const _BuffyWallsCMSApp(),
-  ),
-  _AppEntry(
-    title: 'AI Upscaler',
-    subtitle: 'AI Enhance · Wallpapers · Icons · Batch',
-    icon: Icons.auto_fix_high_rounded,
-    color: AppColors.purplePrimary,
-    bgImageDark: 'assets/images/AI_upscaler.png',
-    bgImageLight: 'assets/images/AI_upscaler_light.png',
-    builder: () => const _AiUpscalerApp(),
   ),
 ];
 
@@ -604,25 +582,6 @@ class _ThemeDeploymentApp extends ConsumerWidget {
   }
 }
 
-// ── SVG Converter ─────────────────────────────────────────────────────────────
-
-class _SvgConverterApp extends ConsumerWidget {
-  const _SvgConverterApp();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
-    return MaterialApp(
-      title: 'SVG Converter',
-      debugShowCheckedModeBanner: false,
-      themeMode: themeMode,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      home: const svg_screens.HomeScreen(),
-    );
-  }
-}
-
 // ── WallRio CMS ───────────────────────────────────────────────────────────────
 
 class _WallRioCMSApp extends ConsumerWidget {
@@ -662,21 +621,3 @@ class _BuffyWallsCMSApp extends ConsumerWidget {
   }
 }
 
-// ── AI Upscaler ───────────────────────────────────────────────────────────────
-
-class _AiUpscalerApp extends ConsumerWidget {
-  const _AiUpscalerApp();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
-    return MaterialApp(
-      title: 'AI Upscaler',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      themeMode: themeMode,
-      home: const AiUpscalerScreen(),
-    );
-  }
-}

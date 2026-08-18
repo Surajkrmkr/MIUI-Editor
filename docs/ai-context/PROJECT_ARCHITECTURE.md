@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Team Shadow Tools** is a multi-app Flutter desktop/mobile application with a central launcher that hosts 7 independent sub-applications. Each sub-app is a fully self-contained Flutter application with its own MaterialApp, routing, and state management.
+**Team Shadow Tools** is a multi-app Flutter desktop/mobile application with a central launcher that hosts 5 independent sub-applications. Each sub-app is a fully self-contained Flutter application with its own MaterialApp, routing, and state management.
 
 ### Architecture Diagram
 
@@ -17,16 +17,10 @@
 │  │                     │ │  router)         │ │ (Router)    │ │
 │  └─────────────────────┘ └──────────────────┘ └─────────────┘ │
 │                                                                 │
-│  ┌──────────────────┐ ┌──────────────┐ ┌─────────────────────┐│
-│  │ Themes           │ │ SVG          │ │ BuffyWalls CMS      ││
-│  │ Deployment       │ │ Converter    │ │                     ││
-│  │                  │ │              │ │                     ││
-│  └──────────────────┘ └──────────────┘ └─────────────────────┘│
-│                                                                 │
-│  ┌──────────────────────────────────────────────────────────┐ │
-│  │                    AI Upscaler                           │ │
-│  │                                                          │ │
-│  └──────────────────────────────────────────────────────────┘ │
+│  ┌──────────────────┐ ┌─────────────────────────────────────┐ │
+│  │ Themes           │ │ BuffyWalls CMS                      │ │
+│  │ Deployment       │ │                                     │ │
+│  └──────────────────┘ └─────────────────────────────────────┘ │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
                               │
@@ -44,7 +38,7 @@
                     └──────────────────┘
 ```
 
-## 7 Sub-Applications
+## 5 Sub-Applications
 
 ### 1. Theme Editor
 **Location**: `lib/theme_editor/`  
@@ -85,17 +79,7 @@
 - Git version control
 - Analytics dashboard
 - Push notifications
-
-### 5. SVG Converter
-**Location**: `lib/tools/svg_converter/`  
-**Purpose**: Image to SVG conversion with VTracer integration  
-**Entry**: `HomeScreen` in `tools/svg_converter/ui/screens/`  
-**Features**:
-- Single image SVG conversion
-- Batch conversion
-- VTracer integration
-
-### 6. BuffyWalls CMS
+### 5. BuffyWalls CMS
 **Location**: `lib/buffy_walls/`  
 **Purpose**: Wallpaper management with categories and GitLab push  
 **Entry**: `BuffyDashboardScreen`  
@@ -103,15 +87,6 @@
 - Wallpaper categorization
 - GitLab integration
 - Dashboard management
-
-### 7. AI Upscaler
-**Location**: `lib/tools/ai_upscaler/`  
-**Purpose**: AI-powered image enhancement (wallpapers, icons, batch)  
-**Entry**: `AiUpscalerScreen`  
-**Features**:
-- Image upscaling with AI
-- Batch processing
-- Wallpaper and icon support
 
 ## Core Shared Structure
 
@@ -195,7 +170,7 @@ final downloadProgressProvider = StreamProvider<double>(...);
 
 ### Two Navigation Patterns
 
-#### Pattern 1: SimpleNavigator (Theme Editor, Theme Deployment, SVG Converter, BuffyWalls, AI Upscaler)
+#### Pattern 1: SimpleNavigator (Theme Editor, Theme Deployment, BuffyWalls)
 - Uses standard `Navigator.of(context).push()`
 - Simpler, single-page flows
 - MaterialApp with `home:` property

@@ -205,9 +205,8 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       final finalPath = '$svgFolder${ws.currentThemeName}.svg';
       final tracedSvgPath = '${svgFolder}temp_trace.svg';
 
-      // Locate vtracer.exe (Tool Directory)
       String vtracerPath = PathConstants.p(
-          '${Directory.current.path}${PathConstants.sep}lib${PathConstants.sep}tools${PathConstants.sep}svg_converter${PathConstants.sep}bin${PathConstants.sep}vtracer.exe');
+          '${Directory.current.path}${PathConstants.sep}bin${PathConstants.sep}vtracer.exe');
       if (!File(vtracerPath).existsSync()) {
         vtracerPath = 'vtracer.exe'; // Try PATH as fallback
       }
@@ -682,6 +681,23 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       <List name="notification_list"/>
     </ContentProviderBinder>
   </VariableBinders>
+  	<ExternalCommands>
+		<Trigger action="init">
+		  <VideoCommand command="config" loop="1" path="&apos;1.mp4&apos;" scaleMode="2" target="mamlVideo"/>
+		  <VideoCommand command="play" target="mamlVideo"/>
+		  <IntentCommand action="initialization" broadcast="true">
+			<Extra expression="#btnVar" name="bg_number" type="number"/>
+		  </IntentCommand>
+		</Trigger>
+		<Trigger action="pause">
+		  <AnimationCommand command="play(0,0)" target="resumeAni"/>
+		  <VideoCommand command="seekTo" target="mamlVideo" time="0"/>
+		</Trigger>
+		<Trigger action="resume">
+		  <AnimationCommand command="play" target="resumeAni"/>
+		  <VideoCommand command="play" delay="100" target="mamlVideo"/>
+		</Trigger>
+	  </ExternalCommands>
   <Group name="bgAlpha"></Group>
   <Image name="bgLock" srcExp="'bg.png'" width="#sw" height="#sh"/>
   <MusicControl name="music_control" align="center" alignV="center"

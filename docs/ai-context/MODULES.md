@@ -11,9 +11,7 @@ RootApp (Launcher)
 ├── Themes Deployment (MaterialApp)
 ├── WallRio CMS (MaterialApp.router - GoRouter)
 │   └── Hive Database
-├── SVG Converter (MaterialApp)
 ├── BuffyWalls CMS (MaterialApp)
-└── AI Upscaler (MaterialApp)
 
 Core Shared
 ├── Theme System
@@ -292,45 +290,7 @@ Hive.registerAdapter(LocalVersionImplAdapter());
 
 ---
 
-## App Module 5: `/lib/tools/svg_converter/`
-
-### Purpose
-Convert images to SVG format with batch processing and VTracer integration.
-
-### Structure
-```
-tools/svg_converter/
-├── ui/
-│   ├── screens/
-│   │   ├── home_screen.dart         # Entry point
-│   │   └── settings_screen.dart
-│   └── widgets/
-│       ├── task_list.dart
-│       └── stats_panel.dart
-└── [data/domain layers]
-```
-
-### Entry Point
-`HomeScreen`
-
-### Features
-- **Single Conversion**: Convert one image to SVG
-- **Batch Conversion**: Process multiple images
-- **VTracer Integration**: Advanced vectorization
-- **Settings**: Quality and processing options
-
-### State Management
-- Basic Riverpod
-
-### Navigation Pattern
-Simple Navigator (single-feature app)
-
-### External Integration
-- VTracer (image vectorization engine)
-
----
-
-## App Module 6: `/lib/buffy_walls/`
+## App Module 5: `/lib/buffy_walls/`
 
 ### Purpose
 Wallpaper CMS with categorization and GitLab push integration.
@@ -371,48 +331,6 @@ Simple Navigator
 
 ---
 
-## App Module 7: `/lib/tools/ai_upscaler/`
-
-### Purpose
-AI-powered image enhancement for wallpapers, icons, and batch processing.
-
-### Structure
-```
-tools/ai_upscaler/
-├── domain/
-│   ├── entities/
-│   └── repositories/
-├── presentation/
-│   ├── screens/ai_upscaler_screen.dart  # Entry point
-│   └── widgets/
-└── [data layer]
-```
-
-### Entry Point
-`AiUpscalerScreen`
-
-### Features
-- **Upscale Images**: AI enhancement (4x, 2x)
-- **Batch Processing**: Process multiple files
-- **Format Support**: Wallpapers, icons, general images
-- **Quality Settings**: Control upscaling parameters
-
-### State Management
-- Riverpod with StreamProviders for progress
-
-### Navigation Pattern
-Simple Navigator
-
-### AI Services
-- Upscayl API integration
-- Local AI model support
-
-### Key Files to Update When Adding Features
-- `domain/entities/` — Add upscaling parameters
-- `presentation/screens/` — Add new upscale workflows
-
----
-
 ## Reusable Widgets Module: `/lib/widgets/`
 
 ### Purpose
@@ -442,9 +360,7 @@ import 'package:miui_icon_generator/widgets/glass_card.dart';
 | Image Utility | — | ❌ | ❌ | ✅ |
 | Themes Deployment | ❌ | ✅ | ❌ | ❌ |
 | WallRio CMS | ✅ | ❌ | — | ❌ |
-| SVG Converter | ❌ | ❌ | ❌ | ❌ |
 | BuffyWalls CMS | ✅ | ❌ | ❌ | ❌ |
-| AI Upscaler | ❌ | ❌ | ❌ | — |
 
 **Note**: Each app is independent. Cross-app communication should go through shared core only.
 

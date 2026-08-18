@@ -8,7 +8,6 @@ import 'package:miui_icon_generator/image_utility/core/config/app_config.dart';
 import 'package:miui_icon_generator/image_utility/features/image_generation/data/generators/image_generator.dart';
 import 'package:miui_icon_generator/image_utility/features/image_generation/data/generators/gemini_imagen_generator.dart';
 import 'package:miui_icon_generator/image_utility/features/image_generation/data/generators/firefly_generator.dart';
-import 'package:miui_icon_generator/image_utility/features/image_generation/data/generators/upscayl_service.dart';
 import 'package:miui_icon_generator/image_utility/features/wallpapers/presentation/providers/download_provider.dart'
     show sharedPreferencesProvider;
 
@@ -109,7 +108,7 @@ class GenerationNotifier extends StateNotifier<GenerationState> {
       state = state.copyWith(
         step: GenerationStep.awaitingApproval,
         previewBytes: bytes,
-        statusMessage: 'Preview ready — approve to upscale & save.',
+        statusMessage: 'Preview ready — approve to save.',
       );
     } catch (e) {
       state = state.copyWith(
@@ -119,11 +118,10 @@ class GenerationNotifier extends StateNotifier<GenerationState> {
     }
   }
 
-  // ── Step 2: Approve → upscale → crop → save ─────────────────────────────
+  // ── Step 2: Approve → crop → save ───────────────────────────────────────
 
   Future<void> approveAndSave({
     required String prompt,
-    bool upscale = true,
   }) async {
     final preview = state.previewBytes;
     if (preview == null) return;
@@ -131,21 +129,7 @@ class GenerationNotifier extends StateNotifier<GenerationState> {
     try {
       Uint8List working = preview;
 
-      // ── 2a. Upscale ──────────────────────────────────────────────────────
-      if (upscale && (_config.upscaylApiKey?.isNotEmpty ?? false)) {
-        state = state.copyWith(
-          step: GenerationStep.upscaling,
-          statusMessage: 'Submitting upscale task…',
-        );
-
-        final svc = UpscaylService(apiKey: _config.upscaylApiKey!);
-        working = await svc.upscale(
-          imageBytes: working,
-          onStatus: (msg) => state = state.copyWith(statusMessage: msg),
-        );
-      }
-
-      // ── 2b. Crop to 6:13 → 1080×2340 ────────────────────────────────────
+      // ── 2. Crop to 6:13 → 1080×2340 ─────────────────────────────────────
       state = state.copyWith(
         step: GenerationStep.saving,
         statusMessage: 'Cropping to phone ratio & saving…',

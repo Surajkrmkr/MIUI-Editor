@@ -38,7 +38,7 @@ class VTracerService {
     ];
 
     try {
-      final vtracerPath = p.join(Directory.current.path, 'lib', 'tools', 'svg_converter', 'bin', 'vtracer.exe');
+      final vtracerPath = p.join(Directory.current.path, 'bin', 'vtracer.exe');
       final result = await Process.run(vtracerPath, args);
       if (result.exitCode == 0) {
         return outputPath;
