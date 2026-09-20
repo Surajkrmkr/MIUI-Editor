@@ -69,12 +69,12 @@ def main():
     print(flush=True)
 
     # ── Launch browser ─────────────────────────────────────────────────────────
-    brave_path = data.get_Brave_Path()
-    log("BROWSER", f"Launching Brave: {brave_path}")
+    chrome_path = data.get_Chrome_Path()
+    log("BROWSER", f"Launching Chrome: {chrome_path}")
     options = Options()
-    options.binary_location = brave_path
+    options.binary_location = chrome_path
     options.add_experimental_option("excludeSwitches", ["enable-logging"])
-    options.add_argument(f"--user-data-dir={data.get_Brave_Selenium_Profile_Dir()}")
+    options.add_argument(f"--user-data-dir={data.get_Chrome_Selenium_Profile_Dir()}")
     # options.add_argument("--headless=new")
     # options.add_argument("--window-size=1920,1080")
     # options.add_argument("--disable-gpu")

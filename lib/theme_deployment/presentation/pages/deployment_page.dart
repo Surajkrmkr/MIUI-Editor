@@ -51,14 +51,14 @@ class _DeploymentPageState extends ConsumerState<DeploymentPage> {
   }
 
   DeploymentConfig _buildConfig(int maxTab) => DeploymentConfig(
-        scriptsDir: _scriptsDirCtrl.text.trim(),
-        basePath: _basePathCtrl.text.trim(),
-        v2Path: _v2PathCtrl.text.trim(),
-        maxTab: maxTab,
-        email: _emailCtrl.text.trim(),
-        password: _passwordCtrl.text,
-        description: _descriptionCtrl.text.trim(),
-      );
+    scriptsDir: _scriptsDirCtrl.text.trim(),
+    basePath: _basePathCtrl.text.trim(),
+    v2Path: _v2PathCtrl.text.trim(),
+    maxTab: maxTab,
+    email: _emailCtrl.text.trim(),
+    password: _passwordCtrl.text,
+    description: _descriptionCtrl.text.trim(),
+  );
 
   void _save(int maxTab) =>
       ref.read(deploymentProvider.notifier).updateConfig(_buildConfig(maxTab));
@@ -199,150 +199,154 @@ class _ConfigPanel extends StatelessWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Configuration',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-            ),
-            const SizedBox(height: 20),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Configuration',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 20),
 
-            // Upload / Update mode switch
-            SegmentedButton<DeploymentMode>(
-              segments: const [
-                ButtonSegment(
-                  value: DeploymentMode.upload,
-                  label: Text('Upload'),
-                  icon: Icon(Icons.upload_rounded, size: 16),
+              // Upload / Update mode switch
+              SegmentedButton<DeploymentMode>(
+                segments: const [
+                  ButtonSegment(
+                    value: DeploymentMode.upload,
+                    label: Text('Upload'),
+                    icon: Icon(Icons.upload_rounded, size: 16),
+                  ),
+                  ButtonSegment(
+                    value: DeploymentMode.update,
+                    label: Text('Update'),
+                    icon: Icon(Icons.sync_rounded, size: 16),
+                  ),
+                ],
+                selected: {mode},
+                onSelectionChanged: isRunning
+                    ? null
+                    : (s) => onModeChanged(s.first),
+              ),
+              const SizedBox(height: 20),
+
+              // Scripts directory
+              _PathField(
+                label: 'Scripts Directory',
+                hint: '/path/to/project/scripts',
+                controller: scriptsDirCtrl,
+                onChanged: (_) => onSave(),
+                onPick: () => onPickDir(scriptsDirCtrl),
+              ),
+              const SizedBox(height: 14),
+
+              // Base path (mtz folder) — Upload mode
+              if (!isUpdate) ...[
+                _PathField(
+                  label: 'Base Path (MTZ folder)',
+                  hint: '/path/to/week_XX/mtz',
+                  controller: basePathCtrl,
+                  onChanged: (_) => onSave(),
+                  onPick: () => onPickDir(basePathCtrl),
                 ),
-                ButtonSegment(
-                  value: DeploymentMode.update,
-                  label: Text('Update'),
-                  icon: Icon(Icons.sync_rounded, size: 16),
-                ),
+                const SizedBox(height: 14),
               ],
-              selected: {mode},
-              onSelectionChanged:
-                  isRunning ? null : (s) => onModeChanged(s.first),
-            ),
-            const SizedBox(height: 20),
 
-            // Scripts directory
-            _PathField(
-              label: 'Scripts Directory',
-              hint: '/path/to/project/scripts',
-              controller: scriptsDirCtrl,
-              onChanged: (_) => onSave(),
-              onPick: () => onPickDir(scriptsDirCtrl),
-            ),
-            const SizedBox(height: 14),
-
-            // Base path (mtz folder) — Upload mode
-            if (!isUpdate) ...[
-              _PathField(
-                label: 'Base Path (MTZ folder)',
-                hint: '/path/to/week_XX/mtz',
-                controller: basePathCtrl,
-                onChanged: (_) => onSave(),
-                onPick: () => onPickDir(basePathCtrl),
-              ),
-              const SizedBox(height: 14),
-            ],
-
-            // V2 themes path — Update mode
-            if (isUpdate) ...[
-              _PathField(
-                label: 'V2 Themes Path (MTZ folder)',
-                hint: '/path/to/week_XX/v2_mtz',
-                controller: v2PathCtrl,
-                onChanged: (_) => onSave(),
-                onPick: () => onPickDir(v2PathCtrl),
-              ),
-              const SizedBox(height: 14),
-            ],
-
-            // Max Tab stepper
-            _LabeledField(
-              label: 'Max Tabs per Batch',
-              child: _StepperCounter(
-                value: maxTab,
-                min: 1,
-                max: 20,
-                onChanged: onMaxTabChanged,
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            // Email
-            _LabeledField(
-              label: 'Email / Phone',
-              child: TextField(
-                controller: emailCtrl,
-                decoration:
-                    const InputDecoration(hintText: 'Login credential'),
-                onChanged: (_) => onSave(),
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            // Password
-            _LabeledField(
-              label: 'Password',
-              child: TextField(
-                controller: passwordCtrl,
-                obscureText: !showPassword,
-                decoration: InputDecoration(
-                  hintText: 'Login password',
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      showPassword ? Icons.visibility_off : Icons.visibility,
-                      size: 18,
-                    ),
-                    onPressed: onTogglePassword,
-                  ),
+              // V2 themes path — Update mode
+              if (isUpdate) ...[
+                _PathField(
+                  label: 'V2 Themes Path (MTZ folder)',
+                  hint: '/path/to/week_XX/v2_mtz',
+                  controller: v2PathCtrl,
+                  onChanged: (_) => onSave(),
+                  onPick: () => onPickDir(v2PathCtrl),
                 ),
-                onChanged: (_) => onSave(),
-              ),
-            ),
-            const SizedBox(height: 14),
+                const SizedBox(height: 14),
+              ],
 
-            // Description
-            _LabeledField(
-              label: 'Description',
-              child: TextField(
-                controller: descriptionCtrl,
-                decoration:
-                    const InputDecoration(hintText: 'Theme description'),
-                onChanged: (_) => onSave(),
+              // Max Tab stepper
+              _LabeledField(
+                label: 'Max Tabs per Batch',
+                child: _StepperCounter(
+                  value: maxTab,
+                  min: 1,
+                  max: 20,
+                  onChanged: onMaxTabChanged,
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 14),
 
-            // Run / Stop button
-            SizedBox(
-              height: 44,
-              child: isRunning
-                  ? FilledButton.icon(
-                      style: FilledButton.styleFrom(
-                        backgroundColor:
-                            Theme.of(context).colorScheme.error,
+              // Email
+              _LabeledField(
+                label: 'Email / Phone',
+                child: TextField(
+                  controller: emailCtrl,
+                  decoration: const InputDecoration(
+                    hintText: 'Login credential',
+                  ),
+                  onChanged: (_) => onSave(),
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Password
+              _LabeledField(
+                label: 'Password',
+                child: TextField(
+                  controller: passwordCtrl,
+                  obscureText: !showPassword,
+                  decoration: InputDecoration(
+                    hintText: 'Login password',
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        showPassword ? Icons.visibility_off : Icons.visibility,
+                        size: 18,
                       ),
-                      icon: const Icon(Icons.stop_rounded, size: 18),
-                      label: const Text('Stop'),
-                      onPressed: onStop,
-                    )
-                  : FilledButton.icon(
-                      icon: const Icon(Icons.rocket_launch_rounded, size: 18),
-                      label: Text(isUpdate ? 'Run Update' : 'Run Deployment'),
-                      onPressed: onRun,
+                      onPressed: onTogglePassword,
                     ),
-            ),
-          ],
+                  ),
+                  onChanged: (_) => onSave(),
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Description
+              _LabeledField(
+                label: 'Description',
+                child: TextField(
+                  controller: descriptionCtrl,
+                  decoration: const InputDecoration(
+                    hintText: 'Theme description',
+                  ),
+                  onChanged: (_) => onSave(),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Run / Stop button
+              SizedBox(
+                height: 44,
+                child: isRunning
+                    ? FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.error,
+                        ),
+                        icon: const Icon(Icons.stop_rounded, size: 18),
+                        label: const Text('Stop'),
+                        onPressed: onStop,
+                      )
+                    : FilledButton.icon(
+                        icon: const Icon(Icons.rocket_launch_rounded, size: 18),
+                        label: Text(isUpdate ? 'Run Update' : 'Run Deployment'),
+                        onPressed: onRun,
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -393,9 +397,9 @@ class _StepperCounter extends StatelessWidget {
               '$value',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           // Increment
@@ -447,7 +451,9 @@ class _StepButton extends StatelessWidget {
         child: Icon(
           icon,
           size: 18,
-          color: enabled ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withAlpha(60),
+          color: enabled
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.onSurface.withAlpha(60),
         ),
       ),
     );
@@ -484,9 +490,9 @@ class _ConsolePanel extends StatelessWidget {
             Text(
               'Console Output',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
             const SizedBox(width: 12),
             if (isRunning)
@@ -496,8 +502,11 @@ class _ConsolePanel extends StatelessWidget {
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
             if (completed && !isRunning)
-              const Icon(Icons.check_circle_rounded,
-                  size: 16, color: Colors.greenAccent),
+              const Icon(
+                Icons.check_circle_rounded,
+                size: 16,
+                color: Colors.greenAccent,
+              ),
             const Spacer(),
             TextButton.icon(
               icon: const Icon(Icons.delete_outline, size: 16),
@@ -530,8 +539,7 @@ class _ConsolePanel extends StatelessWidget {
                 : ListView.builder(
                     controller: scrollCtrl,
                     itemCount: outputLines.length,
-                    itemBuilder: (_, i) =>
-                        _ConsoleLine(line: outputLines[i]),
+                    itemBuilder: (_, i) => _ConsoleLine(line: outputLines[i]),
                   ),
           ),
         ),
@@ -547,7 +555,8 @@ class _ConsoleLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color color;
-    if (line.startsWith('[ERR]') || line.startsWith('[FATAL]') ||
+    if (line.startsWith('[ERR]') ||
+        line.startsWith('[FATAL]') ||
         line.startsWith('[ERROR]')) {
       color = const Color(0xFFFF6B6B);
     } else if (line.startsWith('[OK]') || line.startsWith('[DONE]')) {
@@ -591,9 +600,9 @@ class _LabeledField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: Colors.white60,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.labelMedium?.copyWith(color: Colors.white60),
         ),
         const SizedBox(height: 6),
         child,
