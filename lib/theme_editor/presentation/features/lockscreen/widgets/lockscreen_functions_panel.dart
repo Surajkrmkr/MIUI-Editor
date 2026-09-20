@@ -278,6 +278,9 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
     final tp = PathConstants.themePath(ws.weekNum!, ws.currentThemeName!);
     final dest = '${PathConstants.lockscreenAdvance(tp)}video.mp4';
     await ref.read(fileServiceProvider).copyFile(path, dest);
+    ref
+        .read(elementProvider.notifier)
+        .setGuideLines(ref.read(elementProvider).activeType, false);
   }
 
   Future<void> _export(BuildContext context, WidgetRef ref) async {

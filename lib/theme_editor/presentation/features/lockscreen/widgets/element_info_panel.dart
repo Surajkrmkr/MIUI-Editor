@@ -142,6 +142,28 @@ class ElementInfoPanel extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  if (isHourMinSec) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _ColorBtn(
+                            color: el.strokeColor,
+                            label: 'Stroke Color',
+                            onChanged: (c) => n.setStrokeColor(el.type, c),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    _SliderRow(
+                      label: 'Stroke Width',
+                      value: el.strokeWidth,
+                      min: 0,
+                      max: 20,
+                      onChanged: (v) => n.setStrokeWidth(el.type, v),
+                    ),
+                  ],
                   if (usesGradient) ...[
                     const SizedBox(height: 10),
                     _GradAlignRow(
@@ -199,6 +221,34 @@ class ElementInfoPanel extends ConsumerWidget {
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _ColorBtn(
+                              color: el.strokeColorDigit1,
+                              label: 'Digit 1 Stroke',
+                              onChanged: (c) => n.setStrokeColorDigit1(el.type, c),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _ColorBtn(
+                              color: el.strokeColorDigit2,
+                              label: 'Digit 2 Stroke',
+                              onChanged: (c) => n.setStrokeColorDigit2(el.type, c),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      _SliderRow(
+                        label: 'Stroke Width',
+                        value: el.strokeWidth,
+                        min: 0,
+                        max: 20,
+                        onChanged: (v) => n.setStrokeWidth(el.type, v),
                       ),
                     ],
                   ],
@@ -301,6 +351,19 @@ class ElementInfoPanel extends ConsumerWidget {
                     max: 10,
                     onChanged: (v) => n.setBorderWidth(el.type, v),
                   ),
+                  _SliderRow(
+                    label: 'Background Blur',
+                    value: el.blurRadius,
+                    min: 0,
+                    max: 50,
+                    onChanged: (v) => n.setBlurRadius(el.type, v),
+                  ),
+                  const SizedBox(height: 6),
+                  _ToggleRow(
+                    label: 'Liquid Glass Effect',
+                    value: el.isLiquidGlass,
+                    onChanged: (v) => n.setIsLiquidGlass(el.type, v),
+                  ),
                   const SizedBox(height: 8),
                   Align(
                     alignment: Alignment.centerLeft,
@@ -317,6 +380,29 @@ class ElementInfoPanel extends ConsumerWidget {
                     color: el.borderColor,
                     label: 'Border',
                     onChanged: (c) => n.setBorderColor(el.type, c),
+                  ),
+                ],
+              ),
+            ),
+
+          if (el.type == ElementType.notification ||
+              el.type.isClock)
+            _Section(
+              title: el.type.isClock ? 'BLUR & GLASS EFFECT' : 'BACKGROUND BLUR',
+              child: Column(
+                children: [
+                  _SliderRow(
+                    label: el.type.isClock ? 'Blur Intensity' : 'Blur Radius',
+                    value: el.blurRadius,
+                    min: 0,
+                    max: 50,
+                    onChanged: (v) => n.setBlurRadius(el.type, v),
+                  ),
+                  const SizedBox(height: 6),
+                  _ToggleRow(
+                    label: 'Liquid Glass Effect',
+                    value: el.isLiquidGlass,
+                    onChanged: (v) => n.setIsLiquidGlass(el.type, v),
                   ),
                 ],
               ),

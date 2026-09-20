@@ -97,6 +97,7 @@ dependencies:
   animated_box_decoration: ^0.0.7
   flutter_shaders: ^0.1.3
 
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

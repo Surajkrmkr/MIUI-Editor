@@ -162,16 +162,21 @@ class LockElement {
     this.useSeparateColors = false,
     this.colorDigit1 = const Color(0xFFFFFFFF),
     this.colorDigit2 = const Color(0xFFFFFFFF),
+    this.strokeWidth = 0,
+    this.strokeColor = const Color(0x00000000),
+    this.strokeColorDigit1 = const Color(0x00000000),
+    this.strokeColorDigit2 = const Color(0x00000000),
+    this.isLiquidGlass = false,
   });
 
   final ElementType type;
-  final double dx, dy, scale, height, width, radius, borderWidth, angle, fontSize, blurRadius;
-  final Color borderColor, color, colorSecondary, colorDigit1, colorDigit2;
+  final double dx, dy, scale, height, width, radius, borderWidth, angle, fontSize, blurRadius, strokeWidth;
+  final Color borderColor, color, colorSecondary, colorDigit1, colorDigit2, strokeColor, strokeColorDigit1, strokeColorDigit2;
   final GradientType gradientType;
   final AlignmentGeometry gradStartAlign, gradEndAlign, align;
   final String font, path, text;
   final FontWeight fontWeight;
-  final bool isShort, isWrap, showGuideLines, isVisible, isLocked, useSeparateColors;
+  final bool isShort, isWrap, showGuideLines, isVisible, isLocked, useSeparateColors, isLiquidGlass;
 
   String get name => type.name;
 
@@ -180,6 +185,8 @@ class LockElement {
     double? radius, double? borderWidth, double? angle, double? fontSize,
     Color? borderColor, Color? color, Color? colorSecondary,
     Color? colorDigit1, Color? colorDigit2,
+    Color? strokeColor, Color? strokeColorDigit1, Color? strokeColorDigit2,
+    double? strokeWidth,
     GradientType? gradientType,
     AlignmentGeometry? gradStartAlign, AlignmentGeometry? gradEndAlign,
     AlignmentGeometry? align,
@@ -188,6 +195,7 @@ class LockElement {
     bool? isShort, bool? isWrap, bool? showGuideLines,
     bool? isVisible, bool? isLocked, bool? useSeparateColors,
     double? blurRadius,
+    bool? isLiquidGlass,
   }) => LockElement(
     type: type,
     dx: dx ?? this.dx,   dy: dy ?? this.dy, scale: scale ?? this.scale,
@@ -198,6 +206,10 @@ class LockElement {
     color: color ?? this.color, colorSecondary: colorSecondary ?? this.colorSecondary,
     colorDigit1: colorDigit1 ?? this.colorDigit1,
     colorDigit2: colorDigit2 ?? this.colorDigit2,
+    strokeColor: strokeColor ?? this.strokeColor,
+    strokeColorDigit1: strokeColorDigit1 ?? this.strokeColorDigit1,
+    strokeColorDigit2: strokeColorDigit2 ?? this.strokeColorDigit2,
+    strokeWidth: strokeWidth ?? this.strokeWidth,
     gradientType: gradientType ?? this.gradientType,
     gradStartAlign: gradStartAlign ?? this.gradStartAlign,
     gradEndAlign:   gradEndAlign   ?? this.gradEndAlign,
@@ -210,6 +222,7 @@ class LockElement {
     isLocked: isLocked ?? this.isLocked,
     useSeparateColors: useSeparateColors ?? this.useSeparateColors,
     blurRadius: blurRadius ?? this.blurRadius,
+    isLiquidGlass: isLiquidGlass ?? this.isLiquidGlass,
   );
 
   Map<String, dynamic> toJson() => {
@@ -220,6 +233,10 @@ class LockElement {
     'borderColor': borderColor.toARGB32(),
     'color': color.toARGB32(), 'colorSecondary': colorSecondary.toARGB32(),
     'colorDigit1': colorDigit1.toARGB32(), 'colorDigit2': colorDigit2.toARGB32(),
+    'strokeColor': strokeColor.toARGB32(),
+    'strokeColorDigit1': strokeColorDigit1.toARGB32(),
+    'strokeColorDigit2': strokeColorDigit2.toARGB32(),
+    'strokeWidth': strokeWidth,
     'gradientType': gradientType.name,
     'gradStartAlign': gradStartAlign.toString(),
     'gradEndAlign':   gradEndAlign.toString(),
@@ -229,6 +246,7 @@ class LockElement {
     'isShort': isShort, 'isWrap': isWrap, 'showGuideLines': showGuideLines,
     'isVisible': isVisible, 'isLocked': isLocked, 'useSeparateColors': useSeparateColors,
     'blurRadius': blurRadius,
+    'isLiquidGlass': isLiquidGlass,
   };
 
   factory LockElement.fromJson(Map<String, dynamic> j) => LockElement(
@@ -248,6 +266,10 @@ class LockElement {
     colorSecondary: Color(j['colorSecondary'] as int? ?? 0xFFFFFFFF),
     colorDigit1:    Color(j['colorDigit1']    as int? ?? 0xFFFFFFFF),
     colorDigit2:    Color(j['colorDigit2']    as int? ?? 0xFFFFFFFF),
+    strokeColor:       Color(j['strokeColor']       as int? ?? 0x00000000),
+    strokeColorDigit1: Color(j['strokeColorDigit1'] as int? ?? 0x00000000),
+    strokeColorDigit2: Color(j['strokeColorDigit2'] as int? ?? 0x00000000),
+    strokeWidth:       (j['strokeWidth'] as num?)?.toDouble() ?? 0,
     gradientType: GradientType.values.firstWhere(
         (e) => e.name == j['gradientType'], orElse: () => GradientType.linear),
     gradStartAlign: AlignmentX.fromString(j['gradStartAlign'] ?? ''),
@@ -264,6 +286,7 @@ class LockElement {
     isLocked:      j['isLocked']      as bool? ?? false,
     useSeparateColors: j['useSeparateColors'] as bool? ?? false,
     blurRadius:    (j['blurRadius']   as num?)?.toDouble() ?? 0,
+    isLiquidGlass: j['isLiquidGlass'] as bool? ?? false,
   );
 
   static FontWeight _fw(String s) {
