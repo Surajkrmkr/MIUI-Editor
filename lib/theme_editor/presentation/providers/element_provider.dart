@@ -312,6 +312,10 @@ class ElementNotifier extends Notifier<ElementState> {
       update(t, (e) => e.copyWith(height: v));
   void setWidth(ElementType t, double v) =>
       update(t, (e) => e.copyWith(width: v));
+  void setBlurRadius(ElementType t, double v) =>
+      update(t, (e) => e.copyWith(blurRadius: v));
+  void setStrokeWidth(ElementType t, double v) =>
+      update(t, (e) => e.copyWith(strokeWidth: v));
   void setGuideLines(ElementType t, bool v) =>
       update(t, (e) => e.copyWith(showGuideLines: v));
 
@@ -325,6 +329,12 @@ class ElementNotifier extends Notifier<ElementState> {
       _change(t, (e) => e.copyWith(colorDigit1: c));
   void setColorDigit2(ElementType t, Color c) =>
       _change(t, (e) => e.copyWith(colorDigit2: c));
+  void setStrokeColor(ElementType t, Color c) =>
+      _change(t, (e) => e.copyWith(strokeColor: c));
+  void setStrokeColorDigit1(ElementType t, Color c) =>
+      _change(t, (e) => e.copyWith(strokeColorDigit1: c));
+  void setStrokeColorDigit2(ElementType t, Color c) =>
+      _change(t, (e) => e.copyWith(strokeColorDigit2: c));
   void setBorderColor(ElementType t, Color c) =>
       _change(t, (e) => e.copyWith(borderColor: c));
   void setGradStart(ElementType t, AlignmentGeometry a) =>
@@ -353,6 +363,8 @@ class ElementNotifier extends Notifier<ElementState> {
       _change(t, (e) => e.copyWith(isLocked: !e.isLocked));
   void setUseSeparateColors(ElementType t, bool v) =>
       _change(t, (e) => e.copyWith(useSeparateColors: v));
+  void setIsLiquidGlass(ElementType t, bool v) =>
+      _change(t, (e) => e.copyWith(isLiquidGlass: v));
   void resetPosition(ElementType t) =>
       _change(t, (e) => e.copyWith(dx: 0, dy: 0));
   void centerHorizontal(ElementType t) =>

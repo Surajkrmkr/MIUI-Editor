@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -62,7 +63,7 @@ class ElementWidgetPreview extends ConsumerWidget {
               ),
 
             // 2. Video layer
-            if (hasVideo) VideoWallpaperWidget(path: videoPath),
+            if (hasVideo) VideoWallpaperWidget(key: ValueKey(videoPath), path: videoPath),
 
             // 3. Darken overlay (tap to deselect / exit group mode)
             GestureDetector(
@@ -333,6 +334,10 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
             ),
             style: fontTextStyle(
                 font: el.font, fontSize: 35, height: 1, color: el.colorDigit1),
+            strokeWidth: el.strokeWidth,
+            strokeColor: el.strokeColorDigit1.a > 0 ? el.strokeColorDigit1 : el.strokeColor,
+            blurRadius: el.blurRadius,
+            isLiquidGlass: el.isLiquidGlass,
           ),
           GradientText(
             txt[1],
@@ -344,6 +349,10 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
             ),
             style: fontTextStyle(
                 font: el.font, fontSize: 35, height: 1, color: el.colorDigit2),
+            strokeWidth: el.strokeWidth,
+            strokeColor: el.strokeColorDigit2.a > 0 ? el.strokeColorDigit2 : el.strokeColor,
+            blurRadius: el.blurRadius,
+            isLiquidGlass: el.isLiquidGlass,
           ),
         ],
       );
@@ -358,6 +367,10 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
         stops: const [0.0, 1.0],
       ),
       style: fontTextStyle(font: el.font, fontSize: 35, height: 1, color: el.color),
+      strokeWidth: el.strokeWidth,
+      strokeColor: el.strokeColor,
+      blurRadius: el.blurRadius,
+      isLiquidGlass: el.isLiquidGlass,
     );
   }
 
@@ -367,7 +380,104 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
     return '${input.substring(0, 3)}\n${input.substring(3)}';
   }
 
-  Widget _container(LockElement el) => Container(
+  Widget _container(LockElement el) {
+    Widget containerWidget;
+    if (el.isLiquidGlass) {
+      final frostBlur = el.blurRadius > 0 ? el.blurRadius : 0.0;
+      containerWidget = Container(
+        height: el.height,
+        width: el.width,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(el.radius),
+          boxShadow: [
+            // Splay & Depth ambient occlusion (Figma Depth 100, Splay 100)
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.16),
+              blurRadius: 28,
+              offset: const Offset(0, 8),
+              spreadRadius: -2,
+            ),
+            // Soft outer refraction glow
+            BoxShadow(
+              color: Colors.white.withValues(alpha: 0.14),
+              blurRadius: 18,
+              spreadRadius: -1,
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(el.radius),
+          child: Stack(
+            children: [
+              // 1. Frost Blur (Figma Frost = 0 by default, or user adjustable)
+              if (frostBlur > 0)
+                Positioned.fill(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: frostBlur, sigmaY: frostBlur),
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+
+              // 2. Base Glass Fill (Figma Fill: #D9D9D9 at 20% opacity)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(el.radius),
+                    color: const Color(0xFFD9D9D9).withValues(alpha: 0.20),
+                  ),
+                ),
+              ),
+
+              // 3. Chromatic Dispersion & Refraction (Figma Refraction 80, Dispersion 100, Depth 100)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(el.radius),
+                    gradient: const RadialGradient(
+                      center: Alignment(-0.2, -0.2),
+                      radius: 1.1,
+                      colors: [
+                        Color(0x00FFFFFF), // Ultra-clear center (shows background sharp & magnified)
+                        Color(0x08FF3366), // Red-orange chromatic dispersion fringe
+                        Color(0x1033CCFF), // Cyan-blue chromatic dispersion fringe
+                        Color(0x28FFFFFF), // Outer refraction edge
+                      ],
+                      stops: [0.65, 0.85, 0.94, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+
+              // 4. Directional Light & Specular Bevel (Figma Light: -45° at 80% intensity)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(el.radius),
+                    // Light angle -45°: top-left bright light fading across to bottom-right
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xCCFFFFFF), // 80% light specular highlight at top-left
+                        Color(0x22FFFFFF),
+                        Color(0x00FFFFFF),
+                        Color(0x55FFFFFF), // Bottom-right refraction bounce
+                      ],
+                      stops: [0.0, 0.25, 0.70, 1.0],
+                    ),
+                    border: Border.all(
+                      width: el.borderWidth > 0 ? el.borderWidth : 1.5,
+                      color: const Color(0x99FFFFFF), // Crisp glass outline
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      Widget base = Container(
         height: el.height,
         width: el.width,
         decoration: BoxDecoration(
@@ -383,35 +493,65 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
         ),
       );
 
-  Widget _notification(LockElement el) => Container(
-        height: 60,
-        width: 250,
-        decoration: BoxDecoration(
-          color: el.colorSecondary,
+      if (el.blurRadius > 0) {
+        containerWidget = ClipRRect(
           borderRadius: BorderRadius.circular(el.radius),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: el.blurRadius, sigmaY: el.blurRadius),
+            child: base,
+          ),
+        );
+      } else {
+        containerWidget = base;
+      }
+    }
+
+    return containerWidget;
+  }
+
+  Widget _notification(LockElement el) {
+    Widget child = Container(
+      height: 60,
+      width: 250,
+      decoration: BoxDecoration(
+        color: el.colorSecondary,
+        borderRadius: BorderRadius.circular(el.radius),
+      ),
+      child: Row(children: [
+        Container(
+          margin: const EdgeInsets.only(left: 8),
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFC300),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(Icons.android, size: 14),
         ),
-        child: Row(children: [
-          Container(
-            margin: const EdgeInsets.only(left: 8),
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFC300),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.android, size: 14),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Notification',
-                  style: TextStyle(color: el.color, fontSize: 10)),
-              Text('Details', style: TextStyle(color: el.color, fontSize: 10)),
-            ],
-          ),
-        ]),
+        const SizedBox(width: 8),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Notification',
+                style: TextStyle(color: el.color, fontSize: 10)),
+            Text('Details', style: TextStyle(color: el.color, fontSize: 10)),
+          ],
+        ),
+      ]),
+    );
+
+    if (el.blurRadius > 0) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(el.radius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: el.blurRadius, sigmaY: el.blurRadius),
+          child: child,
+        ),
       );
+    }
+
+    return child;
+  }
 
   static const _dt = {
     'dd': '08',
@@ -438,14 +578,33 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
     for (final e in map.entries) {
       t = t.replaceAll(e.key, e.value);
     }
-    return Text(t,
-        style: fontTextStyle(
-          font: el.font,
-          color: el.color,
-          fontSize: el.fontSize,
-          fontWeight: el.fontWeight,
-          height: 1,
-        ));
+
+    final textStyle = fontTextStyle(
+      font: el.font,
+      color: el.color,
+      fontSize: el.fontSize,
+      fontWeight: el.fontWeight,
+      height: 1,
+    );
+
+    if (el.blurRadius > 0) {
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          Text(
+            t,
+            style: textStyle.copyWith(
+              foreground: Paint()
+                ..maskFilter = MaskFilter.blur(BlurStyle.normal, el.blurRadius)
+                ..color = el.color,
+            ),
+          ),
+          Text(t, style: textStyle),
+        ],
+      );
+    }
+
+    return Text(t, style: textStyle);
   }
 }
 

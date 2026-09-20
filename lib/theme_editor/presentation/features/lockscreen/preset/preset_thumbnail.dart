@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -212,6 +213,8 @@ class _StaticElement extends StatelessWidget {
         txt.length == 2) {
       final c1 = _adapt(el.colorDigit1);
       final c2 = _adapt(el.colorDigit2);
+      final sc1 = _adapt(el.strokeColorDigit1.a > 0 ? el.strokeColorDigit1 : el.strokeColor);
+      final sc2 = _adapt(el.strokeColorDigit2.a > 0 ? el.strokeColorDigit2 : el.strokeColor);
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -219,18 +222,27 @@ class _StaticElement extends StatelessWidget {
               gradient: LinearGradient(colors: [c1, c1],
                   begin: el.gradStartAlign as Alignment,
                   end: el.gradEndAlign as Alignment),
-              style: fontTextStyle(font: el.font, fontSize: 35, height: 1, color: c1)),
+              style: fontTextStyle(font: el.font, fontSize: 35, height: 1, color: c1),
+              strokeWidth: el.strokeWidth,
+              strokeColor: sc1,
+              blurRadius: el.blurRadius,
+              isLiquidGlass: el.isLiquidGlass),
           GradientText(txt[1],
               gradient: LinearGradient(colors: [c2, c2],
                   begin: el.gradStartAlign as Alignment,
                   end: el.gradEndAlign as Alignment),
-              style: fontTextStyle(font: el.font, fontSize: 35, height: 1, color: c2)),
+              style: fontTextStyle(font: el.font, fontSize: 35, height: 1, color: c2),
+              strokeWidth: el.strokeWidth,
+              strokeColor: sc2,
+              blurRadius: el.blurRadius,
+              isLiquidGlass: el.isLiquidGlass),
         ],
       );
     }
 
     final c  = _adapt(el.color);
     final c2 = _adapt(el.colorSecondary);
+    final sc = _adapt(el.strokeColor);
     return GradientText(
       txt,
       gradient: LinearGradient(
@@ -239,13 +251,103 @@ class _StaticElement extends StatelessWidget {
         colors: [c, c2],
       ),
       style: fontTextStyle(font: el.font, fontSize: 35, height: 1, color: c),
+      strokeWidth: el.strokeWidth,
+      strokeColor: sc,
+      blurRadius: el.blurRadius,
+      isLiquidGlass: el.isLiquidGlass,
     );
   }
 
   Widget _container() {
+    if (el.isLiquidGlass) {
+      final frostBlur = el.blurRadius > 0 ? el.blurRadius : 0.0;
+      return Container(
+        height: el.height,
+        width:  el.width,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(el.radius),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.16),
+              blurRadius: 28,
+              offset: const Offset(0, 8),
+              spreadRadius: -2,
+            ),
+            BoxShadow(
+              color: Colors.white.withValues(alpha: 0.14),
+              blurRadius: 18,
+              spreadRadius: -1,
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(el.radius),
+          child: Stack(
+            children: [
+              if (frostBlur > 0)
+                Positioned.fill(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: frostBlur, sigmaY: frostBlur),
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(el.radius),
+                    color: const Color(0xFFD9D9D9).withValues(alpha: 0.20),
+                  ),
+                ),
+              ),
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(el.radius),
+                    gradient: const RadialGradient(
+                      center: Alignment(-0.2, -0.2),
+                      radius: 1.1,
+                      colors: [
+                        Color(0x00FFFFFF),
+                        Color(0x08FF3366),
+                        Color(0x1033CCFF),
+                        Color(0x28FFFFFF),
+                      ],
+                      stops: [0.65, 0.85, 0.94, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(el.radius),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xCCFFFFFF),
+                        Color(0x22FFFFFF),
+                        Color(0x00FFFFFF),
+                        Color(0x55FFFFFF),
+                      ],
+                      stops: [0.0, 0.25, 0.70, 1.0],
+                    ),
+                    border: Border.all(
+                      width: el.borderWidth > 0 ? el.borderWidth : 1.5,
+                      color: const Color(0x99FFFFFF),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final c  = _adapt(el.color);
     final c2 = _adapt(el.colorSecondary);
-    return Container(
+    Widget child = Container(
       height: el.height,
       width:  el.width,
       decoration: BoxDecoration(
@@ -260,6 +362,18 @@ class _StaticElement extends StatelessWidget {
         ),
       ),
     );
+
+    if (el.blurRadius > 0) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(el.radius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: el.blurRadius, sigmaY: el.blurRadius),
+          child: child,
+        ),
+      );
+    }
+
+    return child;
   }
 
   // "Wednesday" -> "Wed\nnesday": first 3 letters, then the remainder.
@@ -270,7 +384,7 @@ class _StaticElement extends StatelessWidget {
 
   Widget _notification() {
     final c = _adapt(el.color);
-    return Container(
+    Widget child = Container(
       height: 60,
       width: 250,
       decoration: BoxDecoration(
@@ -298,6 +412,18 @@ class _StaticElement extends StatelessWidget {
         ),
       ]),
     );
+
+    if (el.blurRadius > 0) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(el.radius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: el.blurRadius, sigmaY: el.blurRadius),
+          child: child,
+        ),
+      );
+    }
+
+    return child;
   }
 
   Widget _text() {
@@ -306,14 +432,33 @@ class _StaticElement extends StatelessWidget {
     for (final e in map.entries) {
       t = t.replaceAll(e.key, e.value);
     }
-    return Text(t,
-        style: fontTextStyle(
-          font: el.font,
-          color: _adapt(el.color),
-          fontSize: el.fontSize,
-          fontWeight: el.fontWeight,
-          height: 1,
-        ));
+    final color = _adapt(el.color);
+    final textStyle = fontTextStyle(
+      font: el.font,
+      color: color,
+      fontSize: el.fontSize,
+      fontWeight: el.fontWeight,
+      height: 1,
+    );
+
+    if (el.blurRadius > 0) {
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          Text(
+            t,
+            style: textStyle.copyWith(
+              foreground: Paint()
+                ..maskFilter = MaskFilter.blur(BlurStyle.normal, el.blurRadius)
+                ..color = color,
+            ),
+          ),
+          Text(t, style: textStyle),
+        ],
+      );
+    }
+
+    return Text(t, style: textStyle);
   }
 }
 

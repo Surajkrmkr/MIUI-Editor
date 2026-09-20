@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:screenshot/screenshot.dart';
 import '../../core/constants/app_constants.dart';
@@ -188,20 +189,6 @@ class ExportLockscreenPngsUseCase {
     }
   }
 
-  // ── FIX 1: apply the EXACT same transform stack as the live preview ────────
-  //
-  // Preview stack (from _DraggableElement):
-  //   Positioned(left: el.dx, top: el.dy)
-  //     Transform.scale(el.scale)
-  //       Transform.rotate(-el.angle * pi/180)
-  //         SizedBox(screenH × screenW)
-  //           Align(el.align)
-  //             <child>
-  //
-  // For export we don't use Positioned (no parent Stack), so we replicate
-  // the same effect using a transparent full-screen SizedBox with the child
-  // placed at (el.dx, el.dy) via a custom Stack — identical pixel output.
-
   Widget _phoneFrame(LockElement el, Widget child) {
     // Directionality is required because captureFromWidget uses an independent
     // rendering pipeline (screenshot v3) that has no inherited widgets — without
@@ -262,6 +249,10 @@ class ExportLockscreenPngsUseCase {
               height: 1,
               color: el.colorDigit1,
             ),
+            strokeWidth: el.strokeWidth,
+            strokeColor: el.strokeColorDigit1.a > 0 ? el.strokeColorDigit1 : el.strokeColor,
+            blurRadius: el.blurRadius,
+            isLiquidGlass: el.isLiquidGlass,
           ),
           GradientText(
             text[1],
@@ -276,6 +267,10 @@ class ExportLockscreenPngsUseCase {
               height: 1,
               color: el.colorDigit2,
             ),
+            strokeWidth: el.strokeWidth,
+            strokeColor: el.strokeColorDigit2.a > 0 ? el.strokeColorDigit2 : el.strokeColor,
+            blurRadius: el.blurRadius,
+            isLiquidGlass: el.isLiquidGlass,
           ),
         ],
       );
@@ -294,10 +289,111 @@ class ExportLockscreenPngsUseCase {
         height: 1,
         color: el.color,
       ),
+      strokeWidth: el.strokeWidth,
+      strokeColor: el.strokeColor,
+      blurRadius: el.blurRadius,
+      isLiquidGlass: el.isLiquidGlass,
     );
   }
 
-  Widget _containerWidget(LockElement el) => Container(
+  Widget _containerWidget(LockElement el) {
+    Widget containerWidget;
+    if (el.isLiquidGlass) {
+      final frostBlur = el.blurRadius > 0 ? el.blurRadius : 0.0;
+      containerWidget = Container(
+        height: el.height,
+        width: el.width,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(el.radius),
+          boxShadow: [
+            // Splay & Depth ambient occlusion (Figma Depth 100, Splay 100)
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.16),
+              blurRadius: 28,
+              offset: const Offset(0, 8),
+              spreadRadius: -2,
+            ),
+            // Soft outer refraction glow
+            BoxShadow(
+              color: Colors.white.withValues(alpha: 0.14),
+              blurRadius: 18,
+              spreadRadius: -1,
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(el.radius),
+          child: Stack(
+            children: [
+              // 1. Frost Blur (Figma Frost = 0 by default, or user adjustable)
+              if (frostBlur > 0)
+                Positioned.fill(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: frostBlur, sigmaY: frostBlur),
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+
+              // 2. Base Glass Fill (Figma Fill: #D9D9D9 at 20% opacity)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(el.radius),
+                    color: const Color(0xFFD9D9D9).withValues(alpha: 0.20),
+                  ),
+                ),
+              ),
+
+              // 3. Chromatic Dispersion & Refraction (Figma Refraction 80, Dispersion 100, Depth 100)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(el.radius),
+                    gradient: const RadialGradient(
+                      center: Alignment(-0.2, -0.2),
+                      radius: 1.1,
+                      colors: [
+                        Color(0x00FFFFFF), // Ultra-clear center (shows background sharp & magnified)
+                        Color(0x08FF3366), // Red-orange chromatic dispersion fringe
+                        Color(0x1033CCFF), // Cyan-blue chromatic dispersion fringe
+                        Color(0x28FFFFFF), // Outer refraction edge
+                      ],
+                      stops: [0.65, 0.85, 0.94, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+
+              // 4. Directional Light & Specular Bevel (Figma Light: -45° at 80% intensity)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(el.radius),
+                    // Light angle -45°: top-left bright light fading across to bottom-right
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xCCFFFFFF), // 80% light specular highlight at top-left
+                        Color(0x22FFFFFF),
+                        Color(0x00FFFFFF),
+                        Color(0x55FFFFFF), // Bottom-right refraction bounce
+                      ],
+                      stops: [0.0, 0.25, 0.70, 1.0],
+                    ),
+                    border: Border.all(
+                      width: el.borderWidth > 0 ? el.borderWidth : 1.5,
+                      color: const Color(0x99FFFFFF), // Crisp glass outline
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      Widget base = Container(
         height: el.height,
         width: el.width,
         decoration: BoxDecoration(
@@ -312,6 +408,22 @@ class ExportLockscreenPngsUseCase {
           ),
         ),
       );
+
+      if (el.blurRadius > 0) {
+        containerWidget = ClipRRect(
+          borderRadius: BorderRadius.circular(el.radius),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: el.blurRadius, sigmaY: el.blurRadius),
+            child: base,
+          ),
+        );
+      } else {
+        containerWidget = base;
+      }
+    }
+
+    return containerWidget;
+  }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
