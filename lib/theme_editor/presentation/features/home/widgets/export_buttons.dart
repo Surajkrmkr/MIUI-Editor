@@ -6,7 +6,6 @@ import '../../../providers/export_provider.dart';
 import '../../../providers/lockscreen_provider.dart';
 import '../../../providers/workspace_provider.dart';
 
-
 class ExportButtons extends ConsumerWidget {
   const ExportButtons({super.key});
 
@@ -124,7 +123,16 @@ class ExportButtons extends ConsumerWidget {
   }
 
   Future<void> _goLockscreen(BuildContext context, WidgetRef ref) async {
-    await ref.read(lockscreenProvider.notifier).copyDefaultPngs();
+    try {
+      await ref.read(lockscreenProvider.notifier).copyDefaultPngs();
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not prepare lockscreen assets: $e')),
+        );
+      }
+      return;
+    }
     ref.read(workspaceProvider.notifier).setPage(WorkspacePage.lockscreen);
   }
 }
@@ -157,15 +165,16 @@ class _ExportButton extends StatelessWidget {
     final bgColor = outlined
         ? Colors.transparent
         : isSuccess
-            ? scheme.primaryContainer
-            : scheme.primary;
+        ? scheme.primaryContainer
+        : scheme.primary;
     final fgColor = outlined
         ? scheme.primary
         : isSuccess
-            ? scheme.onPrimaryContainer
-            : scheme.onPrimary;
-    final iconBg =
-        outlined ? scheme.primaryContainer : Colors.white.withAlpha(30);
+        ? scheme.onPrimaryContainer
+        : scheme.onPrimary;
+    final iconBg = outlined
+        ? scheme.primaryContainer
+        : Colors.white.withAlpha(30);
 
     return Material(
       color: bgColor,

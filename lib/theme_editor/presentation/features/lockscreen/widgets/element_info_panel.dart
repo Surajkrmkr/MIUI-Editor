@@ -1,4 +1,7 @@
 import 'package:flex_color_picker/flex_color_picker.dart';
+import 'dart:io';
+import 'dart:ui' as ui;
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/core/theme/app_radius.dart';
@@ -30,7 +33,12 @@ class ElementInfoPanel extends ConsumerWidget {
     if (state.active == null) return const SizedBox.shrink();
 
     final el = state.active!;
-    final isHourMinSec = el.type == ElementType.hourClock ||
+    final isUnlock = el.type.isUnlockControl;
+    final usesFontSize =
+        (el.type.isText && el.type != ElementType.notification) ||
+        el.type == ElementType.calendarGrid;
+    final isHourMinSec =
+        el.type == ElementType.hourClock ||
         el.type == ElementType.minClock ||
         el.type == ElementType.secClock;
     // When digit colors are on, colorDigit1/colorDigit2 drive the render and
@@ -51,8 +59,7 @@ class ElementInfoPanel extends ConsumerWidget {
         children: [
           // Element title header
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: colors.surface,
               borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -60,12 +67,11 @@ class ElementInfoPanel extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                Icon(Icons.widgets_rounded,
-                    size: 16, color: colors.primary),
+                Icon(Icons.widgets_rounded, size: 16, color: colors.primary),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    el.name,
+                    el.label,
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
@@ -88,9 +94,7 @@ class ElementInfoPanel extends ConsumerWidget {
                     foregroundColor: scheme.error,
                     side: BorderSide(color: scheme.error.withAlpha(60)),
                   ),
-                  onPressed: el.type == ElementType.swipeUpUnlock
-                      ? null
-                      : () => n.remove(el.type),
+                  onPressed: () => n.remove(el.type),
                 ),
               ],
             ),
@@ -107,8 +111,9 @@ class ElementInfoPanel extends ConsumerWidget {
               child: Center(
                 child: AppDropZone(
                   label: 'Drop ${el.type.isVideo ? "MP4" : "PNG"}',
-                  allowedExtensions:
-                      el.type.isVideo ? ['.mp4'] : ['.png', '.jpg'],
+                  allowedExtensions: el.type.isVideo
+                      ? ['.mp4']
+                      : ['.png', '.jpg'],
                   onDropped: (path) => _copyAsset(ref, path, el),
                 ),
               ),
@@ -128,7 +133,13 @@ class ElementInfoPanel extends ConsumerWidget {
                       Expanded(
                         child: _ColorBtn(
                           color: el.color,
-                          label: 'Primary',
+                          label: el.type == ElementType.notification
+                              ? 'Text'
+                              : isUnlock
+                              ? 'Icon'
+                              : el.type == ElementType.arcShape
+                              ? 'Progress'
+                              : 'Primary',
                           onChanged: (c) => n.setColor(el.type, c),
                         ),
                       ),
@@ -136,7 +147,11 @@ class ElementInfoPanel extends ConsumerWidget {
                       Expanded(
                         child: _ColorBtn(
                           color: el.colorSecondary,
-                          label: 'Secondary',
+                          label: el.type == ElementType.notification || isUnlock
+                              ? 'Background'
+                              : el.type == ElementType.arcShape
+                              ? 'Track'
+                              : 'Secondary',
                           onChanged: (c) => n.setColorSecondary(el.type, c),
                         ),
                       ),
@@ -182,19 +197,23 @@ class ElementInfoPanel extends ConsumerWidget {
               title: 'CLOCK OPTIONS',
               child: Column(
                 children: [
-                  _ToggleRow(
-                    label: 'Short format',
-                    value: el.isShort,
-                    onChanged: (v) => n.setIsShort(el.type, v),
-                  ),
-                  const SizedBox(height: 6),
-                  _ToggleRow(
-                    label: 'Wrap text',
-                    value: el.isWrap,
-                    onChanged: (v) => n.setIsWrap(el.type, v),
-                  ),
+                  if (el.type == ElementType.weekClock ||
+                      el.type == ElementType.monthClock) ...[
+                    _ToggleRow(
+                      label: 'Short format',
+                      value: el.isShort,
+                      onChanged: (v) => n.setIsShort(el.type, v),
+                    ),
+                    const SizedBox(height: 6),
+                    _ToggleRow(
+                      label: 'Wrap text',
+                      value: el.isWrap,
+                      onChanged: (v) => n.setIsWrap(el.type, v),
+                    ),
+                  ],
                   if (el.type == ElementType.hourClock ||
-                      el.type == ElementType.minClock || el.type == ElementType.secClock) ...[
+                      el.type == ElementType.minClock ||
+                      el.type == ElementType.secClock) ...[
                     const SizedBox(height: 6),
                     _ToggleRow(
                       label: 'Separate Digit Colors',
@@ -229,7 +248,8 @@ class ElementInfoPanel extends ConsumerWidget {
                             child: _ColorBtn(
                               color: el.strokeColorDigit1,
                               label: 'Digit 1 Stroke',
-                              onChanged: (c) => n.setStrokeColorDigit1(el.type, c),
+                              onChanged: (c) =>
+                                  n.setStrokeColorDigit1(el.type, c),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -237,7 +257,8 @@ class ElementInfoPanel extends ConsumerWidget {
                             child: _ColorBtn(
                               color: el.strokeColorDigit2,
                               label: 'Digit 2 Stroke',
-                              onChanged: (c) => n.setStrokeColorDigit2(el.type, c),
+                              onChanged: (c) =>
+                                  n.setStrokeColorDigit2(el.type, c),
                             ),
                           ),
                         ],
@@ -294,23 +315,23 @@ class ElementInfoPanel extends ConsumerWidget {
           ),
 
           _Section(
-            title: el.type.isText ? 'FONT SIZE' : 'SCALE',
+            title: usesFontSize ? 'FONT SIZE' : 'SCALE',
             child: Column(
               children: [
                 _SliderRow(
-                  label: el.type.isText ? 'Font Size' : 'Scale',
-                  value: el.type.isText ? el.fontSize : el.scale,
+                  label: usesFontSize ? 'Font Size' : 'Scale',
+                  value: usesFontSize ? el.fontSize : el.scale,
                   min: 0,
-                  max: el.type.isText ? 100 : 4,
-                  onChanged: (v) => el.type.isText
+                  max: usesFontSize ? 100 : 4,
+                  onChanged: (v) => usesFontSize
                       ? n.setFontSize(el.type, v)
                       : n.setScale(el.type, v),
                 ),
                 const SizedBox(height: 4),
                 _ScalePresets(
-                  isText: el.type.isText,
-                  value: el.type.isText ? el.fontSize : el.scale,
-                  onSelected: (v) => el.type.isText
+                  isText: usesFontSize,
+                  value: usesFontSize ? el.fontSize : el.scale,
+                  onSelected: (v) => usesFontSize
                       ? n.setFontSize(el.type, v)
                       : n.setScale(el.type, v),
                 ),
@@ -385,64 +406,509 @@ class ElementInfoPanel extends ConsumerWidget {
               ),
             ),
 
-          if (el.type == ElementType.notification ||
-              el.type.isClock)
+          if (el.type.isNormalText || el.type.isDateTime)
             _Section(
-              title: el.type.isClock ? 'BLUR & GLASS EFFECT' : 'BACKGROUND BLUR',
-              child: Column(
-                children: [
-                  _SliderRow(
-                    label: el.type.isClock ? 'Blur Intensity' : 'Blur Radius',
-                    value: el.blurRadius,
-                    min: 0,
-                    max: 50,
-                    onChanged: (v) => n.setBlurRadius(el.type, v),
-                  ),
-                  const SizedBox(height: 6),
-                  _ToggleRow(
-                    label: 'Liquid Glass Effect',
-                    value: el.isLiquidGlass,
-                    onChanged: (v) => n.setIsLiquidGlass(el.type, v),
-                  ),
-                ],
-              ),
-            ),
-
-          if (el.type.isText)
-            _Section(
-              title: 'TEXT / EXPRESSION',
+              title: el.type.isDateTime
+                  ? 'DATE / TIME FORMAT'
+                  : 'TEXT / EXPRESSION',
               child: TextField(
                 controller: TextEditingController(text: el.text)
-                  ..selection =
-                      TextSelection.collapsed(offset: el.text.length),
-                decoration: const InputDecoration(
-                  hintText: 'Enter text or expression…',
+                  ..selection = TextSelection.collapsed(offset: el.text.length),
+                decoration: InputDecoration(
+                  hintText: el.type.isDateTime
+                      ? 'dd/MM/yyyy HH:mm'
+                      : 'Enter text or expression…',
+                  suffixIcon: el.type.isDateTime
+                      ? PopupMenuButton<({String pattern, bool replace})>(
+                          tooltip: 'Date/time formats',
+                          icon: const Icon(Icons.calendar_month_outlined),
+                          onSelected: (selection) => n.setText(
+                            el.type,
+                            selection.replace
+                                ? selection.pattern
+                                : '${el.text}${selection.pattern}',
+                          ),
+                          itemBuilder: (context) => [
+                            for (final pattern in [
+                              'HH:mm',
+                              'hh:mm a',
+                              'dd/MM/yyyy',
+                              'yyyy-MM-dd',
+                              'EEEE, d MMMM',
+                              'dd MMM yyyy HH:mm',
+                            ])
+                              PopupMenuItem(
+                                value: (pattern: pattern, replace: true),
+                                child: Text(pattern),
+                              ),
+                            const PopupMenuDivider(),
+                            for (final entry in const {
+                              'yyyy': 'Year (2026)',
+                              'MM': 'Month (01-12)',
+                              'MMM': 'Short month',
+                              'MMMM': 'Full month',
+                              'dd': 'Day (01-31)',
+                              'EEE': 'Short weekday',
+                              'EEEE': 'Full weekday',
+                              'HH': '24-hour (00-23)',
+                              'hh': '12-hour (01-12)',
+                              'mm': 'Minute (00-59)',
+                              'ss': 'Second (00-59)',
+                              'a': 'AM / PM',
+                            }.entries)
+                              PopupMenuItem(
+                                value: (pattern: entry.key, replace: false),
+                                child: Text('${entry.key}  ${entry.value}'),
+                              ),
+                          ],
+                        )
+                      : null,
                 ),
                 onChanged: (v) => n.setText(el.type, v),
               ),
             ),
 
-          if (!el.type.isIcon &&
-              !el.type.isMusic &&
-              !el.type.isContainer)
+          if (el.type.isText || el.type == ElementType.calendarGrid || isUnlock)
+            _Section(
+              title: 'TEXT STYLE',
+              child: _ToggleRow(
+                label: 'Bold',
+                value: el.isBold,
+                onChanged: (value) => n.setFontWeight(
+                  el.type,
+                  value ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ),
+
+          if (el.type == ElementType.notification)
+            _Section(
+              title: 'NOTIFICATIONS',
+              child: Column(
+                children: [
+                  _SliderRow(
+                    label: 'Maximum Visible',
+                    value: el.notificationLimit.toDouble().clamp(1, 10),
+                    min: 1,
+                    max: 10,
+                    divisions: 9,
+                    onChanged: (value) => n.update(
+                      el.type,
+                      (element) => element.copyWith(
+                        notificationLimit: value.round().clamp(1, 10),
+                      ),
+                    ),
+                  ),
+                  _SliderRow(
+                    label: 'Corner Radius',
+                    value: el.radius.clamp(0, 40),
+                    min: 0,
+                    max: 40,
+                    onChanged: (value) => n.update(
+                      el.type,
+                      (element) => element.copyWith(radius: value.clamp(0, 40)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          if (!el.type.isIcon && !el.type.isMusic && !el.type.isContainer)
             _Section(
               title: 'ALIGNMENT',
               child: Row(
                 children: [
                   Expanded(
-                      child:
-                          _AlignChip('Left', Alignment.centerLeft, el, n)),
+                    child: _AlignChip('Left', Alignment.centerLeft, el, n),
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
-                      child: _AlignChip('Center', Alignment.center, el, n)),
+                    child: _AlignChip('Center', Alignment.center, el, n),
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
-                      child: _AlignChip(
-                          'Right', Alignment.centerRight, el, n)),
+                    child: _AlignChip('Right', Alignment.centerRight, el, n),
+                  ),
                 ],
               ),
             ),
 
+          if (el.type == ElementType.calendarGrid)
+            _Section(
+              title: 'CALENDAR',
+              child: Column(
+                children: [
+                  DropdownButtonFormField<int>(
+                    key: ValueKey('${el.name}-rows-${el.calendarWeekRows}'),
+                    initialValue: el.calendarWeekRows,
+                    decoration: const InputDecoration(labelText: 'Date rows'),
+                    items: const [
+                      DropdownMenuItem(value: 6, child: Text('Full month')),
+                      DropdownMenuItem(value: 1, child: Text('One row')),
+                      DropdownMenuItem(value: 2, child: Text('Two rows')),
+                    ],
+                    onChanged: (rows) {
+                      if (rows == null) return;
+                      n.update(
+                        el.type,
+                        (element) => element.copyWith(
+                          calendarRows: rows,
+                          height:
+                              element.height /
+                              element.calendarDisplayRows *
+                              (rows +
+                                  (element.calendarShowMonth ? 1 : 0) +
+                                  (element.calendarShowWeekdays ? 1 : 0)),
+                        ),
+                      );
+                    },
+                  ),
+                  _ToggleRow(
+                    label: 'Month heading',
+                    value: el.calendarShowMonth,
+                    onChanged: (value) => n.update(
+                      el.type,
+                      (element) => element.copyWith(
+                        calendarShowMonth: value,
+                        height:
+                            element.height /
+                            element.calendarDisplayRows *
+                            (element.calendarDisplayRows + (value ? 1 : -1)),
+                      ),
+                    ),
+                  ),
+                  _ToggleRow(
+                    label: 'Weekday headings',
+                    value: el.calendarShowWeekdays,
+                    onChanged: (value) => n.update(
+                      el.type,
+                      (element) => element.copyWith(
+                        calendarShowWeekdays: value,
+                        height:
+                            element.height /
+                            element.calendarDisplayRows *
+                            (element.calendarDisplayRows + (value ? 1 : -1)),
+                      ),
+                    ),
+                  ),
+                  _SliderRow(
+                    label: 'Highlight radius',
+                    value: el.radius.clamp(0, 40),
+                    min: 0,
+                    max: 40,
+                    onChanged: (value) => n.setRadius(el.type, value),
+                  ),
+                  _SliderRow(
+                    label: 'Width',
+                    value: el.width.clamp(140, 1080),
+                    min: 140,
+                    max: 1080,
+                    onChanged: (value) => n.update(
+                      el.type,
+                      (element) =>
+                          element.copyWith(width: value.clamp(140, 1080)),
+                    ),
+                  ),
+                  _SliderRow(
+                    label: 'Height',
+                    value: el.height.clamp(40, 1600),
+                    min: 40,
+                    max: 1600,
+                    onChanged: (value) => n.update(
+                      el.type,
+                      (element) =>
+                          element.copyWith(height: value.clamp(40, 1600)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (isUnlock)
+            _Section(
+              title: 'UNLOCK AREA',
+              child: Column(
+                children: [
+                  TextFormField(
+                    key: ValueKey('${el.name}-unlock-text'),
+                    initialValue: el.unlockText,
+                    decoration: const InputDecoration(labelText: 'Custom text'),
+                    onChanged: (value) => n.update(
+                      el.type,
+                      (element) => element.copyWith(unlockText: value),
+                    ),
+                  ),
+                  if (el.unlockText.isNotEmpty)
+                    _SliderRow(
+                      label: 'Text size',
+                      value: el.fontSize.clamp(4, 40),
+                      min: 4,
+                      max: 40,
+                      onChanged: (value) => n.update(
+                        el.type,
+                        (element) => element.copyWith(fontSize: value),
+                      ),
+                    ),
+                  DropdownButtonFormField<UnlockIcon>(
+                    key: ValueKey('${el.name}-${el.unlockIcon.name}'),
+                    initialValue: el.unlockIcon,
+                    decoration: const InputDecoration(labelText: 'Icon'),
+                    isExpanded: true,
+                    items: [
+                      for (final icon in UnlockIcon.values)
+                        DropdownMenuItem(
+                          value: icon,
+                          child: Row(
+                            children: [
+                              Icon(
+                                icon.icon ??
+                                    (icon == UnlockIcon.none
+                                        ? Icons.block_rounded
+                                        : icon == UnlockIcon.customPng
+                                        ? Icons.image_outlined
+                                        : Icons.auto_mode_rounded),
+                                size: 18,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(icon.label),
+                            ],
+                          ),
+                        ),
+                    ],
+                    onChanged: (icon) {
+                      if (icon == null) return;
+                      n.snapshotForDrag();
+                      n.update(
+                        el.type,
+                        (element) => element.copyWith(unlockIcon: icon),
+                      );
+                    },
+                  ),
+                  if (el.effectiveUnlockIcon == UnlockIcon.customPng) ...[
+                    const SizedBox(height: 8),
+                    AppDropZone(
+                      label: 'Drop PNG',
+                      allowedExtensions: const ['.png', '.PNG'],
+                      onDropped: (path) =>
+                          _importUnlockPng(context, ref, el, path),
+                    ),
+                    TextButton.icon(
+                      icon: const Icon(Icons.folder_open_rounded, size: 18),
+                      label: Text(
+                        el.unlockIconPath.isEmpty
+                            ? 'Choose PNG'
+                            : 'Replace PNG',
+                      ),
+                      onPressed: () async {
+                        final result = await FilePicker.platform.pickFiles(
+                          type: FileType.custom,
+                          allowedExtensions: ['png'],
+                        );
+                        final path = result?.files.single.path;
+                        if (path == null || !context.mounted) return;
+                        await _importUnlockPng(context, ref, el, path);
+                      },
+                    ),
+                  ],
+                  if (el.effectiveUnlockIcon != UnlockIcon.none)
+                    _SliderRow(
+                      label: 'Icon size',
+                      value: el.unlockIconScale.clamp(.2, 1) * 100,
+                      min: 20,
+                      max: 100,
+                      onChanged: (value) => n.update(
+                        el.type,
+                        (element) =>
+                            element.copyWith(unlockIconScale: value / 100),
+                      ),
+                    ),
+                  _SliderRow(
+                    label: 'Corner radius',
+                    value: el.effectiveUnlockCornerRadius,
+                    min: 0,
+                    max:
+                        (el.width < el.unlockHeight
+                            ? el.width
+                            : el.unlockHeight) /
+                        2,
+                    onChanged: (value) => n.update(
+                      el.type,
+                      (element) => element.copyWith(unlockCornerRadius: value),
+                    ),
+                  ),
+                  _SliderRow(
+                    label: 'Background opacity',
+                    value: el.unlockBackgroundOpacity.clamp(0, 1) * 100,
+                    min: 0,
+                    max: 100,
+                    onChanged: (value) => n.update(
+                      el.type,
+                      (element) => element.copyWith(
+                        unlockBackgroundOpacity: value / 100,
+                      ),
+                    ),
+                  ),
+                  if (el.type == ElementType.slideToUnlock ||
+                      el.type == ElementType.dragToUnlock)
+                    _SliderRow(
+                      label: 'Thumb opacity',
+                      value: el.unlockThumbOpacity.clamp(0, 1) * 100,
+                      min: 0,
+                      max: 100,
+                      onChanged: (value) => n.update(
+                        el.type,
+                        (element) =>
+                            element.copyWith(unlockThumbOpacity: value / 100),
+                      ),
+                    ),
+                  _SliderRow(
+                    label: 'Width',
+                    value: el.width.clamp(80, 1080),
+                    min: 80,
+                    max: 1080,
+                    onChanged: (value) => n.update(
+                      el.type,
+                      (element) => element.copyWith(width: value),
+                    ),
+                  ),
+                  _SliderRow(
+                    label: 'Height',
+                    value: el.height.clamp(48, 800),
+                    min: 48,
+                    max: 800,
+                    onChanged: (value) => n.update(
+                      el.type,
+                      (element) => element.copyWith(height: value),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (el.type.isShape)
+            _Section(
+              title: 'GEOMETRY',
+              child: Column(
+                children: [
+                  if (el.type == ElementType.arcShape)
+                    _SliderRow(
+                      label: 'Radius',
+                      value: (el.width / 2).clamp(1, 540),
+                      min: 1,
+                      max: 540,
+                      onChanged: (value) => n.update(
+                        el.type,
+                        (element) => element.copyWith(
+                          width: value * 2,
+                          height: value * 2,
+                        ),
+                      ),
+                    ),
+                  if (el.type != ElementType.arcShape)
+                    _SliderRow(
+                      label: 'Width',
+                      value: el.width.clamp(1, 1080),
+                      min: 1,
+                      max: 1080,
+                      onChanged: (value) => n.update(
+                        el.type,
+                        (element) =>
+                            element.copyWith(width: value.clamp(1, 1080)),
+                      ),
+                    ),
+                  if (el.type != ElementType.circleShape &&
+                      el.type != ElementType.arcShape)
+                    _SliderRow(
+                      label: 'Height',
+                      value: el.height.clamp(1, 2340),
+                      min: 1,
+                      max: 2340,
+                      onChanged: (value) => n.update(
+                        el.type,
+                        (element) =>
+                            element.copyWith(height: value.clamp(1, 2340)),
+                      ),
+                    ),
+                  _SliderRow(
+                    label: 'Stroke Width',
+                    value: el.shapeStrokeWidth.clamp(0, 100),
+                    min: 0,
+                    max: 100,
+                    onChanged: (value) => n.update(
+                      el.type,
+                      (element) => element.copyWith(
+                        shapeStrokeWidth: value.clamp(0, 100),
+                      ),
+                    ),
+                  ),
+                  if (el.type == ElementType.rectangleShape)
+                    _SliderRow(
+                      label: 'Corner Radius',
+                      value: el.radius.clamp(0, 200),
+                      min: 0,
+                      max: 200,
+                      onChanged: (value) => n.update(
+                        el.type,
+                        (element) =>
+                            element.copyWith(radius: value.clamp(0, 200)),
+                      ),
+                    ),
+                  if (el.type == ElementType.arcShape) ...[
+                    _SliderRow(
+                      label: 'Start Angle',
+                      value: el.startAngle.clamp(-360, 360),
+                      min: -360,
+                      max: 360,
+                      onChanged: (value) => n.update(
+                        el.type,
+                        (element) => element.copyWith(
+                          startAngle: value.clamp(-360, 360),
+                        ),
+                      ),
+                    ),
+                    _SliderRow(
+                      label: 'Sweep Angle',
+                      value: el.sweepAngle.clamp(-360, 360),
+                      min: -360,
+                      max: 360,
+                      onChanged: (value) => n.update(
+                        el.type,
+                        (element) => element.copyWith(
+                          sweepAngle: value.clamp(-360, 360),
+                        ),
+                      ),
+                    ),
+                    DropdownButtonFormField<ArcProgressSource>(
+                      initialValue: el.effectiveProgressSource,
+                      key: ValueKey(
+                        '${el.name}-${el.effectiveProgressSource.name}',
+                      ),
+                      decoration: const InputDecoration(
+                        labelText: 'Progress source',
+                      ),
+                      items: [
+                        for (final source in ArcProgressSource.values)
+                          DropdownMenuItem(
+                            value: source,
+                            child: Text(source.label),
+                          ),
+                      ],
+                      onChanged: (source) {
+                        if (source == null) return;
+                        n.snapshotForDrag();
+                        n.update(
+                          el.type,
+                          (element) => element.copyWith(
+                            progressSource: source,
+                            batteryArc: false,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          if (el.type != ElementType.swipeUpUnlock && !el.type.isVideo)
+            _AnimationTracksPanel(element: el, notifier: n),
           _Section(
             title: 'ROTATION',
             child: _SliderRow(
@@ -451,6 +917,7 @@ class ElementInfoPanel extends ConsumerWidget {
               min: 0,
               max: 360,
               divisions: 36,
+              decimals: 0,
               onChanged: (v) => n.setAngle(el.type, v),
             ),
           ),
@@ -459,15 +926,57 @@ class ElementInfoPanel extends ConsumerWidget {
     );
   }
 
-  Future<void> _copyAsset(
-      WidgetRef ref, String src, LockElement el) async {
+  Future<void> _importUnlockPng(
+    BuildContext context,
+    WidgetRef ref,
+    LockElement element,
+    String source,
+  ) async {
+    try {
+      final codec = await ui.instantiateImageCodec(
+        await File(source).readAsBytes(),
+      );
+      codec.dispose();
+      if (!context.mounted) return;
+      final wallpaper = ref.read(wallpaperProvider);
+      var destination = source;
+      if (wallpaper.weekNum != null && wallpaper.currentThemeName != null) {
+        final theme = PathConstants.themePath(
+          wallpaper.weekNum!,
+          wallpaper.currentThemeName!,
+        );
+        destination = PathConstants.p(
+          '${PathConstants.lockscreenAdvance(theme)}unlock/custom/${element.name}.png',
+        );
+        if (File(source).absolute.path != File(destination).absolute.path) {
+          await ref.read(fileServiceProvider).copyFile(source, destination);
+        }
+      }
+      if (!context.mounted) return;
+      ref
+          .read(elementProvider.notifier)
+          .update(
+            element.type,
+            (current) => current.copyWith(
+              unlockIcon: UnlockIcon.customPng,
+              unlockIconPath: destination,
+            ),
+          );
+    } catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Could not load PNG: $error')));
+    }
+  }
+
+  Future<void> _copyAsset(WidgetRef ref, String src, LockElement el) async {
     final ws = ref.read(wallpaperProvider);
     if (ws.weekNum == null || ws.currentThemeName == null) return;
     final tp = PathConstants.themePath(ws.weekNum!, ws.currentThemeName!);
     final lsAdv = PathConstants.lockscreenAdvance(tp);
     final ext = el.type.isVideo ? 'mp4' : 'png';
-    final resolvedPath =
-        el.path.isNotEmpty ? el.path : el.type.defaultPath;
+    final resolvedPath = el.path.isNotEmpty ? el.path : el.type.defaultPath;
     final relative = resolvedPath.startsWith(r'')
         ? resolvedPath.substring(1)
         : resolvedPath;
@@ -478,6 +987,442 @@ class ElementInfoPanel extends ConsumerWidget {
 }
 
 // ── Group Mode Panel ──────────────────────────────────────────────────────────
+
+class _AnimationTracksPanel extends StatelessWidget {
+  const _AnimationTracksPanel({required this.element, required this.notifier});
+  final LockElement element;
+  final ElementNotifier notifier;
+
+  void _update(ElementAnimationTrack updated) => notifier.update(
+    element.type,
+    (current) => current.copyWith(
+      animation: ElementAnimation.none,
+      animations: [
+        for (final track in current.activeAnimations)
+          track.type == updated.type ? updated : track,
+      ],
+    ),
+  );
+
+  static String _trackDisplayName(ElementAnimation type) => switch (type) {
+    ElementAnimation.scale => 'Scale',
+    ElementAnimation.position => 'Position',
+    ElementAnimation.rotation => 'Rotation',
+    ElementAnimation.alpha => 'Opacity',
+    ElementAnimation.size => 'Size',
+    ElementAnimation.none => 'None',
+  };
+
+  static IconData _iconForTrack(ElementAnimation type) => switch (type) {
+    ElementAnimation.scale => Icons.zoom_out_map_rounded,
+    ElementAnimation.position => Icons.open_with_rounded,
+    ElementAnimation.rotation => Icons.rotate_right_rounded,
+    ElementAnimation.alpha => Icons.opacity_rounded,
+    ElementAnimation.size => Icons.aspect_ratio_rounded,
+    ElementAnimation.none => Icons.motion_photos_off_rounded,
+  };
+
+  static String _formatEaseName(MamlEase ease) {
+    final name = ease.name;
+    final buffer = StringBuffer();
+    for (int i = 0; i < name.length; i++) {
+      final char = name[i];
+      if (i == 0) {
+        buffer.write(char.toUpperCase());
+      } else if (char.toUpperCase() == char && char.toLowerCase() != char) {
+        buffer.write(' ');
+        buffer.write(char);
+      } else {
+        buffer.write(char);
+      }
+    }
+    return buffer.toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+    final tracks = element.activeAnimations;
+    final available = ElementAnimation.values
+        .where(
+          (type) =>
+              type != ElementAnimation.none &&
+              !tracks.any((track) => track.type == type) &&
+              (type != ElementAnimation.size ||
+                  const {
+                    ElementType.rectangleShape,
+                    ElementType.ellipseShape,
+                    ElementType.arcShape,
+                  }.contains(element.type)),
+        )
+        .toList();
+
+    return _Section(
+      title: 'ELEMENT ANIMATION',
+      trailing: available.isNotEmpty
+          ? PopupMenuButton<ElementAnimation>(
+              tooltip: 'Add animation',
+              offset: const Offset(0, 24),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+              color: colors.surface,
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colors.primary.withAlpha(25),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                    border: Border.all(color: colors.primary.withAlpha(100)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add_rounded, size: 14, color: colors.primary),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Add',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: colors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              itemBuilder: (context) => [
+                for (final type in available)
+                  PopupMenuItem(
+                    value: type,
+                    height: 36,
+                    child: Row(
+                      children: [
+                        Icon(
+                          _iconForTrack(type),
+                          size: 16,
+                          color: colors.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _trackDisplayName(type),
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+              onSelected: (type) {
+                notifier.snapshotForDrag();
+                notifier.update(
+                  element.type,
+                  (current) => current.copyWith(
+                    animation: ElementAnimation.none,
+                    animations: [
+                      ...current.activeAnimations,
+                      ElementAnimationTrack(
+                        type: type,
+                        amount: switch (type) {
+                          ElementAnimation.scale ||
+                          ElementAnimation.size => 1.2,
+                          ElementAnimation.alpha => 80,
+                          ElementAnimation.rotation => 360,
+                          _ => 60,
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            )
+          : null,
+      child: tracks.isEmpty
+          ? Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: colors.border.withAlpha(80)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.auto_awesome_motion_outlined,
+                    size: 28,
+                    color: scheme.onSurfaceVariant.withAlpha(120),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'No animations added',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Tap "+ Add" above to animate this element',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: scheme.onSurfaceVariant.withAlpha(150),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final track in tracks)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: colors.surface,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      border: Border.all(color: colors.border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: colors.primary.withAlpha(22),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.xs,
+                                ),
+                              ),
+                              child: Icon(
+                                _iconForTrack(track.type),
+                                size: 14,
+                                color: colors.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _trackDisplayName(track.type),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              tooltip:
+                                  'Remove ${_trackDisplayName(track.type)} animation',
+                              icon: const Icon(Icons.close_rounded, size: 16),
+                              splashRadius: 14,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 24,
+                                minHeight: 24,
+                              ),
+                              onPressed: () {
+                                notifier.snapshotForDrag();
+                                notifier.update(
+                                  element.type,
+                                  (current) => current.copyWith(
+                                    animation: ElementAnimation.none,
+                                    animations: current.activeAnimations
+                                        .where(
+                                          (item) => item.type != track.type,
+                                        )
+                                        .toList(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Easing',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              height: 34,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colors.surfaceOverlay,
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.sm,
+                                ),
+                                border: Border.all(color: colors.border),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<MamlEase>(
+                                  key: ValueKey(
+                                    '${element.type.name}-${track.type.name}-${track.ease.name}',
+                                  ),
+                                  value: track.ease,
+                                  isExpanded: true,
+                                  icon: const Icon(
+                                    Icons.keyboard_arrow_down_rounded,
+                                    size: 18,
+                                  ),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.md,
+                                  ),
+                                  items: [
+                                    for (final ease in MamlEase.values)
+                                      DropdownMenuItem(
+                                        value: ease,
+                                        child: Text(
+                                          _formatEaseName(ease),
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                      ),
+                                  ],
+                                  onChanged: (ease) {
+                                    if (ease == null) return;
+                                    notifier.snapshotForDrag();
+                                    _update(track.copyWith(ease: ease));
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        _SliderRow(
+                          label: 'Duration (ms)',
+                          value: track.duration.toDouble().clamp(100, 10000),
+                          min: 100,
+                          max: 10000,
+                          decimals: 0,
+                          onChanged: (value) => _update(
+                            track.copyWith(
+                              duration: value.round().clamp(100, 60000),
+                            ),
+                          ),
+                        ),
+                        if (track.type == ElementAnimation.position)
+                          _ToggleRow(
+                            label: 'Custom start position',
+                            value: track.hasCustomStart,
+                            onChanged: (value) {
+                              notifier.snapshotForDrag();
+                              _update(
+                                track.copyWith(
+                                  startX: element.dx,
+                                  startY: element.dy,
+                                  clearStartPosition: !value,
+                                ),
+                              );
+                            },
+                          ),
+                        if (track.hasCustomStart) ...[
+                          _SliderRow(
+                            label: 'Start X',
+                            value: track.startX!.clamp(-600, 600),
+                            min: -600,
+                            max: 600,
+                            onChanged: (value) =>
+                                _update(track.copyWith(startX: value)),
+                          ),
+                          _SliderRow(
+                            label: 'Start Y',
+                            value: track.startY!.clamp(-1200, 1200),
+                            min: -1200,
+                            max: 1200,
+                            onChanged: (value) =>
+                                _update(track.copyWith(startY: value)),
+                          ),
+                        ],
+                        if (!track.hasCustomStart)
+                          _SliderRow(
+                            label: switch (track.type) {
+                              ElementAnimation.position =>
+                                'Horizontal Distance (px)',
+                              ElementAnimation.rotation => 'Rotation (degrees)',
+                              ElementAnimation.alpha => 'Minimum Alpha',
+                              _ => 'Peak Scale',
+                            },
+                            min: _minimum(track.type),
+                            max: _maximum(track.type),
+                            decimals: switch (track.type) {
+                              ElementAnimation.scale ||
+                              ElementAnimation.size => 2,
+                              _ => 0,
+                            },
+                            value: track.amount.clamp(
+                              _minimum(track.type),
+                              _maximum(track.type),
+                            ),
+                            onChanged: (value) => _update(
+                              track.copyWith(
+                                amount: value.clamp(
+                                  _minimum(track.type),
+                                  _maximum(track.type),
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (track.type == ElementAnimation.position &&
+                            !track.hasCustomStart)
+                          _SliderRow(
+                            label: 'Vertical Distance (px)',
+                            value: track.offsetY.clamp(-2340, 2340),
+                            min: -2340,
+                            max: 2340,
+                            decimals: 0,
+                            onChanged: (value) => _update(
+                              track.copyWith(offsetY: value.clamp(-2340, 2340)),
+                            ),
+                          ),
+                        const SizedBox(height: 2),
+                        _ToggleRow(
+                          label: 'Loop Animation',
+                          value: track.loop,
+                          onChanged: (value) {
+                            notifier.snapshotForDrag();
+                            _update(track.copyWith(loop: value));
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+    );
+  }
+
+  double _minimum(ElementAnimation type) => switch (type) {
+    ElementAnimation.scale || ElementAnimation.size => 0.1,
+    ElementAnimation.position => -1080,
+    _ => 0,
+  };
+
+  double _maximum(ElementAnimation type) => switch (type) {
+    ElementAnimation.scale || ElementAnimation.size => 4,
+    ElementAnimation.alpha => 255,
+    _ => 1080,
+  };
+}
 
 class _GroupPanel extends StatefulWidget {
   const _GroupPanel({required this.state, required this.n});
@@ -515,14 +1460,20 @@ class _GroupPanelState extends State<_GroupPanel> {
     final state = widget.state;
     final n = widget.n;
 
-    final selectedElements = state.elements
-        .where((e) => state.selectedTypes.contains(e.type))
-        .toList();
+    final selectedElements = state.elements.where(state.isSelected).toList();
     final colorableElements = selectedElements
-        .where((e) => !e.type.isIcon && !e.type.isMusic && !e.type.isVideo && !e.type.isPng)
+        .where(
+          (e) =>
+              !e.type.isIcon &&
+              !e.type.isMusic &&
+              !e.type.isVideo &&
+              !e.type.isPng,
+        )
         .toList();
 
-    final firstColor = colorableElements.isNotEmpty ? colorableElements.first.color : Colors.white;
+    final firstColor = colorableElements.isNotEmpty
+        ? colorableElements.first.color
+        : Colors.white;
 
     return SizedBox(
       width: 450,
@@ -540,11 +1491,15 @@ class _GroupPanelState extends State<_GroupPanel> {
             ),
             child: Row(
               children: [
-                Icon(Icons.select_all_rounded, size: 16, color: context.appColors.primary),
+                Icon(
+                  Icons.select_all_rounded,
+                  size: 16,
+                  color: context.appColors.primary,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Group — ${state.selectedTypes.length} elements',
+                    'Group — ${selectedElements.length} elements',
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
@@ -578,7 +1533,9 @@ class _GroupPanelState extends State<_GroupPanel> {
                       child: TextField(
                         controller: _xController,
                         decoration: const InputDecoration(labelText: 'X'),
-                        keyboardType: const TextInputType.numberWithOptions(signed: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          signed: true,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -586,7 +1543,9 @@ class _GroupPanelState extends State<_GroupPanel> {
                       child: TextField(
                         controller: _yController,
                         decoration: const InputDecoration(labelText: 'Y'),
-                        keyboardType: const TextInputType.numberWithOptions(signed: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          signed: true,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -595,9 +1554,7 @@ class _GroupPanelState extends State<_GroupPanel> {
                       tooltip: 'Center all horizontally',
                       visualDensity: VisualDensity.compact,
                       onPressed: () {
-                        for (final t in state.selectedTypes) {
-                          n.centerHorizontal(t);
-                        }
+                        n.centerGroup(horizontal: true);
                       },
                     ),
                     const SizedBox(width: 4),
@@ -606,9 +1563,7 @@ class _GroupPanelState extends State<_GroupPanel> {
                       tooltip: 'Center all vertically',
                       visualDensity: VisualDensity.compact,
                       onPressed: () {
-                        for (final t in state.selectedTypes) {
-                          n.centerVertical(t);
-                        }
+                        n.centerGroup(horizontal: false);
                       },
                     ),
                   ],
@@ -658,9 +1613,10 @@ class _GroupPanelState extends State<_GroupPanel> {
 // ── Section wrapper ───────────────────────────────────────────────────────────
 
 class _Section extends StatelessWidget {
-  const _Section({required this.title, required this.child});
+  const _Section({required this.title, required this.child, this.trailing});
   final String title;
   final Widget child;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -681,6 +1637,7 @@ class _Section extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
                     width: 3,
@@ -700,6 +1657,7 @@ class _Section extends StatelessWidget {
                       letterSpacing: 0.8,
                     ),
                   ),
+                  if (trailing != null) ...[const Spacer(), trailing!],
                 ],
               ),
             ),
@@ -799,7 +1757,11 @@ class _ColorBtn extends StatelessWidget {
                 fontWeight: FontWeight.w700,
                 fontSize: 12,
                 shadows: [
-                  Shadow(color: Colors.black54, offset: Offset(0, 1), blurRadius: 2),
+                  Shadow(
+                    color: Colors.black54,
+                    offset: Offset(0, 1),
+                    blurRadius: 2,
+                  ),
                 ],
               ),
             ),
@@ -918,10 +1880,12 @@ class _AlignDrop extends StatelessWidget {
               isExpanded: true,
               borderRadius: BorderRadius.circular(AppRadius.md),
               items: options.entries
-                  .map((e) => DropdownMenuItem(
-                        value: e.value,
-                        child: Text(e.key, style: const TextStyle(fontSize: 12)),
-                      ))
+                  .map(
+                    (e) => DropdownMenuItem(
+                      value: e.value,
+                      child: Text(e.key, style: const TextStyle(fontSize: 12)),
+                    ),
+                  )
                   .toList(),
               onChanged: (v) {
                 if (v != null) onChanged(v);
@@ -953,9 +1917,7 @@ class _AlignChip extends StatelessWidget {
       child: Container(
         height: 34,
         decoration: BoxDecoration(
-          color: selected
-              ? colors.primary.withAlpha(30)
-              : colors.surface,
+          color: selected ? colors.primary.withAlpha(30) : colors.surface,
           borderRadius: BorderRadius.circular(AppRadius.sm),
           border: selected
               ? Border.all(color: colors.primary.withAlpha(120), width: 1.5)
@@ -966,8 +1928,7 @@ class _AlignChip extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 12,
-              fontWeight:
-                  selected ? FontWeight.w700 : FontWeight.w500,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               color: selected ? colors.primary : scheme.onSurfaceVariant,
             ),
           ),
@@ -990,8 +1951,37 @@ class _ScalePresets extends StatelessWidget {
   final double value;
   final ValueChanged<double> onSelected;
 
-  static const _scalePresets = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 3.5, 4.0];
-  static const _fontPresets = [8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0, 24.0, 28.0, 32.0, 36.0, 40.0, 48.0, 60.0, 72.0];
+  static const _scalePresets = [
+    0.25,
+    0.5,
+    0.75,
+    1.0,
+    1.25,
+    1.5,
+    1.75,
+    2.0,
+    2.5,
+    3.0,
+    3.5,
+    4.0,
+  ];
+  static const _fontPresets = [
+    8.0,
+    10.0,
+    12.0,
+    14.0,
+    16.0,
+    18.0,
+    20.0,
+    24.0,
+    28.0,
+    32.0,
+    36.0,
+    40.0,
+    48.0,
+    60.0,
+    72.0,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -1004,37 +1994,41 @@ class _ScalePresets extends StatelessWidget {
       child: Row(
         spacing: 4,
         children: presets.map((preset) {
-        final selected = (value - preset).abs() < 0.01;
-        final label = isText
-            ? preset.toInt().toString()
-            : preset == preset.truncateToDouble()
-                ? '${preset.toInt()}×'
-                : '$preset×';
-        return GestureDetector(
-          onTap: () => onSelected(preset),
-          child: Container(
-            height: 22,
-            padding: const EdgeInsets.symmetric(horizontal: 7),
-            decoration: BoxDecoration(
-              color: selected ? colors.primary.withAlpha(25) : Colors.transparent,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: selected ? colors.primary.withAlpha(140) : colors.border,
-                width: 1,
+          final selected = (value - preset).abs() < 0.01;
+          final label = isText
+              ? preset.toInt().toString()
+              : preset == preset.truncateToDouble()
+              ? '${preset.toInt()}×'
+              : '$preset×';
+          return GestureDetector(
+            onTap: () => onSelected(preset),
+            child: Container(
+              height: 22,
+              padding: const EdgeInsets.symmetric(horizontal: 7),
+              decoration: BoxDecoration(
+                color: selected
+                    ? colors.primary.withAlpha(25)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: selected
+                      ? colors.primary.withAlpha(140)
+                      : colors.border,
+                  width: 1,
+                ),
               ),
-            ),
-            child: Center(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-                  color: selected ? colors.primary : scheme.onSurfaceVariant,
+              child: Center(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+                    color: selected ? colors.primary : scheme.onSurfaceVariant,
+                  ),
                 ),
               ),
             ),
-          ),
-        );
+          );
         }).toList(),
       ),
     );
@@ -1058,8 +2052,7 @@ class _ToggleRow extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Row(
       children: [
-        Text(label,
-            style: TextStyle(fontSize: 13, color: scheme.onSurface)),
+        Text(label, style: TextStyle(fontSize: 13, color: scheme.onSurface)),
         const Spacer(),
         Switch.adaptive(value: value, onChanged: onChanged),
       ],
@@ -1077,10 +2070,12 @@ class _SliderRow extends StatelessWidget {
     this.min = 0,
     required this.max,
     this.divisions,
+    this.decimals = 2,
   });
   final String label;
   final double value, min, max;
   final int? divisions;
+  final int decimals;
   final ValueChanged<double> onChanged;
 
   @override
@@ -1102,6 +2097,9 @@ class _SliderRow extends StatelessWidget {
             ),
             _EditableValue(
               value: value,
+              decimals: decimals,
+              min: min,
+              max: max,
               onChanged: onChanged,
             ),
           ],
@@ -1119,8 +2117,17 @@ class _SliderRow extends StatelessWidget {
 }
 
 class _EditableValue extends StatefulWidget {
-  const _EditableValue({required this.value, required this.onChanged});
+  const _EditableValue({
+    required this.value,
+    required this.onChanged,
+    this.decimals = 2,
+    this.min,
+    this.max,
+  });
   final double value;
+  final int decimals;
+  final double? min;
+  final double? max;
   final ValueChanged<double> onChanged;
 
   @override
@@ -1131,17 +2138,21 @@ class _EditableValueState extends State<_EditableValue> {
   late final TextEditingController _controller;
   bool _isEditing = false;
 
+  String _format(double v) => widget.decimals == 0
+      ? v.round().toString()
+      : v.toStringAsFixed(widget.decimals);
+
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.value.toStringAsFixed(2));
+    _controller = TextEditingController(text: _format(widget.value));
   }
 
   @override
   void didUpdateWidget(covariant _EditableValue oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.value != oldWidget.value && !_isEditing) {
-      _controller.text = widget.value.toStringAsFixed(2);
+      _controller.text = _format(widget.value);
     }
   }
 
@@ -1161,7 +2172,10 @@ class _EditableValueState extends State<_EditableValue> {
           ? TextField(
               controller: _controller,
               autofocus: true,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: TextInputType.numberWithOptions(
+                decimal: widget.decimals > 0,
+                signed: (widget.min ?? 0) < 0,
+              ),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 11,
@@ -1180,7 +2194,10 @@ class _EditableValueState extends State<_EditableValue> {
               onSubmitted: (value) {
                 final newValue = double.tryParse(value);
                 if (newValue != null) {
-                  widget.onChanged(newValue.clamp(0, 300));
+                  final clamped = (widget.min != null && widget.max != null)
+                      ? newValue.clamp(widget.min!, widget.max!)
+                      : newValue;
+                  widget.onChanged(clamped);
                 }
                 setState(() => _isEditing = false);
               },
@@ -1194,7 +2211,7 @@ class _EditableValueState extends State<_EditableValue> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  widget.value.toStringAsFixed(2),
+                  _format(widget.value),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -1207,12 +2224,14 @@ class _EditableValueState extends State<_EditableValue> {
   }
 }
 
-
 // ── Num Field ─────────────────────────────────────────────────────────────────
 
 class _NumField extends StatefulWidget {
-  const _NumField(
-      {required this.label, required this.value, required this.onChanged});
+  const _NumField({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
   final String label;
   final double value;
   final ValueChanged<double> onChanged;
@@ -1251,13 +2270,13 @@ class _NumFieldState extends State<_NumField> {
 
   @override
   Widget build(BuildContext context) => TextField(
-        controller: _c,
-        focusNode: _focus,
-        decoration: InputDecoration(labelText: widget.label),
-        keyboardType: const TextInputType.numberWithOptions(signed: true),
-        onChanged: (v) {
-          final d = double.tryParse(v);
-          if (d != null) widget.onChanged(d);
-        },
-      );
+    controller: _c,
+    focusNode: _focus,
+    decoration: InputDecoration(labelText: widget.label),
+    keyboardType: const TextInputType.numberWithOptions(signed: true),
+    onChanged: (v) {
+      final d = double.tryParse(v);
+      if (d != null) widget.onChanged(d);
+    },
+  );
 }

@@ -29,4 +29,5 @@ abstract final class AppConstants {
   static const String prefsAdbLastWireless = 'adb_last_wireless';
   static const String prefsAdbLastSerial = 'adb_last_serial';
   static const String prefsAdbActivityCache = 'adb_activity_cache';
+  static const String prefsCanvasLock = 'prefs_canvas_lock';
 }

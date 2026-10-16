@@ -8,11 +8,14 @@ import 'package:miui_icon_generator/theme_editor/core/extensions/color_ext.dart'
 import 'package:screenshot/screenshot.dart';
 import 'package:xml/xml.dart';
 import '../../core/constants/path_constants.dart';
+import '../../core/extensions/maml_ease_ext.dart';
 import '../../core/errors/failures.dart';
 import '../../core/utils/remote_fonts.dart';
 import '../../domain/entities/element_widget.dart';
 import '../features/lockscreen/widgets/element_widget_preview.dart';
 import 'element_provider.dart';
+import 'font_provider.dart';
+import 'export_provider.dart';
 import 'wallpaper_provider.dart';
 import 'directory_provider.dart';
 import 'service_providers.dart';
@@ -92,13 +95,59 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
         final dst = PathConstants.p('$lsPath$png.png');
         if (await fs.exists(src)) await fs.copyFile(src, dst);
       }
-    } catch (_) {}
-    state = state.copyWith(isCopyingDefaults: false);
+
+      final homeScreenIcons = <ElementType, String>{
+        ElementType.cameraIcon: 'com.android.camera',
+        ElementType.themeIcon: 'com.android.thememanager',
+        ElementType.settingIcon: 'com.android.settings',
+        ElementType.galleryIcon: 'com.miui.gallery',
+        ElementType.musicIcon: 'com.miui.player',
+        ElementType.dialerIcon:
+            'com.android.contacts.activities.TwelveKeyDialer',
+        ElementType.mmsIcon: 'com.android.mms',
+        ElementType.contactIcon: 'com.android.contacts',
+        ElementType.whatsAppIcon: 'com.whatsapp',
+        ElementType.telegramIcon: 'org.telegram.messenger',
+        ElementType.instagramIcon: 'com.instagram.android',
+        ElementType.spotifyIcon: 'com.spotify.music',
+      };
+      final homeIconsDir = PathConstants.iconsXxhdpi(tp);
+      for (final entry in homeScreenIcons.entries) {
+        final source = PathConstants.p('$homeIconsDir${entry.value}.png');
+        if (!await fs.exists(source)) continue;
+        final relativePath = entry.key.defaultPath.startsWith(r'\')
+            ? entry.key.defaultPath.substring(1)
+            : entry.key.defaultPath;
+        final destination = PathConstants.p('$lsPath$relativePath.png');
+        await fs.copyFile(source, destination);
+      }
+    } finally {
+      state = state.copyWith(isCopyingDefaults: false);
+    }
   }
 
   // ── Export manifest XML ───────────────────────────────────────────────────
 
+  ValidationFailure? _validateUnlock() {
+    if (ref.read(elementProvider).hasVisibleUnlock) return null;
+    const failure = ValidationFailure(
+      'Add and enable at least one unlock widget: Swipe Up, Tap, Slide, or Drag.',
+    );
+    state = state.copyWith(error: failure.message);
+    return failure;
+  }
+
+  Future<Failure?> exportWorkspace(BuildContext context) async {
+    final unlockFailure = _validateUnlock();
+    if (unlockFailure != null) return unlockFailure;
+    await ref.read(exportProvider.notifier).exportAll(context);
+    if (!context.mounted) return null;
+    return export(context);
+  }
+
   Future<Failure?> export(BuildContext context) async {
+    final unlockFailure = _validateUnlock();
+    if (unlockFailure != null) return unlockFailure;
     state = state.copyWith(isExporting: true, error: null);
     try {
       final ws = ref.read(wallpaperProvider);
@@ -113,7 +162,7 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       final lsPath = PathConstants.lockscreenAdvance(tp);
 
       // ── Step 1: write manifest.xml ────────────────────────────────────────
-      final doc = _buildManifest(els);
+      final doc = buildManifest(els);
       final fs = ref.read(fileServiceProvider);
       await fs.writeString(
         '${lsPath}manifest.xml',
@@ -129,7 +178,7 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
 
       // ── Step 3: auto-pack MTZ and save preset ─────────────────────────────
       // No extra button tap — the full theme is ready, so zip it immediately.
-      final (_, mtzFailure) = await exportMtz(context);
+      final (_, mtzFailure) = await exportMtz(context, recordFontUsage: false);
 
       if (mtzFailure != null) {
         // MTZ failure is non-fatal — XML + PNGs are still exported correctly.
@@ -154,6 +203,8 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
   // ── Export PNG frames via use case ────────────────────────────────────────
 
   Future<Failure?> exportPngs(BuildContext context) async {
+    final unlockFailure = _validateUnlock();
+    if (unlockFailure != null) return unlockFailure;
     final ws = ref.read(wallpaperProvider);
     if (ws.weekNum == null || ws.currentThemeName == null) return null;
 
@@ -173,6 +224,9 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
         );
 
     state = state.copyWith(isExportingPngs: false);
+    if (failure == null) {
+      await ref.read(fontUsageProvider.notifier).recordExport(els.elements);
+    }
     return failure;
   }
 
@@ -339,12 +393,19 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
   void toggleDualMtzExport() =>
       state = state.copyWith(dualMtzExport: !state.dualMtzExport);
 
-  Future<(String?, Failure?)> exportMtz(BuildContext context) async {
+  Future<(String?, Failure?)> exportMtz(
+    BuildContext context, {
+    bool recordFontUsage = true,
+  }) async {
+    final unlockFailure = _validateUnlock();
+    if (unlockFailure != null) return (null, unlockFailure);
     final ws = ref.read(wallpaperProvider);
     if (ws.weekNum == null || ws.currentThemeName == null) {
       return (null, const ValidationFailure('No active theme'));
     }
     final tp = PathConstants.themePath(ws.weekNum!, ws.currentThemeName!);
+
+    final elements = ref.read(elementProvider).elements;
 
     // ── Auto-save preset with preview ───────────────────────────────────────
     try {
@@ -352,9 +413,18 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       final bytes = await ScreenshotController().captureFromWidget(
         UncontrolledProviderScope(
           container: container,
-          child: const Directionality(
+          child: Directionality(
             textDirection: TextDirection.ltr,
-            child: ElementWidgetPreview(),
+            child: Material(
+              type: MaterialType.transparency,
+              child: Overlay(
+                initialEntries: [
+                  OverlayEntry(
+                    builder: (context) => const ElementWidgetPreview(),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
         context: context,
@@ -367,13 +437,17 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       debugPrint('Auto-save preset failed: $e');
     }
 
-    return ref
+    final result = await ref
         .read(exportMtzUseCaseProvider)
         .call(
           themePath: tp,
           themeName: ws.currentThemeName!,
           dualVersion: state.dualMtzExport,
         );
+    if (result.$2 == null && recordFontUsage) {
+      await ref.read(fontUsageProvider.notifier).recordExport(elements);
+    }
+    return result;
   }
 
   void resetExportState() {
@@ -401,7 +475,8 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
 
   // ── Manifest builder ───────────────────────────────────────────────────────
 
-  XmlDocument _buildManifest(ElementState els) {
+  /// Builds the live MAML document for the current lockscreen elements.
+  XmlDocument buildManifest(ElementState els) {
     final doc = XmlDocument.parse(_baseManifest);
 
     final hasVideo = els.contains(ElementType.videoWallpaper);
@@ -420,6 +495,66 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       }
     }
 
+    if (els.elements.any(
+      (element) =>
+          element.isVisible &&
+          (element.type.isHealth ||
+              (element.type == ElementType.arcShape &&
+                  element.effectiveProgressSource == ArcProgressSource.steps)),
+    )) {
+      final binders = doc.findAllElements('VariableBinders').single;
+      final binder = XmlElement(XmlName('ContentProviderBinder'), [
+        XmlAttribute(XmlName('name'), 'MiSteps'),
+        XmlAttribute(
+          XmlName('uri'),
+          'content://com.mi.health.provider.main/activity/steps/brief',
+        ),
+        XmlAttribute(
+          XmlName('columns'),
+          'steps,goal,distance,energy,strength_duration,summary',
+        ),
+        XmlAttribute(XmlName('countName'), 'hasSteps'),
+      ]);
+      for (final column in [
+        'steps',
+        'goal',
+        'distance',
+        'energy',
+        'strength_duration',
+        'summary',
+      ]) {
+        binder.children.add(
+          XmlElement(XmlName('Variable'), [
+            XmlAttribute(XmlName('name'), 'MiSteps_$column'),
+            XmlAttribute(XmlName('type'), 'string'),
+            XmlAttribute(XmlName('column'), column),
+          ]),
+        );
+      }
+      binders.children.add(binder);
+      final external =
+          doc.findAllElements('ExternalCommands').firstOrNull ??
+          XmlElement(XmlName('ExternalCommands'));
+      if (external.parent == null) doc.rootElement.children.add(external);
+      for (final action in ['init', 'resume']) {
+        final trigger =
+            external
+                .findElements('Trigger')
+                .where((element) => element.getAttribute('action') == action)
+                .firstOrNull ??
+            XmlElement(XmlName('Trigger'), [
+              XmlAttribute(XmlName('action'), action),
+            ]);
+        if (trigger.parent == null) external.children.add(trigger);
+        trigger.children.add(
+          XmlElement(XmlName('BinderCommand'), [
+            XmlAttribute(XmlName('name'), 'MiSteps'),
+            XmlAttribute(XmlName('command'), 'refresh'),
+          ]),
+        );
+      }
+    }
+
     // bg alpha
     doc
             .findAllElements('Group')
@@ -428,22 +563,238 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
         '<Rectangle width="#sw" alpha="${(els.bgAlpha * 255).toStringAsFixed(0)}"'
         ' height="#sh" fillColor="#ff000000"/>';
 
-    for (final el in els.elements) {
+    final visibleElements = els.elements
+        .where((element) => element.isVisible)
+        .toList();
+    for (final el in [
+      ...visibleElements.where(
+        (element) => element.type == ElementType.swipeUpUnlock,
+      ),
+      ...visibleElements.where(
+        (element) => element.type != ElementType.swipeUpUnlock,
+      ),
+    ]) {
       final xml = _xmlFor(el);
       if (xml == null) continue;
       if (el.type.isMusic) {
         final mc = doc
             .findAllElements('MusicControl')
             .firstWhere((e) => e.getAttribute('name') == 'music_control');
-        mc.innerXml = mc.innerXml + xml;
+        final group = XmlElement(XmlName('Group'), [
+          XmlAttribute(XmlName('name'), el.type.name),
+        ])..innerXml = xml;
+        _addAnimation(group, el);
+        mc.children.add(group);
       } else {
-        doc
-            .findAllElements('Group')
-            .where((e) => e.getAttribute('name') == el.type.name)
-            .forEach((g) => g.innerXml = xml);
+        final group =
+            doc
+                .findAllElements('Group')
+                .where((element) => element.getAttribute('name') == el.name)
+                .firstOrNull ??
+            XmlElement(XmlName('Group'), [
+              XmlAttribute(XmlName('name'), el.name),
+            ]);
+        group.innerXml = xml;
+        _addAnimation(group, el);
+        group.parent?.children.remove(group);
+        doc.rootElement.children.add(group);
+      }
+    }
+    _addOneShotTriggers(doc, els);
+    if (els.elements.any(
+      (element) =>
+          element.isVisible &&
+          (element.type.isWeatherText ||
+              element.type == ElementType.weatherIconClock),
+    )) {
+      final external =
+          doc.findAllElements('ExternalCommands').firstOrNull ??
+          XmlElement(XmlName('ExternalCommands'));
+      if (external.parent == null) doc.rootElement.children.add(external);
+      for (final action in ['init', 'resume']) {
+        final trigger =
+            external
+                .findElements('Trigger')
+                .where((trigger) => trigger.getAttribute('action') == action)
+                .firstOrNull ??
+            XmlElement(XmlName('Trigger'), [
+              XmlAttribute(XmlName('action'), action),
+            ]);
+        if (trigger.parent == null) external.children.add(trigger);
+        trigger.children.add(
+          XmlElement(XmlName('BinderCommand'), [
+            XmlAttribute(XmlName('name'), 'WeatherService'),
+            XmlAttribute(XmlName('command'), 'refresh'),
+          ]),
+        );
       }
     }
     return doc;
+  }
+
+  void _addOneShotTriggers(XmlDocument doc, ElementState state) {
+    final targets = <String>{};
+    for (final element in state.elements.where(
+      (element) => element.isVisible,
+    )) {
+      final oneShots = element.activeAnimations
+          .where((track) => !track.loop)
+          .toList();
+      if (oneShots.isEmpty) continue;
+      final group = doc
+          .findAllElements('Group')
+          .where((group) => group.getAttribute('name') == element.name)
+          .firstOrNull;
+      if (group == null) continue;
+      for (final track in oneShots) {
+        for (final target
+            in track.type == ElementAnimation.size
+                ? _sizeAnimationTargets(group, element)
+                : [group]) {
+          final name = target.getAttribute('name') ?? '${element.name}_size';
+          target.setAttribute('name', name);
+          targets.add(name);
+        }
+      }
+    }
+    if (targets.isEmpty) return;
+    final external =
+        doc.findAllElements('ExternalCommands').firstOrNull ??
+        XmlElement(XmlName('ExternalCommands'));
+    if (external.parent == null) doc.rootElement.children.add(external);
+    for (final action in ['init', 'resume']) {
+      final trigger =
+          external
+              .findElements('Trigger')
+              .where((trigger) => trigger.getAttribute('action') == action)
+              .firstOrNull ??
+          XmlElement(XmlName('Trigger'), [
+            XmlAttribute(XmlName('action'), action),
+          ]);
+      if (trigger.parent == null) external.children.add(trigger);
+      for (final target in targets) {
+        trigger.children.add(
+          XmlElement(XmlName('AnimationCommand'), [
+            XmlAttribute(XmlName('target'), target),
+            XmlAttribute(XmlName('command'), 'play'),
+          ]),
+        );
+      }
+    }
+  }
+
+  void _addAnimation(XmlElement group, LockElement element) {
+    if (element.type == ElementType.weatherIconClock) {
+      group.setAttribute('x', '#sw/2+${element.dx * 3.9}');
+      group.setAttribute('y', '#sh/2+${element.dy * 3.9}');
+      group.setAttribute('pivotX', '0');
+      group.setAttribute('pivotY', '0');
+      group.setAttribute('angle', '${360 - element.angle}');
+      group.setAttribute('scale', '${element.scale}');
+    } else if (element.activeAnimations.any(
+      (track) =>
+          track.type == ElementAnimation.rotation ||
+          track.type == ElementAnimation.scale,
+    )) {
+      final pivotX = '#sw/2+${element.dx * 3.9}';
+      final pivotY = '#sh/2+${element.dy * 3.9}';
+      final content = XmlElement(XmlName('Group'), [
+        XmlAttribute(XmlName('name'), '${element.name}_animation_content'),
+        XmlAttribute(XmlName('x'), '-($pivotX)'),
+        XmlAttribute(XmlName('y'), '-($pivotY)'),
+      ]);
+      final children = group.children.toList();
+      group.children.clear();
+      content.children.addAll(children);
+      group.children.add(content);
+      group.setAttribute('x', pivotX);
+      group.setAttribute('y', pivotY);
+      group.setAttribute('pivotX', '0');
+      group.setAttribute('pivotY', '0');
+    }
+    for (final track in element.activeAnimations) {
+      _addAnimationTrack(group, element, track);
+    }
+  }
+
+  XmlElement _sizeAnimationTarget(XmlElement group) {
+    final child = group.children.whereType<XmlElement>().first;
+    return child.getAttribute('name')?.endsWith('_animation_content') == true
+        ? child.children.whereType<XmlElement>().first
+        : child;
+  }
+
+  List<XmlElement> _sizeAnimationTargets(
+    XmlElement group,
+    LockElement element,
+  ) => element.type == ElementType.arcShape
+      ? group.findAllElements('Arc').toList()
+      : [_sizeAnimationTarget(group)];
+
+  void _addAnimationTrack(
+    XmlElement group,
+    LockElement element,
+    ElementAnimationTrack track,
+  ) {
+    final duration = track.duration.clamp(100, 60000);
+    final amount = track.amount;
+    final node = switch (track.type) {
+      ElementAnimation.position => 'PositionAnimation',
+      ElementAnimation.rotation => 'RotationAnimation',
+      ElementAnimation.alpha => 'AlphaAnimation',
+      ElementAnimation.scale => 'ScaleAnimation',
+      ElementAnimation.size => 'SizeAnimation',
+      ElementAnimation.none => '',
+    };
+    XmlElement target = group;
+    if (track.type == ElementAnimation.size) {
+      target = _sizeAnimationTargets(group, element).first;
+    }
+    final animation = XmlElement(XmlName(node), [
+      XmlAttribute(XmlName('loop'), '${track.loop}'),
+      if (!track.loop) XmlAttribute(XmlName('initPause'), 'true'),
+    ]);
+    final frames = track.hasCustomStart
+        ? [(0, 0.0), (duration, 1.0)]
+        : [(0, 0.0), (duration ~/ 2, 1.0), (duration, 0.0)];
+    for (final (time, progress) in frames) {
+      final attributes = switch (track.type) {
+        ElementAnimation.position => {
+          'x':
+              '${track.hasCustomStart ? (track.startX! - element.dx) * 3.9 * (1 - progress) : amount * progress}',
+          'y':
+              '${track.hasCustomStart ? (track.startY! - element.dy) * 3.9 * (1 - progress) : track.offsetY * progress}',
+        },
+        ElementAnimation.rotation => {'value': '${amount * progress}'},
+        ElementAnimation.alpha => {
+          'value': '${255 + (amount.clamp(0, 255) - 255) * progress}',
+        },
+        ElementAnimation.scale => {
+          'value': '${1 + (amount.clamp(0.1, 4) - 1) * progress}',
+        },
+        ElementAnimation.size => {
+          'w':
+              '${element.width * element.scale * (1 + (amount.clamp(0.1, 4) - 1) * progress)}',
+          'h':
+              '${(element.type == ElementType.arcShape ? element.width : element.height) * element.scale * (1 + (amount.clamp(0.1, 4) - 1) * progress)}',
+        },
+        ElementAnimation.none => <String, String>{},
+      };
+      animation.children.add(
+        XmlElement(XmlName('Item'), [
+          XmlAttribute(XmlName('time'), '$time'),
+          XmlAttribute(XmlName('easeType'), track.ease.mamlName),
+          for (final entry in attributes.entries)
+            XmlAttribute(XmlName(entry.key), entry.value),
+        ]),
+      );
+    }
+    target.children.add(animation);
+    if (track.type == ElementAnimation.size) {
+      for (final other in _sizeAnimationTargets(group, element).skip(1)) {
+        other.children.add(animation.copy());
+      }
+    }
   }
 
   String? _xmlFor(LockElement el) {
@@ -468,7 +819,7 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       case ElementType.amPmClock:
         return "<Image name='ampm' srcExp=\"'ampm/ampm_'+ int((#ampm)) +'.png'\" width='#sw' height='#sh'/>";
       case ElementType.weatherIconClock:
-        return "<Image name='weatherIcon' srcExp=\"'weather/weather_'+ #w_outID +'.png'\" width='#sw' height='#sh'/>";
+        return "<Image name='weatherIcon' srcExp=\"'weather/weather_'+ #w_outID +'.png'\" x='0' y='0' w='156' h='156' align='center' alignV='center'/>";
       case ElementType.swipeUpUnlock:
         return "<Unlocker name='unlocker' visibility='not(#unlocker_v)'>"
             "<StartPoint x='0' y='0' w='#sw' h='#sh' easeType='BounceEaseOut' easeTime='400'/>"
@@ -477,12 +828,6 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
             "<Position x='0' y='0'/><Position x='0' y='-#sh'/>"
             "</Path></EndPoint></Unlocker>";
       case ElementType.tapToUnlock:
-        return "<Unlocker name='unlocker' visibility='not(#unlocker_v)'>"
-            "<StartPoint x='0' y='0' w='#sw' h='#sh' easeType='BounceEaseOut' easeTime='400'/>"
-            "<EndPoint x='0' y='-#sh' w='#sw' h='#sh - 400'>"
-            "<Path x='0' y='0' tolerance='2000'>"
-            "<Position x='0' y='0'/><Position x='0' y='-#sh'/>"
-            "</Path></EndPoint></Unlocker>";
       case ElementType.slideToUnlock:
       default:
         return _dynamicXml(el);
@@ -496,10 +841,10 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
     final dx = (el.dx * ratio).toStringAsFixed(2);
     final dy = (el.dy * ratio).toStringAsFixed(2);
     final ang = (360 - el.angle).toStringAsFixed(2);
-    final c = el.color.toMamlHex();
-    final c2 = el.colorSecondary.toMamlHex();
+    final c = el.color.toHex(withAlpha: true);
+    final c2 = el.colorSecondary.toHex(withAlpha: true);
     final sz = (el.fontSize * ratio).toStringAsFixed(2);
-    final bold = el.fontWeight == FontWeight.w700 ? 'true' : 'false';
+    final bold = '${el.isBold}';
 
     String alignStr = 'center';
     String dxAdj = dx;
@@ -515,19 +860,120 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
     if (el.type.isContainer) {
       return "<Image name='containerBG' srcExp=\"'container/${el.name}.png'\" width='#sw' height='#sh'/>";
     }
+    if (el.type.isShape) {
+      final tag = switch (el.type) {
+        ElementType.rectangleShape => 'Rectangle',
+        ElementType.circleShape => 'Circle',
+        ElementType.ellipseShape => 'Ellipse',
+        ElementType.lineShape => 'Line',
+        _ => 'Arc',
+      };
+      final shape = XmlElement(XmlName(tag), [
+        XmlAttribute(
+          XmlName('x'),
+          el.type == ElementType.lineShape ? '#sw/2+$dx-$w/2' : '#sw/2+$dx',
+        ),
+        XmlAttribute(
+          XmlName('y'),
+          el.type == ElementType.lineShape ? '#sh/2+$dy-$h/2' : '#sh/2+$dy',
+        ),
+        if (el.type == ElementType.rectangleShape) ...[
+          XmlAttribute(XmlName('align'), 'center'),
+          XmlAttribute(XmlName('alignV'), 'center'),
+        ],
+        XmlAttribute(XmlName('w'), w),
+        XmlAttribute(XmlName('h'), h),
+        XmlAttribute(XmlName('angle'), ang),
+        XmlAttribute(XmlName('strokeColor'), c),
+        XmlAttribute(
+          XmlName('fillColor'),
+          el.type == ElementType.arcShape ? '#00000000' : c2,
+        ),
+        XmlAttribute(XmlName('weight'), '${el.shapeStrokeWidth * el.scale}'),
+        XmlAttribute(XmlName('cap'), 'round'),
+        if (el.type == ElementType.rectangleShape)
+          XmlAttribute(XmlName('cornerRadius'), '${el.radius * el.scale}'),
+        if (el.type == ElementType.circleShape)
+          XmlAttribute(XmlName('r'), '${el.width * el.scale / 2}'),
+        if (el.type == ElementType.lineShape) ...[
+          XmlAttribute(XmlName('pivotX'), '${el.width * el.scale / 2}'),
+          XmlAttribute(XmlName('pivotY'), '${el.height * el.scale / 2}'),
+          XmlAttribute(XmlName('x1'), '#sw/2+$dx+$w/2'),
+          XmlAttribute(XmlName('y1'), '#sh/2+$dy+$h/2'),
+        ],
+        if (el.type == ElementType.arcShape) ...[
+          XmlAttribute(XmlName('startAngle'), '${el.startAngle}'),
+          XmlAttribute(XmlName('sweep'), switch (el.effectiveProgressSource) {
+            ArcProgressSource.none => '${el.sweepAngle}',
+            ArcProgressSource.battery =>
+              '${el.sweepAngle}*min(1,max(0,#battery_level/100))',
+            ArcProgressSource.hour => '${el.sweepAngle}*#hour24/24',
+            ArcProgressSource.minute => '${el.sweepAngle}*#minute/60',
+            ArcProgressSource.second => '${el.sweepAngle}*#second/60',
+            ArcProgressSource.steps =>
+              '${el.sweepAngle}*ifelse(gt(int(@MiSteps_goal),0),min(1,max(0,int(@MiSteps_steps)/max(1,int(@MiSteps_goal)))),0)',
+          }),
+          XmlAttribute(XmlName('close'), 'false'),
+        ],
+      ]);
+      if (el.type == ElementType.arcShape) {
+        shape.setAttribute('h', w);
+        shape.setAttribute('name', '${el.name}_progress');
+        final track = XmlElement(XmlName('Arc'), [
+          for (final attribute in shape.attributes)
+            XmlAttribute(XmlName(attribute.name.local), attribute.value),
+        ]);
+        track.setAttribute('name', '${el.name}_track');
+        track.setAttribute(
+          'strokeColor',
+          el.arcTrackColor.toHex(withAlpha: true),
+        );
+        track.setAttribute('sweep', '${el.sweepAngle}');
+        return XmlElement(XmlName('Group'), [], [track, shape]).toXmlString();
+      }
+      return shape.toXmlString();
+    }
+    if (el.type == ElementType.batteryText ||
+        el.type == ElementType.batteryLevel ||
+        el.type.isHealth) {
+      var expression = el.type.isHealth
+          ? "ifelse(strIsEmpty(@MiSteps_${el.type.healthColumn}),'--',@MiSteps_${el.type.healthColumn})"
+          : "#battery_level+'%'";
+      if (el.type == ElementType.stepsDistance) expression += "+' km'";
+      if (el.type == ElementType.stepsCalories) expression += "+' kcal'";
+      if (el.type == ElementType.stepsDuration) expression += "+' min'";
+      if (el.type == ElementType.stepsSummary) {
+        expression =
+            "ifelse(strIsEmpty(@MiSteps_summary),'--',eqs(@MiSteps_summary,'0'),'No data',eqs(@MiSteps_summary,'1'),'Below goal',eqs(@MiSteps_summary,'2'),'Low activity',eqs(@MiSteps_summary,'3'),'Goal reached','--')";
+      }
+      return XmlElement(XmlName('Text'), [
+        XmlAttribute(XmlName('x'), '#sw/2+$dxAdj'),
+        XmlAttribute(XmlName('y'), '#sh/2+$dy'),
+        XmlAttribute(XmlName('align'), alignStr),
+        XmlAttribute(XmlName('alignV'), 'center'),
+        XmlAttribute(XmlName('angle'), ang),
+        XmlAttribute(XmlName('size'), sz),
+        XmlAttribute(XmlName('color'), c),
+        XmlAttribute(XmlName('bold'), bold),
+        XmlAttribute(XmlName('textExp'), expression),
+      ]).toXmlString();
+    }
     if (el.type.isPng) {
       return "<Image name='pngBG' srcExp=\"'png/${el.name}.png'\" width='#sw' height='#sh'/>";
     }
 
     if (el.type.isDateTime) {
-      final escaped = el.text
-          .replaceAll("'", "''")
-          .replaceAll('&', '&amp;')
-          .replaceAll('<', '&lt;')
-          .replaceAll('>', '&gt;');
-      return "<DateTime angle='$ang' x='#sw/2+$dxAdj' y='#sh/2+$dy'"
-          " align='$alignStr' alignV='center' size='$sz' color='$c'"
-          " formatExp=\"'$escaped'\" bold='$bold'/>";
+      return XmlElement(XmlName('DateTime'), [
+        XmlAttribute(XmlName('angle'), ang),
+        XmlAttribute(XmlName('x'), '#sw/2+$dxAdj'),
+        XmlAttribute(XmlName('y'), '#sh/2+$dy'),
+        XmlAttribute(XmlName('align'), alignStr),
+        XmlAttribute(XmlName('alignV'), 'center'),
+        XmlAttribute(XmlName('size'), sz),
+        XmlAttribute(XmlName('color'), c),
+        XmlAttribute(XmlName('format'), el.text),
+        XmlAttribute(XmlName('bold'), bold),
+      ]).toXmlString();
     }
 
     if (el.type.isNormalText) {
@@ -541,48 +987,197 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
           " textExp=\"'$escaped'\" bold='$bold'/>";
     }
 
+    if (el.type.isWeatherText) {
+      final expression = switch (el.type) {
+        ElementType.weatherTemp => "#weather_temperature+'°C'",
+        ElementType.weatherDesc => '@weather_description',
+        ElementType.weatherCity => '@weather_location',
+        ElementType.weatherTemperatureRange => '@weather_temperature_range',
+        ElementType.weatherAqi => "'AQI '+#weather_aqi",
+        _ => "#weather_humidity+'%'",
+      };
+      return XmlElement(XmlName('Text'), [
+        XmlAttribute(XmlName('angle'), ang),
+        XmlAttribute(XmlName('x'), '#sw/2+$dxAdj'),
+        XmlAttribute(XmlName('y'), '#sh/2+$dy'),
+        XmlAttribute(XmlName('align'), alignStr),
+        XmlAttribute(XmlName('alignV'), 'center'),
+        XmlAttribute(XmlName('size'), sz),
+        XmlAttribute(XmlName('color'), c),
+        XmlAttribute(XmlName('bold'), bold),
+        XmlAttribute(XmlName('visibility'), '#hasweather'),
+        XmlAttribute(XmlName('textExp'), expression),
+      ]).toXmlString();
+    }
+
+    if (el.type == ElementType.calendarGrid) {
+      final cellWidth = el.width / 7;
+      final cellHeight = el.height / el.calendarDisplayRows;
+      final headerRows = el.calendarDisplayRows - el.calendarWeekRows;
+      final fullMonth = el.calendarWeekRows == 6;
+      final day = fullMonth
+          ? '(#__calendar_i-#calendar_first+1)'
+          : '(#date-(#day_of_week-1)+#__calendar_i)';
+      final visible = fullMonth ? 'ge($day,1)*le($day,#calendar_days)' : '1';
+      return "<Group x='#sw/2+$dx' y='#sh/2+$dy' angle='$ang' scale='${el.scale}'>"
+          "<Group x='-${el.width / 2}' y='-${el.height / 2}'>"
+          "<Var name='calendar_first' expression='(#day_of_week-1-(#date-1)%7+7)%7'/>"
+          "<Var name='calendar_leap' expression='eq(#year%4,0)*ne(#year%100,0)+eq(#year%400,0)'/>"
+          "<Var name='calendar_days' expression='ifelse(eq(#month,1),28+#calendar_leap,eq(#month,3)+eq(#month,5)+eq(#month,8)+eq(#month,10),30,31)'/>"
+          '${el.calendarShowMonth ? "<DateTime format='MMMM yyyy' x='${el.width / 2}' y='${cellHeight / 2}' align='center' alignV='center' size='$sz' color='$c' bold='$bold'/>" : ""}'
+          '${el.calendarShowWeekdays ? "<Array count=\"7\" indexName=\"__calendar_week\"><Text textExp=\"substr(\u0027SMTWTFS\u0027,#__calendar_week,1)\" x=\"(#__calendar_week+0.5)*$cellWidth\" y=\"${cellHeight * (el.calendarShowMonth ? 1.5 : .5)}\" align=\"center\" alignV=\"center\" size=\"$sz\" color=\"$c\" bold=\"$bold\"/></Array>" : ""}'
+          "<Array count='${el.calendarWeekRows * 7}' indexName='__calendar_i'>"
+          "<Rectangle x='(#__calendar_i%7)*$cellWidth' y='(int(#__calendar_i/7)+$headerRows)*$cellHeight' w='$cellWidth' h='$cellHeight' cornerRadius='${el.radius * ratio}' fillColor='$c2' visibility='$visible*eq($day,#date)'/>"
+          "<DateTime format='d' value='#time_sys+($day-#date)*86400000' x='(#__calendar_i%7+0.5)*$cellWidth' y='(int(#__calendar_i/7)+${headerRows + .5})*$cellHeight' align='center' alignV='center' size='$sz' color='$c' bold='$bold' visibility='$visible'/>"
+          "</Array></Group></Group>";
+    }
+
     if (el.type == ElementType.notification) {
-      return "<List name='notification_list' x='0' y='$dy+#sh/2' w='#screen_width'"
-          " maxHeight='int(186+20)*3' data='icon:bitmap,title:string,content:string,time:string'"
+      final limit = el.notificationLimit.clamp(1, 10);
+      final listHeight = 206 * limit;
+      final listX = el.align == Alignment.centerLeft
+          ? '0'
+          : el.align == Alignment.centerRight
+          ? '-1024'
+          : '-512';
+      return "<Group x='#sw/2+$dxAdj' y='#sh/2+$dy' angle='$ang' scale='${el.scale}'>"
+          "<List name='notification_list' x='$listX' y='-${listHeight / 2}' w='1024'"
+          " maxHeight='$listHeight' data='icon:bitmap,title:string,content:string,time:string,info:string,subtext:string,key:int'"
           " visibility='#hasnotifications'>"
-          "<Item x='540' y='0' w='1024' h='int(186+20)' align='center'>"
-          "<Button x='0' y='0' w='1024' h='206'>"
-          "<Normal><Rectangle x='0' w='1024' h='186' fillColor='$c2' cornerRadius='25'/></Normal>"
-          "</Button></Item></List>";
+          "<Item x='0' y='0' w='1024' h='206'>"
+          "<Button name='notice_open' x='0' y='0' w='916' h='186'>"
+          "<Normal><Rectangle x='0' w='1024' h='186' fillColor='$c2' cornerRadius='${el.radius * ratio}'/></Normal>"
+          "<Triggers><Trigger action='up'>"
+          "<IntentCommand action='com.miui.app.ExtraStatusBarManager.action_remove_keyguard_notification' broadcast='true'>"
+          "<Extra name='com.miui.app.ExtraStatusBarManager.extra_notification_key' type='int' expression='#notification_list.key'/>"
+          "<Extra name='com.miui.app.ExtraStatusBarManager.extra_notification_click' type='int' expression='1'/>"
+          "</IntentCommand></Trigger></Triggers>"
+          "</Button>"
+          "<Image name='notice_icon' x='36' y='32' w='96' h='96'/>"
+          "<Text x='156' y='54' w='500' alignV='center' size='44' color='$c'"
+          " name='notice_title' bold='$bold'/>"
+          "<Text x='156' y='100' w='740' size='34' color='$c'"
+          " name='notice_content' bold='$bold'/>"
+          "<Text x='900' y='54' w='220' align='right' alignV='center' size='28' color='$c'"
+          " name='notice_time' bold='$bold'/>"
+          "<Button name='notice_close' x='920' y='28' w='80' h='80' alignChildren='true'><Normal>"
+          "<Line x='20' y='20' x1='60' y1='60' strokeColor='$c' weight='5' cap='round'/>"
+          "<Line x='20' y='60' x1='60' y1='20' strokeColor='$c' weight='5' cap='round'/>"
+          "</Normal><Triggers><Trigger action='up'>"
+          "<IntentCommand action='com.miui.app.ExtraStatusBarManager.action_remove_keyguard_notification' broadcast='true'>"
+          "<Extra name='com.miui.app.ExtraStatusBarManager.extra_notification_key' type='int' expression='#notification_list.key'/>"
+          "<Extra name='com.miui.app.ExtraStatusBarManager.extra_notification_click' type='int' expression='0'/>"
+          "</IntentCommand><BinderCommand name='data' command='refresh'/>"
+          "</Trigger></Triggers></Button>"
+          "</Item><AttrDataBinders>"
+          "<AttrDataBinder target='notice_icon' attr='bitmap' data='icon'/>"
+          "<AttrDataBinder target='notice_title' attr='text' data='title'/>"
+          "<AttrDataBinder target='notice_content' attr='text' data='content'/>"
+          "<AttrDataBinder target='notice_time' attr='text' data='time'/>"
+          "</AttrDataBinders></List></Group>";
     }
 
     if (el.type == ElementType.tapToUnlock) {
-      return "<Unlocker name='unlocker' visibility='not(#unlocker_v)' x='#sw/2+$dx' y='#sh/2+$dy'>"
-          "<StartPoint h='$h' w='$w' x='#touch_begin_x-50' y='#touch_begin_y-50'></StartPoint>"
-          "<EndPoint h='0' w='0' x='0' y='0'></EndPoint>"
-          "<Image align='center' alignV='center' alpha='255-75*#locks' scale='1.0' h='$h' w='$w' src='unlock/tap.png' x='#sw/2' y='#sh/2'/>"
-          "<Button align='center' alignV='center' h='$h' w='$w' visibility='eq(#state,0)*eq(#open,0)' x='#sw/2+$dx' y='#sh/2+$dy'>"
-          "<Triggers>"
-          "<Trigger action='down'> <VariableCommand expression='1' name='locks'/> </Trigger>"
-          "<Trigger action='up,cancel'> <VariableCommand expression='0' name='locks'/> </Trigger>"
-          "<Trigger action='up'> <ExternCommand command='unlock'/> </Trigger>"
-          "</Triggers>"
-          "</Button>"
-          "</Unlocker>";
+      final width = el.width * el.scale;
+      final height = el.height * el.scale;
+      final left = el.align == Alignment.centerLeft
+          ? 0
+          : el.align == Alignment.centerRight
+          ? -width
+          : -width / 2;
+      final glyph =
+          "<Rectangle w='$w' h='$h' cornerRadius='${el.effectiveUnlockCornerRadius * el.scale}' fillColor='$c2' alpha='${(el.unlockBackgroundOpacity.clamp(0, 1) * 255).round()}'/>"
+          '${_unlockIconXml(el, width, height)}';
+      final label = _unlockTextXml(el, width, height);
+      return "<Group x='#sw/2+$dxAdj' y='#sh/2+$dy' angle='$ang'>"
+          "<Button name='tap_unlock_button' x='$left' y='${-height / 2}' w='$w' h='$h' alignChildren='true' haptic='true'>"
+          "<Normal>$glyph$label</Normal><Pressed><Group alpha='160'>$glyph$label</Group></Pressed>"
+          "<Triggers><Trigger action='up'><ExternCommand command='unlock'/></Trigger></Triggers>"
+          "</Button></Group>";
     }
 
-    if (el.type == ElementType.slideToUnlock) {
-      return "<Unlocker name='unlocker' alwaysShow='true' bounceAcceleration='4000' bounceInitSpeed='80' x='#sw/2+$dx' y='#sh/2+$dy'>"
-          "<Image align='center' src='unlock/slider_base.png' x='0' y='0-14'/>"
-          "<StartPoint h='201' w='240' x='80-#sw/2' y='0'>"
-          "<NormalState><Image src='unlock/unlock.png' x='60-#sw/2' y='0'/></NormalState>"
-          "<ReachedState><Image alpha='0' src='unlock/unlock.png' x='#sw/2-365' y='0'/></ReachedState>"
-          "</StartPoint>"
-          "<EndPoint h='201' w='600' x='#sw/2-620' y='0'>"
-          "<ReachedState><Image src='unlock/unlock.png' x='#sw/2-365' y='0'/></ReachedState>"
-          "<Path tolerance='300' x='-#sw/2' y='0'>"
-          "<Position x='80' y='0'/><Position x='#sw*0.8 - 25' y='0'/>"
-          "</Path></EndPoint></Unlocker>";
+    if (el.type == ElementType.slideToUnlock ||
+        el.type == ElementType.dragToUnlock) {
+      final drag = el.type == ElementType.dragToUnlock;
+      final unlockerName = drag ? 'drag_unlocker' : 'slide_unlocker';
+      final width = el.width * el.scale;
+      final height =
+          (el.height < el.width / 3 ? el.height : el.width / 3) * el.scale;
+      final travel = width - height;
+      final left = el.align == Alignment.centerLeft
+          ? 0
+          : el.align == Alignment.centerRight
+          ? -width
+          : -width / 2;
+      final thumb =
+          (drag
+              ? "<Rectangle x='${height * .12}' y='0' w='${height * .76}' h='$height' cornerRadius='${height * .12}' fillColor='$c2' alpha='${(el.unlockThumbOpacity.clamp(0, 1) * 255).round()}'/>"
+              : "<Circle x='${height / 2}' y='${height / 2}' r='${height * .42}' fillColor='$c2' alpha='${(el.unlockThumbOpacity.clamp(0, 1) * 255).round()}'/>") +
+          _unlockIconXml(el, height, height);
+      final cable = drag
+          ? "<Line name='drag_cable' x='#$unlockerName.move_x+${height / 2}' y='${height / 2}' x1='${width - height / 2}' y1='${height / 2}' strokeColor='$c2' weight='${height * .06}' cap='round'/>"
+                "<Circle name='drag_target' x='${width - height / 2}' y='${height / 2}' r='${height * .36}' strokeColor='$c2' weight='${height * .06}' fillColor='#00000000'/>"
+          : '';
+      return "<Group x='#sw/2+$dxAdj' y='#sh/2+$dy' angle='$ang'>"
+          "<Group x='$left' y='${-height / 2}'>"
+          "<Rectangle w='$width' h='$height' cornerRadius='${el.effectiveUnlockCornerRadius * el.scale}' fillColor='$c2' alpha='${(el.unlockBackgroundOpacity.clamp(0, 1) * 255).round()}'/>"
+          '$cable'
+          '${_unlockTextXml(el, width, height)}'
+          "<Unlocker name='$unlockerName' alwaysShow='true' bounceAcceleration='4000' bounceInitSpeed='80'>"
+          "<StartPoint x='0' y='0' w='$height' h='$height' anchorX='0' anchorY='0' alignChildren='true'>"
+          "<NormalState>$thumb</NormalState><PressedState>$thumb</PressedState>"
+          '${drag ? "<ReachedState>$thumb</ReachedState>" : ""}'
+          "</StartPoint><EndPoint x='$travel' y='0' w='$height' h='$height' align='center' alignV='center'>"
+          "<Path x='0' y='0' tolerance='${(height / 2).round()}'>"
+          "<Position x='0' y='0'/><Position x='$travel' y='0'/>"
+          "</Path></EndPoint></Unlocker></Group></Group>";
     }
 
     if (el.type.isMusic) return _musicXml(el, w, h, dx, dy, ang);
     if (el.type.isIcon) return _iconXml(el, w, h, dx, dy, ang);
     return null;
+  }
+
+  String _unlockIconXml(LockElement element, double width, double height) {
+    if (element.effectiveUnlockIcon == UnlockIcon.none) return '';
+    var size =
+        (width < height ? width : height) *
+        element.unlockIconScale.clamp(.2, 1);
+    final labeledTap =
+        element.type == ElementType.tapToUnlock &&
+        element.unlockText.isNotEmpty;
+    if (labeledTap && size > height * .45) size = height * .45;
+    return "<Image src='unlock/${element.name}.png' x='${width / 2}' y='${height * (labeledTap ? .32 : .5)}' w='$size' h='$size' align='center' alignV='center'/>";
+  }
+
+  String _unlockTextXml(LockElement element, double width, double height) {
+    if (element.unlockText.isEmpty) return '';
+    final tap = element.type == ElementType.tapToUnlock;
+    final drag = element.type == ElementType.dragToUnlock;
+    final span = tap ? width : width - height * (drag ? 2 : 1);
+    return XmlElement(XmlName('Text'), [
+      XmlAttribute(XmlName('name'), '${element.name}_label'),
+      XmlAttribute(XmlName('text'), element.unlockText),
+      XmlAttribute(XmlName('x'), '${tap ? width / 2 : height + span / 2}'),
+      XmlAttribute(
+        XmlName('y'),
+        '${height * (drag
+                ? .82
+                : tap && element.effectiveUnlockIcon != UnlockIcon.none
+                ? .78
+                : .5)}',
+      ),
+      XmlAttribute(XmlName('w'), '${span * .84}'),
+      XmlAttribute(XmlName('align'), 'center'),
+      XmlAttribute(XmlName('alignV'), 'center'),
+      XmlAttribute(
+        XmlName('size'),
+        '${element.unlockTextFontSize * 3.9 * element.scale}',
+      ),
+      XmlAttribute(XmlName('color'), element.color.toHex(withAlpha: true)),
+      XmlAttribute(XmlName('bold'), '${element.isBold}'),
+      XmlAttribute(XmlName('marqueeSpeed'), '0'),
+    ]).toXmlString();
   }
 
   String _musicXml(
@@ -632,12 +1227,21 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
   ) {
     final meta = _iconMeta[el.type];
     if (meta == null) return '';
+    final source = (el.path.isEmpty ? '${meta[0]}.png' : '${el.path}.png')
+        .replaceAll(r'\', '/')
+        .replaceFirst(RegExp(r'^/'), '');
+    final image = XmlElement(XmlName('Image'), [
+      XmlAttribute(XmlName('align'), 'center'),
+      XmlAttribute(XmlName('alignV'), 'center'),
+      XmlAttribute(XmlName('src'), source),
+      XmlAttribute(XmlName('w'), w),
+      XmlAttribute(XmlName('h'), h),
+    ]).toXmlString();
     return "<Group angle='$ang' x='#sw/2+$dx' y='#sh/2+$dy' align='center' alignV='center'>"
         "<Button align='center' alignV='center' w='$w' h='$h'>"
-        "<Normal><Image align='center' alignV='center' src='${meta[0]}.png' w='$w' h='$h'/></Normal>"
+        "<Normal>$image</Normal>"
         "<Triggers><Trigger action='up'>"
         "<IntentCommand action='android.intent.action.MAIN' package='${meta[1]}' class='${meta[2]}'>"
-        "${meta.length > 3 ? "<IntentCommand action='android.intent.action.MAIN' package='${meta[3]}' class='${meta[4]}'>" : ""}"
         "<Extra name='StartActivityWhenLocked' type='boolean' expression='1'/></IntentCommand>"
         "<ExternCommand command='unlock' condition='not(#set_lock)'/>"
         "</Trigger></Triggers></Button></Group>";
@@ -652,12 +1256,12 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
     ElementType.themeIcon: [
       'icon/theme',
       'com.android.thememanager',
-      'com.android.thememanager.ThemeResourceTabActivity',
+      'com.android.thememanager.ThemeResourceProxyTabActivity',
     ],
     ElementType.settingIcon: [
       'icon/setting',
       'com.android.settings',
-      'com.android.settings.MainSettings',
+      'com.android.settings.MiuiSettings',
     ],
     ElementType.galleryIcon: [
       'icon/gallery',
@@ -698,7 +1302,7 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
     ElementType.telegramIcon: [
       'icon/telegram',
       'org.telegram.messenger',
-      'org.telegram.messenger',
+      'org.telegram.ui.LaunchActivity',
     ],
     ElementType.instagramIcon: [
       'icon/instagram',
@@ -710,11 +1314,76 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       'com.spotify.music',
       'com.spotify.music.MainActivity',
     ],
+    ElementType.calendarIcon: [
+      'icon/calendar',
+      'com.android.calendar',
+      'com.android.calendar.AllInOneActivity',
+    ],
+    ElementType.weatherIcon: [
+      'icon/weather',
+      'com.miui.weather2',
+      'com.miui.weather2.ActivityWeatherMain',
+    ],
+    ElementType.clockIcon: [
+      'icon/clock',
+      'com.android.deskclock',
+      'com.android.deskclock.DeskClockTabActivity',
+    ],
+    ElementType.notesIcon: [
+      'icon/notes',
+      'com.miui.notes',
+      'com.miui.notes.ui.NotesListActivity',
+    ],
+    ElementType.browserIcon: [
+      'icon/browser',
+      'com.android.browser',
+      'com.android.browser.BrowserActivity',
+    ],
+    ElementType.calculatorIcon: [
+      'icon/calculator',
+      'com.miui.calculator',
+      'com.miui.calculator.cal.CalculatorActivity',
+    ],
+    ElementType.compassIcon: [
+      'icon/compass',
+      'com.miui.compass',
+      'com.miui.compass.CompassActivity',
+    ],
+    ElementType.fileManagerIcon: [
+      'icon/fileManager',
+      'com.android.fileexplorer',
+      'com.android.fileexplorer.FileExplorerTabActivity',
+    ],
+    ElementType.videoIcon: [
+      'icon/video',
+      'com.miui.video',
+      'com.miui.video.HomeActivity',
+    ],
+    ElementType.securityIcon: [
+      'icon/security',
+      'com.miui.securitycenter',
+      'com.miui.securitycenter.Main',
+    ],
+    ElementType.radioIcon: [
+      'icon/radio',
+      'com.miui.fmradio',
+      'com.miui.fmradio.FmRadioActivity',
+    ],
+    ElementType.recorderIcon: [
+      'icon/recorder',
+      'com.android.soundrecorder',
+      'com.android.soundrecorder.SoundRecorder',
+    ],
+    ElementType.downloadsIcon: [
+      'icon/downloads',
+      'com.android.providers.downloads.ui',
+      'com.android.providers.downloads.ui.DownloadList',
+    ],
   };
 
   static final String _baseManifest =
       '''<?xml version="1.0" encoding="utf-8"?>
-<Lockscreen version="2" frameRate="30" displayDesktop="false" screenWidth="1080">
+<Lockscreen version="2" frameRate="30" displayDesktop="false" screenWidth="1080" useVariableUpdater="Battery,DateTime.Second">
   <Var expression="#screen_width" name="sw"/>
   <Var expression="#screen_height" name="sh"/>
   <Wallpaper name="wall" pivotX="#wall.bmp_width/2" pivotY="#wall.bmp_height/2"/>
@@ -722,13 +1391,19 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
   <VariableBinders>
     <ContentProviderBinder name="WeatherService"
       uri="content://weather/actualWeatherData/1"
-      columns="weather_type,temperature" countName="hasweather">
+      columns="weather_type,temperature,description,city_name,temperature_range,aqilevel,humidity" countName="hasweather">
       <Variable name="typeID" type="int" column="weather_type"/>
+      <Variable name="weather_temperature" type="int" column="temperature"/>
+      <Variable name="weather_description" type="string" column="description"/>
+      <Variable name="weather_location" type="string" column="city_name"/>
+      <Variable name="weather_temperature_range" type="string" column="temperature_range"/>
+      <Variable name="weather_aqi" type="int" column="aqilevel"/>
+      <Variable name="weather_humidity" type="int" column="humidity"/>
       <Trigger><VariableCommand name="w_outID" expression="#typeID" type="int"/></Trigger>
     </ContentProviderBinder>
     <ContentProviderBinder name="data"
       uri="content://keyguard.notification/notifications"
-      columns="icon,title,content,time,key" countName="hasnotifications">
+      columns="icon,title,content,time,info,subtext,key" countName="hasnotifications">
       <List name="notification_list"/>
     </ContentProviderBinder>
   </VariableBinders>

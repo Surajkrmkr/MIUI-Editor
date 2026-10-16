@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
+import '../../../../core/extensions/maml_ease_ext.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/asset_paths.dart';
 import '../../../../core/constants/path_constants.dart';
@@ -63,7 +67,8 @@ class ElementWidgetPreview extends ConsumerWidget {
               ),
 
             // 2. Video layer
-            if (hasVideo) VideoWallpaperWidget(key: ValueKey(videoPath), path: videoPath),
+            if (hasVideo)
+              VideoWallpaperWidget(key: ValueKey(videoPath), path: videoPath),
 
             // 3. Darken overlay (tap to deselect / exit group mode)
             GestureDetector(
@@ -80,11 +85,14 @@ class ElementWidgetPreview extends ConsumerWidget {
             ),
 
             // 4. Elements
-            ...els.elements.where((el) => el.isVisible).map(
+            ...els.elements
+                .where((el) => el.isVisible)
+                .map(
                   (el) => _DraggableElement(
+                    key: ValueKey(el.name),
                     el: el,
                     isGroupMode: els.isGroupMode,
-                    isGroupSelected: els.selectedTypes.contains(el.type),
+                    isGroupSelected: els.isSelected(el),
                   ),
                 ),
           ],
@@ -98,6 +106,7 @@ class ElementWidgetPreview extends ConsumerWidget {
 
 class _DraggableElement extends ConsumerStatefulWidget {
   const _DraggableElement({
+    super.key,
     required this.el,
     required this.isGroupMode,
     required this.isGroupSelected,
@@ -110,11 +119,101 @@ class _DraggableElement extends ConsumerStatefulWidget {
   ConsumerState<_DraggableElement> createState() => _DraggableElementState();
 }
 
-class _DraggableElementState extends ConsumerState<_DraggableElement> {
+class _DraggableElementState extends ConsumerState<_DraggableElement>
+    with TickerProviderStateMixin {
   bool _isDragging = false;
+  final _dismissedNotifications = <int>{};
+  final _controllers = <ElementAnimation, AnimationController>{};
+  Timer? _progressTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _configureAnimations();
+    _configureProgressClock();
+  }
+
+  @override
+  void didUpdateWidget(covariant _DraggableElement oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.el.notificationLimit != widget.el.notificationLimit) {
+      _dismissedNotifications.clear();
+    }
+    _configureAnimations(oldElement: oldWidget.el);
+    _configureProgressClock(oldElement: oldWidget.el);
+  }
+
+  void _configureProgressClock({LockElement? oldElement}) {
+    if (oldElement?.effectiveProgressSource ==
+        widget.el.effectiveProgressSource) {
+      return;
+    }
+    _progressTimer?.cancel();
+    _progressTimer = null;
+    if (widget.el.type == ElementType.arcShape &&
+        const {
+          ArcProgressSource.hour,
+          ArcProgressSource.minute,
+          ArcProgressSource.second,
+        }.contains(widget.el.effectiveProgressSource)) {
+      _progressTimer = Timer.periodic(
+        const Duration(seconds: 1),
+        (_) => setState(() {}),
+      );
+    }
+  }
+
+  void _configureAnimations({LockElement? oldElement, bool replay = false}) {
+    final tracks = widget.el.activeAnimations;
+    final activeTypes = tracks.map((track) => track.type).toSet();
+    for (final type
+        in _controllers.keys
+            .where((type) => !activeTypes.contains(type))
+            .toList()) {
+      _controllers.remove(type)!.dispose();
+    }
+    for (final track in tracks) {
+      final previous = oldElement?.activeAnimations
+          .where((old) => old.type == track.type)
+          .firstOrNull;
+      final controller = _controllers.putIfAbsent(
+        track.type,
+        () => AnimationController(vsync: this),
+      );
+      if (!replay &&
+          previous != null &&
+          previous.duration == track.duration &&
+          previous.loop == track.loop) {
+        continue;
+      }
+      controller.stop();
+      controller.duration = Duration(
+        milliseconds: track.duration.clamp(100, 60000),
+      );
+      controller.value = 0;
+      if (track.loop) {
+        controller.repeat();
+      } else {
+        controller.forward();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _progressTimer?.cancel();
+    for (final controller in _controllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<int>(
+      animationReplayProvider,
+      (previous, next) => _configureAnimations(replay: true),
+    );
     final el = widget.el;
     final n = ref.read(elementProvider.notifier);
     const hw = AppConstants.screenHeight;
@@ -170,18 +269,18 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
           child: GestureDetector(
             onTap: () {
               if (widget.isGroupMode) {
-                n.toggleGroupSelect(el.type);
+                n.toggleGroupSelect(el.type, id: el.name);
               } else {
-                n.setActive(el.type);
+                n.setActive(el.type, id: el.name);
               }
             },
             onLongPress: el.isLocked
                 ? null
                 : () {
                     if (widget.isGroupMode) {
-                      n.toggleGroupSelect(el.type);
+                      n.toggleGroupSelect(el.type, id: el.name);
                     } else {
-                      n.enterGroupMode(el.type);
+                      n.enterGroupMode(el.type, id: el.name);
                     }
                   },
             onPanDown: el.isLocked
@@ -191,7 +290,7 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
                       n.snapshotForGroupDrag();
                     } else {
                       n.snapshotForDrag();
-                      n.setActive(el.type);
+                      n.setActive(el.type, id: el.name);
                     }
                   },
             onPanUpdate: el.isLocked
@@ -225,9 +324,16 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
                         cursor: el.isLocked
                             ? SystemMouseCursors.basic
                             : _isDragging
-                                ? SystemMouseCursors.grabbing
-                                : SystemMouseCursors.grab,
-                        child: _buildWithGroupHighlight(_buildChild(el)),
+                            ? SystemMouseCursors.grabbing
+                            : SystemMouseCursors.grab,
+                        child: _buildWithGroupHighlight(
+                          AnimatedBuilder(
+                            animation: Listenable.merge(
+                              _controllers.values.toList(),
+                            ),
+                            builder: (context, child) => _animatedChild(el),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -244,20 +350,148 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
     if (!widget.isGroupSelected) return child;
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.blue.withAlpha(200),
-          width: 2,
-        ),
+        border: Border.all(color: Colors.blue.withAlpha(200), width: 2),
         borderRadius: BorderRadius.circular(4),
       ),
       child: child,
     );
   }
 
+  Widget _animatedChild(LockElement element) {
+    final progress = <ElementAnimation, double>{};
+    final tracks = element.activeAnimations;
+    for (final track in tracks) {
+      final time = _controllers[track.type]?.value ?? 0;
+      progress[track.type] = track.hasCustomStart
+          ? track.ease.curve.transform(time)
+          : time <= 0.5
+          ? track.ease.curve.transform(time * 2)
+          : 1 - track.ease.curve.transform((time - 0.5) * 2);
+    }
+    var sizedElement = element;
+    for (final track in tracks.where(
+      (track) => track.type == ElementAnimation.size,
+    )) {
+      final factor = max(
+        0.01,
+        1 + (track.amount.clamp(0.1, 4) - 1) * progress[track.type]!,
+      );
+      sizedElement = element.copyWith(
+        width: element.width * factor,
+        height: element.height * factor,
+      );
+    }
+    Widget child = _buildChild(sizedElement);
+    for (final type in const [
+      ElementAnimation.scale,
+      ElementAnimation.rotation,
+      ElementAnimation.alpha,
+      ElementAnimation.position,
+    ]) {
+      final track = tracks.where((track) => track.type == type).firstOrNull;
+      if (track == null) continue;
+      final value = progress[track.type]!;
+      final key = ValueKey('animation-${element.name}-${track.type.name}');
+      child = switch (track.type) {
+        ElementAnimation.none || ElementAnimation.size => child,
+        ElementAnimation.position => Transform.translate(
+          key: key,
+          offset: Offset(
+            track.hasCustomStart
+                ? (track.startX! - element.dx) * (1 - value)
+                : track.amount * value / AppConstants.screenRatio,
+            track.hasCustomStart
+                ? (track.startY! - element.dy) * (1 - value)
+                : track.offsetY * value / AppConstants.screenRatio,
+          ),
+          child: child,
+        ),
+        ElementAnimation.rotation => Transform.rotate(
+          key: key,
+          angle: track.amount * value * pi / 180,
+          child: child,
+        ),
+        ElementAnimation.alpha => Opacity(
+          key: key,
+          opacity: (1 + (track.amount.clamp(0, 255) / 255 - 1) * value).clamp(
+            0,
+            1,
+          ),
+          child: child,
+        ),
+        ElementAnimation.scale => Transform.scale(
+          key: key,
+          scale: max(0.01, 1 + (track.amount.clamp(0.1, 4) - 1) * value),
+          child: child,
+        ),
+      };
+    }
+    return child;
+  }
+
   Widget _buildChild(LockElement el) {
     if (el.type == ElementType.swipeUpUnlock) return const SizedBox.shrink();
     if (el.type == ElementType.weatherIconClock) {
-      return Image.asset(AssetPaths.weatherIcon("0"), height: 40);
+      return Image.asset(
+        AssetPaths.weatherIcon("0"),
+        width: 40,
+        height: 40,
+        fit: BoxFit.contain,
+      );
+    }
+    if (el.type.isWeatherText) {
+      return _weatherText(
+        el,
+        const {
+          ElementType.weatherTemp: '24°C',
+          ElementType.weatherDesc: 'Clear',
+          ElementType.weatherCity: 'Cuttack',
+          ElementType.weatherTemperatureRange: '20-30°C',
+          ElementType.weatherAqi: 'AQI 42',
+          ElementType.weatherHumidity: '65%',
+        }[el.type]!,
+      );
+    }
+    if (el.type == ElementType.calendarGrid) return _calendar(el);
+    if (el.type.isUnlockControl) {
+      return _unlock(el);
+    }
+    if (el.type == ElementType.batteryText ||
+        el.type == ElementType.batteryLevel) {
+      return _weatherText(el, '75%');
+    }
+    if (el.type.isHealth) {
+      return _weatherText(
+        el,
+        const {
+          ElementType.stepsCount: '6240',
+          ElementType.stepsGoal: '10000',
+          ElementType.stepsDistance: '4.2 km',
+          ElementType.stepsCalories: '248 kcal',
+          ElementType.stepsDuration: '35 min',
+          ElementType.stepsSummary: 'Goal reached',
+        }[el.type]!,
+      );
+    }
+    if (el.type.isShape) {
+      return CustomPaint(
+        size: Size(
+          el.width / AppConstants.screenRatio,
+          (el.type == ElementType.circleShape || el.type == ElementType.arcShape
+                  ? el.width
+                  : el.height) /
+              AppConstants.screenRatio,
+        ),
+        painter: _GeometryPainter(
+          el,
+          el.effectiveProgressSource.fraction(
+            time: DateTime.now(),
+            batteryLevel: 75,
+            stepCount: 6240,
+            stepGoal: 10000,
+          ),
+        ),
+      );
     }
     if (el.type.isClock) return _clock(el);
     if (el.type.isContainer) return _container(el);
@@ -289,6 +523,14 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
       }
     }
 
+    if (el.type.defaultIconAsset case final asset?) {
+      return SvgPicture.asset(
+        AssetPaths.iconSvg(IconVariant.u1, asset),
+        width: el.width / AppConstants.screenRatio,
+        height: el.height / AppConstants.screenRatio,
+      );
+    }
+
     // Fallback placeholder
     return Container(
       height: el.height / AppConstants.screenRatio,
@@ -296,6 +538,89 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
       decoration: BoxDecoration(
         color: Colors.white10,
         borderRadius: BorderRadius.circular(el.radius),
+      ),
+    );
+  }
+
+  Widget _weatherText(LockElement el, String text) {
+    return Text(
+      text,
+      style: fontTextStyle(
+        font: 'Roboto',
+        color: el.color,
+        fontSize: el.fontSize,
+        fontWeight: el.fontWeight,
+        height: 1,
+      ),
+    );
+  }
+
+  Widget _calendar(LockElement element) {
+    final now = DateTime.now();
+    final dates = element.calendarDates(now);
+    final width = element.width / AppConstants.screenRatio;
+    final rowHeight =
+        element.height / AppConstants.screenRatio / element.calendarDisplayRows;
+    final style = fontTextStyle(
+      font: 'Roboto',
+      fontSize: element.fontSize,
+      color: element.color,
+      fontWeight: element.fontWeight,
+      height: 1,
+    );
+    return SizedBox(
+      width: width,
+      height: rowHeight * element.calendarDisplayRows,
+      child: Column(
+        children: [
+          if (element.calendarShowMonth)
+            SizedBox(
+              height: rowHeight,
+              child: Center(
+                child: Text(DateFormat('MMMM yyyy').format(now), style: style),
+              ),
+            ),
+          if (element.calendarShowWeekdays)
+            SizedBox(
+              height: rowHeight,
+              child: Row(
+                children: [
+                  for (final day in ['S', 'M', 'T', 'W', 'T', 'F', 'S'])
+                    Expanded(
+                      child: Center(child: Text(day, style: style)),
+                    ),
+                ],
+              ),
+            ),
+          for (var row = 0; row < element.calendarWeekRows; row++)
+            SizedBox(
+              height: rowHeight,
+              child: Row(
+                children: [
+                  for (var column = 0; column < 7; column++)
+                    Expanded(
+                      child: Container(
+                        key: ValueKey('calendar-cell-${row * 7 + column}'),
+                        decoration: BoxDecoration(
+                          color:
+                              dates[row * 7 + column]?.year == now.year &&
+                                  dates[row * 7 + column]?.month == now.month &&
+                                  dates[row * 7 + column]?.day == now.day
+                              ? element.colorSecondary
+                              : null,
+                          borderRadius: BorderRadius.circular(element.radius),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          dates[row * 7 + column]?.day.toString() ?? '',
+                          style: style,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -308,18 +633,21 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
       ElementType.dotClock => ':',
       ElementType.dotClock2 => ':',
       ElementType.amPmClock => 'AM',
-      ElementType.weekClock => el.isShort
-          ? 'Wed'
-          : el.isWrap
-              ? _wrapText('Wednesday')
-              : 'Wednesday',
+      ElementType.weekClock =>
+        el.isShort
+            ? 'Wed'
+            : el.isWrap
+            ? _wrapText('Wednesday')
+            : 'Wednesday',
       ElementType.monthClock => el.isShort ? 'Feb' : 'February',
       ElementType.dateClock => '08',
       _ => '',
     };
 
     if (el.useSeparateColors &&
-        (el.type == ElementType.hourClock || el.type == ElementType.minClock || el.type == ElementType.secClock) &&
+        (el.type == ElementType.hourClock ||
+            el.type == ElementType.minClock ||
+            el.type == ElementType.secClock) &&
         txt.length == 2) {
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -333,9 +661,16 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
               stops: const [0.0, 1.0],
             ),
             style: fontTextStyle(
-                font: el.font, fontSize: 35, height: 1, color: el.colorDigit1),
+              font: el.font,
+              fontSize: 35,
+              fontWeight: el.fontWeight,
+              height: 1,
+              color: el.colorDigit1,
+            ),
             strokeWidth: el.strokeWidth,
-            strokeColor: el.strokeColorDigit1.a > 0 ? el.strokeColorDigit1 : el.strokeColor,
+            strokeColor: el.strokeColorDigit1.a > 0
+                ? el.strokeColorDigit1
+                : el.strokeColor,
             blurRadius: el.blurRadius,
             isLiquidGlass: el.isLiquidGlass,
           ),
@@ -348,9 +683,16 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
               stops: const [0.0, 1.0],
             ),
             style: fontTextStyle(
-                font: el.font, fontSize: 35, height: 1, color: el.colorDigit2),
+              font: el.font,
+              fontSize: 35,
+              fontWeight: el.fontWeight,
+              height: 1,
+              color: el.colorDigit2,
+            ),
             strokeWidth: el.strokeWidth,
-            strokeColor: el.strokeColorDigit2.a > 0 ? el.strokeColorDigit2 : el.strokeColor,
+            strokeColor: el.strokeColorDigit2.a > 0
+                ? el.strokeColorDigit2
+                : el.strokeColor,
             blurRadius: el.blurRadius,
             isLiquidGlass: el.isLiquidGlass,
           ),
@@ -366,7 +708,13 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
         colors: [el.color, el.colorSecondary],
         stops: const [0.0, 1.0],
       ),
-      style: fontTextStyle(font: el.font, fontSize: 35, height: 1, color: el.color),
+      style: fontTextStyle(
+        font: el.font,
+        fontSize: 35,
+        fontWeight: el.fontWeight,
+        height: 1,
+        color: el.color,
+      ),
       strokeWidth: el.strokeWidth,
       strokeColor: el.strokeColor,
       blurRadius: el.blurRadius,
@@ -413,7 +761,10 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
               if (frostBlur > 0)
                 Positioned.fill(
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: frostBlur, sigmaY: frostBlur),
+                    filter: ImageFilter.blur(
+                      sigmaX: frostBlur,
+                      sigmaY: frostBlur,
+                    ),
                     child: const SizedBox.expand(),
                   ),
                 ),
@@ -437,9 +788,15 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
                       center: Alignment(-0.2, -0.2),
                       radius: 1.1,
                       colors: [
-                        Color(0x00FFFFFF), // Ultra-clear center (shows background sharp & magnified)
-                        Color(0x08FF3366), // Red-orange chromatic dispersion fringe
-                        Color(0x1033CCFF), // Cyan-blue chromatic dispersion fringe
+                        Color(
+                          0x00FFFFFF,
+                        ), // Ultra-clear center (shows background sharp & magnified)
+                        Color(
+                          0x08FF3366,
+                        ), // Red-orange chromatic dispersion fringe
+                        Color(
+                          0x1033CCFF,
+                        ), // Cyan-blue chromatic dispersion fringe
                         Color(0x28FFFFFF), // Outer refraction edge
                       ],
                       stops: [0.65, 0.85, 0.94, 1.0],
@@ -458,7 +815,9 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Color(0xCCFFFFFF), // 80% light specular highlight at top-left
+                        Color(
+                          0xCCFFFFFF,
+                        ), // 80% light specular highlight at top-left
                         Color(0x22FFFFFF),
                         Color(0x00FFFFFF),
                         Color(0x55FFFFFF), // Bottom-right refraction bounce
@@ -497,7 +856,10 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
         containerWidget = ClipRRect(
           borderRadius: BorderRadius.circular(el.radius),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: el.blurRadius, sigmaY: el.blurRadius),
+            filter: ImageFilter.blur(
+              sigmaX: el.blurRadius,
+              sigmaY: el.blurRadius,
+            ),
             child: base,
           ),
         );
@@ -509,42 +871,280 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
     return containerWidget;
   }
 
-  Widget _notification(LockElement el) {
-    Widget child = Container(
-      height: 60,
-      width: 250,
-      decoration: BoxDecoration(
-        color: el.colorSecondary,
-        borderRadius: BorderRadius.circular(el.radius),
+  Widget _unlock(LockElement element) {
+    final width = element.width / AppConstants.screenRatio;
+    final height = element.unlockHeight / AppConstants.screenRatio;
+    final tap = element.type == ElementType.tapToUnlock;
+    final drag = element.type == ElementType.dragToUnlock;
+    final hasText = element.unlockText.isNotEmpty;
+    var iconSize = min(width, height) * element.unlockIconScale.clamp(.2, 1);
+    if (tap && hasText) iconSize = min(iconSize, height * .45);
+    final label = Text(
+      element.unlockText,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: element.unlockTextFontSize,
+        color: element.color,
+        fontWeight: element.fontWeight,
+        height: 1,
       ),
-      child: Row(children: [
-        Container(
-          margin: const EdgeInsets.only(left: 8),
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFC300),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Icon(Icons.android, size: 14),
+    );
+    final icon = element.effectiveUnlockIcon == UnlockIcon.none
+        ? const SizedBox.shrink()
+        : element.effectiveUnlockIcon == UnlockIcon.customPng
+        ? SizedBox(
+            width: iconSize,
+            height: iconSize,
+            child:
+                element.unlockIconPath.isNotEmpty &&
+                    File(element.unlockIconPath).existsSync()
+                ? Image.memory(
+                    File(element.unlockIconPath).readAsBytesSync(),
+                    fit: BoxFit.contain,
+                    gaplessPlayback: true,
+                    errorBuilder: (_, error, stackTrace) =>
+                        const Icon(Icons.broken_image_outlined),
+                  )
+                : const Icon(Icons.image_outlined),
+          )
+        : Icon(
+            element.effectiveUnlockIcon.icon,
+            color: element.color,
+            size: iconSize,
+          );
+    return Container(
+      key: ValueKey('unlock-preview-${element.name}'),
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: element.colorSecondary.withValues(
+          alpha:
+              element.colorSecondary.a *
+              element.unlockBackgroundOpacity.clamp(0, 1),
         ),
-        const SizedBox(width: 8),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Notification',
-                style: TextStyle(color: el.color, fontSize: 10)),
-            Text('Details', style: TextStyle(color: el.color, fontSize: 10)),
-          ],
+        borderRadius: BorderRadius.circular(
+          element.effectiveUnlockCornerRadius / AppConstants.screenRatio,
         ),
-      ]),
+      ),
+      child: tap
+          ? hasText
+                ? Stack(
+                    children: [
+                      if (element.effectiveUnlockIcon != UnlockIcon.none)
+                        Positioned(
+                          left: (width - iconSize) / 2,
+                          top: height * .32 - iconSize / 2,
+                          width: iconSize,
+                          height: iconSize,
+                          child: icon,
+                        ),
+                      Positioned(
+                        left: width * .08,
+                        right: width * .08,
+                        top:
+                            height *
+                                (element.effectiveUnlockIcon == UnlockIcon.none
+                                    ? .5
+                                    : .78) -
+                            element.unlockTextFontSize * .75,
+                        height: element.unlockTextFontSize * 1.5,
+                        child: Center(child: label),
+                      ),
+                    ],
+                  )
+                : icon
+          : Stack(
+              children: [
+                if (drag) ...[
+                  Positioned(
+                    left: height / 2,
+                    right: height / 2,
+                    top: height * .47,
+                    height: height * .06,
+                    child: ColoredBox(color: element.colorSecondary),
+                  ),
+                  Positioned(
+                    right: height * .14,
+                    top: height * .14,
+                    width: height * .72,
+                    height: height * .72,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: element.colorSecondary,
+                          width: height * .06,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+                if (hasText)
+                  Positioned(
+                    left: height + (width - height * (drag ? 2 : 1)) * .08,
+                    right:
+                        (drag ? height : 0) +
+                        (width - height * (drag ? 2 : 1)) * .08,
+                    top: drag ? height * .65 : 0,
+                    bottom: 0,
+                    child: Center(child: label),
+                  ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: SizedBox(
+                    width: height,
+                    height: height,
+                    child: Padding(
+                      padding: drag
+                          ? EdgeInsets.symmetric(horizontal: height * .12)
+                          : EdgeInsets.all(height * .08),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          shape: drag ? BoxShape.rectangle : BoxShape.circle,
+                          borderRadius: drag
+                              ? BorderRadius.circular(height * .12)
+                              : null,
+                          color: element.colorSecondary.withValues(
+                            alpha:
+                                element.colorSecondary.a *
+                                element.unlockThumbOpacity.clamp(0, 1),
+                          ),
+                        ),
+                        child: icon,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _notification(LockElement el) {
+    const ratio = AppConstants.screenRatio;
+    Widget child = SizedBox(
+      width: 1024 / ratio,
+      height: 206 * el.notificationLimit.clamp(1, 10) / ratio,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (
+            var index = 0;
+            index < el.notificationLimit.clamp(1, 10);
+            index++
+          )
+            if (!_dismissedNotifications.contains(index))
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20 / ratio),
+                child: Container(
+                  height: 186 / ratio,
+                  width: 1024 / ratio,
+                  decoration: BoxDecoration(
+                    color: el.colorSecondary,
+                    borderRadius: BorderRadius.circular(el.radius),
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        left: 36 / ratio,
+                        top: 32 / ratio,
+                        width: 96 / ratio,
+                        height: 96 / ratio,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFC300),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Icon(Icons.android, size: 20),
+                        ),
+                      ),
+                      Positioned(
+                        left: 156 / ratio,
+                        top: 32 / ratio,
+                        width: 500 / ratio,
+                        child: Text(
+                          'Notification',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: el.color,
+                            fontSize: 44 / ratio,
+                            fontWeight: el.fontWeight,
+                            height: 1,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 156 / ratio,
+                        top: 100 / ratio,
+                        width: 740 / ratio,
+                        child: Text(
+                          'Details',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: el.color,
+                            fontSize: 34 / ratio,
+                            fontWeight: el.fontWeight,
+                            height: 1,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        right: 124 / ratio,
+                        top: 40 / ratio,
+                        width: 220 / ratio,
+                        child: Text(
+                          '4:54 pm',
+                          textAlign: TextAlign.right,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: el.color,
+                            fontSize: 28 / ratio,
+                            height: 1,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 920 / ratio,
+                        top: 28 / ratio,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => setState(
+                            () => _dismissedNotifications.add(index),
+                          ),
+                          child: SizedBox(
+                            width: 80 / ratio,
+                            height: 80 / ratio,
+                            child: Center(
+                              child: Icon(
+                                Icons.close_rounded,
+                                size: 14,
+                                color: el.color,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+        ],
+      ),
     );
 
     if (el.blurRadius > 0) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(el.radius),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: el.blurRadius, sigmaY: el.blurRadius),
+          filter: ImageFilter.blur(
+            sigmaX: el.blurRadius,
+            sigmaY: el.blurRadius,
+          ),
           child: child,
         ),
       );
@@ -553,16 +1153,6 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
     return child;
   }
 
-  static const _dt = {
-    'dd': '08',
-    'E': 'Wed',
-    'MM': '02',
-    'yy': '22',
-    'aa': 'PM',
-    'hh': '02',
-    'mm': '36',
-    'ss': '06',
-  };
   static const _gv = {
     '#battery_level': '100',
     '#temp': '24',
@@ -574,13 +1164,20 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
 
   Widget _text(LockElement el) {
     var t = el.text;
-    final map = el.type.isDateTime ? _dt : _gv;
-    for (final e in map.entries) {
-      t = t.replaceAll(e.key, e.value);
+    if (el.type.isDateTime) {
+      try {
+        t = DateFormat(el.text).format(DateTime.now());
+      } on FormatException {
+        t = el.text;
+      }
+    } else {
+      for (final entry in _gv.entries) {
+        t = t.replaceAll(entry.key, entry.value);
+      }
     }
 
     final textStyle = fontTextStyle(
-      font: el.font,
+      font: 'Roboto',
       color: el.color,
       fontSize: el.fontSize,
       fontWeight: el.fontWeight,
@@ -606,6 +1203,76 @@ class _DraggableElementState extends ConsumerState<_DraggableElement> {
 
     return Text(t, style: textStyle);
   }
+}
+
+class _GeometryPainter extends CustomPainter {
+  const _GeometryPainter(this.element, this.progress);
+  final LockElement element;
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final stroke = Paint()
+      ..color = element.color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = element.shapeStrokeWidth / AppConstants.screenRatio
+      ..strokeCap = StrokeCap.round;
+    final fill = Paint()..color = element.colorSecondary;
+    void draw(Paint paint) {
+      switch (element.type) {
+        case ElementType.rectangleShape:
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(
+              rect,
+              Radius.circular(element.radius / AppConstants.screenRatio),
+            ),
+            paint,
+          );
+        case ElementType.circleShape:
+          canvas.drawCircle(rect.center, size.width / 2, paint);
+        case ElementType.ellipseShape:
+          canvas.drawOval(rect, paint);
+        case ElementType.lineShape:
+          canvas.drawLine(rect.topLeft, rect.bottomRight, paint);
+        case ElementType.arcShape:
+          canvas.drawArc(
+            rect,
+            element.startAngle * pi / 180,
+            element.sweepAngle * progress * pi / 180,
+            false,
+            paint,
+          );
+        default:
+          break;
+      }
+    }
+
+    if (element.type != ElementType.lineShape &&
+        element.type != ElementType.arcShape) {
+      draw(fill);
+    }
+    if (element.shapeStrokeWidth > 0) {
+      if (element.type == ElementType.arcShape) {
+        canvas.drawArc(
+          rect,
+          element.startAngle * pi / 180,
+          element.sweepAngle * pi / 180,
+          false,
+          Paint()
+            ..color = element.arcTrackColor
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = element.shapeStrokeWidth / AppConstants.screenRatio
+            ..strokeCap = StrokeCap.round,
+        );
+      }
+      draw(stroke);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _GeometryPainter oldDelegate) =>
+      oldDelegate.element != element || oldDelegate.progress != progress;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -132,6 +132,8 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
         if (!hideTools)
           _SectionCard(
             title: 'TOOLS',
+            collapsible: true,
+            initiallyExpanded: false,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -352,15 +354,87 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
 
 // ── Section Card ──────────────────────────────────────────────────────────────
 
-class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.title, required this.child});
+class _SectionCard extends StatefulWidget {
+  const _SectionCard({
+    super.key,
+    required this.title,
+    required this.child,
+    this.collapsible = false,
+    this.initiallyExpanded = true,
+  });
+
   final String title;
   final Widget child;
+  final bool collapsible;
+  final bool initiallyExpanded;
+
+  @override
+  State<_SectionCard> createState() => _SectionCardState();
+}
+
+class _SectionCardState extends State<_SectionCard> {
+  late bool _expanded;
+
+  @override
+  void initState() {
+    super.initState();
+    _expanded = widget.initiallyExpanded;
+  }
+
+  @override
+  void didUpdateWidget(covariant _SectionCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initiallyExpanded != widget.initiallyExpanded) {
+      _expanded = widget.initiallyExpanded;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
+
+    final header = Row(
+      children: [
+        Container(
+          width: 3,
+          height: 12,
+          margin: const EdgeInsets.only(right: 6),
+          decoration: BoxDecoration(
+            color: colors.primary,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        Text(
+          widget.title,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: scheme.onSurfaceVariant,
+            letterSpacing: 0.8,
+          ),
+        ),
+        if (widget.collapsible) ...[
+          const Spacer(),
+          Container(
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: colors.border.withAlpha(80)),
+            ),
+            child: Icon(
+              _expanded
+                  ? Icons.keyboard_arrow_up_rounded
+                  : Icons.keyboard_arrow_down_rounded,
+              size: 14,
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ],
+    );
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -371,32 +445,36 @@ class _SectionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Row(
-              children: [
-                Container(
-                  width: 3,
-                  height: 12,
-                  margin: const EdgeInsets.only(right: 6),
-                  decoration: BoxDecoration(
-                    color: colors.primary,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+          if (widget.collapsible)
+            InkWell(
+              onTap: () => setState(() => _expanded = !_expanded),
+              borderRadius: BorderRadius.circular(6),
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: 2,
+                  bottom: _expanded ? 10 : 2,
                 ),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: scheme.onSurfaceVariant,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-              ],
+                child: header,
+              ),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: header,
             ),
-          ),
-          child,
+          if (widget.collapsible)
+            AnimatedCrossFade(
+              duration: const Duration(milliseconds: 200),
+              firstCurve: Curves.easeOut,
+              secondCurve: Curves.easeIn,
+              crossFadeState: _expanded
+                  ? CrossFadeState.showFirst
+                  : CrossFadeState.showSecond,
+              firstChild: widget.child,
+              secondChild: const SizedBox.shrink(),
+            )
+          else
+            widget.child,
         ],
       ),
     );

@@ -45,16 +45,17 @@ class LayerManager extends ConsumerWidget {
                 notifier.reorder(oldIndex, newIndex),
             itemBuilder: (context, index) {
               final element = state.elements[index];
-              final isActive = state.activeType == element.type;
+              final isActive = state.active?.name == element.name;
 
               return _LayerTile(
-                key: ValueKey(element.type),
+                key: ValueKey(element.name),
                 element: element,
                 isActive: isActive,
-                onTap: () => notifier.setActive(element.type),
+                onTap: () => notifier.setActive(element.type, id: element.name),
                 onToggleVisibility: () =>
-                    notifier.toggleVisibility(element.type),
-                onToggleLock: () => notifier.toggleLock(element.type),
+                    notifier.toggleVisibility(element.type, id: element.name),
+                onToggleLock: () =>
+                    notifier.toggleLock(element.type, id: element.name),
               );
             },
           ),
@@ -83,9 +84,7 @@ class _LayerTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Material(
-      color: isActive
-          ? colors.primary.withAlpha(20)
-          : Colors.transparent,
+      color: isActive ? colors.primary.withAlpha(20) : Colors.transparent,
       child: InkWell(
         onTap: onTap,
         child: Container(
@@ -101,8 +100,11 @@ class _LayerTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(Icons.drag_indicator_rounded,
-                  size: 14, color: colors.textDisabled),
+              Icon(
+                Icons.drag_indicator_rounded,
+                size: 14,
+                color: colors.textDisabled,
+              ),
               const SizedBox(width: 4),
               Icon(
                 _getIcon(element.type),
@@ -112,14 +114,11 @@ class _LayerTile extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  element.name,
+                  element.label,
                   style: TextStyle(
-                    color: isActive
-                        ? colors.textPrimary
-                        : colors.textSecondary,
+                    color: isActive ? colors.textPrimary : colors.textSecondary,
                     fontSize: 11,
-                    fontWeight:
-                        isActive ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),

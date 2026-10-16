@@ -11,7 +11,7 @@ import '../../../domain/entities/user_profile.dart';
 import '../../../presentation/providers/font_provider.dart';
 import '../../../presentation/providers/element_provider.dart';
 
-const double _kHeaderHeight = 102.0;
+const double _kHeaderHeight = 76.0;
 
 class FontListPanel extends ConsumerStatefulWidget {
   const FontListPanel({super.key, this.footer});
@@ -26,8 +26,24 @@ class _FontListPanelState extends ConsumerState<FontListPanel> {
   String? _hoveredStorageKey;
   String? _loadingKey;
   final Set<String> _loadedGoogleFonts = {};
+  static const _fontRestrictionMessage =
+      'Native text uses the system font. Custom fonts are available for image-based clocks.';
+
+  bool _blockUnsupportedFont() {
+    if (ref.read(elementProvider).activeType.supportsCustomFont) return false;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(_fontRestrictionMessage),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
+    return true;
+  }
 
   Future<void> _applyFont(UnifiedFont font) async {
+    if (_blockUnsupportedFont()) return;
     final key = font.storageKey;
 
     if (font.source == FontSource.google && !_loadedGoogleFonts.contains(key)) {
@@ -52,16 +68,9 @@ class _FontListPanelState extends ConsumerState<FontListPanel> {
       }
     }
 
-    if (!mounted) return;
-    final elState = ref.read(elementProvider);
-    final type = elState.activeType;
-    final n = ref.read(elementProvider.notifier);
-    final link = elState.linkHourMinFont;
-    n.setFontBatch({
-      type: key,
-      if (link && type == ElementType.hourClock) ElementType.minClock: key,
-      if (link && type == ElementType.minClock) ElementType.hourClock: key,
-    });
+    if (!mounted || _blockUnsupportedFont()) return;
+    ref.read(elementProvider.notifier).applyFont(key);
+    await ref.read(fontUsageProvider.notifier).rememberFont(font);
   }
 
   @override
@@ -73,9 +82,7 @@ class _FontListPanelState extends ConsumerState<FontListPanel> {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
     final activeFont = elState.active?.font;
-    final isClockType =
-        elState.activeType == ElementType.hourClock ||
-        elState.activeType == ElementType.minClock;
+    final isClockType = clockFontTypes.contains(elState.activeType);
 
     return CustomScrollView(
       slivers: [
@@ -85,8 +92,12 @@ class _FontListPanelState extends ConsumerState<FontListPanel> {
             activeFont: activeFont,
             hoveredKey: _hoveredStorageKey,
             source: source,
-            onSourceChanged: (s) =>
-                ref.read(fontSourceProvider.notifier).select(s),
+            onSourceChanged: (s) {
+              if (ref.read(fontSourceProvider) == s) return;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ref.read(fontSourceProvider.notifier).select(s);
+              });
+            },
             colors: colors,
             scheme: scheme,
             showLinkToggle: isClockType,
@@ -96,56 +107,120 @@ class _FontListPanelState extends ConsumerState<FontListPanel> {
           ),
         ),
 
-        // User profile grid — only for API fonts
+        // User profile horizontal list — only for API fonts
         if (source == FontSource.api)
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: kUserProfiles.entries.map((e) {
-                  final isSelected = selectedUser == e.key;
-                  return GestureDetector(
-                    onTap: () => ref
-                        .read(fontUserSelectionProvider.notifier)
-                        .select(e.key),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: isSelected
-                                  ? colors.primary
-                                  : Colors.transparent,
-                              width: 2,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: colors.surfaceOverlay,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: colors.border),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.palette_outlined,
+                        size: 13,
+                        color: colors.primary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'DESIGNER COLLECTIONS',
+                        style: TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.6,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: kUserProfiles.entries.map((e) {
+                        final isSelected = selectedUser == e.key;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                            onTap: isSelected
+                                ? null
+                                : () {
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                      ref
+                                          .read(
+                                            fontUserSelectionProvider.notifier,
+                                          )
+                                          .select(e.key);
+                                    });
+                                  },
+                            child: Padding(
+                              padding: const EdgeInsets.all(2),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 180),
+                                    padding: const EdgeInsets.all(2),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? colors.primary
+                                            : colors.border.withAlpha(120),
+                                        width: isSelected ? 2 : 1.5,
+                                      ),
+                                      boxShadow: isSelected
+                                          ? [
+                                              BoxShadow(
+                                                color: colors.primary.withAlpha(
+                                                  60,
+                                                ),
+                                                blurRadius: 6,
+                                                spreadRadius: 1,
+                                              ),
+                                            ]
+                                          : null,
+                                    ),
+                                    child: CircleAvatar(
+                                      radius: 17,
+                                      backgroundColor: colors.surface,
+                                      backgroundImage: AssetImage(
+                                        e.value.avatarAsset,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    e.value.displayName,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w700
+                                          : FontWeight.w500,
+                                      color: isSelected
+                                          ? colors.primary
+                                          : scheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                          child: CircleAvatar(
-                            radius: 16,
-                            backgroundImage: AssetImage(e.value.avatarAsset),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          e.value.displayName,
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: isSelected
-                                ? FontWeight.w700
-                                : FontWeight.w500,
-                            color: isSelected
-                                ? colors.primary
-                                : scheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
+                        );
+                      }).toList(),
                     ),
-                  );
-                }).toList(),
+                  ),
+                ],
               ),
             ),
           ),
@@ -163,86 +238,143 @@ class _FontListPanelState extends ConsumerState<FontListPanel> {
               ),
             ),
           ),
-          data: (fonts) => SliverList(
-            delegate: SliverChildBuilderDelegate((_, i) {
-              final font = fonts[i];
-              final key = font.storageKey;
-              final sel = activeFont == key;
-              final isHovered = _hoveredStorageKey == key;
-              final isLoading = _loadingKey == key;
+          data: (fonts) => fonts.isEmpty && source == FontSource.frequent
+              ? SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 24,
+                      horizontal: 12,
+                    ),
+                    child: Text(
+                      'No frequently used fonts yet.',
+                      style: TextStyle(color: scheme.onSurfaceVariant),
+                    ),
+                  ),
+                )
+              : SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 180,
+                    mainAxisExtent: 64,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 6,
+                  ),
+                  delegate: SliverChildBuilderDelegate((_, i) {
+                    final font = fonts[i];
+                    final key = font.storageKey;
+                    final sel = activeFont == key;
+                    final isHovered = _hoveredStorageKey == key;
+                    final isLoading = _loadingKey == key;
 
-              return MouseRegion(
-                onEnter: (_) => setState(() => _hoveredStorageKey = key),
-                onExit: (_) => setState(() => _hoveredStorageKey = null),
-                cursor: SystemMouseCursors.click,
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 4),
-                  decoration: BoxDecoration(
-                    color: sel
-                        ? colors.primary.withAlpha(30)
-                        : isHovered
-                        ? colors.primary.withAlpha(15)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    border: Border.all(
-                      color: sel
-                          ? colors.primary.withAlpha(80)
-                          : isHovered
-                          ? colors.primary.withAlpha(40)
-                          : colors.border,
-                      width: 1.0,
-                    ),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    clipBehavior: Clip.antiAlias,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    child: ListTile(
-                      dense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                      ),
-                      leading: sel
-                          ? Icon(
-                              Icons.check_rounded,
-                              size: 16,
-                              color: colors.primary,
-                            )
-                          : null,
-                      trailing: isLoading
-                          ? SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 1.5,
-                                color: colors.primary,
+                    return MouseRegion(
+                      onEnter: (_) => setState(() => _hoveredStorageKey = key),
+                      onExit: (_) => setState(() => _hoveredStorageKey = null),
+                      cursor: SystemMouseCursors.click,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: sel
+                              ? colors.primary.withAlpha(30)
+                              : isHovered
+                              ? colors.primary.withAlpha(15)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          border: Border.all(
+                            color: sel
+                                ? colors.primary.withAlpha(80)
+                                : isHovered
+                                ? colors.primary.withAlpha(40)
+                                : colors.border,
+                            width: 1.0,
+                          ),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          clipBehavior: Clip.antiAlias,
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          child: InkWell(
+                            key: ValueKey('font-$key'),
+                            onTap: () => _applyFont(font),
+                            child: Semantics(
+                              button: true,
+                              selected: sel,
+                              child: Stack(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          height: 26,
+                                          width: double.infinity,
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(
+                                              right: 18,
+                                            ),
+                                            child: FittedBox(
+                                              fit: BoxFit.scaleDown,
+                                              alignment: Alignment.centerLeft,
+                                              child: Text(
+                                                '02:36',
+                                                style: font.previewStyle(
+                                                  fontSize: 20,
+                                                  color: sel
+                                                      ? colors.primary
+                                                      : scheme.onSurface,
+                                                  fontWeight: sel
+                                                      ? FontWeight.w700
+                                                      : FontWeight.normal,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          font.name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: scheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (sel || isLoading)
+                                    Positioned(
+                                      top: 6,
+                                      right: 6,
+                                      child: isLoading
+                                          ? SizedBox(
+                                              width: 14,
+                                              height: 14,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 1.5,
+                                                color: colors.primary,
+                                              ),
+                                            )
+                                          : Icon(
+                                              Icons.check_rounded,
+                                              size: 14,
+                                              color: colors.primary,
+                                            ),
+                                    ),
+                                ],
                               ),
-                            )
-                          : null,
-                      title: Text(
-                        font.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: font.previewStyle(
-                          fontSize: 20,
-                          color: sel ? colors.primary : scheme.onSurface,
-                          fontWeight: sel ? FontWeight.w700 : FontWeight.normal,
+                            ),
+                          ),
                         ),
                       ),
-                      subtitle: Text(
-                        font.name,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                      onTap: () => _applyFont(font),
-                    ),
-                  ),
+                    );
+                  }, childCount: fonts.length),
                 ),
-              );
-            }, childCount: fonts.length),
-          ),
         ),
 
         if (widget.footer != null)
@@ -286,7 +418,7 @@ class _FontHeaderDelegate extends SliverPersistentHeaderDelegate {
   final bool linkHourMinFont;
   final VoidCallback onToggleLink;
 
-  static const double _linkRowHeight = 34.0;
+  static const double _linkRowHeight = 44.0;
 
   @override
   double get minExtent =>
@@ -302,57 +434,98 @@ class _FontHeaderDelegate extends SliverPersistentHeaderDelegate {
   ) {
     return ColoredBox(
       color: colors.surface,
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _FontHeaderPreview(
-            activeFont: activeFont,
-            hoveredKey: hoveredKey,
-            colors: colors,
-            scheme: scheme,
-          ),
-          _FontSourceToggle(
-            source: source,
-            onChanged: onSourceChanged,
-            colors: colors,
-            scheme: scheme,
-          ),
-          if (showLinkToggle)
+      child: SizedBox(
+        height: minExtent,
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
+              padding: const EdgeInsets.only(bottom: 8),
+              child: SizedBox(
+                height: 28,
+                child: _FontHeaderPreview(
+                  activeFont: activeFont,
+                  hoveredKey: hoveredKey,
+                  colors: colors,
+                  scheme: scheme,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: SizedBox(
+                height: 32,
+                child: _FontSourceToggle(
+                  source: source,
+                  onChanged: onSourceChanged,
+                  colors: colors,
+                  scheme: scheme,
+                ),
+              ),
+            ),
+            if (showLinkToggle)
+              Padding(
+                padding: const EdgeInsets.only(top: 4, bottom: 6),
+                child: Container(
+                  height: 34,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: colors.surfaceOverlay,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(
+                      color: linkHourMinFont
+                          ? colors.primary.withAlpha(60)
+                          : colors.border,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(
-                        Icons.link_rounded,
-                        size: 14,
-                        color: linkHourMinFont
-                            ? colors.primary
-                            : scheme.onSurfaceVariant,
+                      Expanded(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.link_rounded,
+                              size: 14,
+                              color: linkHourMinFont
+                                  ? colors.primary
+                                  : scheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                'Link Hour, Min & Sec',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: linkHourMinFont
+                                      ? scheme.onSurface
+                                      : scheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Link Hour & Min font',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: scheme.onSurface,
+                      Transform.scale(
+                        scale: 0.75,
+                        child: Switch.adaptive(
+                          value: linkHourMinFont,
+                          onChanged: (_) => onToggleLink(),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
                         ),
                       ),
                     ],
                   ),
-                  Switch.adaptive(
-                    value: linkHourMinFont,
-                    onChanged: (_) => onToggleLink(),
-                  ),
-                ],
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -398,62 +571,77 @@ class _FontHeaderPreview extends StatelessWidget {
             color: scheme.onSurface,
           );
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
+    return Row(
+      children: [
+        Container(
+          width: 3,
+          height: 14,
+          margin: const EdgeInsets.only(right: 8),
+          decoration: BoxDecoration(
+            color: colors.primary,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        Text(
+          'Fonts',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: scheme.onSurface,
+            letterSpacing: 0.2,
+          ),
+        ),
+        const Spacer(),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: hoveredKey != null
+                ? colors.primary.withAlpha(20)
+                : colors.surfaceOverlay,
+            border: Border.all(
+              color: hoveredKey != null
+                  ? colors.primary.withAlpha(120)
+                  : colors.border,
+            ),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          child: Text('02 : 36', style: previewStyle),
+        ),
+        if (activeFont != null) ...[
+          const SizedBox(width: 6),
           Container(
-            width: 3,
-            height: 16,
-            margin: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
             decoration: BoxDecoration(
-              color: colors.primary,
-              borderRadius: BorderRadius.circular(2),
+              color: colors.primary.withAlpha(25),
+              borderRadius: BorderRadius.circular(AppRadius.full),
+              border: Border.all(color: colors.primary.withAlpha(70)),
             ),
-          ),
-          Text(
-            'Fonts',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: scheme.onSurface,
-            ),
-          ),
-          const Spacer(),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: colors.surfaceOverlay,
-              border: Border.all(
-                color: hoveredKey != null
-                    ? colors.primary.withAlpha(120)
-                    : colors.border,
-              ),
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
-            child: Text('02 : 36', style: previewStyle),
-          ),
-          if (activeFont != null) ...[
-            const SizedBox(width: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-              decoration: BoxDecoration(
-                color: scheme.secondaryContainer,
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-              child: Text(
-                'Active',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: scheme.onSecondaryContainer,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 5,
+                  height: 5,
+                  margin: const EdgeInsets.only(right: 4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: colors.primary,
+                  ),
                 ),
-              ),
+                Text(
+                  'Active',
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w600,
+                    color: colors.primary,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ],
-      ),
+      ],
     );
   }
 }
@@ -473,44 +661,68 @@ class _FontSourceToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const rows = [
-      [FontSource.api, FontSource.google],
-      [FontSource.fontsource, FontSource.fontshare],
-    ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (final row in rows)
-          Padding(
-            padding: EdgeInsets.only(bottom: row == rows.last ? 0 : 6),
-            child: Row(children: row.map(_chip).toList()),
-          ),
-      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(children: FontSource.values.map(_chip).toList()),
     );
   }
 
   Widget _chip(FontSource s) {
     final selected = source == s;
+    final icon = switch (s) {
+      FontSource.frequent => Icons.history_rounded,
+      FontSource.api => Icons.brush_outlined,
+      FontSource.google => Icons.font_download_outlined,
+      FontSource.fontsource => Icons.cloud_queue_rounded,
+      FontSource.fontshare => Icons.share_rounded,
+    };
+
     return Padding(
       padding: const EdgeInsets.only(right: 6),
-      child: GestureDetector(
-        onTap: () => onChanged(s),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: selected ? colors.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-            border: Border.all(
-              color: selected ? colors.primary : colors.border,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppRadius.full),
+          onTap: selected ? null : () => onChanged(s),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: selected ? colors.primary : colors.surfaceOverlay,
+              borderRadius: BorderRadius.circular(AppRadius.full),
+              border: Border.all(
+                color: selected ? colors.primary : colors.border,
+                width: 1,
+              ),
+              boxShadow: selected
+                  ? [
+                      BoxShadow(
+                        color: colors.primary.withAlpha(50),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ]
+                  : null,
             ),
-          ),
-          child: Text(
-            s.label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-              color: selected ? Colors.white : scheme.onSurfaceVariant,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 13,
+                  color: selected ? Colors.white : scheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  s.label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                    color: selected ? Colors.white : scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
           ),
         ),

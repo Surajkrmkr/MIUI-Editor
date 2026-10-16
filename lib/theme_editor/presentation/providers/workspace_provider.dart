@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/constants/app_constants.dart';
+import 'service_providers.dart';
 
 enum WorkspacePage {
   dashboard,
@@ -65,8 +67,40 @@ class WorkspaceNotifier extends Notifier<WorkspaceState> {
   void setInspectorTab(InspectorTab tab) => state = state.copyWith(activeInspectorTab: tab);
 }
 
-
 final workspaceProvider =
     NotifierProvider<WorkspaceNotifier, WorkspaceState>(WorkspaceNotifier.new);
+
+class CanvasLockNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    try {
+      final prefs = ref.watch(sharedPrefsProvider);
+      return prefs.getBool(AppConstants.prefsCanvasLock) ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> toggle() async {
+    final next = !state;
+    state = next;
+    try {
+      final prefs = ref.read(sharedPrefsProvider);
+      await prefs.setBool(AppConstants.prefsCanvasLock, next);
+    } catch (_) {}
+  }
+
+  Future<void> setLocked(bool locked) async {
+    if (state == locked) return;
+    state = locked;
+    try {
+      final prefs = ref.read(sharedPrefsProvider);
+      await prefs.setBool(AppConstants.prefsCanvasLock, locked);
+    } catch (_) {}
+  }
+}
+
+final canvasLockProvider =
+    NotifierProvider<CanvasLockNotifier, bool>(CanvasLockNotifier.new);
 
 

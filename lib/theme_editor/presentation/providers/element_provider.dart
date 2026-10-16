@@ -2,10 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/element_widget.dart';
 
+final animationReplayProvider = StateProvider<int>((ref) => 0);
+
+const clockFontTypes = {
+  ElementType.hourClock,
+  ElementType.minClock,
+  ElementType.secClock,
+};
+
 class ElementState {
   const ElementState({
     this.elements = const [],
     this.activeType = ElementType.swipeUpUnlock,
+    this.activeId = '',
+    this.selectedIds = const {},
     this.bgAlpha = 0.0,
     this.hasSelection = false,
     this.undoCount = 0,
@@ -17,6 +27,11 @@ class ElementState {
 
   final List<LockElement> elements;
   final ElementType activeType;
+  final String activeId;
+  final Set<String> selectedIds;
+  bool isSelected(LockElement element) => selectedIds.isNotEmpty
+      ? selectedIds.contains(element.name)
+      : selectedTypes.contains(element.type);
   final double bgAlpha;
   final bool hasSelection;
   final int undoCount;
@@ -27,10 +42,22 @@ class ElementState {
 
   bool get canUndo => undoCount > 0;
   bool get canRedo => redoCount > 0;
+  bool get hasVisibleUnlock => elements.any(
+    (element) =>
+        element.isVisible &&
+        const {
+          ElementType.swipeUpUnlock,
+          ElementType.tapToUnlock,
+          ElementType.slideToUnlock,
+          ElementType.dragToUnlock,
+        }.contains(element.type),
+  );
 
   ElementState copyWith({
     List<LockElement>? elements,
     ElementType? activeType,
+    String? activeId,
+    Set<String>? selectedIds,
     double? bgAlpha,
     bool? hasSelection,
     int? undoCount,
@@ -38,21 +65,28 @@ class ElementState {
     Set<ElementType>? selectedTypes,
     bool? isGroupMode,
     bool? linkHourMinFont,
-  }) =>
-      ElementState(
-        elements: elements ?? this.elements,
-        activeType: activeType ?? this.activeType,
-        bgAlpha: bgAlpha ?? this.bgAlpha,
-        hasSelection: hasSelection ?? this.hasSelection,
-        undoCount: undoCount ?? this.undoCount,
-        redoCount: redoCount ?? this.redoCount,
-        selectedTypes: selectedTypes ?? this.selectedTypes,
-        isGroupMode: isGroupMode ?? this.isGroupMode,
-        linkHourMinFont: linkHourMinFont ?? this.linkHourMinFont,
-      );
+  }) => ElementState(
+    elements: elements ?? this.elements,
+    activeType: activeType ?? this.activeType,
+    activeId: activeId ?? this.activeId,
+    selectedIds: selectedIds ?? this.selectedIds,
+    bgAlpha: bgAlpha ?? this.bgAlpha,
+    hasSelection: hasSelection ?? this.hasSelection,
+    undoCount: undoCount ?? this.undoCount,
+    redoCount: redoCount ?? this.redoCount,
+    selectedTypes: selectedTypes ?? this.selectedTypes,
+    isGroupMode: isGroupMode ?? this.isGroupMode,
+    linkHourMinFont: linkHourMinFont ?? this.linkHourMinFont,
+  );
 
   LockElement? get active => hasSelection
-      ? elements.where((e) => e.type == activeType).firstOrNull
+      ? elements
+            .where(
+              (e) =>
+                  e.type == activeType &&
+                  (activeId.isEmpty || e.name == activeId),
+            )
+            .firstOrNull
       : null;
 
   bool contains(ElementType t) => elements.any((e) => e.type == t);
@@ -105,10 +139,30 @@ class ElementNotifier extends Notifier<ElementState> {
   }
 
   // _change: single-element mutation that pushes history.
-  void _change(ElementType t, LockElement Function(LockElement) fn) {
+  bool _matches(LockElement element, ElementType type, {String? id}) {
+    if (element.type != type) return false;
+    if (!type.isShape) return true;
+    final target =
+        id ??
+        (state.activeType == type && state.activeId.isNotEmpty
+            ? state.activeId
+            : state.elements
+                  .where((element) => element.type == type)
+                  .firstOrNull
+                  ?.name);
+    return element.name == target;
+  }
+
+  void _change(
+    ElementType t,
+    LockElement Function(LockElement) fn, {
+    String? id,
+  }) {
     _record();
     state = state.copyWith(
-      elements: state.elements.map((e) => e.type == t ? fn(e) : e).toList(),
+      elements: state.elements
+          .map((e) => _matches(e, t, id: id) ? fn(e) : e)
+          .toList(),
       undoCount: _history.length,
       redoCount: 0,
     );
@@ -116,34 +170,52 @@ class ElementNotifier extends Notifier<ElementState> {
 
   // ── Structural mutations (push history) ───────────────────────────────────
 
-  /// swipeUpUnlock is mandatory — every element list (presets, AI results,
-  /// manual edits) must keep it, so it's re-added here if missing.
-  List<LockElement> _withMandatory(List<LockElement> els) =>
-      els.any((e) => e.type == ElementType.swipeUpUnlock)
-          ? els
-          : [
-              ...els,
-              const LockElement(
-                  type: ElementType.swipeUpUnlock, isLocked: true),
-            ];
+  LockElement _uniqueShape(LockElement element, List<LockElement> existing) {
+    if (!element.type.isShape ||
+        !existing.any((other) => other.name == element.name)) {
+      return element;
+    }
+    var suffix = 2;
+    while (existing.any(
+      (other) => other.name == '${element.type.name}_$suffix',
+    )) {
+      suffix++;
+    }
+    return element.copyWith(instanceId: '$suffix');
+  }
+
+  List<LockElement> _normalizeElements(List<LockElement> els) {
+    final result = <LockElement>[];
+    for (final element in els) {
+      result.add(_uniqueShape(element, result));
+    }
+    return result;
+  }
 
   void setAll(List<LockElement> els) {
-    final withMandatory = _withMandatory(els);
+    final elements = _normalizeElements(els);
     _record();
     state = state.copyWith(
-      elements: withMandatory,
-      activeType: withMandatory.last.type,
+      elements: elements,
+      activeType: elements.isNotEmpty ? elements.last.type : state.activeType,
+      activeId: elements.isNotEmpty ? elements.last.name : '',
+      selectedIds: const {},
+      selectedTypes: const {},
+      isGroupMode: false,
       undoCount: _history.length,
       redoCount: 0,
     );
   }
 
   void add(LockElement el) {
-    if (state.contains(el.type)) return;
+    if (state.contains(el.type) && !el.type.isShape) return;
+    el = _uniqueShape(el, state.elements);
     _record();
     state = state.copyWith(
       elements: [...state.elements, el],
       activeType: el.type,
+      activeId: el.name,
+      hasSelection: true,
       undoCount: _history.length,
       redoCount: 0,
     );
@@ -152,25 +224,31 @@ class ElementNotifier extends Notifier<ElementState> {
   void addAll(List<LockElement> els) {
     final List<LockElement> updated = [...state.elements];
     for (final el in els) {
-      if (!updated.any((e) => e.type == el.type)) updated.add(el);
+      if (el.type.isShape || !updated.any((e) => e.type == el.type)) {
+        updated.add(_uniqueShape(el, updated));
+      }
     }
     _record();
     state = state.copyWith(
       elements: updated,
       activeType: updated.isNotEmpty ? updated.last.type : state.activeType,
+      activeId: updated.isNotEmpty ? updated.last.name : '',
       undoCount: _history.length,
       redoCount: 0,
     );
   }
 
-  void remove(ElementType t) {
-    if (t == ElementType.swipeUpUnlock) return;
-    final updated = state.elements.where((e) => e.type != t).toList();
+  void remove(ElementType t, {String? id}) {
+    final updated = state.elements
+        .where((e) => !_matches(e, t, id: id))
+        .toList();
     _record();
     state = state.copyWith(
       elements: updated,
-      activeType:
-          updated.isNotEmpty ? updated.last.type : ElementType.swipeUpUnlock,
+      activeId: updated.isNotEmpty ? updated.last.name : '',
+      activeType: updated.isNotEmpty
+          ? updated.last.type
+          : ElementType.swipeUpUnlock,
       undoCount: _history.length,
       redoCount: 0,
     );
@@ -201,8 +279,17 @@ class ElementNotifier extends Notifier<ElementState> {
     );
   }
 
-  void setActive(ElementType t) =>
-      state = state.copyWith(activeType: t, hasSelection: true);
+  void setActive(ElementType t, {String? id}) => state = state.copyWith(
+    activeType: t,
+    activeId:
+        id ??
+        state.elements
+            .where((element) => element.type == t)
+            .firstOrNull
+            ?.name ??
+        '',
+    hasSelection: true,
+  );
 
   void deselect() => state = state.copyWith(hasSelection: false);
   void setBgAlpha(double v) => state = state.copyWith(bgAlpha: v);
@@ -212,33 +299,53 @@ class ElementNotifier extends Notifier<ElementState> {
   // ── Group select ──────────────────────────────────────────────────────────
 
   /// Enters group selection mode with [t] as the first selected element.
-  void enterGroupMode(ElementType t) {
+  void enterGroupMode(ElementType t, {String? id}) {
     state = state.copyWith(
       isGroupMode: true,
       selectedTypes: {t},
+      selectedIds: {
+        id ?? state.elements.firstWhere((element) => element.type == t).name,
+      },
       hasSelection: false,
     );
   }
 
   /// Adds [t] to the group if absent, removes it if present.
   /// Exits group mode automatically when the group becomes empty.
-  void toggleGroupSelect(ElementType t) {
-    final updated = Set<ElementType>.from(state.selectedTypes);
-    if (updated.contains(t)) {
-      updated.remove(t);
+  void toggleGroupSelect(ElementType t, {String? id}) {
+    final target =
+        id ?? state.elements.firstWhere((element) => element.type == t).name;
+    final updated = Set<String>.from(
+      state.elements.where(state.isSelected).map((element) => element.name),
+    );
+    if (updated.contains(target)) {
+      updated.remove(target);
     } else {
-      updated.add(t);
+      updated.add(target);
     }
     if (updated.isEmpty) {
-      state = state.copyWith(isGroupMode: false, selectedTypes: const {});
+      state = state.copyWith(
+        isGroupMode: false,
+        selectedTypes: const {},
+        selectedIds: const {},
+      );
     } else {
-      state = state.copyWith(selectedTypes: updated);
+      state = state.copyWith(
+        selectedIds: updated,
+        selectedTypes: state.elements
+            .where((element) => updated.contains(element.name))
+            .map((element) => element.type)
+            .toSet(),
+      );
     }
   }
 
   /// Exits group selection mode and clears the selection set.
-  void exitGroupMode() =>
-      state = state.copyWith(isGroupMode: false, selectedTypes: const {});
+  void exitGroupMode() => state = state.copyWith(
+    isGroupMode: false,
+    selectedTypes: const {},
+    selectedIds: const {},
+  );
 
   /// Moves every unlocked element in [selectedTypes] by ([dx], [dy]) and records history.
   void nudgeGroupElements(double dx, double dy) {
@@ -246,10 +353,18 @@ class ElementNotifier extends Notifier<ElementState> {
     var els = state.elements;
     for (final t in state.selectedTypes) {
       els = els
-          .map((e) => e.type == t && !e.isLocked ? e.copyWith(dx: e.dx + dx, dy: e.dy + dy) : e)
+          .map(
+            (e) => e.type == t && state.isSelected(e) && !e.isLocked
+                ? e.copyWith(dx: e.dx + dx, dy: e.dy + dy)
+                : e,
+          )
           .toList();
     }
-    state = state.copyWith(elements: els, undoCount: _history.length, redoCount: 0);
+    state = state.copyWith(
+      elements: els,
+      undoCount: _history.length,
+      redoCount: 0,
+    );
   }
 
   /// Sets the primary color on every element in [selectedTypes] and records history.
@@ -257,9 +372,18 @@ class ElementNotifier extends Notifier<ElementState> {
     _record();
     var els = state.elements;
     for (final t in state.selectedTypes) {
-      els = els.map((e) => e.type == t ? e.copyWith(color: c) : e).toList();
+      els = els
+          .map(
+            (e) =>
+                e.type == t && state.isSelected(e) ? e.copyWith(color: c) : e,
+          )
+          .toList();
     }
-    state = state.copyWith(elements: els, undoCount: _history.length, redoCount: 0);
+    state = state.copyWith(
+      elements: els,
+      undoCount: _history.length,
+      redoCount: 0,
+    );
   }
 
   /// Sets the secondary color on every element in [selectedTypes] and records history.
@@ -267,9 +391,19 @@ class ElementNotifier extends Notifier<ElementState> {
     _record();
     var els = state.elements;
     for (final t in state.selectedTypes) {
-      els = els.map((e) => e.type == t ? e.copyWith(colorSecondary: c) : e).toList();
+      els = els
+          .map(
+            (e) => e.type == t && state.isSelected(e)
+                ? e.copyWith(colorSecondary: c)
+                : e,
+          )
+          .toList();
     }
-    state = state.copyWith(elements: els, undoCount: _history.length, redoCount: 0);
+    state = state.copyWith(
+      elements: els,
+      undoCount: _history.length,
+      redoCount: 0,
+    );
   }
 
   /// Moves every unlocked element in [selectedTypes] by ([dx], [dy]).
@@ -278,17 +412,40 @@ class ElementNotifier extends Notifier<ElementState> {
     var els = state.elements;
     for (final t in state.selectedTypes) {
       els = els
-          .map((e) =>
-              e.type == t && !e.isLocked ? e.copyWith(dx: e.dx + dx, dy: e.dy + dy) : e)
+          .map(
+            (e) => e.type == t && state.isSelected(e) && !e.isLocked
+                ? e.copyWith(dx: e.dx + dx, dy: e.dy + dy)
+                : e,
+          )
           .toList();
     }
     state = state.copyWith(elements: els);
   }
 
   // update() is the no-history base for continuous/slider operations.
+  void centerGroup({required bool horizontal}) {
+    _record();
+    state = state.copyWith(
+      elements: state.elements
+          .map(
+            (element) => state.isSelected(element) && !element.isLocked
+                ? element.copyWith(
+                    dx: horizontal ? 0 : element.dx,
+                    dy: horizontal ? element.dy : 0,
+                  )
+                : element,
+          )
+          .toList(),
+      undoCount: _history.length,
+      redoCount: 0,
+    );
+  }
+
   void update(ElementType t, LockElement Function(LockElement) fn) =>
       state = state.copyWith(
-        elements: state.elements.map((e) => e.type == t ? fn(e) : e).toList(),
+        elements: state.elements
+            .map((e) => _matches(e, t) ? fn(e) : e)
+            .toList(),
       );
 
   // High-frequency drag — no history per frame; use snapshotForDrag() on start.
@@ -355,28 +512,39 @@ class ElementNotifier extends Notifier<ElementState> {
       _change(t, (e) => e.copyWith(isWrap: v));
   void setVisible(ElementType t, bool v) =>
       _change(t, (e) => e.copyWith(isVisible: v));
-  void toggleVisibility(ElementType t) =>
-      _change(t, (e) => e.copyWith(isVisible: !e.isVisible));
+  void toggleVisibility(ElementType t, {String? id}) =>
+      _change(t, (e) => e.copyWith(isVisible: !e.isVisible), id: id);
   void setLocked(ElementType t, bool v) =>
       _change(t, (e) => e.copyWith(isLocked: v));
-  void toggleLock(ElementType t) =>
-      _change(t, (e) => e.copyWith(isLocked: !e.isLocked));
+  void toggleLock(ElementType t, {String? id}) =>
+      _change(t, (e) => e.copyWith(isLocked: !e.isLocked), id: id);
   void setUseSeparateColors(ElementType t, bool v) =>
       _change(t, (e) => e.copyWith(useSeparateColors: v));
   void setIsLiquidGlass(ElementType t, bool v) =>
       _change(t, (e) => e.copyWith(isLiquidGlass: v));
   void resetPosition(ElementType t) =>
       _change(t, (e) => e.copyWith(dx: 0, dy: 0));
-  void centerHorizontal(ElementType t) =>
-      _change(t, (e) => e.copyWith(dx: 0));
-  void centerVertical(ElementType t) =>
-      _change(t, (e) => e.copyWith(dy: 0));
+  void centerHorizontal(ElementType t) => _change(t, (e) => e.copyWith(dx: 0));
+  void centerVertical(ElementType t) => _change(t, (e) => e.copyWith(dy: 0));
 
   /// Sets font on multiple elements in a single history entry (e.g. hour+min link).
+  void applyFont(String font) {
+    final type = state.activeType;
+    setFontBatch({
+      type: font,
+      if (state.linkHourMinFont && clockFontTypes.contains(type))
+        for (final clock in clockFontTypes) clock: font,
+    });
+  }
+
   void setFontBatch(Map<ElementType, String> fonts) {
+    final supportedFonts = fonts.entries.where(
+      (entry) => entry.key.supportsCustomFont,
+    );
+    if (supportedFonts.isEmpty) return;
     _record();
     var els = state.elements;
-    for (final entry in fonts.entries) {
+    for (final entry in supportedFonts) {
       els = els
           .map((e) => e.type == entry.key ? e.copyWith(font: entry.value) : e)
           .toList();
@@ -389,5 +557,6 @@ class ElementNotifier extends Notifier<ElementState> {
   }
 }
 
-final elementProvider =
-    NotifierProvider<ElementNotifier, ElementState>(ElementNotifier.new);
+final elementProvider = NotifierProvider<ElementNotifier, ElementState>(
+  ElementNotifier.new,
+);

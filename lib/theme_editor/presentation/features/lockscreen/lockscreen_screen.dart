@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../domain/entities/element_widget.dart';
 import '../../providers/element_provider.dart';
 import '../../providers/wallpaper_provider.dart';
 import 'package:miui_icon_generator/widgets/app_icon_button.dart';
@@ -15,15 +14,6 @@ class LockscreenScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final n = ref.read(elementProvider.notifier);
-      if (!ref.read(elementProvider).contains(ElementType.swipeUpUnlock)) {
-        n.add(const LockElement(
-            type: ElementType.swipeUpUnlock, isLocked: true));
-        n.setActive(ElementType.swipeUpUnlock);
-      }
-    });
-
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -46,21 +36,44 @@ class LockscreenScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 14),
-            Consumer(builder: (_, ref, __) {
-              final ws = ref.watch(wallpaperProvider);
-              if (ws.paths.isEmpty) return const SizedBox.shrink();
-              return _CountBadge(
-                current: ws.index + 1,
-                total: ws.paths.length,
-              );
-            }),
+            Consumer(
+              builder: (_, ref, __) {
+                final ws = ref.watch(wallpaperProvider);
+                if (ws.paths.isEmpty) return const SizedBox.shrink();
+                return _CountBadge(
+                  current: ws.index + 1,
+                  total: ws.paths.length,
+                );
+              },
+            ),
           ],
         ),
         actions: [
-          Consumer(builder: (_, ref, __) {
-            final colors = ref.watch(wallpaperProvider).colorPalette;
-            return _PaletteStrip(colors: colors, ref: ref);
-          }),
+          IconButton.filled(
+            tooltip: 'Replay animations',
+            icon: const Icon(Icons.play_arrow_rounded),
+            style: IconButton.styleFrom(
+              backgroundColor: scheme.primary,
+              foregroundColor: scheme.onPrimary,
+            ),
+            onPressed:
+                ref
+                    .watch(elementProvider)
+                    .elements
+                    .any(
+                      (element) =>
+                          element.isVisible &&
+                          element.activeAnimations.isNotEmpty,
+                    )
+                ? () => ref.read(animationReplayProvider.notifier).state++
+                : null,
+          ),
+          Consumer(
+            builder: (_, ref, __) {
+              final colors = ref.watch(wallpaperProvider).colorPalette;
+              return _PaletteStrip(colors: colors, ref: ref);
+            },
+          ),
           const SizedBox(width: 12),
         ],
         bottom: PreferredSize(
@@ -153,34 +166,36 @@ class _PaletteStrip extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: colors
-              .map((c) => GestureDetector(
-                    onTap: () {
-                      final elState = ref.read(elementProvider);
-                      ref.read(elementProvider.notifier)
-                        ..setColor(elState.activeType, c)
-                        ..setColorSecondary(elState.activeType, c);
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 6),
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color: c,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white.withAlpha(70),
-                          width: 2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: c.withAlpha(110),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+              .map(
+                (c) => GestureDetector(
+                  onTap: () {
+                    final elState = ref.read(elementProvider);
+                    ref.read(elementProvider.notifier)
+                      ..setColor(elState.activeType, c)
+                      ..setColorSecondary(elState.activeType, c);
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 6),
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: c,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withAlpha(70),
+                        width: 2,
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: c.withAlpha(110),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                  ))
+                  ),
+                ),
+              )
               .toList(),
         ),
       ),

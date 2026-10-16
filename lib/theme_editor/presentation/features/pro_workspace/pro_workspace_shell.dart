@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/theme_extensions.dart';
-import '../../../domain/entities/element_widget.dart';
 import '../../providers/element_provider.dart';
 import '../../providers/wallpaper_provider.dart';
 import 'widgets/top_command_bar.dart';
@@ -20,14 +19,7 @@ class ProfessionalWorkspaceShell extends ConsumerWidget {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final n = ref.read(elementProvider.notifier);
       final st = ref.read(elementProvider);
-      // Capture the current selection before a mandatory-element add() below
-      // shifts activeType, so the palette tint targets what was actually active.
       final activeType = st.activeType;
-
-      if (!st.contains(ElementType.swipeUpUnlock)) {
-        n.add(const LockElement(
-            type: ElementType.swipeUpUnlock, isLocked: true));
-      }
 
       final palette = ref.read(wallpaperProvider).colorPalette;
       if (palette.isNotEmpty) {

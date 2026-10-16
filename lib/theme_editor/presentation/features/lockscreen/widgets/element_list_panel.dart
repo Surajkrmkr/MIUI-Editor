@@ -44,8 +44,10 @@ class ElementListPanel extends ConsumerWidget {
               const Spacer(),
               if (addedCount > 0)
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: scheme.primaryContainer,
                     borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -67,13 +69,15 @@ class ElementListPanel extends ConsumerWidget {
         Column(
           mainAxisSize: MainAxisSize.min,
           children: kElementGroups.entries.map((entry) {
-            final groupAdded =
-                entry.value.where((t) => state.contains(t)).length;
+            final groupAdded = state.elements
+                .where((element) => entry.value.contains(element.type))
+                .length;
             return Padding(
               padding: const EdgeInsets.only(bottom: 6),
               child: Theme(
-                data: Theme.of(context)
-                    .copyWith(dividerColor: Colors.transparent),
+                data: Theme.of(
+                  context,
+                ).copyWith(dividerColor: Colors.transparent),
                 child: ExpansionTile(
                   title: Row(
                     children: [
@@ -121,10 +125,11 @@ class ElementListPanel extends ConsumerWidget {
                   backgroundColor: colors.surfaceOverlay,
                   children: entry.value.map((type) {
                     final added = state.contains(type);
-                    final isMandatory = type == ElementType.swipeUpUnlock;
                     return Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       child: Material(
                         color: added ? colors.primary : Colors.transparent,
                         borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -135,21 +140,22 @@ class ElementListPanel extends ConsumerWidget {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                          ),
                           leading: Icon(
-                            added && isMandatory
-                                ? Icons.lock_rounded
+                            type.isShape
+                                ? Icons.add_rounded
                                 : added
-                                    ? Icons.check_circle_rounded
-                                    : Icons.radio_button_unchecked_rounded,
+                                ? Icons.check_circle_rounded
+                                : Icons.radio_button_unchecked_rounded,
                             size: 16,
                             color: added
                                 ? colors.onPrimary
                                 : scheme.onSurfaceVariant,
                           ),
                           title: Text(
-                            type.name,
+                            type.label,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -162,21 +168,45 @@ class ElementListPanel extends ConsumerWidget {
                                   : scheme.onSurface,
                             ),
                           ),
-                          onTap: added && isMandatory
-                              ? null
-                              : () {
-                                  if (!added) {
-                                    notifier.add(LockElement(
-                                      type: type,
-                                      colorSecondary: type ==
-                                              ElementType.notification
-                                          ? colors.primary.withAlpha(60)
-                                          : Colors.white,
-                                    ));
-                                  } else {
-                                    notifier.remove(type);
-                                  }
-                                },
+                          onTap: () {
+                            if (!added || type.isShape) {
+                              notifier.add(
+                                LockElement(
+                                  type: type,
+                                  sweepAngle: type == ElementType.arcShape
+                                      ? 360
+                                      : 270,
+                                  width: type == ElementType.calendarGrid
+                                      ? 560
+                                      : type == ElementType.slideToUnlock ||
+                                            type == ElementType.dragToUnlock
+                                      ? 640
+                                      : 200,
+                                  height: type == ElementType.calendarGrid
+                                      ? 640
+                                      : type == ElementType.slideToUnlock ||
+                                            type == ElementType.dragToUnlock
+                                      ? 128
+                                      : 200,
+                                  fontSize: type == ElementType.calendarGrid
+                                      ? 8
+                                      : 20,
+                                  unlockBackgroundOpacity:
+                                      type == ElementType.dragToUnlock
+                                      ? 0
+                                      : 48 / 255,
+                                  colorSecondary:
+                                      type == ElementType.notification
+                                      ? colors.primary.withAlpha(60)
+                                      : type == ElementType.calendarGrid
+                                      ? colors.primary
+                                      : Colors.white,
+                                ),
+                              );
+                            } else {
+                              notifier.remove(type);
+                            }
+                          },
                         ),
                       ),
                     );

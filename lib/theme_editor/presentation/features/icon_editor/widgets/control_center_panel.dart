@@ -22,7 +22,6 @@ final _ccWallpaperProvider =
         targetWidth: 360,
       );
       final image = (await codec.getNextFrame()).image;
-      ref.onDispose(image.dispose);
       return (image, await WallpaperPalette.fromImage(image));
     });
 

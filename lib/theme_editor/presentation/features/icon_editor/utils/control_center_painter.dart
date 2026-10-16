@@ -453,14 +453,27 @@ abstract final class ControlCenterPainter {
 
   /// Small control-center mock-up drawn over the wallpaper (or its palette).
   static void preview(Canvas c, Size size, CcStyle s, {ui.Image? wallpaper}) {
+    if (size.width <= 0 || size.height <= 0) return;
     final r = Offset.zero & size;
     final p = s.palette;
     c.save();
     c.clipRRect(RRect.fromRectAndRadius(r, const Radius.circular(12)));
+    bool isWallpaperUsable = false;
     if (wallpaper != null) {
+      bool isDisposed = false;
+      assert(() {
+        isDisposed = wallpaper.debugDisposed;
+        return true;
+      }());
+      if (!isDisposed && wallpaper.width > 0 && wallpaper.height > 0) {
+        isWallpaperUsable = true;
+      }
+    }
+
+    if (isWallpaperUsable) {
       final src =
           Offset.zero &
-          Size(wallpaper.width.toDouble(), wallpaper.height.toDouble());
+          Size(wallpaper!.width.toDouble(), wallpaper.height.toDouble());
       final fit = applyBoxFit(BoxFit.cover, src.size, size);
       c.drawImageRect(
         wallpaper,

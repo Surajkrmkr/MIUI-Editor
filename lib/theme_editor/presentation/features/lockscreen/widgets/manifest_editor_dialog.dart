@@ -127,24 +127,28 @@ class _ManifestEditorDialogState extends ConsumerState<ManifestEditorDialog> {
               ),
       ),
       actions: [
-        TextButton.icon(
-          onPressed: _loadManifest,
-          icon: const Icon(Icons.refresh_rounded, size: 18),
-          label: const Text('Reload'),
-        ),
-        const Spacer(),
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(
-            'Cancel',
-            style: TextStyle(color: scheme.onSurfaceVariant),
-          ),
-        ),
-        const SizedBox(width: 8),
-        FilledButton.icon(
-          onPressed: _saveManifest,
-          icon: const Icon(Icons.save_rounded, size: 18),
-          label: const Text('Save Changes'),
+        Row(
+          children: [
+            TextButton.icon(
+              onPressed: _loadManifest,
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: const Text('Reload'),
+            ),
+            const Spacer(),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: scheme.onSurfaceVariant),
+              ),
+            ),
+            const SizedBox(width: 8),
+            FilledButton.icon(
+              onPressed: _saveManifest,
+              icon: const Icon(Icons.save_rounded, size: 18),
+              label: const Text('Save Changes'),
+            ),
+          ],
         ),
       ],
     );

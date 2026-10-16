@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:screenshot/screenshot.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/asset_paths.dart';
@@ -28,8 +29,15 @@ class ExportLockscreenPngsUseCase {
   }) async {
     try {
       final lsAdv = PathConstants.lockscreenAdvance(themePath);
-      final exportable =
-          elementState.elements.where((e) => e.type.isExportable).toList();
+      final exportable = elementState.elements
+          .where(
+            (e) =>
+                e.isVisible &&
+                (e.type.isExportable ||
+                    e.type.isIcon ||
+                    e.type.isUnlockControl),
+          )
+          .toList();
 
       if (exportable.isEmpty) return null;
 
@@ -81,40 +89,103 @@ class ExportLockscreenPngsUseCase {
   List<_Frame> _framesFor(LockElement el, String lsAdv) {
     String dir(String sub) => PathConstants.p('$lsAdv$sub${PathConstants.sep}');
 
+    if (el.type.defaultIconAsset case final asset?) {
+      final relative = (el.path.isEmpty ? el.type.defaultPath : el.path)
+          .replaceAll(r'\', '/');
+      final path = PathConstants.p(
+        '$lsAdv${relative.startsWith('/') ? relative.substring(1) : relative}.png',
+      );
+      if (File(path).existsSync()) return [];
+      return [
+        _Frame(
+          widget: SizedBox(
+            width: el.width,
+            height: el.height,
+            child: SvgPicture.asset(AssetPaths.iconSvg(IconVariant.u1, asset)),
+          ),
+          path: path,
+        ),
+      ];
+    }
+
     switch (el.type) {
+      case ElementType.tapToUnlock:
+      case ElementType.slideToUnlock:
+      case ElementType.dragToUnlock:
+        if (el.effectiveUnlockIcon == UnlockIcon.none) return [];
+        final customPng = el.effectiveUnlockIcon == UnlockIcon.customPng;
+        if (customPng &&
+            (el.unlockIconPath.isEmpty ||
+                !File(el.unlockIconPath).existsSync())) {
+          throw FileSystemException(
+            'Custom unlock PNG not found. Choose a PNG for ${el.label}.',
+            el.unlockIconPath,
+          );
+        }
+        return [
+          _Frame(
+            widget: Directionality(
+              textDirection: TextDirection.ltr,
+              child: SizedBox(
+                width: 128,
+                height: 128,
+                child: customPng
+                    ? Image.memory(
+                        File(el.unlockIconPath).readAsBytesSync(),
+                        fit: BoxFit.contain,
+                      )
+                    : Icon(
+                        el.effectiveUnlockIcon.icon,
+                        size: 128,
+                        color: el.color,
+                      ),
+              ),
+            ),
+            path: PathConstants.p('${dir("unlock")}${el.name}.png'),
+          ),
+        ];
       case ElementType.hourClock:
         return List.generate(
-            13,
-            (i) => _Frame(
-                  widget: _phoneFrame(
-                      el, _clockText(el, i.toString().padLeft(2, '0'))),
-                  path: PathConstants.p('${dir("hour")}hour_$i.png'),
-                ));
+          13,
+          (i) => _Frame(
+            widget: _phoneFrame(
+              el,
+              _clockText(el, i.toString().padLeft(2, '0')),
+            ),
+            path: PathConstants.p('${dir("hour")}hour_$i.png'),
+          ),
+        );
 
       case ElementType.minClock:
         return List.generate(
-            60,
-            (i) => _Frame(
-                  widget: _phoneFrame(
-                      el, _clockText(el, i.toString().padLeft(2, '0'))),
-                  path: PathConstants.p('${dir("min")}min_$i.png'),
-                ));
+          60,
+          (i) => _Frame(
+            widget: _phoneFrame(
+              el,
+              _clockText(el, i.toString().padLeft(2, '0')),
+            ),
+            path: PathConstants.p('${dir("min")}min_$i.png'),
+          ),
+        );
 
       case ElementType.secClock:
         return List.generate(
-            60,
-            (i) => _Frame(
-                  widget: _phoneFrame(
-                      el, _clockText(el, i.toString().padLeft(2, '0'))),
-                  path: PathConstants.p('${dir("sec")}sec_$i.png'),
-                ));
+          60,
+          (i) => _Frame(
+            widget: _phoneFrame(
+              el,
+              _clockText(el, i.toString().padLeft(2, '0')),
+            ),
+            path: PathConstants.p('${dir("sec")}sec_$i.png'),
+          ),
+        );
 
       case ElementType.dotClock:
         return [
           _Frame(
             widget: _phoneFrame(el, _clockText(el, ':')),
             path: PathConstants.p('${dir("dot")}dot.png'),
-          )
+          ),
         ];
 
       case ElementType.dotClock2:
@@ -122,16 +193,17 @@ class ExportLockscreenPngsUseCase {
           _Frame(
             widget: _phoneFrame(el, _clockText(el, ':')),
             path: PathConstants.p('${dir("dot")}dot2.png'),
-          )
+          ),
         ];
 
       case ElementType.amPmClock:
         return List.generate(
-            2,
-            (i) => _Frame(
-                  widget: _phoneFrame(el, _clockText(el, i == 0 ? 'AM' : 'PM')),
-                  path: PathConstants.p('${dir("ampm")}ampm_$i.png'),
-                ));
+          2,
+          (i) => _Frame(
+            widget: _phoneFrame(el, _clockText(el, i == 0 ? 'AM' : 'PM')),
+            path: PathConstants.p('${dir("ampm")}ampm_$i.png'),
+          ),
+        );
 
       case ElementType.weekClock:
         return List.generate(7, (i) {
@@ -139,8 +211,8 @@ class ExportLockscreenPngsUseCase {
           final txt = el.isShort
               ? raw.substring(0, 3)
               : el.isWrap
-                  ? _wrapText(raw)
-                  : raw;
+              ? _wrapText(raw)
+              : raw;
           return _Frame(
             widget: _phoneFrame(el, _clockText(el, txt)),
             path: PathConstants.p('${dir("week")}week_$i.png'),
@@ -152,27 +224,40 @@ class ExportLockscreenPngsUseCase {
           final raw = AssetPaths.monthNames[i]!;
           return _Frame(
             widget: _phoneFrame(
-                el, _clockText(el, el.isShort ? raw.substring(0, 3) : raw)),
+              el,
+              _clockText(el, el.isShort ? raw.substring(0, 3) : raw),
+            ),
             path: PathConstants.p('${dir("month")}month_${i + 1}.png'),
           );
         });
 
       case ElementType.dateClock:
         return List.generate(
-            31,
-            (i) => _Frame(
-                  widget: _phoneFrame(
-                      el, _clockText(el, (i + 1).toString().padLeft(2, '0'))),
-                  path: PathConstants.p('${dir("date")}date_${i + 1}.png'),
-                ));
+          31,
+          (i) => _Frame(
+            widget: _phoneFrame(
+              el,
+              _clockText(el, (i + 1).toString().padLeft(2, '0')),
+            ),
+            path: PathConstants.p('${dir("date")}date_${i + 1}.png'),
+          ),
+        );
 
       case ElementType.weatherIconClock:
         return AssetPaths.weatherCodes
-            .map((code) => _Frame(
-                  widget: _phoneFrame(el,
-                      Image.asset(AssetPaths.weatherIcon(code.toString()), height: 40)),
-                  path: PathConstants.p('${dir("weather")}weather_$code.png'),
-                ))
+            .map(
+              (code) => _Frame(
+                widget: SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: Image.asset(
+                    AssetPaths.weatherIcon(code.toString()),
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                path: PathConstants.p('${dir("weather")}weather_$code.png'),
+              ),
+            )
             .toList();
 
       default:
@@ -182,7 +267,7 @@ class ExportLockscreenPngsUseCase {
             _Frame(
               widget: _phoneFrame(el, _containerWidget(el)),
               path: PathConstants.p('${dir("container")}${el.name}.png'),
-            )
+            ),
           ];
         }
         return [];
@@ -200,28 +285,25 @@ class ExportLockscreenPngsUseCase {
         width: AppConstants.screenWidth,
         // Transparent background — MIUI composites layers itself
         child: Stack(
-        children: [
-          Positioned(
-            left: el.dx,
-            top: el.dy,
-            child: Transform.scale(
-              scale: el.scale,
-              // No alignment override — default Alignment.center matches the
-              // live preview's Transform.scale behaviour exactly.
-              child: Transform.rotate(
-                angle: -el.angle * pi / 180,
-                child: SizedBox(
-                  height: AppConstants.screenHeight,
-                  width: AppConstants.screenWidth,
-                  child: Align(
-                    alignment: el.align,
-                    child: child,
+          children: [
+            Positioned(
+              left: el.dx,
+              top: el.dy,
+              child: Transform.scale(
+                scale: el.scale,
+                // No alignment override — default Alignment.center matches the
+                // live preview's Transform.scale behaviour exactly.
+                child: Transform.rotate(
+                  angle: -el.angle * pi / 180,
+                  child: SizedBox(
+                    height: AppConstants.screenHeight,
+                    width: AppConstants.screenWidth,
+                    child: Align(alignment: el.align, child: child),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
         ),
       ),
     );
@@ -231,7 +313,9 @@ class ExportLockscreenPngsUseCase {
 
   Widget _clockText(LockElement el, String text) {
     if (el.useSeparateColors &&
-        (el.type == ElementType.hourClock || el.type == ElementType.minClock || el.type == ElementType.secClock) &&
+        (el.type == ElementType.hourClock ||
+            el.type == ElementType.minClock ||
+            el.type == ElementType.secClock) &&
         text.length == 2) {
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -246,11 +330,14 @@ class ExportLockscreenPngsUseCase {
             style: fontTextStyle(
               font: el.font,
               fontSize: 35,
+              fontWeight: el.fontWeight,
               height: 1,
               color: el.colorDigit1,
             ),
             strokeWidth: el.strokeWidth,
-            strokeColor: el.strokeColorDigit1.a > 0 ? el.strokeColorDigit1 : el.strokeColor,
+            strokeColor: el.strokeColorDigit1.a > 0
+                ? el.strokeColorDigit1
+                : el.strokeColor,
             blurRadius: el.blurRadius,
             isLiquidGlass: el.isLiquidGlass,
           ),
@@ -264,11 +351,14 @@ class ExportLockscreenPngsUseCase {
             style: fontTextStyle(
               font: el.font,
               fontSize: 35,
+              fontWeight: el.fontWeight,
               height: 1,
               color: el.colorDigit2,
             ),
             strokeWidth: el.strokeWidth,
-            strokeColor: el.strokeColorDigit2.a > 0 ? el.strokeColorDigit2 : el.strokeColor,
+            strokeColor: el.strokeColorDigit2.a > 0
+                ? el.strokeColorDigit2
+                : el.strokeColor,
             blurRadius: el.blurRadius,
             isLiquidGlass: el.isLiquidGlass,
           ),
@@ -286,6 +376,7 @@ class ExportLockscreenPngsUseCase {
       style: fontTextStyle(
         font: el.font,
         fontSize: 35,
+        fontWeight: el.fontWeight,
         height: 1,
         color: el.color,
       ),
@@ -329,7 +420,10 @@ class ExportLockscreenPngsUseCase {
               if (frostBlur > 0)
                 Positioned.fill(
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: frostBlur, sigmaY: frostBlur),
+                    filter: ImageFilter.blur(
+                      sigmaX: frostBlur,
+                      sigmaY: frostBlur,
+                    ),
                     child: const SizedBox.expand(),
                   ),
                 ),
@@ -353,9 +447,15 @@ class ExportLockscreenPngsUseCase {
                       center: Alignment(-0.2, -0.2),
                       radius: 1.1,
                       colors: [
-                        Color(0x00FFFFFF), // Ultra-clear center (shows background sharp & magnified)
-                        Color(0x08FF3366), // Red-orange chromatic dispersion fringe
-                        Color(0x1033CCFF), // Cyan-blue chromatic dispersion fringe
+                        Color(
+                          0x00FFFFFF,
+                        ), // Ultra-clear center (shows background sharp & magnified)
+                        Color(
+                          0x08FF3366,
+                        ), // Red-orange chromatic dispersion fringe
+                        Color(
+                          0x1033CCFF,
+                        ), // Cyan-blue chromatic dispersion fringe
                         Color(0x28FFFFFF), // Outer refraction edge
                       ],
                       stops: [0.65, 0.85, 0.94, 1.0],
@@ -374,7 +474,9 @@ class ExportLockscreenPngsUseCase {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Color(0xCCFFFFFF), // 80% light specular highlight at top-left
+                        Color(
+                          0xCCFFFFFF,
+                        ), // 80% light specular highlight at top-left
                         Color(0x22FFFFFF),
                         Color(0x00FFFFFF),
                         Color(0x55FFFFFF), // Bottom-right refraction bounce
@@ -413,7 +515,10 @@ class ExportLockscreenPngsUseCase {
         containerWidget = ClipRRect(
           borderRadius: BorderRadius.circular(el.radius),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: el.blurRadius, sigmaY: el.blurRadius),
+            filter: ImageFilter.blur(
+              sigmaX: el.blurRadius,
+              sigmaY: el.blurRadius,
+            ),
             child: base,
           ),
         );
