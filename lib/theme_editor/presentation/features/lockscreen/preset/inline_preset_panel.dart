@@ -5,6 +5,8 @@ import '../../../../../core/theme/theme_extensions.dart';
 import '../../../providers/directory_provider.dart';
 import '../../../providers/lockscreen_provider.dart';
 import 'preset_card.dart';
+import 'preset_favorite_controls.dart';
+import '../../../providers/preset_favorites_provider.dart';
 
 /// Inline preset browser — lives inside the Presets tab of the side panel.
 /// Shows the preset grid directly without opening a dialog.
@@ -27,6 +29,8 @@ class _InlinePresetPanelState extends ConsumerState<InlinePresetPanel> {
   @override
   Widget build(BuildContext context) {
     final dirState = ref.watch(directoryProvider);
+    final paths = ref.watch(visiblePresetPathsProvider);
+    final favoritesOnly = ref.watch(favoritePresetsOnlyProvider);
     final appColors = context.appColors;
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
@@ -57,15 +61,17 @@ class _InlinePresetPanelState extends ConsumerState<InlinePresetPanel> {
                 ),
               ),
               const Spacer(),
+              const PresetFavoritesFilterButton(),
               _SaveButton(),
               const SizedBox(width: 4),
               IconButton(
-                icon: Icon(Icons.refresh_rounded,
-                    size: 14, color: cs.onSurfaceVariant),
-                tooltip: 'Refresh',
-                style: IconButton.styleFrom(
-                  minimumSize: const Size(28, 28),
+                icon: Icon(
+                  Icons.refresh_rounded,
+                  size: 14,
+                  color: cs.onSurfaceVariant,
                 ),
+                tooltip: 'Refresh',
+                style: IconButton.styleFrom(minimumSize: const Size(28, 28)),
                 onPressed: () =>
                     ref.read(directoryProvider.notifier).loadPresetPaths(),
               ),
@@ -77,29 +83,32 @@ class _InlinePresetPanelState extends ConsumerState<InlinePresetPanel> {
         Expanded(
           child: dirState.isLoadingPresets
               ? const Center(child: CircularProgressIndicator())
-              : dirState.presetPaths.isEmpty
-                  ? _EmptyState()
-                  : GridView.builder(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-                      gridDelegate:
-                          const SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: 165,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        mainAxisExtent: 330,
-                      ),
-                      itemCount: dirState.presetPaths.length,
-                      itemBuilder: (_, i) => PresetCard(
-                        path: dirState.presetPaths[i],
-                        index: i,
-                        // Inline — don't pop any route on apply.
-                        onApplied: () => ScaffoldMessenger.of(context)
-                            .showSnackBar(const SnackBar(
-                          content: Text('Preset applied'),
-                          duration: Duration(seconds: 1),
-                        )),
+              : paths.isEmpty
+              ? favoritesOnly
+                    ? const EmptyFavoritePresets()
+                    : _EmptyState()
+              : GridView.builder(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 165,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    mainAxisExtent: 330,
+                  ),
+                  itemCount: paths.length,
+                  itemBuilder: (_, i) => PresetCard(
+                    key: ValueKey(paths[i]),
+                    path: paths[i],
+                    index: i,
+                    // Inline — don't pop any route on apply.
+                    onApplied: () => ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Preset applied'),
+                        duration: Duration(seconds: 1),
                       ),
                     ),
+                  ),
+                ),
         ),
       ],
     );
@@ -124,8 +133,9 @@ class _SaveButtonState extends ConsumerState<_SaveButton> {
     if (name == null || name.isEmpty || !mounted) return;
 
     setState(() => _saving = true);
-    final failure =
-        await ref.read(lockscreenProvider.notifier).savePreset(name);
+    final failure = await ref
+        .read(lockscreenProvider.notifier)
+        .savePreset(name);
     if (!mounted) return;
     setState(() => _saving = false);
 
@@ -135,9 +145,9 @@ class _SaveButtonState extends ConsumerState<_SaveButton> {
       );
     } else {
       ref.read(directoryProvider.notifier).loadPresetPaths();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preset saved')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Preset saved')));
     }
   }
 
@@ -228,17 +238,17 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             'No presets yet',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: cs.onSurfaceVariant,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 4),
           Text(
             'Save your current design using the\nSave button above.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: cs.onSurfaceVariant.withAlpha(160),
-                ),
+              color: cs.onSurfaceVariant.withAlpha(160),
+            ),
           ),
         ],
       ),

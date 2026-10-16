@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../../core/theme/app_radius.dart';
+import '../../../../../core/theme/theme_extensions.dart';
 import '../../../../domain/entities/builtin_widget_styles.dart';
 import '../../../../domain/entities/element_widget.dart';
 import '../../../../domain/entities/widget_style.dart';
@@ -167,6 +169,8 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     final library = ref.watch(widgetStyleSetsProvider);
     final saved = library.asData?.value;
     final sets = [builtinUnlockStyles, ...?saved];
@@ -175,7 +179,7 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
     final styles = set.styles
         .where((style) => style.type == widget.element.type)
         .toList();
-    final scheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -183,151 +187,497 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
           key: ValueKey(set.id),
           initialValue: set.id,
           isExpanded: true,
-          decoration: const InputDecoration(
-            labelText: 'Style set',
+          dropdownColor: colors.surfaceElevated,
+          style: TextStyle(
+            fontSize: 12,
+            color: scheme.onSurface,
+            fontWeight: FontWeight.w500,
+          ),
+          decoration: InputDecoration(
             isDense: true,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            labelText: 'Style Set',
+            labelStyle: TextStyle(
+              fontSize: 12,
+              color: scheme.onSurfaceVariant,
+            ),
+            prefixIcon: Icon(
+              Icons.style_outlined,
+              size: 16,
+              color: colors.primary,
+            ),
+            filled: true,
+            fillColor: colors.bgSubtle,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              borderSide: BorderSide(color: colors.border),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              borderSide: BorderSide(color: colors.border.withAlpha(120)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              borderSide: BorderSide(color: colors.primary, width: 1.5),
+            ),
           ),
           items: [
             for (final item in sets)
               DropdownMenuItem(
                 value: item.id,
-                child: Text(
-                  item.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                child: Row(
+                  children: [
+                    Text(
+                      item.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    if (item.id == builtinUnlockStyles.id) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 1.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colors.primary.withAlpha(25),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'BUILT-IN',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.4,
+                            color: colors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
           ],
           onChanged: _busy ? null : (value) => setState(() => _setId = value),
         ),
-        Wrap(
-          spacing: 2,
+        const SizedBox(height: 8),
+        Row(
           children: [
-            IconButton(
-              tooltip: 'Save current style',
-              icon: const Icon(Icons.add_box_outlined),
+            Text(
+              '${styles.length} ${styles.length == 1 ? "style" : "styles"}',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+            const Spacer(),
+            _ToolbarButton(
+              icon: Icons.bookmark_add_outlined,
+              label: 'Save',
+              tooltip: 'Save current style preset',
               onPressed: _busy || saved == null ? null : () => _save(saved),
             ),
-            IconButton(
-              tooltip: 'Import style set',
-              icon: const Icon(Icons.file_upload_outlined),
+            const SizedBox(width: 4),
+            _ToolbarButton(
+              icon: Icons.file_upload_outlined,
+              label: 'Import',
+              tooltip: 'Import style set (.json)',
               onPressed: _busy ? null : _import,
             ),
-            IconButton(
-              tooltip: 'Export style set',
-              icon: const Icon(Icons.file_download_outlined),
+            const SizedBox(width: 4),
+            _ToolbarButton(
+              icon: Icons.file_download_outlined,
+              label: 'Export',
+              tooltip: 'Export style set (.json)',
               onPressed: _busy ? null : () => _export(set),
             ),
-            if (set.id != builtinUnlockStyles.id)
-              IconButton(
-                tooltip: 'Delete style set',
-                icon: const Icon(Icons.delete_outline_rounded),
+            if (set.id != builtinUnlockStyles.id) ...[
+              const SizedBox(width: 4),
+              _ToolbarButton(
+                icon: Icons.delete_outline_rounded,
+                tooltip: 'Delete custom style set',
+                isDestructive: true,
                 onPressed: _busy ? null : () => _delete(set),
               ),
+            ],
           ],
         ),
-        if (_busy || library.isLoading)
-          const LinearProgressIndicator(minHeight: 2),
-        if (library.hasError)
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  '${library.error}',
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: scheme.error, fontSize: 11),
-                ),
-              ),
-              IconButton(
-                tooltip: 'Retry loading styles',
-                icon: const Icon(Icons.refresh),
-                onPressed: _busy
-                    ? null
-                    : () => ref.invalidate(widgetStyleSetsProvider),
-              ),
-            ],
-          ),
-        if (styles.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Text('No styles for this widget'),
-          ),
-        LayoutBuilder(
-          builder: (context, constraints) => GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: styles.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: constraints.maxWidth >= 360
-                  ? 3
-                  : constraints.maxWidth >= 220
-                  ? 2
-                  : 1,
-              mainAxisExtent: 104,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
+        if (_busy || library.isLoading) ...[
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: LinearProgressIndicator(
+              minHeight: 2,
+              color: colors.primary,
+              backgroundColor: colors.primary.withAlpha(30),
             ),
-            itemBuilder: (context, index) {
-              final style = styles[index];
-              final element = style.applyTo(LockElement(type: style.type));
-              final json = widget.element.toJson();
-              final selected = style.appearance.entries.every(
-                (entry) => json[entry.key] == entry.value,
-              );
-              return Tooltip(
-                message: style.name,
-                child: Material(
-                  color: selected
-                      ? scheme.secondaryContainer
-                      : scheme.surfaceContainer,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                    side: BorderSide(
-                      color: selected ? scheme.primary : scheme.outlineVariant,
-                    ),
+          ),
+        ],
+        if (library.hasError) ...[
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: scheme.error.withAlpha(20),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              border: Border.all(color: scheme.error.withAlpha(60)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.error_outline_rounded, size: 16, color: scheme.error),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${library.error}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: scheme.error, fontSize: 11),
                   ),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    key: ValueKey('style-${style.id}'),
-                    onTap: _busy || widget.element.isLocked
-                        ? null
-                        : () => ref
-                              .read(elementProvider.notifier)
-                              .applyStyle(style),
-                    child: Column(
+                ),
+                IconButton(
+                  tooltip: 'Retry loading styles',
+                  icon: const Icon(Icons.refresh, size: 16),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: _busy
+                      ? null
+                      : () => ref.invalidate(widgetStyleSetsProvider),
+                ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 10),
+        if (styles.isEmpty)
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(color: colors.border.withAlpha(80)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.style_outlined,
+                  size: 28,
+                  color: scheme.onSurfaceVariant.withAlpha(120),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'No styles for this widget',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Save your customized widget as a style using the "Save" button above',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: scheme.onSurfaceVariant.withAlpha(150),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          )
+        else
+          LayoutBuilder(
+            builder: (context, constraints) => GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: styles.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: constraints.maxWidth >= 360
+                    ? 3
+                    : constraints.maxWidth >= 220
+                    ? 2
+                    : 1,
+                mainAxisExtent: 114,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+              ),
+              itemBuilder: (context, index) {
+                final style = styles[index];
+                final element = style.applyTo(LockElement(type: style.type));
+                final json = widget.element.toJson();
+                final selected = style.appearance.entries.every(
+                  (entry) => json[entry.key] == entry.value,
+                );
+                return _StyleCard(
+                  key: ValueKey('style-${style.id}'),
+                  style: style,
+                  element: element,
+                  selected: selected,
+                  onTap: _busy || widget.element.isLocked
+                      ? null
+                      : () => ref
+                            .read(elementProvider.notifier)
+                            .applyStyle(style),
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ── Style Card ────────────────────────────────────────────────────────────────
+
+class _StyleCard extends StatefulWidget {
+  const _StyleCard({
+    super.key,
+    required this.style,
+    required this.element,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final WidgetStyle style;
+  final LockElement element;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  State<_StyleCard> createState() => _StyleCardState();
+}
+
+class _StyleCardState extends State<_StyleCard> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+
+    final borderColor = widget.selected
+        ? colors.primary
+        : _hovered
+        ? colors.primary.withAlpha(130)
+        : colors.border.withAlpha(90);
+
+    return Tooltip(
+      message: widget.style.name,
+      child: MouseRegion(
+        cursor: widget.onTap != null
+            ? SystemMouseCursors.click
+            : SystemMouseCursors.basic,
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          decoration: BoxDecoration(
+            color: widget.selected ? colors.surfaceElevated : colors.surface,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(
+              color: borderColor,
+              width: widget.selected ? 1.8 : 1.0,
+            ),
+            boxShadow: widget.selected
+                ? [
+                    BoxShadow(
+                      color: colors.primary.withAlpha(45),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : _hovered
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(50),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: widget.onTap,
+            child: Column(
+              children: [
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    color: colors.bgSubtle,
+                    child: Stack(
                       children: [
-                        Expanded(
-                          child: Container(
-                            width: double.infinity,
-                            color: const Color(0xFF34363C),
-                            padding: const EdgeInsets.all(8),
-                            child: FittedBox(
-                              child: _StylePreview(element: element),
+                        Positioned.fill(
+                          child: CustomPaint(
+                            painter: _PreviewGridPainter(
+                              dotColor: colors.borderSubtle.withAlpha(50),
                             ),
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(6),
-                          child: Text(
-                            style.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 11),
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 8,
+                            ),
+                            child: FittedBox(
+                              fit: BoxFit.contain,
+                              child: _StylePreview(element: widget.element),
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-              );
-            },
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: widget.selected
+                        ? colors.primary.withAlpha(22)
+                        : colors.surface,
+                    border: Border(
+                      top: BorderSide(
+                        color: widget.selected
+                            ? colors.primary.withAlpha(60)
+                            : colors.border.withAlpha(60),
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.style.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: widget.selected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            color: widget.selected
+                                ? colors.primary
+                                : scheme.onSurface,
+                          ),
+                        ),
+                      ),
+                      if (widget.selected) ...[
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.check_circle_rounded,
+                          size: 13,
+                          color: colors.primary,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ],
+      ),
     );
   }
 }
+
+// ── Toolbar Button ────────────────────────────────────────────────────────────
+
+class _ToolbarButton extends StatelessWidget {
+  const _ToolbarButton({
+    required this.icon,
+    this.label,
+    required this.tooltip,
+    required this.onPressed,
+    this.isDestructive = false,
+  });
+
+  final IconData icon;
+  final String? label;
+  final String tooltip;
+  final VoidCallback? onPressed;
+  final bool isDestructive;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+    final color = isDestructive ? scheme.error : colors.primary;
+
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(AppRadius.xs),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: label != null ? 8 : 6,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              color: color.withAlpha(20),
+              borderRadius: BorderRadius.circular(AppRadius.xs),
+              border: Border.all(color: color.withAlpha(70)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 13, color: color),
+                if (label != null) ...[
+                  const SizedBox(width: 4),
+                  Text(
+                    label!,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Preview Dot Grid Painter ──────────────────────────────────────────────────
+
+class _PreviewGridPainter extends CustomPainter {
+  const _PreviewGridPainter({required this.dotColor});
+  final Color dotColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = dotColor
+      ..style = PaintingStyle.fill;
+    const step = 12.0;
+    for (double x = step / 2; x < size.width; x += step) {
+      for (double y = step / 2; y < size.height; y += step) {
+        canvas.drawCircle(Offset(x, y), 0.75, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _PreviewGridPainter oldDelegate) =>
+      oldDelegate.dotColor != dotColor;
+}
+
+// ── Style Preview ─────────────────────────────────────────────────────────────
 
 class _StylePreview extends StatelessWidget {
   const _StylePreview({required this.element});

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/theme_editor/presentation/providers/directory_provider.dart';
 import 'preset/preset_card.dart';
+import 'preset/preset_favorite_controls.dart';
+import '../../providers/preset_favorites_provider.dart';
 
 class PresetDialog extends ConsumerStatefulWidget {
   const PresetDialog({super.key});
@@ -14,12 +16,15 @@ class _PresetDialogState extends ConsumerState<PresetDialog> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback(
-        (_) => ref.read(directoryProvider.notifier).loadPresetPaths());
+      (_) => ref.read(directoryProvider.notifier).loadPresetPaths(),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final dirState = ref.watch(directoryProvider);
+    final paths = ref.watch(visiblePresetPathsProvider);
+    final favoritesOnly = ref.watch(favoritePresetsOnlyProvider);
     final size = MediaQuery.of(context).size;
 
     return Dialog(
@@ -34,7 +39,8 @@ class _PresetDialogState extends ConsumerState<PresetDialog> {
             Expanded(
               child: _Body(
                 isLoading: dirState.isLoadingPresets,
-                paths: dirState.presetPaths,
+                paths: paths,
+                favoritesOnly: favoritesOnly,
               ),
             ),
           ],
@@ -54,8 +60,7 @@ class _Header extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 20, 16, 0),
       child: Row(
         children: [
-          Icon(Icons.style_rounded,
-              color: theme.colorScheme.primary, size: 22),
+          Icon(Icons.style_rounded, color: theme.colorScheme.primary, size: 22),
           const SizedBox(width: 10),
           Text(
             'Preset Collections',
@@ -64,6 +69,7 @@ class _Header extends StatelessWidget {
             ),
           ),
           const Spacer(),
+          const PresetFavoritesFilterButton(),
           IconButton(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(Icons.close_rounded),
@@ -78,10 +84,15 @@ class _Header extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _Body extends StatelessWidget {
-  const _Body({required this.isLoading, required this.paths});
+  const _Body({
+    required this.isLoading,
+    required this.paths,
+    required this.favoritesOnly,
+  });
 
   final bool isLoading;
   final List<String> paths;
+  final bool favoritesOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -90,19 +101,22 @@ class _Body extends StatelessWidget {
     }
 
     if (paths.isEmpty) {
+      if (favoritesOnly) return const EmptyFavoritePresets();
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.inbox_rounded,
-                size: 48,
-                color: Theme.of(context).colorScheme.onSurfaceVariant),
+            Icon(
+              Icons.inbox_rounded,
+              size: 48,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             const SizedBox(height: 12),
             Text(
               'No presets available',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -118,7 +132,8 @@ class _Body extends StatelessWidget {
         mainAxisExtent: 330,
       ),
       itemCount: paths.length,
-      itemBuilder: (_, i) => PresetCard(path: paths[i], index: i),
+      itemBuilder: (_, i) =>
+          PresetCard(key: ValueKey(paths[i]), path: paths[i], index: i),
     );
   }
 }

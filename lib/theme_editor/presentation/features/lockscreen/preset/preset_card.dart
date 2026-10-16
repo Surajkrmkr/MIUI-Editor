@@ -13,6 +13,8 @@ import '../../../providers/lockscreen_provider.dart';
 import '../../../../../widgets/iphone_frame.dart';
 import 'preset_thumbnail.dart';
 import 'preset_preview_dialog.dart';
+import 'preset_favorite_controls.dart';
+import '../../../providers/preset_favorites_provider.dart';
 
 // ── Frame geometry (must match IPhoneFrame constants) ────────────────────────
 const _frameW = AppConstants.screenWidth + 26; // 302.92
@@ -74,9 +76,9 @@ class PresetCard extends ConsumerWidget {
         } else {
           phoneContent = switch (snapshot.connectionState) {
             ConnectionState.done when snapshot.hasData => PresetThumbnail(
-                elements: snapshot.data!,
-                thumbnailWidth: AppConstants.screenWidth,
-              ),
+              elements: snapshot.data!,
+              thumbnailWidth: AppConstants.screenWidth,
+            ),
             ConnectionState.done => _ErrorPlaceholder(),
             _ => _LoadingPlaceholder(),
           };
@@ -101,21 +103,22 @@ class PresetCard extends ConsumerWidget {
           onPreview: elements.isEmpty
               ? null
               : () => showDialog<void>(
-                    context: context,
-                    builder: (_) => PresetPreviewDialog(
-                      elements: elements,
-                      presetName: name,
-                      onApply: (mappedElements) async {
-                        await ref
-                            .read(lockscreenProvider.notifier)
-                            .applyElements(mappedElements);
-                        if (context.mounted && onApplied == null) {
-                          Navigator.pop(context);
-                        }
-                        onApplied?.call();
-                      },
-                    ),
+                  context: context,
+                  builder: (_) => PresetPreviewDialog(
+                    elements: elements,
+                    presetName: name,
+                    onApply: (mappedElements) async {
+                      await ref
+                          .read(lockscreenProvider.notifier)
+                          .applyElements(mappedElements);
+                      if (context.mounted && onApplied == null) {
+                        Navigator.pop(context);
+                      }
+                      onApplied?.call();
+                    },
                   ),
+                ),
+          favoriteButton: PresetFavoriteButton(path: path),
           onDelete: () async {
             final confirmed = await showDialog<bool>(
               context: context,
@@ -138,17 +141,20 @@ class PresetCard extends ConsumerWidget {
               ),
             );
             if (confirmed != true) return;
+            final directories = ref.read(directoryProvider.notifier);
+            final favorites = ref.read(presetFavoritesProvider.notifier);
             try {
               await Directory(path).delete(recursive: true);
+              await favorites.remove(path);
             } catch (e) {
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Delete failed: $e')),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
               }
-              return;
+            } finally {
+              await directories.loadPresetPaths();
             }
-            ref.read(directoryProvider.notifier).loadPresetPaths();
           },
           onRename: () async {
             final newName = await showDialog<String>(
@@ -157,10 +163,20 @@ class PresetCard extends ConsumerWidget {
             );
             if (newName != null && newName.isNotEmpty && newName != name) {
               final parent = Directory(path).parent.path;
-              await Directory(path)
-                  .rename('$parent${Platform.pathSeparator}$newName');
-              if (context.mounted) {
-                ref.read(directoryProvider.notifier).loadPresetPaths();
+              final nextPath = '$parent${Platform.pathSeparator}$newName';
+              final directories = ref.read(directoryProvider.notifier);
+              final favorites = ref.read(presetFavoritesProvider.notifier);
+              try {
+                await Directory(path).rename(nextPath);
+                await favorites.rename(path, nextPath);
+              } catch (error) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Could not update preset: $error')),
+                  );
+                }
+              } finally {
+                await directories.loadPresetPaths();
               }
             }
           },
@@ -194,6 +210,7 @@ class _PresetCardFrame extends StatefulWidget {
     required this.onDelete,
     required this.onRename,
     required this.phone,
+    required this.favoriteButton,
     this.onPreview,
   });
 
@@ -204,6 +221,7 @@ class _PresetCardFrame extends StatefulWidget {
   final VoidCallback onRename;
   final VoidCallback? onPreview;
   final Widget phone;
+  final Widget favoriteButton;
 
   @override
   State<_PresetCardFrame> createState() => _PresetCardFrameState();
@@ -265,6 +283,7 @@ class _PresetCardFrameState extends State<_PresetCardFrame>
                   alignment: Alignment.topLeft,
                   children: [
                     widget.phone,
+                    Positioned(top: 8, right: 8, child: widget.favoriteButton),
 
                     // Hover glow — matches IPhoneFrame body shape exactly:
                     // inset by _glowInset on each side, radius = _glowRadius.
@@ -276,11 +295,13 @@ class _PresetCardFrameState extends State<_PresetCardFrame>
                           height: _displayH,
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: _glowInset),
+                              horizontal: _glowInset,
+                            ),
                             child: DecoratedBox(
                               decoration: BoxDecoration(
-                                borderRadius:
-                                    BorderRadius.circular(_glowRadius),
+                                borderRadius: BorderRadius.circular(
+                                  _glowRadius,
+                                ),
                                 border: Border.all(
                                   color: cs.primary.withAlpha(200),
                                   width: 2,
@@ -308,7 +329,8 @@ class _PresetCardFrameState extends State<_PresetCardFrame>
                           height: _displayH,
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: _glowInset),
+                              horizontal: _glowInset,
+                            ),
                             child: Align(
                               alignment: Alignment.bottomCenter,
                               child: Container(
@@ -476,7 +498,8 @@ class _ErrorPlaceholder extends StatelessWidget {
       height: _h,
       color: colors.error.withAlpha(30),
       child: Center(
-          child: Icon(Icons.error_outline, size: 22, color: colors.error)),
+        child: Icon(Icons.error_outline, size: 22, color: colors.error),
+      ),
     );
   }
 }
@@ -523,10 +546,7 @@ class _RenameDialogState extends State<_RenameDialog> {
           onPressed: () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
-        FilledButton(
-          onPressed: _submit,
-          child: const Text('Rename'),
-        ),
+        FilledButton(onPressed: _submit, child: const Text('Rename')),
       ],
     );
   }
