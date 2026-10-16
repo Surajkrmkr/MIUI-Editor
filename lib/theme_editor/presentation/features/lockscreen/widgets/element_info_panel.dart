@@ -12,6 +12,8 @@ import '../../../common/widgets/drop_zone.dart';
 import '../../../../core/constants/path_constants.dart';
 import '../../../providers/wallpaper_provider.dart';
 import '../../../providers/service_providers.dart';
+import '../../../../domain/entities/widget_style.dart';
+import 'widget_styles_panel.dart';
 
 class ElementInfoPanel extends ConsumerWidget {
   const ElementInfoPanel({super.key});
@@ -623,162 +625,326 @@ class ElementInfoPanel extends ConsumerWidget {
                 ],
               ),
             ),
+          if (WidgetStyle.supports(el.type))
+            _Section(
+              title: 'WIDGET STYLES',
+              child: WidgetStylesPanel(
+                key: ValueKey('styles-${el.name}'),
+                element: el,
+              ),
+            ),
           if (isUnlock)
             _Section(
               title: 'UNLOCK AREA',
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextFormField(
-                    key: ValueKey('${el.name}-unlock-text'),
-                    initialValue: el.unlockText,
-                    decoration: const InputDecoration(labelText: 'Custom text'),
-                    onChanged: (value) => n.update(
-                      el.type,
-                      (element) => element.copyWith(unlockText: value),
-                    ),
-                  ),
-                  if (el.unlockText.isNotEmpty)
-                    _SliderRow(
-                      label: 'Text size',
-                      value: el.fontSize.clamp(4, 40),
-                      min: 4,
-                      max: 40,
-                      onChanged: (value) => n.update(
-                        el.type,
-                        (element) => element.copyWith(fontSize: value),
+                  _SubCard(
+                    title: 'CONTENT & ICON',
+                    icon: Icons.text_fields_rounded,
+                    children: [
+                      _UnlockTextField(
+                        key: ValueKey('${el.name}-unlock-text-field'),
+                        initialText: el.unlockText,
+                        onChanged: (value) => n.update(
+                          el.type,
+                          (element) => element.copyWith(unlockText: value),
+                        ),
                       ),
-                    ),
-                  DropdownButtonFormField<UnlockIcon>(
-                    key: ValueKey('${el.name}-${el.unlockIcon.name}'),
-                    initialValue: el.unlockIcon,
-                    decoration: const InputDecoration(labelText: 'Icon'),
-                    isExpanded: true,
-                    items: [
-                      for (final icon in UnlockIcon.values)
-                        DropdownMenuItem(
-                          value: icon,
-                          child: Row(
-                            children: [
-                              Icon(
-                                icon.icon ??
-                                    (icon == UnlockIcon.none
-                                        ? Icons.block_rounded
-                                        : icon == UnlockIcon.customPng
-                                        ? Icons.image_outlined
-                                        : Icons.auto_mode_rounded),
-                                size: 18,
+                      if (el.unlockText.isNotEmpty) ...[
+                        if (el.type == ElementType.tapToUnlock)
+                          SegmentedButton<bool>(
+                            segments: const [
+                              ButtonSegment(
+                                value: false,
+                                icon: Icon(Icons.view_agenda_outlined),
+                                label: Text('Stacked'),
                               ),
-                              const SizedBox(width: 8),
-                              Text(icon.label),
+                              ButtonSegment(
+                                value: true,
+                                icon: Icon(Icons.view_week_outlined),
+                                label: Text('Inline'),
+                              ),
+                            ],
+                            selected: {el.unlockInline},
+                            onSelectionChanged: (values) => n.update(
+                              el.type,
+                              (element) =>
+                                  element.copyWith(unlockInline: values.single),
+                            ),
+                          ),
+                        const SizedBox(height: 10),
+                        _SliderRow(
+                          label: 'Text size',
+                          value: el.fontSize.clamp(4, 40).roundToDouble(),
+                          min: 4,
+                          max: 40,
+                          decimals: 0,
+                          unit: 'sp',
+                          onChanged: (value) => n.update(
+                            el.type,
+                            (element) => element.copyWith(fontSize: value),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 10),
+                      DropdownButtonFormField<UnlockIcon>(
+                        key: ValueKey('${el.name}-${el.unlockIcon.name}'),
+                        initialValue: el.unlockIcon,
+                        style: TextStyle(fontSize: 12, color: scheme.onSurface),
+                        dropdownColor: colors.surfaceElevated,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
+                          labelText: 'Unlock Icon',
+                          labelStyle: TextStyle(
+                            fontSize: 12,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                          prefixIcon: Icon(
+                            el.unlockIcon.icon ??
+                                (el.unlockIcon == UnlockIcon.none
+                                    ? Icons.block_rounded
+                                    : el.unlockIcon == UnlockIcon.customPng
+                                    ? Icons.image_outlined
+                                    : Icons.auto_mode_rounded),
+                            size: 18,
+                            color: colors.primary,
+                          ),
+                          filled: true,
+                          fillColor: colors.bgSubtle,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
+                            borderSide: BorderSide(color: colors.border),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
+                            borderSide: BorderSide(
+                              color: colors.border.withAlpha(120),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
+                            borderSide: BorderSide(
+                              color: colors.primary,
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                        isExpanded: true,
+                        items: [
+                          for (final icon in UnlockIcon.values)
+                            DropdownMenuItem(
+                              value: icon,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    icon.icon ??
+                                        (icon == UnlockIcon.none
+                                            ? Icons.block_rounded
+                                            : icon == UnlockIcon.customPng
+                                            ? Icons.image_outlined
+                                            : Icons.auto_mode_rounded),
+                                    size: 16,
+                                    color: icon == el.unlockIcon
+                                        ? colors.primary
+                                        : scheme.onSurfaceVariant,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    icon.label,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: icon == el.unlockIcon
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                        onChanged: (icon) {
+                          if (icon == null) return;
+                          n.snapshotForDrag();
+                          n.update(
+                            el.type,
+                            (element) => element.copyWith(unlockIcon: icon),
+                          );
+                        },
+                      ),
+                      if (el.effectiveUnlockIcon == UnlockIcon.customPng) ...[
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: colors.bgSubtle,
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
+                            border: Border.all(
+                              color: colors.border.withAlpha(120),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              AppDropZone(
+                                label: 'Drop Custom PNG',
+                                allowedExtensions: const ['.png', '.PNG'],
+                                onDropped: (path) =>
+                                    _importUnlockPng(context, ref, el, path),
+                              ),
+                              const SizedBox(height: 8),
+                              OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  visualDensity: VisualDensity.compact,
+                                  side: BorderSide(color: colors.border),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadius.sm,
+                                    ),
+                                  ),
+                                ),
+                                icon: const Icon(
+                                  Icons.folder_open_rounded,
+                                  size: 16,
+                                ),
+                                label: Text(
+                                  el.unlockIconPath.isEmpty
+                                      ? 'Choose PNG File'
+                                      : 'Replace PNG File',
+                                  style: const TextStyle(fontSize: 11),
+                                ),
+                                onPressed: () async {
+                                  final result = await FilePicker.platform
+                                      .pickFiles(
+                                        type: FileType.custom,
+                                        allowedExtensions: ['png'],
+                                      );
+                                  final path = result?.files.single.path;
+                                  if (path == null || !context.mounted) return;
+                                  await _importUnlockPng(
+                                    context,
+                                    ref,
+                                    el,
+                                    path,
+                                  );
+                                },
+                              ),
                             ],
                           ),
                         ),
+                      ],
+                      if (el.effectiveUnlockIcon != UnlockIcon.none) ...[
+                        const SizedBox(height: 10),
+                        _SliderRow(
+                          label: 'Icon scale',
+                          value: (el.unlockIconScale.clamp(.2, 1) * 100)
+                              .roundToDouble(),
+                          min: 20,
+                          max: 100,
+                          decimals: 0,
+                          unit: '%',
+                          onChanged: (value) => n.update(
+                            el.type,
+                            (element) =>
+                                element.copyWith(unlockIconScale: value / 100),
+                          ),
+                        ),
+                      ],
                     ],
-                    onChanged: (icon) {
-                      if (icon == null) return;
-                      n.snapshotForDrag();
-                      n.update(
-                        el.type,
-                        (element) => element.copyWith(unlockIcon: icon),
-                      );
-                    },
                   ),
-                  if (el.effectiveUnlockIcon == UnlockIcon.customPng) ...[
-                    const SizedBox(height: 8),
-                    AppDropZone(
-                      label: 'Drop PNG',
-                      allowedExtensions: const ['.png', '.PNG'],
-                      onDropped: (path) =>
-                          _importUnlockPng(context, ref, el, path),
-                    ),
-                    TextButton.icon(
-                      icon: const Icon(Icons.folder_open_rounded, size: 18),
-                      label: Text(
-                        el.unlockIconPath.isEmpty
-                            ? 'Choose PNG'
-                            : 'Replace PNG',
+                  _SubCard(
+                    title: 'APPEARANCE',
+                    icon: Icons.tune_rounded,
+                    children: [
+                      _SliderRow(
+                        label: 'Corner radius',
+                        value: el.effectiveUnlockCornerRadius.roundToDouble(),
+                        min: 0,
+                        max:
+                            ((el.width < el.unlockHeight
+                                        ? el.width
+                                        : el.unlockHeight) /
+                                    2)
+                                .clamp(1.0, 1080.0),
+                        decimals: 0,
+                        unit: 'px',
+                        onChanged: (value) => n.update(
+                          el.type,
+                          (element) =>
+                              element.copyWith(unlockCornerRadius: value),
+                        ),
                       ),
-                      onPressed: () async {
-                        final result = await FilePicker.platform.pickFiles(
-                          type: FileType.custom,
-                          allowedExtensions: ['png'],
-                        );
-                        final path = result?.files.single.path;
-                        if (path == null || !context.mounted) return;
-                        await _importUnlockPng(context, ref, el, path);
-                      },
-                    ),
-                  ],
-                  if (el.effectiveUnlockIcon != UnlockIcon.none)
-                    _SliderRow(
-                      label: 'Icon size',
-                      value: el.unlockIconScale.clamp(.2, 1) * 100,
-                      min: 20,
-                      max: 100,
-                      onChanged: (value) => n.update(
-                        el.type,
-                        (element) =>
-                            element.copyWith(unlockIconScale: value / 100),
+                      const SizedBox(height: 8),
+                      _SliderRow(
+                        label: 'Background opacity',
+                        value: (el.unlockBackgroundOpacity.clamp(0, 1) * 100)
+                            .roundToDouble(),
+                        min: 0,
+                        max: 100,
+                        decimals: 0,
+                        unit: '%',
+                        onChanged: (value) => n.update(
+                          el.type,
+                          (element) => element.copyWith(
+                            unlockBackgroundOpacity: value / 100,
+                          ),
+                        ),
                       ),
-                    ),
-                  _SliderRow(
-                    label: 'Corner radius',
-                    value: el.effectiveUnlockCornerRadius,
-                    min: 0,
-                    max:
-                        (el.width < el.unlockHeight
-                            ? el.width
-                            : el.unlockHeight) /
-                        2,
-                    onChanged: (value) => n.update(
-                      el.type,
-                      (element) => element.copyWith(unlockCornerRadius: value),
-                    ),
+                      if (el.type == ElementType.slideToUnlock ||
+                          el.type == ElementType.dragToUnlock) ...[
+                        const SizedBox(height: 8),
+                        _SliderRow(
+                          label: 'Thumb opacity',
+                          value: (el.unlockThumbOpacity.clamp(0, 1) * 100)
+                              .roundToDouble(),
+                          min: 0,
+                          max: 100,
+                          decimals: 0,
+                          unit: '%',
+                          onChanged: (value) => n.update(
+                            el.type,
+                            (element) => element.copyWith(
+                              unlockThumbOpacity: value / 100,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                  _SliderRow(
-                    label: 'Background opacity',
-                    value: el.unlockBackgroundOpacity.clamp(0, 1) * 100,
-                    min: 0,
-                    max: 100,
-                    onChanged: (value) => n.update(
-                      el.type,
-                      (element) => element.copyWith(
-                        unlockBackgroundOpacity: value / 100,
+                  _SubCard(
+                    title: 'DIMENSIONS',
+                    icon: Icons.aspect_ratio_rounded,
+                    children: [
+                      _SliderRow(
+                        label: 'Width',
+                        value: el.width.clamp(80, 1080).roundToDouble(),
+                        min: 80,
+                        max: 1080,
+                        decimals: 0,
+                        unit: 'px',
+                        onChanged: (value) => n.update(
+                          el.type,
+                          (element) => element.copyWith(width: value),
+                        ),
                       ),
-                    ),
-                  ),
-                  if (el.type == ElementType.slideToUnlock ||
-                      el.type == ElementType.dragToUnlock)
-                    _SliderRow(
-                      label: 'Thumb opacity',
-                      value: el.unlockThumbOpacity.clamp(0, 1) * 100,
-                      min: 0,
-                      max: 100,
-                      onChanged: (value) => n.update(
-                        el.type,
-                        (element) =>
-                            element.copyWith(unlockThumbOpacity: value / 100),
+                      const SizedBox(height: 8),
+                      _SliderRow(
+                        label: 'Height',
+                        value: el.height.clamp(48, 800).roundToDouble(),
+                        min: 48,
+                        max: 800,
+                        decimals: 0,
+                        unit: 'px',
+                        onChanged: (value) => n.update(
+                          el.type,
+                          (element) => element.copyWith(height: value),
+                        ),
                       ),
-                    ),
-                  _SliderRow(
-                    label: 'Width',
-                    value: el.width.clamp(80, 1080),
-                    min: 80,
-                    max: 1080,
-                    onChanged: (value) => n.update(
-                      el.type,
-                      (element) => element.copyWith(width: value),
-                    ),
-                  ),
-                  _SliderRow(
-                    label: 'Height',
-                    value: el.height.clamp(48, 800),
-                    min: 48,
-                    max: 800,
-                    onChanged: (value) => n.update(
-                      el.type,
-                      (element) => element.copyWith(height: value),
-                    ),
+                    ],
                   ),
                 ],
               ),
@@ -1669,6 +1835,171 @@ class _Section extends StatelessWidget {
   }
 }
 
+// ── Sub-Card wrapper ──────────────────────────────────────────────────────────
+
+class _SubCard extends StatelessWidget {
+  const _SubCard({
+    required this.title,
+    required this.icon,
+    required this.children,
+    this.trailing,
+  });
+
+  final String title;
+  final IconData icon;
+  final List<Widget> children;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: colors.border.withAlpha(90)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: colors.primary.withAlpha(22),
+                  borderRadius: BorderRadius.circular(AppRadius.xs),
+                ),
+                child: Icon(icon, size: 14, color: colors.primary),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.6,
+                    color: scheme.onSurface,
+                  ),
+                ),
+              ),
+              if (trailing != null) trailing!,
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...children,
+        ],
+      ),
+    );
+  }
+}
+
+// ── Unlock Custom Text Field ──────────────────────────────────────────────────
+
+class _UnlockTextField extends StatefulWidget {
+  const _UnlockTextField({
+    super.key,
+    required this.initialText,
+    required this.onChanged,
+  });
+
+  final String initialText;
+  final ValueChanged<String> onChanged;
+
+  @override
+  State<_UnlockTextField> createState() => _UnlockTextFieldState();
+}
+
+class _UnlockTextFieldState extends State<_UnlockTextField> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialText);
+  }
+
+  @override
+  void didUpdateWidget(covariant _UnlockTextField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialText != oldWidget.initialText &&
+        widget.initialText != _controller.text) {
+      _controller.text = widget.initialText;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+
+    return TextField(
+      controller: _controller,
+      style: const TextStyle(fontSize: 12),
+      decoration: InputDecoration(
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 10,
+          vertical: 10,
+        ),
+        labelText: 'Custom Text',
+        labelStyle: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+        hintText: 'e.g. Slide to unlock',
+        hintStyle: TextStyle(
+          fontSize: 12,
+          color: scheme.onSurfaceVariant.withAlpha(120),
+        ),
+        prefixIcon: Icon(
+          Icons.edit_note_rounded,
+          size: 18,
+          color: colors.primary,
+        ),
+        suffixIcon: _controller.text.isNotEmpty
+            ? IconButton(
+                icon: const Icon(Icons.close_rounded, size: 16),
+                tooltip: 'Clear text',
+                splashRadius: 14,
+                onPressed: () {
+                  _controller.clear();
+                  widget.onChanged('');
+                  setState(() {});
+                },
+              )
+            : null,
+        filled: true,
+        fillColor: colors.bgSubtle,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          borderSide: BorderSide(color: colors.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          borderSide: BorderSide(color: colors.border.withAlpha(120)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          borderSide: BorderSide(color: colors.primary, width: 1.5),
+        ),
+      ),
+      onChanged: (val) {
+        widget.onChanged(val);
+        setState(() {});
+      },
+    );
+  }
+}
+
 // ── Color Button ──────────────────────────────────────────────────────────────
 
 class _ColorBtn extends StatelessWidget {
@@ -2071,16 +2402,19 @@ class _SliderRow extends StatelessWidget {
     required this.max,
     this.divisions,
     this.decimals = 2,
+    this.unit,
   });
   final String label;
   final double value, min, max;
   final int? divisions;
   final int decimals;
+  final String? unit;
   final ValueChanged<double> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final clamped = value.clamp(min, max);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2096,20 +2430,29 @@ class _SliderRow extends StatelessWidget {
               ),
             ),
             _EditableValue(
-              value: value,
+              value: clamped,
               decimals: decimals,
+              unit: unit,
               min: min,
               max: max,
               onChanged: onChanged,
             ),
           ],
         ),
-        Slider(
-          value: value,
-          min: min,
-          max: max,
-          divisions: divisions,
-          onChanged: onChanged,
+        const SizedBox(height: 2),
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 3,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+          ),
+          child: Slider(
+            value: clamped,
+            min: min,
+            max: max,
+            divisions: divisions,
+            onChanged: onChanged,
+          ),
         ),
       ],
     );
@@ -2121,11 +2464,13 @@ class _EditableValue extends StatefulWidget {
     required this.value,
     required this.onChanged,
     this.decimals = 2,
+    this.unit,
     this.min,
     this.max,
   });
   final double value;
   final int decimals;
+  final String? unit;
   final double? min;
   final double? max;
   final ValueChanged<double> onChanged;
@@ -2162,11 +2507,27 @@ class _EditableValueState extends State<_EditableValue> {
     super.dispose();
   }
 
+  void _commitValue() {
+    final newValue = double.tryParse(_controller.text);
+    if (newValue != null) {
+      final clamped = (widget.min != null && widget.max != null)
+          ? newValue.clamp(widget.min!, widget.max!)
+          : newValue;
+      widget.onChanged(clamped);
+    }
+    setState(() => _isEditing = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final formatted = _format(widget.value);
+    final display = widget.unit != null
+        ? '$formatted ${widget.unit}'
+        : formatted;
+
     return SizedBox(
-      width: 60,
+      width: widget.unit != null ? 68 : 60,
       height: 24,
       child: _isEditing
           ? TextField(
@@ -2183,7 +2544,7 @@ class _EditableValueState extends State<_EditableValue> {
                 color: scheme.onPrimaryContainer,
               ),
               decoration: InputDecoration(
-                contentPadding: const EdgeInsets.all(0),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 4),
                 filled: true,
                 fillColor: scheme.primaryContainer,
                 border: OutlineInputBorder(
@@ -2191,32 +2552,30 @@ class _EditableValueState extends State<_EditableValue> {
                   borderSide: BorderSide.none,
                 ),
               ),
-              onSubmitted: (value) {
-                final newValue = double.tryParse(value);
-                if (newValue != null) {
-                  final clamped = (widget.min != null && widget.max != null)
-                      ? newValue.clamp(widget.min!, widget.max!)
-                      : newValue;
-                  widget.onChanged(clamped);
-                }
-                setState(() => _isEditing = false);
-              },
+              onTapOutside: (_) => _commitValue(),
+              onSubmitted: (_) => _commitValue(),
             )
           : GestureDetector(
-              onTap: () => setState(() => _isEditing = true),
+              onTap: () {
+                _controller.text = _format(widget.value);
+                setState(() => _isEditing = true);
+              },
               child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: scheme.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  _format(widget.value),
+                  display,
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: scheme.onPrimaryContainer,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ),

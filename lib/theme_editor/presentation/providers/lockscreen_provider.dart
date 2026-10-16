@@ -1146,28 +1146,44 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
     final labeledTap =
         element.type == ElementType.tapToUnlock &&
         element.unlockText.isNotEmpty;
-    if (labeledTap && size > height * .45) size = height * .45;
-    return "<Image src='unlock/${element.name}.png' x='${width / 2}' y='${height * (labeledTap ? .32 : .5)}' w='$size' h='$size' align='center' alignV='center'/>";
+    final inline = labeledTap && element.unlockInline;
+    if (labeledTap && !inline && size > height * .45) size = height * .45;
+    final x = inline
+        ? (height < width * .4 ? height : width * .4) / 2
+        : width / 2;
+    return "<Image src='unlock/${element.name}.png' x='$x' y='${height * (labeledTap && !inline ? .32 : .5)}' w='$size' h='$size' align='center' alignV='center'/>";
   }
 
   String _unlockTextXml(LockElement element, double width, double height) {
     if (element.unlockText.isEmpty) return '';
     final tap = element.type == ElementType.tapToUnlock;
     final drag = element.type == ElementType.dragToUnlock;
-    final span = tap ? width : width - height * (drag ? 2 : 1);
+    final inline =
+        tap &&
+        element.unlockInline &&
+        element.effectiveUnlockIcon != UnlockIcon.none;
+    final inset = inline
+        ? (height < width * .4 ? height : width * .4)
+        : tap
+        ? 0.0
+        : height;
+    final span = width - inset - (drag ? height : 0);
     return XmlElement(XmlName('Text'), [
       XmlAttribute(XmlName('name'), '${element.name}_label'),
       XmlAttribute(XmlName('text'), element.unlockText),
-      XmlAttribute(XmlName('x'), '${tap ? width / 2 : height + span / 2}'),
+      XmlAttribute(
+        XmlName('x'),
+        '${inline ? inset + (span - width * .08) / 2 : inset + span / 2}',
+      ),
       XmlAttribute(
         XmlName('y'),
         '${height * (drag
                 ? .82
-                : tap && element.effectiveUnlockIcon != UnlockIcon.none
+                : tap && !inline && element.effectiveUnlockIcon != UnlockIcon.none
                 ? .78
                 : .5)}',
       ),
-      XmlAttribute(XmlName('w'), '${span * .84}'),
+      XmlAttribute(XmlName('w'), '${inline ? span - width * .08 : span * .84}'),
       XmlAttribute(XmlName('align'), 'center'),
       XmlAttribute(XmlName('alignV'), 'center'),
       XmlAttribute(

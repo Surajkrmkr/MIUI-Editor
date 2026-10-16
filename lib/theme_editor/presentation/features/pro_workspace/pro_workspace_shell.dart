@@ -10,6 +10,8 @@ import 'widgets/right_inspector.dart';
 import 'widgets/pro_canvas.dart';
 import 'widgets/sidebar_content.dart';
 import 'widgets/command_palette.dart';
+import 'widgets/floating_layers_panel.dart';
+import '../../providers/workspace_provider.dart';
 
 class ProfessionalWorkspaceShell extends ConsumerWidget {
   const ProfessionalWorkspaceShell({super.key});
@@ -44,19 +46,29 @@ class ProfessionalWorkspaceShell extends ConsumerWidget {
           autofocus: true,
           child: Scaffold(
             backgroundColor: colors.bg,
-            body: const Column(
+            body: Stack(
+              fit: StackFit.expand,
               children: [
-                TopCommandBar(),
-                Expanded(
-                  child: Row(
-                    children: [
-                      LeftToolNav(),
-                      SidebarContent(),
-                      Expanded(child: ProCanvas()),
-                      RightInspector(),
-                    ],
-                  ),
+                const Column(
+                  children: [
+                    TopCommandBar(),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          LeftToolNav(),
+                          SidebarContent(),
+                          Expanded(child: ProCanvas()),
+                          RightInspector(),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
+                if (ref.watch(workspaceProvider).page ==
+                        WorkspacePage.lockscreen ||
+                    ref.watch(workspaceProvider).page ==
+                        WorkspacePage.lockscreenPresets)
+                  const Positioned.fill(child: FloatingLayersPanel()),
               ],
             ),
           ),

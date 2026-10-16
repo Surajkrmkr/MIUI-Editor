@@ -9,6 +9,7 @@ import '../../../providers/export_provider.dart';
 import '../../../providers/lockscreen_provider.dart';
 import '../../../providers/adb_provider.dart';
 import '../../lockscreen/widgets/apply_to_device_dialog.dart';
+import 'floating_layers_panel.dart';
 
 class TopCommandBar extends ConsumerWidget {
   const TopCommandBar({super.key});
@@ -80,6 +81,7 @@ class TopCommandBar extends ConsumerWidget {
               return Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  const LayersButton(),
                   IconButton.filled(
                     icon: const Icon(Icons.play_arrow_rounded, size: 18),
                     tooltip: 'Replay animations',

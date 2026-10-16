@@ -5,13 +5,17 @@ import '../../../providers/element_provider.dart';
 import '../../../../domain/entities/element_widget.dart';
 
 class LayerManager extends ConsumerWidget {
-  const LayerManager({super.key});
+  const LayerManager({super.key, this.scrollable = false});
+  final bool scrollable;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.appColors;
     final state = ref.watch(elementProvider);
     final notifier = ref.read(elementProvider.notifier);
+    final layers = state.elements.reversed.toList();
+    Widget constrain(Widget child) =>
+        scrollable ? Expanded(child: child) : child;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,27 +41,36 @@ class LayerManager extends ConsumerWidget {
             ),
           )
         else
-          ReorderableListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: state.elements.length,
-            onReorder: (oldIndex, newIndex) =>
-                notifier.reorder(oldIndex, newIndex),
-            itemBuilder: (context, index) {
-              final element = state.elements[index];
-              final isActive = state.active?.name == element.name;
+          constrain(
+            ReorderableListView.builder(
+              buildDefaultDragHandles: false,
+              shrinkWrap: !scrollable,
+              physics: scrollable ? null : const NeverScrollableScrollPhysics(),
+              itemCount: state.elements.length,
+              onReorder: (oldIndex, newIndex) => notifier.reorder(
+                layers.length - 1 - oldIndex,
+                layers.length - newIndex,
+              ),
+              itemBuilder: (context, index) {
+                final element = layers[index];
+                final isActive = state.active?.name == element.name;
 
-              return _LayerTile(
-                key: ValueKey(element.name),
-                element: element,
-                isActive: isActive,
-                onTap: () => notifier.setActive(element.type, id: element.name),
-                onToggleVisibility: () =>
-                    notifier.toggleVisibility(element.type, id: element.name),
-                onToggleLock: () =>
-                    notifier.toggleLock(element.type, id: element.name),
-              );
-            },
+                return _LayerTile(
+                  key: ValueKey(element.name),
+                  index: index,
+                  element: element,
+                  isActive: isActive,
+                  onTap: () =>
+                      notifier.setActive(element.type, id: element.name),
+                  onToggleVisibility: () =>
+                      notifier.toggleVisibility(element.type, id: element.name),
+                  onToggleLock: () =>
+                      notifier.toggleLock(element.type, id: element.name),
+                  onDelete: () =>
+                      notifier.remove(element.type, id: element.name),
+                );
+              },
+            ),
           ),
       ],
     );
@@ -68,17 +81,21 @@ class _LayerTile extends StatelessWidget {
   const _LayerTile({
     super.key,
     required this.element,
+    required this.index,
     required this.isActive,
     required this.onTap,
     required this.onToggleVisibility,
     required this.onToggleLock,
+    required this.onDelete,
   });
 
   final LockElement element;
+  final int index;
   final bool isActive;
   final VoidCallback onTap;
   final VoidCallback onToggleVisibility;
   final VoidCallback onToggleLock;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -100,10 +117,14 @@ class _LayerTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.drag_indicator_rounded,
-                size: 14,
-                color: colors.textDisabled,
+              ReorderableDragStartListener(
+                index: index,
+                key: ValueKey('reorder-${element.name}'),
+                child: Icon(
+                  Icons.drag_indicator_rounded,
+                  size: 14,
+                  color: colors.textDisabled,
+                ),
               ),
               const SizedBox(width: 4),
               Icon(
@@ -124,6 +145,9 @@ class _LayerTile extends StatelessWidget {
                 ),
               ),
               _ActionButton(
+                tooltip: element.isVisible
+                    ? 'Hide ${element.label}'
+                    : 'Show ${element.label}',
                 icon: element.isVisible
                     ? Icons.visibility_outlined
                     : Icons.visibility_off_outlined,
@@ -131,11 +155,19 @@ class _LayerTile extends StatelessWidget {
                 onTap: onToggleVisibility,
               ),
               _ActionButton(
+                tooltip: element.isLocked
+                    ? 'Unlock ${element.label}'
+                    : 'Lock ${element.label}',
                 icon: element.isLocked
                     ? Icons.lock_rounded
                     : Icons.lock_outline_rounded,
                 isActive: element.isLocked,
                 onTap: onToggleLock,
+              ),
+              _ActionButton(
+                icon: Icons.delete_outline_rounded,
+                tooltip: 'Delete ${element.label}',
+                onTap: onDelete,
               ),
             ],
           ),
@@ -157,10 +189,12 @@ class _LayerTile extends StatelessWidget {
 class _ActionButton extends StatelessWidget {
   const _ActionButton({
     required this.icon,
+    required this.tooltip,
     required this.onTap,
     this.isActive = false,
   });
   final IconData icon;
+  final String tooltip;
   final VoidCallback onTap;
   final bool isActive;
 
@@ -168,6 +202,7 @@ class _ActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return IconButton(
+      tooltip: tooltip,
       icon: Icon(
         icon,
         size: 12,

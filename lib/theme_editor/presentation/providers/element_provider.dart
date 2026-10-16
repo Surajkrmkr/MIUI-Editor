@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/element_widget.dart';
+import '../../domain/entities/widget_style.dart';
 
 final animationReplayProvider = StateProvider<int>((ref) => 0);
 
@@ -435,6 +436,22 @@ class ElementNotifier extends Notifier<ElementState> {
                   )
                 : element,
           )
+          .toList(),
+      undoCount: _history.length,
+      redoCount: 0,
+    );
+  }
+
+  void applyStyle(WidgetStyle style) {
+    final element = state.active;
+    if (element == null || element.isLocked || element.type != style.type) {
+      return;
+    }
+    final replacement = style.applyTo(element);
+    _record();
+    state = state.copyWith(
+      elements: state.elements
+          .map((item) => item.name == element.name ? replacement : item)
           .toList(),
       undoCount: _history.length,
       redoCount: 0,

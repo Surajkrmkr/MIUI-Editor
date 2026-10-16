@@ -8,6 +8,7 @@ import '../font_picker/font_list_panel.dart';
 import 'widgets/element_info_panel.dart';
 import 'widgets/element_list_panel.dart';
 import 'widgets/lockscreen_functions_panel.dart';
+import '../pro_workspace/widgets/floating_layers_panel.dart';
 
 class LockscreenScreen extends ConsumerWidget {
   const LockscreenScreen({super.key});
@@ -49,6 +50,7 @@ class LockscreenScreen extends ConsumerWidget {
           ],
         ),
         actions: [
+          const LayersButton(),
           IconButton.filled(
             tooltip: 'Replay animations',
             icon: const Icon(Icons.play_arrow_rounded),
@@ -93,30 +95,36 @@ class LockscreenScreen extends ConsumerWidget {
           ),
         ),
       ),
-      body: const Padding(
-        padding: EdgeInsets.all(24),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ImageStack(isLockscreen: true),
-            SizedBox(width: 16),
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ElementInfoPanel(),
-                  SizedBox(width: 12),
-                  ElementListPanel(),
-                  SizedBox(width: 12),
-                  LockscreenFunctionsPanel(),
-                  SizedBox(width: 12),
-                  FontListPanel(),
-                ],
-              ),
+      body: const Stack(
+        fit: StackFit.expand,
+        children: [
+          Padding(
+            padding: EdgeInsets.all(24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ImageStack(isLockscreen: true),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ElementInfoPanel(),
+                      SizedBox(width: 12),
+                      ElementListPanel(),
+                      SizedBox(width: 12),
+                      LockscreenFunctionsPanel(),
+                      SizedBox(width: 12),
+                      FontListPanel(),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          Positioned.fill(child: FloatingLayersPanel()),
+        ],
       ),
     );
   }

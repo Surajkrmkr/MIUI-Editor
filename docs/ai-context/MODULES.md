@@ -401,6 +401,18 @@ import 'package:miui_icon_generator/widgets/glass_card.dart';
 
 ---
 
+## Theme Editor: Widget Styles and Layers
+
+- `WidgetStyle` and `WidgetStyleSet` are immutable domain entities. Styles contain validated appearance properties, not position, scale, layer identity, visibility, locking, or animation behavior. Rotation is appearance so diagonal controls remain reusable.
+- `WidgetStyleRepository` defines persistence; `ManageWidgetStylesUseCase` captures styles and appends them to named collections. The data implementation owns JSON encoding, validation, PNG embedding, and library files under `<basePath>/WidgetStyles`.
+- Portable files use `format: miui-editor.widget-style-set` and `version: 1`. Each style has an ID, name, element type, and appearance map. Custom icons are embedded as base64 `iconPng`, never external paths. Imports validate supported properties, finite numeric ranges, ARGB integer colors, PNG decoding and dimensions, safe IDs, unique styles, and file-size limits.
+- Starter sets are read-only. Imported IDs are renamed on collision; built-in IDs are reserved. Removing a collection retains its materialized PNG assets because existing designs can reference them.
+- `widget_style_provider.dart` wires the repository/use case and async library. `WidgetStylesPanel` handles selection and library commands. `UnlockControlPreview` is shared by the canvas and thumbnails; native unlock layout remains in `LockscreenNotifier`.
+- Initial supported widgets are Tap to Unlock and Slide to Unlock. To add another widget, extend the domain-supported types and appearance schema, provide its thumbnail renderer in the presentation layer, and add corresponding preview/native-export tests. Repository transport and collection commands remain unchanged. Incompatible changes to the portable contract require a new version and explicit migration.
+- `ElementNotifier.applyStyle` applies one undoable change to the active unlocked layer. Floating layers show frontmost first; drag indices are translated into the underlying back-to-front element list used by native export. Delete, visibility, and lock actions target element IDs.
+- The fingerprint starter is a visual Tap unlock style, not a biometric-authentication implementation.
+- Focused regression coverage: `test/theme_editor/layers_and_styles_test.dart`.
+
 ## Maintenance: Module Health Check
 
 For each module, verify:

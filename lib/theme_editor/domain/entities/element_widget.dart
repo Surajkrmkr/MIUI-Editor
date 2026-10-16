@@ -565,7 +565,8 @@ enum UnlockIcon {
   power(Icons.power_settings_new_rounded, 'Power'),
   none(null, 'None'),
   customPng(null, 'PNG image'),
-  plug(Icons.power_rounded, 'Plug');
+  plug(Icons.power_rounded, 'Plug'),
+  fingerprint(Icons.fingerprint_rounded, 'Fingerprint');
 
   const UnlockIcon(this.icon, this.label);
   final IconData? icon;
@@ -586,6 +587,7 @@ class LockElement {
     this.unlockIcon = UnlockIcon.automatic,
     this.unlockIconPath = '',
     this.unlockText = '',
+    this.unlockInline = false,
     this.calendarRows = 6,
     this.calendarShowMonth = true,
     this.calendarShowWeekdays = true,
@@ -703,6 +705,7 @@ class LockElement {
   final UnlockIcon unlockIcon;
   final String unlockIconPath;
   final String unlockText;
+  final bool unlockInline;
   final int calendarRows;
   final bool calendarShowMonth, calendarShowWeekdays;
   int get calendarWeekRows =>
@@ -726,7 +729,7 @@ class LockElement {
     final limit =
         unlockHeight /
         AppConstants.screenRatio *
-        (type == ElementType.slideToUnlock ? .5 : .22);
+        (type == ElementType.slideToUnlock || unlockInline ? .5 : .22);
     return fontSize < limit ? fontSize : limit;
   }
 
@@ -776,6 +779,7 @@ class LockElement {
     UnlockIcon? unlockIcon,
     String? unlockIconPath,
     String? unlockText,
+    bool? unlockInline,
     int? calendarRows,
     bool? calendarShowMonth,
     bool? calendarShowWeekdays,
@@ -835,6 +839,7 @@ class LockElement {
     unlockIcon: unlockIcon ?? this.unlockIcon,
     unlockIconPath: unlockIconPath ?? this.unlockIconPath,
     unlockText: unlockText ?? this.unlockText,
+    unlockInline: unlockInline ?? this.unlockInline,
     calendarRows: calendarRows ?? this.calendarRows,
     calendarShowMonth: calendarShowMonth ?? this.calendarShowMonth,
     calendarShowWeekdays: calendarShowWeekdays ?? this.calendarShowWeekdays,
@@ -897,6 +902,7 @@ class LockElement {
     'unlockIcon': unlockIcon.name,
     'unlockIconPath': unlockIconPath,
     'unlockText': unlockText,
+    'unlockInline': unlockInline,
     'calendarRows': calendarRows,
     'calendarShowMonth': calendarShowMonth,
     'calendarShowWeekdays': calendarShowWeekdays,
@@ -967,6 +973,7 @@ class LockElement {
     ),
     unlockIconPath: j['unlockIconPath'] as String? ?? '',
     unlockText: j['unlockText'] as String? ?? '',
+    unlockInline: j['unlockInline'] as bool? ?? false,
     calendarRows: (j['calendarRows'] as num?)?.toInt() ?? 6,
     calendarShowMonth: j['calendarShowMonth'] as bool? ?? true,
     calendarShowWeekdays: j['calendarShowWeekdays'] as bool? ?? true,
