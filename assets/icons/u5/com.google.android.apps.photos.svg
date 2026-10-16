@@ -1,0 +1,6 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M24 24H8a8 8 0 0 1 16 0z" fill="white"/>
+<g opacity="0.4"><g transform="rotate(90 24 24)"><path d="M24 24H8a8 8 0 0 1 16 0z" fill="white"/></g></g>
+<g transform="rotate(180 24 24)"><path d="M24 24H8a8 8 0 0 1 16 0z" fill="white"/></g>
+<g opacity="0.4"><g transform="rotate(270 24 24)"><path d="M24 24H8a8 8 0 0 1 16 0z" fill="white"/></g></g>
+</svg>

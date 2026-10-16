@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'remote_fonts.dart';
 
 const String gfPrefix = 'gf:';
 
@@ -18,6 +19,18 @@ TextStyle fontTextStyle({
   FontWeight? fontWeight,
   double? height,
 }) {
+  final remote = parseRemoteFont(font);
+  if (remote != null) {
+    // Text relayouts automatically once the engine registers the font.
+    RemoteFonts.ensure(remote.family, remote.url);
+    return TextStyle(
+      fontFamily: remote.family,
+      fontSize: fontSize,
+      color: color,
+      fontWeight: fontWeight,
+      height: height,
+    );
+  }
   if (isGoogleFont(font)) {
     try {
       return GoogleFonts.getFont(

@@ -89,8 +89,9 @@ class BgDropZones extends ConsumerWidget {
     final ws = ref.read(wallpaperProvider);
     if (ws.weekNum == null || ws.currentThemeName == null) return;
     final tp = PathConstants.themePath(ws.weekNum!, ws.currentThemeName!);
-    final dest =
-        PathConstants.p('${PathConstants.lockscreenAdvance(tp)}$name.png');
+    final dest = PathConstants.p(
+      '${PathConstants.lockscreenAdvance(tp)}$name.png',
+    );
     await ref.read(fileServiceProvider).copyFile(srcPath, dest);
     if (name == 'beforeVector') {
       ref.read(iconEditorProvider.notifier).setBeforeVector(dest);
@@ -130,10 +131,7 @@ class _DropLabel extends StatelessWidget {
               ),
               TextSpan(
                 text: '  $sublabel',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: scheme.onSurfaceVariant,
-                ),
+                style: TextStyle(fontSize: 10, color: scheme.onSurfaceVariant),
               ),
             ],
           ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:morphable_shape/morphable_shape.dart';
 import 'package:miui_icon_generator/theme_editor/core/constants/app_constants.dart';
 import 'package:miui_icon_generator/theme_editor/domain/entities/user_profile.dart';
 import 'package:miui_icon_generator/theme_editor/presentation/providers/icon_editor_provider.dart';
@@ -32,17 +31,24 @@ class IconPreviewOnPhone extends ConsumerWidget {
         final shown = data.skip(offset).take(count).toList();
 
         return Padding(
-          padding:
-              const EdgeInsets.only(bottom: 50, top: 50, left: 8, right: 8),
+          padding: const EdgeInsets.only(
+            bottom: 50,
+            top: 50,
+            left: 8,
+            right: 8,
+          ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // Clock preview
-              const Text('02:36',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 40,
-                      fontWeight: FontWeight.w500)),
+              const Text(
+                '02:36',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 40,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               // Icon grid preview
               Column(
                 children: [
@@ -50,11 +56,10 @@ class IconPreviewOnPhone extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: shown
                         .take(4)
-                        .map((name) => _IconCell(
-                              name: name,
-                              profile: profile,
-                              state: s,
-                            ))
+                        .map(
+                          (name) =>
+                              _IconCell(name: name, profile: profile, state: s),
+                        )
                         .toList(),
                   ),
                   const SizedBox(height: 8),
@@ -62,11 +67,10 @@ class IconPreviewOnPhone extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: shown
                         .skip(4)
-                        .map((name) => _IconCell(
-                              name: name,
-                              profile: profile,
-                              state: s,
-                            ))
+                        .map(
+                          (name) =>
+                              _IconCell(name: name, profile: profile, state: s),
+                        )
                         .toList(),
                   ),
                 ],
@@ -80,8 +84,11 @@ class IconPreviewOnPhone extends ConsumerWidget {
 }
 
 class _IconCell extends StatelessWidget {
-  const _IconCell(
-      {required this.name, required this.profile, required this.state});
+  const _IconCell({
+    required this.name,
+    required this.profile,
+    required this.state,
+  });
   final String name;
   final UserProfile profile;
   final IconEditorState state;
@@ -90,8 +97,9 @@ class _IconCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = state.randomColors
         ? [
-            state.bgColors[
-                math.Random(name.hashCode).nextInt(state.bgColors.length)]
+            state.bgColors[math.Random(
+              name.hashCode,
+            ).nextInt(state.bgColors.length)],
           ]
         : [state.bgColor, state.bgColor2];
 
@@ -103,8 +111,11 @@ class _IconCell extends StatelessWidget {
       child: Container(
         margin: EdgeInsets.all(state.margin),
         child: CustomPaint(
-          painter:
-              _IconBackgroundPainter(state: state, colors: colors, name: name),
+          painter: _IconBackgroundPainter(
+            state: state,
+            colors: colors,
+            name: name,
+          ),
           child: Container(
             padding: EdgeInsets.all(state.padding),
             child: SvgPicture.asset(
@@ -123,22 +134,22 @@ class _IconBackgroundPainter extends CustomPainter {
   final List<Color> colors;
   final String name;
 
-  _IconBackgroundPainter({required this.state, required this.colors, required this.name});
+  _IconBackgroundPainter({
+    required this.state,
+    required this.colors,
+    required this.name,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     try {
       final rect = Offset.zero & size;
-      final shapeBorder = IconShapeUtils.getBorder(
+      final path = IconShapeUtils.path(
         state.shape,
-        state.radius,
-        borderWidth: state.borderWidth,
-        borderColor: state.borderColor,
-        scale: 1.0,
+        rect,
+        radius: state.radius,
         seed: name.hashCode,
       );
-
-      final path = (shapeBorder as OutlinedShapeBorder).getOuterPath(rect);
 
       // 1 ── Draw Fill (Gradient or Solid)
       final paint = Paint();
@@ -156,9 +167,9 @@ class _IconBackgroundPainter extends CustomPainter {
 
       // 2 ── Apply Textures
       IconVisualUtils.applyTexture(
-        canvas, 
-        path, 
-        state.texture, 
+        canvas,
+        path,
+        state.texture,
         rect,
         scale: state.textureScale,
         opacity: state.textureOpacity,
@@ -166,10 +177,10 @@ class _IconBackgroundPainter extends CustomPainter {
 
       // 3 ── Apply Effects
       IconVisualUtils.applyEffect(
-        canvas, 
-        path, 
-        state.effect, 
-        rect, 
+        canvas,
+        path,
+        state.effect,
+        rect,
         colors.first,
         intensity: state.effectIntensity,
         blur: state.effectBlur,

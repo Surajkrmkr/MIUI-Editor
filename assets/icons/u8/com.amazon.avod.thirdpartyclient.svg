@@ -1,0 +1,10 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="h0mc" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="white"/><path d="M21.42 16.69v9.46l7.74 -4.73z" fill="black"/></mask>
+<mask id="h1mc" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="white"/><path d="M21.42 16.69v9.46l7.74 -4.73z" fill="black"/></mask>
+<mask id="cms" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="white"/><path d="M21.42 16.69v9.46l7.74 -4.73z" fill="black"/></mask>
+<mask id="cmc" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="white"/><path d="M21.42 16.69v9.46l7.74 -4.73z" fill="black"/></mask>
+<g opacity="0.16"><g mask="url(#h0mc)"><path d="M14.54 11.1h18.92a5.16 5.16 0 0 1 5.16 5.16v10.32a5.16 5.16 0 0 1 -5.16 5.16h-18.92a5.16 5.16 0 0 1 -5.16 -5.16v-10.32a5.16 5.16 0 0 1 5.16 -5.16z" fill="white" stroke="white" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+<g opacity="0.38"><g mask="url(#h1mc)"><path d="M14.54 11.1h18.92a5.16 5.16 0 0 1 5.16 5.16v10.32a5.16 5.16 0 0 1 -5.16 5.16h-18.92a5.16 5.16 0 0 1 -5.16 -5.16v-10.32a5.16 5.16 0 0 1 5.16 -5.16z" fill="white" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+<g mask="url(#cms)" opacity="0.6"><path d="M13.68 36.04c6.88 3.01 13.76 3.01 20.64 0" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></g>
+<g mask="url(#cmc)"><path d="M14.54 11.1h18.92a5.16 5.16 0 0 1 5.16 5.16v10.32a5.16 5.16 0 0 1 -5.16 5.16h-18.92a5.16 5.16 0 0 1 -5.16 -5.16v-10.32a5.16 5.16 0 0 1 5.16 -5.16z" fill="white" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>
+</svg>

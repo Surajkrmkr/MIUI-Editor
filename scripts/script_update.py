@@ -72,8 +72,11 @@ def main():
     log("BROWSER", f"Launching Chrome: {chrome_path}")
     options = Options()
     options.binary_location = chrome_path
-    options.add_experimental_option("excludeSwitches", ["enable-logging"])
+    options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
+    options.add_experimental_option("useAutomationExtension", False)
+    options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_argument(f"--user-data-dir={data.get_Chrome_Selenium_Profile_Dir()}")
+    options.add_argument("--profile-directory=Default")
     web_browser = webdriver.Chrome(options=options)
     for handle in web_browser.window_handles[1:]:
         web_browser.switch_to.window(handle)

@@ -5,7 +5,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:morphable_shape/morphable_shape.dart';
 
 import '../../core/constants/path_constants.dart';
 import '../../core/errors/failures.dart';
@@ -128,16 +127,12 @@ class ExportIconsUseCase {
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder, ui.Rect.fromLTWH(0, 0, size, size));
 
-    final shapeBorder = IconShapeUtils.getBorder(
+    final iconPath = IconShapeUtils.path(
       state.shape,
-      state.radius,
-      borderWidth: state.borderWidth, // Pass logical value
-      borderColor: state.borderColor,
-      scale: p, // Pass scale factor (4.0)
-      seed: name.hashCode, // Add seed for blob variation
+      innerRect,
+      radius: state.radius,
+      seed: name.hashCode,
     );
-
-    final iconPath = (shapeBorder as OutlinedShapeBorder).getOuterPath(innerRect);
 
     // 1 ── Clip everything to the shape (or mask radius)
     if (isIconMask) {
@@ -192,7 +187,7 @@ class ExportIconsUseCase {
         iconPath, 
         state.texture, 
         innerRect,
-        scale: state.textureScale * p,
+        scale: state.textureScale,
         opacity: state.textureOpacity,
       );
       IconVisualUtils.applyEffect(

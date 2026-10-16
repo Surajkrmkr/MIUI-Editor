@@ -1,4 +1,11 @@
-enum UserProfileType { suraj, subhangi, rajat, abhishek, sumit, defaultUser }
+enum UserProfileType {
+  suraj,
+  subhangi,
+  rajat,
+  abhishek,
+  annapurna,
+  defaultUser,
+}
 
 class UserProfile {
   const UserProfile({
@@ -50,5 +57,13 @@ const Map<UserProfileType, UserProfile> kUserProfiles = {
     fontApiUrl: 'https://gitlab.com/piyushkpv/shadowgirl/-/raw/main/fonts.json',
     displayName: 'Abhishek',
     authorTag: 'Abhishek',
+  ),
+  UserProfileType.annapurna: UserProfile(
+    type: UserProfileType.annapurna,
+    iconFolder: 'u5',
+    avatarAsset: 'assets/users/sumit.png',
+    fontApiUrl: 'https://gitlab.com/Surajkrmkr/font-api/-/raw/main/fonts.json',
+    displayName: 'Annapurna',
+    authorTag: 'Annapurna',
   ),
 };

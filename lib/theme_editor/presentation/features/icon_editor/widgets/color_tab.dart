@@ -84,8 +84,7 @@ class ColorTab extends ConsumerWidget {
                         fontWeight: FontWeight.w500,
                         fontSize: 10,
                       ),
-                      overlayColor:
-                          WidgetStateProperty.all(Colors.transparent),
+                      overlayColor: WidgetStateProperty.all(Colors.transparent),
                     ),
                   ),
                 ],
@@ -106,35 +105,43 @@ class ColorTab extends ConsumerWidget {
                     bottom: BorderSide(color: colors.border),
                   ),
                 ),
-                child: Consumer(builder: (context, ref, _) {
-                  final s = ref.watch(iconEditorProvider);
-                  final n = ref.read(iconEditorProvider.notifier);
-                  return TabBarView(
-                    children: [
-                      _GradientPicker(
-                        c1: s.bgColor,
-                        c2: s.bgColor2,
-                        a1: s.bgGradStart,
-                        a2: s.bgGradEnd,
-                        onColors: (c1, c2) {
-                          n.setRandomColors(false);
-                          n.setBgColor(c1);
-                          n.setBgColor2(c2);
-                        },
-                        onAligns: (a1, a2) {
-                          n.setBgGradStart(a1);
-                          n.setBgGradEnd(a2);
-                        },
-                      ),
-                      _WheelPicker(
-                          color: s.iconColor, onChanged: n.setIconColor),
-                      _WheelPicker(
-                          color: s.borderColor, onChanged: n.setBorderColor),
-                      _WheelPicker(
-                          color: s.accentColor, onChanged: n.setAccentColor),
-                    ],
-                  );
-                }),
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    final s = ref.watch(iconEditorProvider);
+                    final n = ref.read(iconEditorProvider.notifier);
+                    return TabBarView(
+                      children: [
+                        _GradientPicker(
+                          c1: s.bgColor,
+                          c2: s.bgColor2,
+                          a1: s.bgGradStart,
+                          a2: s.bgGradEnd,
+                          onColors: (c1, c2) {
+                            n.setRandomColors(false);
+                            n.setBgColor(c1);
+                            n.setBgColor2(c2);
+                          },
+                          onAligns: (a1, a2) {
+                            n.setBgGradStart(a1);
+                            n.setBgGradEnd(a2);
+                          },
+                        ),
+                        _WheelPicker(
+                          color: s.iconColor,
+                          onChanged: n.setIconColor,
+                        ),
+                        _WheelPicker(
+                          color: s.borderColor,
+                          onChanged: n.setBorderColor,
+                        ),
+                        _WheelPicker(
+                          color: s.accentColor,
+                          onChanged: n.setAccentColor,
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
           ],
@@ -153,21 +160,21 @@ class _WheelPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
-        padding: const EdgeInsets.all(8),
-        child: ColorPicker(
-          color: color,
-          onColorChanged: onChanged,
-          enableOpacity: true,
-          showColorCode: true,
-          copyPasteBehavior: const ColorPickerCopyPasteBehavior(
-            copyButton: true,
-            pasteButton: true,
-            longPressMenu: true,
-            copyFormat: ColorPickerCopyFormat.numHexAARRGGBB,
-          ),
-          pickersEnabled: const {ColorPickerType.wheel: true},
-        ),
-      );
+    padding: const EdgeInsets.all(8),
+    child: ColorPicker(
+      color: color,
+      onColorChanged: onChanged,
+      enableOpacity: true,
+      showColorCode: true,
+      copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+        copyButton: true,
+        pasteButton: true,
+        longPressMenu: true,
+        copyFormat: ColorPickerCopyFormat.numHexAARRGGBB,
+      ),
+      pickersEnabled: const {ColorPickerType.wheel: true},
+    ),
+  );
 }
 
 // ── Gradient Picker ───────────────────────────────────────────────────────────
@@ -365,9 +372,10 @@ class _ColorBtn extends StatelessWidget {
               fontSize: 12,
               shadows: [
                 Shadow(
-                    color: Colors.black54,
-                    offset: Offset(0, 1),
-                    blurRadius: 2),
+                  color: Colors.black54,
+                  offset: Offset(0, 1),
+                  blurRadius: 2,
+                ),
               ],
             ),
           ),
@@ -420,10 +428,12 @@ class _AlignDrop extends StatelessWidget {
               isExpanded: true,
               borderRadius: BorderRadius.circular(AppRadius.md),
               items: options.entries
-                  .map((e) => DropdownMenuItem(
-                        value: e.value,
-                        child: Text(e.key, style: const TextStyle(fontSize: 12)),
-                      ))
+                  .map(
+                    (e) => DropdownMenuItem(
+                      value: e.value,
+                      child: Text(e.key, style: const TextStyle(fontSize: 12)),
+                    ),
+                  )
                   .toList(),
               onChanged: (v) {
                 if (v != null) onChanged(v);

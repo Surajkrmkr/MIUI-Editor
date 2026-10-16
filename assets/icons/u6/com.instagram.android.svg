@@ -1,0 +1,6 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mt" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="25.1" fill="white"/><path d="M17 24a7 7 0 1 0 14 0a7 7 0 1 0 -14 0z" stroke="black" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M30.3 15.5a2.2 2.2 0 1 0 4.4 0a2.2 2.2 0 1 0 -4.4 0z" fill="black"/></mask>
+<mask id="mbt" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect y="27.1" width="48" height="21.9" fill="white"/><path d="M17 24a7 7 0 1 0 14 0a7 7 0 1 0 -14 0z" stroke="black" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M30.3 15.5a2.2 2.2 0 1 0 4.4 0a2.2 2.2 0 1 0 -4.4 0z" fill="black"/></mask>
+<g mask="url(#mt)"><g opacity="0.45"></g><g opacity="1"><path d="M18 8h12a10 10 0 0 1 10 10v12a10 10 0 0 1 -10 10h-12a10 10 0 0 1 -10 -10v-12a10 10 0 0 1 10 -10z" fill="white"/></g></g>
+<g mask="url(#mbt)"><g opacity="0.25"></g><g opacity="0.5"><path d="M18 8h12a10 10 0 0 1 10 10v12a10 10 0 0 1 -10 10h-12a10 10 0 0 1 -10 -10v-12a10 10 0 0 1 10 -10z" fill="white"/></g></g>
+</svg>

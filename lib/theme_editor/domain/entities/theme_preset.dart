@@ -29,14 +29,14 @@ final List<ThemePreset> kThemePresets = [
     description: 'Modern, clean, vibrant design.',
     primaryColor: Color(0xFFFFC300),
     effect: IconEffectModel(type: IconEffect.holographic, intensity: 0.6),
-    texture: IconTextureModel(type: IconTexture.frostedGlass, opacity: 0.1),
+    texture: IconTextureModel(type: IconTexture.grain, opacity: 0.1),
   ),
   const ThemePreset(
     id: 'ios',
     name: 'iOS Style',
     description: 'The classic glassmorphism feel.',
     primaryColor: Color(0xFF007AFF),
-    effect: IconEffectModel(type: IconEffect.glass, blur: 20, intensity: 0.8),
+    effect: IconEffectModel(type: IconEffect.liquidGlass, blur: 20, intensity: 0.8),
     texture: IconTextureModel(type: IconTexture.none),
   ),
   const ThemePreset(

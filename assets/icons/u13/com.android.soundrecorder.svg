@@ -1,0 +1,7 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="fms" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="white"/><path d="M21.04 13.12h3.52M21.04 18.4h3.52" stroke="black" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></mask>
+<mask id="fmc" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="white"/><path d="M21.04 13.12h3.52M21.04 18.4h3.52" stroke="black" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></mask>
+<g opacity="0.35"><path d="M25.8 9.96h0a5.28 5.28 0 0 1 5.28 5.28v7.92a5.28 5.28 0 0 1 -5.28 5.28h0a5.28 5.28 0 0 1 -5.28 -5.28v-7.92a5.28 5.28 0 0 1 5.28 -5.28z" fill="white" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.24 24.04a10.56 10.56 0 0 0 21.12 0M25.8 34.6v5.28M20.52 39.88h10.56" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></g>
+<g mask="url(#fms)" opacity="0.45"><path d="M12.24 21.04a10.56 10.56 0 0 0 21.12 0M22.8 31.6v5.28M17.52 36.88h10.56" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></g>
+<g mask="url(#fmc)"><path d="M22.8 6.96h0a5.28 5.28 0 0 1 5.28 5.28v7.92a5.28 5.28 0 0 1 -5.28 5.28h0a5.28 5.28 0 0 1 -5.28 -5.28v-7.92a5.28 5.28 0 0 1 5.28 -5.28z" fill="white" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+</svg>

@@ -30,8 +30,10 @@ class DeploymentService {
             '--description', config.description,
           ];
 
+    final pythonPath = _resolvePythonPath();
+
     Process.start(
-      '/Library/Frameworks/Python.framework/Versions/3.12/bin/python3',
+      pythonPath,
       args,
       runInShell: true,
     ).then((process) {
@@ -66,5 +68,42 @@ class DeploymentService {
   void stop() {
     _process?.kill();
     _process = null;
+  }
+
+  static String _resolvePythonPath() {
+    if (Platform.isMacOS) {
+      final candidates = [
+        '/Library/Frameworks/Python.framework/Versions/3.14/bin/python3',
+        '/Library/Frameworks/Python.framework/Versions/3.13/bin/python3',
+        '/Library/Frameworks/Python.framework/Versions/3.12/bin/python3',
+        '/opt/homebrew/bin/python3',
+        '/usr/local/bin/python3',
+        '/usr/bin/python3',
+      ];
+      for (final candidate in candidates) {
+        if (File(candidate).existsSync()) {
+          return candidate;
+        }
+      }
+    } else if (Platform.isWindows) {
+      final localAppData = Platform.environment['LOCALAPPDATA'];
+      final candidates = [
+        if (localAppData != null) ...[
+          '$localAppData\\Programs\\Python\\Python314\\python.exe',
+          '$localAppData\\Programs\\Python\\Python313\\python.exe',
+          '$localAppData\\Programs\\Python\\Python312\\python.exe',
+        ],
+        r'C:\Program Files\Python314\python.exe',
+        r'C:\Program Files\Python313\python.exe',
+        r'C:\Program Files\Python312\python.exe',
+      ];
+      for (final candidate in candidates) {
+        if (File(candidate).existsSync()) {
+          return candidate;
+        }
+      }
+      return 'python';
+    }
+    return 'python3';
   }
 }

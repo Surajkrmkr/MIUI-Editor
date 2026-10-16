@@ -2,7 +2,18 @@ enum IconVariant {
   u1('u1', 'Style 1'),
   u2('u2', 'Style 2'),
   u3('u3', 'Style 3'),
-  u4('u4', 'Style 4');
+  u4('u4', 'Style 4'),
+  u5('u5', 'Duotone'),
+  u6('u6', 'Layered'),
+  u7('u7', 'Bubbly'),
+  u8('u8', 'Puffy'),
+  u9('u9', 'Sketch'),
+  u10('u10', 'Liquid'),
+  u11('u11', 'Glass'),
+  u12('u12', 'Stamp'),
+  u13('u13', 'Retro'),
+  u14('u14', 'Inline'),
+  u15('u15', 'Tilted');
 
   const IconVariant(this.folder, this.displayName);
   final String folder;

@@ -1,0 +1,6 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs><linearGradient id="lf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="white" stop-opacity="0.9"/><stop offset="1" stop-color="white" stop-opacity="0.6"/></linearGradient><linearGradient id="lr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="white"/><stop offset="0.45" stop-color="white" stop-opacity="0"/></linearGradient></defs>
+<mask id="ms" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="white"/><path d="M24 24H10a7 7 0 0 1 14 0z" fill="black" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 24H38a7 7 0 0 1-14 0z" fill="black" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></mask>
+<g mask="url(#ms)" opacity="0.45"><path d="M24 24V10a7 7 0 0 1 0 14z" fill="white"/><path d="M24 24V38a7 7 0 0 1 0-14z" fill="white"/></g>
+<path d="M24 24H10a7 7 0 0 1 14 0z" fill="url(#lf)"/><path d="M24 24H38a7 7 0 0 1-14 0z" fill="url(#lf)"/><path d="M24 24H10a7 7 0 0 1 14 0z" stroke="url(#lr)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 24H38a7 7 0 0 1-14 0z" stroke="url(#lr)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

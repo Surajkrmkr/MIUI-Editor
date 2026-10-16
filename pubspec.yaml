@@ -125,8 +125,23 @@ flutter:
     - assets/icons/u2/
     - assets/icons/u3/
     - assets/icons/u4/
-    # - assets/icons/u5/
+    - assets/icons/u5/
+    - assets/icons/u6/
+    - assets/icons/u7/
+    - assets/icons/u8/
+    - assets/icons/u9/
+    - assets/icons/u10/
+    - assets/icons/u11/
+    - assets/icons/u12/
+    - assets/icons/u13/
+    - assets/icons/u14/
+    - assets/icons/u15/
     - assets/9pngs/
+    - assets/modules/hyperos3/com.android.systemui/
+    - assets/modules/hyperos3/miui.systemui.plugin/
+    - assets/modules/hyperos3/com.android.contacts/
+    - assets/modules/hyperos3/com.android.mms/
+    - assets/modules/hyperos3/com.android.settings/
     - assets/tags/
     - assets/lockscreen/weatherIcon/
     - assets/users/

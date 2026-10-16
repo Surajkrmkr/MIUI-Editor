@@ -12,3 +12,7 @@ PRODUCT_BUNDLE_IDENTIFIER = com.example.miuiEditor
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2023 com.example. All rights reserved.
+
+// Build architectures (Apple Silicon only)
+ARCHS = arm64
+ONLY_ACTIVE_ARCH = YES

@@ -45,7 +45,9 @@ class IconSetSelectionPanel extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 9,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected ? colors.primary : scheme.onSurfaceVariant,
+                    color: isSelected
+                        ? colors.primary
+                        : scheme.onSurfaceVariant,
                   ),
                 ),
               ],

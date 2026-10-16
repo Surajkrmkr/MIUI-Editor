@@ -1,0 +1,5 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="fmc" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="white"/><path d="M15.76 21.04v9.68" stroke="black" stroke-width="3.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.82 16.2a1.94 1.94 0 1 0 3.87 0a1.94 1.94 0 1 0 -3.87 0z" fill="black"/><path d="M21.48 30.72V21.04M21.48 25c0 -2.64 1.76 -3.96 3.96 -3.96s3.96 1.32 3.96 3.96V30.72" stroke="black" stroke-width="3.9" stroke-linecap="round" stroke-linejoin="round"/></mask>
+<g opacity="0.35"><path d="M17.88 11.72h15.84a6.16 6.16 0 0 1 6.16 6.16v15.84a6.16 6.16 0 0 1 -6.16 6.16h-15.84a6.16 6.16 0 0 1 -6.16 -6.16v-15.84a6.16 6.16 0 0 1 6.16 -6.16z" fill="white" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+<g mask="url(#fmc)"><path d="M14.88 8.72h15.84a6.16 6.16 0 0 1 6.16 6.16v15.84a6.16 6.16 0 0 1 -6.16 6.16h-15.84a6.16 6.16 0 0 1 -6.16 -6.16v-15.84a6.16 6.16 0 0 1 6.16 -6.16z" fill="white" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+</svg>

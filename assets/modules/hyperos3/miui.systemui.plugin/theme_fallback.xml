@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<MIUI_Theme_Values>
+    <!-- wifi卡片 映射于数据卡片 关闭背景 -->
+    <drawable name="qs_card_wifi_background_disabled.9.png">qs_card_cell_background_disabled.9.png</drawable>
+    <!-- wifi卡片 映射于数据卡片 开启背景 -->
+    <drawable name="qs_card_wifi_background_enabled.9.png">qs_card_cell_background_enabled.9.png</drawable>
+    <!-- wifi卡片 映射于数据卡片 禁用状态背景 -->
+    <drawable name="qs_card_wifi_background_unavailable.9.png">qs_card_cell_background_unavailable.9.png</drawable>
+
+    <!-- 低电量白色 -->
+    <drawable name="battery_meter_progress_low_digit.png">battery_meter_progress_low.png</drawable>
+    <!-- 低电量黑色 -->
+    <drawable name="battery_meter_progress_low_digit_dark.png">battery_meter_progress_low_dark.png</drawable>
+
+    <!-- 充电白色 -->
+    <drawable name="battery_meter_progress_charging_digit.png">battery_meter_progress_charging.png</drawable>
+    <drawable name="battery_meter_progress_quick_charging_digit.png">battery_meter_progress_charging.png</drawable>
+    <drawable name="battery_meter_progress_quick_charging.png">battery_meter_progress_charging.png</drawable>
+    <!-- 充电黑色 -->
+    <drawable name="battery_meter_progress_charging_digit_dark.png">battery_meter_progress_charging_dark.png</drawable>
+    <drawable name="battery_meter_progress_quick_charging_dark.png">battery_meter_progress_charging_dark.png</drawable>
+    <drawable name="battery_meter_progress_quick_charging_digit_dark.png">battery_meter_progress_charging_dark.png</drawable>
+
+    <!-- 省电白色 -->
+    <drawable name="battery_meter_progress_power_save_digit.png">battery_meter_progress_power_save.png</drawable>
+    <!-- 省电黑色 -->
+    <drawable name="battery_meter_progress_power_save_digit_dark.png">battery_meter_progress_power_save_dark.png</drawable>
+
+</MIUI_Theme_Values>

@@ -1,0 +1,5 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g opacity="0.5"><path d="M24 24V10a7 7 0 0 1 0 14z" fill="white" fill-opacity="0.3" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 24V38a7 7 0 0 1 0-14z" fill="white" fill-opacity="0.3" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></g>
+<path d="M24 24H10a7 7 0 0 1 14 0z" fill="white" fill-opacity="0.3" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 24H38a7 7 0 0 1-14 0z" fill="white" fill-opacity="0.3" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+
+</svg>

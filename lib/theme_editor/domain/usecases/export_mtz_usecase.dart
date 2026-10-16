@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:archive/archive_io.dart';
 import '../../core/constants/path_constants.dart';
 import '../../core/errors/failures.dart';
+import 'export_system_modules_usecase.dart';
 
 /// Packs the theme folder into a .mtz (zip) file.
 ///
@@ -22,13 +23,37 @@ import '../../core/errors/failures.dart';
 class ExportMtzUseCase {
   const ExportMtzUseCase();
 
-  static const List<String> _modules = ['icons', 'clock_2x4', 'lockscreen'];
+  static const List<String> _modules = [
+    'icons',
+    'clock_2x4',
+    'lockscreen',
+    'miui.systemui.plugin',
+    'com.android.systemui',
+    'com.android.contacts',
+    'com.android.mms',
+    'com.android.settings',
+  ];
 
   Future<(String?, Failure?)> call({
     required String themePath,
     required String themeName,
     bool dualVersion = false,
   }) async {
+    final hasSystemModules = ExportSystemModulesUseCase.modules.any(
+      (m) => Directory(PathConstants.p('$themePath$m')).existsSync(),
+    );
+    if (hasSystemModules) {
+      final missing = ExportSystemModulesUseCase.missingOutputs(themePath);
+      if (missing.isNotEmpty) {
+        return (
+          null,
+          ExportFailure(
+            'Theme export is incomplete (missing ${missing.first}). '
+            'Run Export again and fix its error before building the MTZ.',
+          ),
+        );
+      }
+    }
     if (dualVersion) {
       return _exportDual(themePath, themeName);
     }

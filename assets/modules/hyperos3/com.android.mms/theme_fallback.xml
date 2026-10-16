@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes'?>
+<MIUI_Theme_Values>
+    <!-- 大背景 -->
+    <drawable name="miuix_appcompat_settings_window_bg_light.9.png">miuix_appcompat_window_bg_light.9.png</drawable>
+    <!-- OS2首页大背景 -->
+    <drawable name="main_page_bg.9.png">miuix_appcompat_window_bg_light.9.png</drawable>
+    <!-- OS2二级页背景 -->
+    <drawable name="miuix_preference_card_page_background_light.9.png">miuix_appcompat_window_bg_light.9.png</drawable>
+    <!-- 号码识别合作伙伴背景 -->
+    <drawable name="miuix_appcompat_floating_window_bg_light.9.png">miuix_appcompat_window_bg_light.9.png</drawable>
+    <!-- 搜索过度 -->
+    <drawable name="miuix_appcompat_window_search_mask.9.png">miuix_appcompat_window_bg_light.9.png</drawable>
+    <!-- 搜索结果 -->
+    <drawable name="search_bg.9.png">miuix_appcompat_window_bg_light.9.png</drawable>
+    <!-- 验证码 -->
+    <drawable name="window_bg_verification_list.9.png">miuix_appcompat_window_bg_light.9.png</drawable>
+    <!-- 号码识别合作伙伴 -->
+    <drawable name="conversation_bg.9.png">miuix_appcompat_window_bg_light.9.png</drawable>
+
+    <!-- 群发短信顶栏背景 -->
+    <drawable name="title_bar_tall_bg.9.png">conversation_actionbar_bg.9.png</drawable>
+
+</MIUI_Theme_Values>

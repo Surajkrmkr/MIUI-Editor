@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes'?>
+<MIUI_Theme_Values>
+    <!-- 背景 -->
+    <drawable name="contact_edit_content_bg.9.png">miuix_appcompat_window_bg_light.9.png</drawable>
+    <drawable name="miuix_preference_card_page_background_light.9.png">miuix_appcompat_window_bg_light.9.png</drawable>
+    <drawable name="card_group_window_drawable_bg.9.png">miuix_appcompat_window_bg_light.9.png</drawable>
+    <drawable name="miuix_appcompat_floating_window_bg_light.9.png">miuix_appcompat_window_bg_light.9.png</drawable>
+</MIUI_Theme_Values>

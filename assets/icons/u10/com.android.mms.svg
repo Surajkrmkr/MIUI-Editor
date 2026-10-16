@@ -1,0 +1,7 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs><linearGradient id="lf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="white" stop-opacity="0.9"/><stop offset="1" stop-color="white" stop-opacity="0.6"/></linearGradient><linearGradient id="lr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="white"/><stop offset="0.45" stop-color="white" stop-opacity="0"/></linearGradient></defs>
+<mask id="ms" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="white"/><path d="M8 12a5 5 0 0 1 5-5h16a5 5 0 0 1 5 5v11a5 5 0 0 1-5 5H15l-7 6z" fill="black" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 14h10M14 20h6" stroke="black" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></mask>
+<mask id="mc" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="white"/><path d="M14 14h10M14 20h6" stroke="black" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></mask>
+<g mask="url(#ms)" opacity="0.45"><path d="M22 20h13a5 5 0 0 1 5 5v15l-6-5H27a5 5 0 0 1-5-5z" fill="white"/></g>
+<g mask="url(#mc)"><path d="M8 12a5 5 0 0 1 5-5h16a5 5 0 0 1 5 5v11a5 5 0 0 1-5 5H15l-7 6z" fill="url(#lf)"/><path d="M8 12a5 5 0 0 1 5-5h16a5 5 0 0 1 5 5v11a5 5 0 0 1-5 5H15l-7 6z" stroke="url(#lr)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></g>
+</svg>

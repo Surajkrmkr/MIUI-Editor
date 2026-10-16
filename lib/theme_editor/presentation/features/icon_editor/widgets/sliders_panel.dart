@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/core/theme/app_radius.dart';
 import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
-import 'package:morphable_shape/morphable_shape.dart';
 import 'package:miui_icon_generator/theme_editor/domain/entities/icon_effect.dart';
 import 'package:miui_icon_generator/theme_editor/domain/entities/icon_shape.dart';
 import 'package:miui_icon_generator/theme_editor/domain/entities/icon_texture.dart';
@@ -31,55 +30,103 @@ class SlidersPanel extends ConsumerWidget {
         border: Border.all(color: colors.border),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min, 
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionLabel('SHAPE', scheme),
-          _ShapeSelector(current: s.shape, onSelected: n.setIconShape, state: s),
+          _ShapeSelector(
+            current: s.shape,
+            onSelected: n.setIconShape,
+            state: s,
+          ),
           const SizedBox(height: 12),
           _sectionLabel('EFFECTS', scheme),
-          _EffectSelector(current: s.effect, onSelected: n.setIconEffect, state: s),
+          _EffectSelector(
+            current: s.effect,
+            onSelected: n.setIconEffect,
+            state: s,
+          ),
           if (s.effect != IconEffect.none) ...[
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(child: _Slider('Intensity', s.effectIntensity, 0, 1, n.setEffectIntensity, isPercent: true)),
+                Expanded(
+                  child: _Slider(
+                    'Intensity',
+                    s.effectIntensity,
+                    0,
+                    1,
+                    n.setEffectIntensity,
+                    isPercent: true,
+                  ),
+                ),
                 const SizedBox(width: 8),
-                Expanded(child: _Slider('Blur', s.effectBlur, 0, 100, n.setEffectBlur)),
+                Expanded(
+                  child: _Slider('Blur', s.effectBlur, 0, 100, n.setEffectBlur),
+                ),
               ],
             ),
-            _Slider('Elevation', s.effectElevation, 0, 20, n.setEffectElevation),
+            _Slider(
+              'Elevation',
+              s.effectElevation,
+              0,
+              20,
+              n.setEffectElevation,
+            ),
           ],
           const SizedBox(height: 12),
           _sectionLabel('TEXTURES', scheme),
-          _TextureSelector(current: s.texture, onSelected: n.setIconTexture, state: s),
+          _TextureSelector(
+            current: s.texture,
+            onSelected: n.setIconTexture,
+            state: s,
+          ),
           if (s.texture != IconTexture.none) ...[
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(child: _Slider('Scale', s.textureScale, 0.1, 5, n.setTextureScale)),
+                Expanded(
+                  child: _Slider(
+                    'Scale',
+                    s.textureScale,
+                    0.1,
+                    5,
+                    n.setTextureScale,
+                  ),
+                ),
                 const SizedBox(width: 8),
-                Expanded(child: _Slider('Opacity', s.textureOpacity, 0, 1, n.setTextureOpacity, isPercent: true)),
+                Expanded(
+                  child: _Slider(
+                    'Opacity',
+                    s.textureOpacity,
+                    0,
+                    1,
+                    n.setTextureOpacity,
+                    isPercent: true,
+                  ),
+                ),
               ],
             ),
           ],
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(
-                child: _Slider('Radius', s.radius, 0, 20, n.setRadius),
-              ),
+              Expanded(child: _Slider('Radius', s.radius, 0, 20, n.setRadius)),
               const SizedBox(width: 8),
               Expanded(
-                child: _Slider('Border', s.borderWidth, 0, 20, n.setBorderWidth),
+                child: _Slider(
+                  'Border',
+                  s.borderWidth,
+                  0,
+                  20,
+                  n.setBorderWidth,
+                ),
               ),
             ],
           ),
           Row(
             children: [
-              Expanded(
-                child: _Slider('Margin', s.margin, 0, 20, n.setMargin),
-              ),
+              Expanded(child: _Slider('Margin', s.margin, 0, 20, n.setMargin)),
               const SizedBox(width: 8),
               Expanded(
                 child: _Slider('Padding', s.padding, 0, 20, n.setPadding),
@@ -96,9 +143,11 @@ class SlidersPanel extends ConsumerWidget {
               if (v) {
                 final palette = ref.read(wallpaperProvider).colorPalette;
                 final dark = palette
-                    .where((c) =>
-                        ThemeData.estimateBrightnessForColor(c) ==
-                        Brightness.dark)
+                    .where(
+                      (c) =>
+                          ThemeData.estimateBrightnessForColor(c) ==
+                          Brightness.dark,
+                    )
                     .toList();
                 if (dark.isNotEmpty) n.setBgColors(dark);
               }
@@ -117,7 +166,11 @@ class SlidersPanel extends ConsumerWidget {
 // ── Shape Selector ────────────────────────────────────────────────────────────
 
 class _ShapeSelector extends StatelessWidget {
-  const _ShapeSelector({required this.current, required this.onSelected, required this.state});
+  const _ShapeSelector({
+    required this.current,
+    required this.onSelected,
+    required this.state,
+  });
   final IconShape current;
   final ValueChanged<IconShape> onSelected;
   final IconEditorState state;
@@ -162,10 +215,12 @@ class _ShapeSelector extends StatelessWidget {
                         shape.label,
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight:
-                              isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color:
-                              isSelected ? scheme.onPrimary : scheme.onSurface,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: isSelected
+                              ? scheme.onPrimary
+                              : scheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -175,7 +230,9 @@ class _ShapeSelector extends StatelessWidget {
                         child: CustomPaint(
                           painter: _PreviewPainter(
                             shape: shape,
-                            color: isSelected ? scheme.onPrimary : scheme.primary,
+                            color: isSelected
+                                ? scheme.onPrimary
+                                : scheme.primary,
                             state: state,
                           ),
                         ),
@@ -195,7 +252,11 @@ class _ShapeSelector extends StatelessWidget {
 // ── Effect Selector ───────────────────────────────────────────────────────────
 
 class _EffectSelector extends StatelessWidget {
-  const _EffectSelector({required this.current, required this.onSelected, required this.state});
+  const _EffectSelector({
+    required this.current,
+    required this.onSelected,
+    required this.state,
+  });
   final IconEffect current;
   final ValueChanged<IconEffect> onSelected;
   final IconEditorState state;
@@ -240,8 +301,12 @@ class _EffectSelector extends StatelessWidget {
                         effect.label,
                         style: TextStyle(
                           fontSize: 10,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color: isSelected ? scheme.onPrimary : scheme.onSurface,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: isSelected
+                              ? scheme.onPrimary
+                              : scheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -252,7 +317,9 @@ class _EffectSelector extends StatelessWidget {
                           painter: _PreviewPainter(
                             shape: state.shape,
                             effect: effect,
-                            color: isSelected ? scheme.onPrimary : scheme.primary,
+                            color: isSelected
+                                ? scheme.onPrimary
+                                : scheme.primary,
                             state: state,
                           ),
                         ),
@@ -272,7 +339,11 @@ class _EffectSelector extends StatelessWidget {
 // ── Texture Selector ──────────────────────────────────────────────────────────
 
 class _TextureSelector extends StatelessWidget {
-  const _TextureSelector({required this.current, required this.onSelected, required this.state});
+  const _TextureSelector({
+    required this.current,
+    required this.onSelected,
+    required this.state,
+  });
   final IconTexture current;
   final ValueChanged<IconTexture> onSelected;
   final IconEditorState state;
@@ -317,8 +388,12 @@ class _TextureSelector extends StatelessWidget {
                         texture.label,
                         style: TextStyle(
                           fontSize: 10,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color: isSelected ? scheme.onPrimary : scheme.onSurface,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: isSelected
+                              ? scheme.onPrimary
+                              : scheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -329,7 +404,9 @@ class _TextureSelector extends StatelessWidget {
                           painter: _PreviewPainter(
                             shape: state.shape,
                             texture: texture,
-                            color: isSelected ? scheme.onPrimary : scheme.primary,
+                            color: isSelected
+                                ? scheme.onPrimary
+                                : scheme.primary,
                             state: state,
                           ),
                         ),
@@ -365,26 +442,26 @@ class _PreviewPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     try {
       final rect = Offset.zero & size;
-      final shapeBorder = IconShapeUtils.getBorder(shape, 5, scale: 1.0);
-      final path = (shapeBorder as OutlinedShapeBorder).getOuterPath(rect);
+      final path = IconShapeUtils.path(shape, rect, radius: state.radius);
 
       final isHighLuminance = color.computeLuminance() > 0.5;
-      final paint = Paint()..color = color.withAlpha(isHighLuminance ? 120 : 80);
+      final paint = Paint()
+        ..color = color.withAlpha(isHighLuminance ? 120 : 80);
       canvas.drawPath(path, paint);
 
       IconVisualUtils.applyTexture(
-        canvas, 
-        path, 
-        texture ?? state.texture, 
+        canvas,
+        path,
+        texture ?? state.texture,
         rect,
         scale: state.textureScale,
         opacity: state.textureOpacity,
       );
       IconVisualUtils.applyEffect(
-        canvas, 
-        path, 
-        effect ?? state.effect, 
-        rect, 
+        canvas,
+        path,
+        effect ?? state.effect,
+        rect,
         color,
         intensity: state.effectIntensity,
         blur: state.effectBlur,
@@ -400,35 +477,42 @@ class _PreviewPainter extends CustomPainter {
 }
 
 Widget _sectionLabel(String text, ColorScheme scheme) => Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
-          Container(
-            width: 3,
-            height: 12,
-            margin: const EdgeInsets.only(right: 6),
-            decoration: BoxDecoration(
-              color: scheme.primary,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: scheme.onSurfaceVariant,
-              letterSpacing: 0.8,
-            ),
-          ),
-        ],
+  padding: const EdgeInsets.only(bottom: 6),
+  child: Row(
+    children: [
+      Container(
+        width: 3,
+        height: 12,
+        margin: const EdgeInsets.only(right: 6),
+        decoration: BoxDecoration(
+          color: scheme.primary,
+          borderRadius: BorderRadius.circular(2),
+        ),
       ),
-    );
+      Text(
+        text,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: scheme.onSurfaceVariant,
+          letterSpacing: 0.8,
+        ),
+      ),
+    ],
+  ),
+);
 
 // ── Slider ────────────────────────────────────────────────────────────────────
 
 class _Slider extends StatelessWidget {
-  const _Slider(this.label, this.value, this.min, this.max, this.onChanged, {this.isPercent = false});
+  const _Slider(
+    this.label,
+    this.value,
+    this.min,
+    this.max,
+    this.onChanged, {
+    this.isPercent = false,
+  });
   final String label;
   final double value, min, max;
   final ValueChanged<double> onChanged;
@@ -441,46 +525,47 @@ class _Slider extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  label,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: Text(
+                  isPercent
+                      ? '${(value * 100).toStringAsFixed(0)}%'
+                      : value.toStringAsFixed(1),
                   style: TextStyle(
                     fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                    color: scheme.onPrimaryContainer,
                   ),
                 ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: scheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: Text(
-                    isPercent ? '${(value * 100).toStringAsFixed(0)}%' : value.toStringAsFixed(1),
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: scheme.onPrimaryContainer,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          Slider(
-            value: value, 
-            min: min, 
-            max: max, 
-            onChanged: onChanged,
-            activeColor: Theme.of(context).colorScheme.primary,
-          ),
-        ],
+        ),
+        Slider(
+          value: value,
+          min: min,
+          max: max,
+          onChanged: onChanged,
+          activeColor: Theme.of(context).colorScheme.primary,
+        ),
+      ],
     );
   }
 }
@@ -549,27 +634,34 @@ class _RandomColorsRow extends StatelessWidget {
         spacing: 8,
         runSpacing: 8,
         children: [
-          ...colors.map((c) => GestureDetector(
-                onTap: () {
-                  if (colors.length > 1) {
-                    notifier.setBgColors(colors
-                        .where((e) => e.toARGB32() != c.toARGB32())
-                        .toList());
-                  }
-                },
-                child: Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: c,
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                    border: Border.all(
-                        color: Colors.white.withAlpha(50), width: 1.5),
+          ...colors.map(
+            (c) => GestureDetector(
+              onTap: () {
+                if (colors.length > 1) {
+                  notifier.setBgColors(
+                    colors.where((e) => e.toARGB32() != c.toARGB32()).toList(),
+                  );
+                }
+              },
+              child: Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: c,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  border: Border.all(
+                    color: Colors.white.withAlpha(50),
+                    width: 1.5,
                   ),
-                  child: Icon(Icons.close_rounded,
-                      color: Colors.white.withAlpha(180), size: 14),
                 ),
-              )),
+                child: Icon(
+                  Icons.close_rounded,
+                  color: Colors.white.withAlpha(180),
+                  size: 14,
+                ),
+              ),
+            ),
+          ),
           ColorPicker(
             color: colors.first,
             onColorChangeEnd: (c) => notifier.setBgColors([...colors, c]),

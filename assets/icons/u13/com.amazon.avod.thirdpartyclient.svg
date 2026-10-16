@@ -1,0 +1,7 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="fms" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="white"/><path d="M20.16 15.32v9.68l7.92 -4.84z" fill="black"/></mask>
+<mask id="fmc" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="white"/><path d="M20.16 15.32v9.68l7.92 -4.84z" fill="black"/></mask>
+<g opacity="0.35"><path d="M16.12 12.6h19.36a5.28 5.28 0 0 1 5.28 5.28v10.56a5.28 5.28 0 0 1 -5.28 5.28h-19.36a5.28 5.28 0 0 1 -5.28 -5.28v-10.56a5.28 5.28 0 0 1 5.28 -5.28z" fill="white" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.24 38.12c7.04 3.08 14.08 3.08 21.12 0" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></g>
+<g mask="url(#fms)" opacity="0.45"><path d="M12.24 35.12c7.04 3.08 14.08 3.08 21.12 0" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></g>
+<g mask="url(#fmc)"><path d="M13.12 9.6h19.36a5.28 5.28 0 0 1 5.28 5.28v10.56a5.28 5.28 0 0 1 -5.28 5.28h-19.36a5.28 5.28 0 0 1 -5.28 -5.28v-10.56a5.28 5.28 0 0 1 5.28 -5.28z" fill="white" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+</svg>

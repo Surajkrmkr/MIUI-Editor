@@ -1,0 +1,5 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="fmc" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="white"/><path d="M13.56 22.8a9.24 9.24 0 1 0 18.48 0a9.24 9.24 0 1 0 -18.48 0z" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></mask>
+<g opacity="0.35"><path d="M10.84 25.8a14.96 14.96 0 1 0 29.92 0a14.96 14.96 0 1 0 -29.92 0z" fill="white" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+<g mask="url(#fmc)"><path d="M7.84 22.8a14.96 14.96 0 1 0 29.92 0a14.96 14.96 0 1 0 -29.92 0z" fill="white" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+</svg>

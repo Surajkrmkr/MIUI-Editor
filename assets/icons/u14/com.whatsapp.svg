@@ -1,0 +1,6 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mb" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="white"/><path d="M24 7a17 17 0 0 0-14.7 25.5L7 41l8.7-2.3A17 17 0 1 0 24 7z" stroke="black" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.25 17.5h2.5l1.25 3.5l-1.75 1.5a10 10 0 0 0 4.5 4.5l1.5 -1.75l3.5 1.25v2.5a1.5 1.5 0 0 1 -1.5 1.5C22.5 30.5 17.75 25.75 17.75 19a1.5 1.5 0 0 1 1.5 -1.5z" fill="black"/></mask>
+<mask id="mc" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="white"/><path d="M19.25 17.5h2.5l1.25 3.5l-1.75 1.5a10 10 0 0 0 4.5 4.5l1.5 -1.75l3.5 1.25v2.5a1.5 1.5 0 0 1 -1.5 1.5C22.5 30.5 17.75 25.75 17.75 19a1.5 1.5 0 0 1 1.5 -1.5z" fill="black"/></mask>
+<g mask="url(#mb)"><path d="M24 7a17 17 0 0 0-14.7 25.5L7 41l8.7-2.3A17 17 0 1 0 24 7z" fill="white"/></g>
+<g mask="url(#mc)"><path d="M24 7a17 17 0 0 0-14.7 25.5L7 41l8.7-2.3A17 17 0 1 0 24 7z" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></g>
+</svg>

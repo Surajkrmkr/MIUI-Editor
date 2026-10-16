@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/entities/control_center_template.dart';
 import '../../domain/entities/icon_effect.dart';
 import '../../domain/entities/icon_shape.dart';
 import '../../domain/entities/icon_texture.dart';
@@ -48,6 +49,7 @@ class IconEditorState {
     this.effectElevation = 4.0,
     this.textureScale = 1.0,
     this.textureOpacity = 0.3,
+    this.ccTemplate = ControlCenterTemplate.frostedGlass,
   });
 
   final double margin, padding, radius, borderWidth;
@@ -63,6 +65,7 @@ class IconEditorState {
   final IconTexture texture;
   final double effectIntensity, effectBlur, effectElevation;
   final double textureScale, textureOpacity;
+  final ControlCenterTemplate ccTemplate;
 
   IconEditorState copyWith({
     double? margin,
@@ -91,6 +94,7 @@ class IconEditorState {
     double? effectElevation,
     double? textureScale,
     double? textureOpacity,
+    ControlCenterTemplate? ccTemplate,
   }) =>
       IconEditorState(
         margin: margin ?? this.margin,
@@ -119,6 +123,7 @@ class IconEditorState {
         effectElevation: effectElevation ?? this.effectElevation,
         textureScale: textureScale ?? this.textureScale,
         textureOpacity: textureOpacity ?? this.textureOpacity,
+        ccTemplate: ccTemplate ?? this.ccTemplate,
       );
 }
 
@@ -146,6 +151,8 @@ class IconEditorNotifier extends Notifier<IconEditorState> {
   void setIconShape(IconShape s) => state = state.copyWith(shape: s);
   void setIconEffect(IconEffect e) => state = state.copyWith(effect: e);
   void setIconTexture(IconTexture t) => state = state.copyWith(texture: t);
+  void setCcTemplate(ControlCenterTemplate t) =>
+      state = state.copyWith(ccTemplate: t);
   void setEffectIntensity(double v) => state = state.copyWith(effectIntensity: v);
   void setEffectBlur(double v) => state = state.copyWith(effectBlur: v);
   void setEffectElevation(double v) => state = state.copyWith(effectElevation: v);

@@ -9,6 +9,7 @@ import 'package:screenshot/screenshot.dart';
 import 'package:xml/xml.dart';
 import '../../core/constants/path_constants.dart';
 import '../../core/errors/failures.dart';
+import '../../core/utils/remote_fonts.dart';
 import '../../domain/entities/element_widget.dart';
 import '../features/lockscreen/widgets/element_widget_preview.dart';
 import 'element_provider.dart';
@@ -310,11 +311,11 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
     return null;
   }
 
-  /// Applies [elements] to the lockscreen, pre-loading any Google Fonts first.
+  /// Applies [elements] to the lockscreen, pre-loading any Google and catalog fonts first.
   Future<void> applyElements(List<LockElement> elements) async {
-    final gfStyles = elements
-        .map((e) => e.font)
-        .toSet()
+    final fonts = elements.map((e) => e.font).toSet();
+    await Future.wait(fonts.where(isRemoteFont).map(RemoteFonts.ensureKey));
+    final gfStyles = fonts
         .where((f) => f.startsWith('gf:'))
         .map((f) {
           try {

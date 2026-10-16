@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../data/datasources/remote/font_catalog_datasource.dart';
 import '../../data/datasources/remote/font_remote_datasource.dart';
 import '../../data/models/font_model.dart';
 import '../../data/models/unified_font.dart';
@@ -51,8 +52,23 @@ final googleFontListProvider = Provider<List<UnifiedFont>>((ref) {
     ..sort((a, b) => a.name.compareTo(b.name));
 });
 
+final fontCatalogDsProvider =
+    Provider<FontCatalogDataSource>((_) => FontCatalogDataSource());
+
+final fontsourceCatalogProvider = FutureProvider<List<UnifiedFont>>(
+    (ref) => ref.read(fontCatalogDsProvider).fetchFontsource());
+
+final fontshareCatalogProvider = FutureProvider<List<UnifiedFont>>(
+    (ref) => ref.read(fontCatalogDsProvider).fetchFontshare());
+
 final unifiedFontListProvider = FutureProvider<List<UnifiedFont>>((ref) async {
   final source = ref.watch(fontSourceProvider);
+  if (source == FontSource.fontsource) {
+    return ref.watch(fontsourceCatalogProvider.future);
+  }
+  if (source == FontSource.fontshare) {
+    return ref.watch(fontshareCatalogProvider.future);
+  }
   if (source == FontSource.google) {
     return ref.watch(googleFontListProvider);
   }

@@ -1,0 +1,7 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="fms" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="white"/><path d="M14 14h8.8M14 19.28h5.28" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></mask>
+<mask id="fmc" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="white"/><path d="M14 14h8.8M14 19.28h5.28" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></mask>
+<g opacity="0.35"><path d="M24.04 22.28h11.44a4.4 4.4 0 0 1 4.4 4.4v13.2l-5.28 -4.4H28.44a4.4 4.4 0 0 1 -4.4 -4.4z" fill="white" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.72 15.24a4.4 4.4 0 0 1 4.4 -4.4h14.08a4.4 4.4 0 0 1 4.4 4.4v9.68a4.4 4.4 0 0 1 -4.4 4.4H17.88l-6.16 5.28z" fill="white" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+<g mask="url(#fms)" opacity="0.45"><path d="M21.04 19.28h11.44a4.4 4.4 0 0 1 4.4 4.4v13.2l-5.28 -4.4H25.44a4.4 4.4 0 0 1 -4.4 -4.4z" fill="white" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+<g mask="url(#fmc)"><path d="M8.72 12.24a4.4 4.4 0 0 1 4.4 -4.4h14.08a4.4 4.4 0 0 1 4.4 4.4v9.68a4.4 4.4 0 0 1 -4.4 4.4H14.88l-6.16 5.28z" fill="white" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>
+</svg>

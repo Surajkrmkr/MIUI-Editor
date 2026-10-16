@@ -1,0 +1,6 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mt" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="23.48" fill="white"/></mask>
+<mask id="mbt" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect y="25.48" width="48" height="23.52" fill="white"/></mask>
+<g mask="url(#mt)"><g opacity="0.45"><path d="M36 5.5Q36.8 10.2 41.5 11Q36.8 11.8 36 16.5Q35.2 11.8 30.5 11Q35.2 10.2 36 5.5Z" fill="white"/></g><g opacity="1"><path d="M23 10Q25.5 22.5 38 25Q25.5 27.5 23 40Q20.5 27.5 8 25Q20.5 22.5 23 10Z" fill="white"/></g></g>
+<g mask="url(#mbt)"><g opacity="0.25"><path d="M36 5.5Q36.8 10.2 41.5 11Q36.8 11.8 36 16.5Q35.2 11.8 30.5 11Q35.2 10.2 36 5.5Z" fill="white"/></g><g opacity="0.5"><path d="M23 10Q25.5 22.5 38 25Q25.5 27.5 23 40Q20.5 27.5 8 25Q20.5 22.5 23 10Z" fill="white"/></g></g>
+</svg>

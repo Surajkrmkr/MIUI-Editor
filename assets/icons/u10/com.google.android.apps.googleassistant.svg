@@ -1,0 +1,6 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs><linearGradient id="lf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="white" stop-opacity="0.9"/><stop offset="1" stop-color="white" stop-opacity="0.6"/></linearGradient><linearGradient id="lr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="white"/><stop offset="0.45" stop-color="white" stop-opacity="0"/></linearGradient></defs>
+<mask id="ms" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="white"/><path d="M23 10Q25.5 22.5 38 25Q25.5 27.5 23 40Q20.5 27.5 8 25Q20.5 22.5 23 10Z" fill="black" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></mask>
+<g mask="url(#ms)" opacity="0.45"><path d="M36 5.5Q36.8 10.2 41.5 11Q36.8 11.8 36 16.5Q35.2 11.8 30.5 11Q35.2 10.2 36 5.5Z" fill="white"/></g>
+<path d="M23 10Q25.5 22.5 38 25Q25.5 27.5 23 40Q20.5 27.5 8 25Q20.5 22.5 23 10Z" fill="url(#lf)"/><path d="M23 10Q25.5 22.5 38 25Q25.5 27.5 23 40Q20.5 27.5 8 25Q20.5 22.5 23 10Z" stroke="url(#lr)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

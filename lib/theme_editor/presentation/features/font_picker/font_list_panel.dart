@@ -4,13 +4,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:miui_icon_generator/core/theme/app_radius.dart';
 import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import '../../../core/utils/font_utils.dart';
+import '../../../core/utils/remote_fonts.dart';
 import '../../../data/models/unified_font.dart';
 import '../../../domain/entities/element_widget.dart';
 import '../../../domain/entities/user_profile.dart';
 import '../../../presentation/providers/font_provider.dart';
 import '../../../presentation/providers/element_provider.dart';
 
-const double _kHeaderHeight = 72.0;
+const double _kHeaderHeight = 102.0;
 
 class FontListPanel extends ConsumerStatefulWidget {
   const FontListPanel({super.key, this.footer});
@@ -41,6 +42,16 @@ class _FontListPanelState extends ConsumerState<FontListPanel> {
       }
     }
 
+    if (font.source.isRemoteCatalog) {
+      if (!mounted) return;
+      setState(() => _loadingKey = key);
+      try {
+        await RemoteFonts.ensureKey(key);
+      } finally {
+        if (mounted) setState(() => _loadingKey = null);
+      }
+    }
+
     if (!mounted) return;
     final elState = ref.read(elementProvider);
     final type = elState.activeType;
@@ -62,7 +73,8 @@ class _FontListPanelState extends ConsumerState<FontListPanel> {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
     final activeFont = elState.active?.font;
-    final isClockType = elState.activeType == ElementType.hourClock ||
+    final isClockType =
+        elState.activeType == ElementType.hourClock ||
         elState.activeType == ElementType.minClock;
 
     return CustomScrollView(
@@ -152,86 +164,84 @@ class _FontListPanelState extends ConsumerState<FontListPanel> {
             ),
           ),
           data: (fonts) => SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (_, i) {
-                final font = fonts[i];
-                final key = font.storageKey;
-                final sel = activeFont == key;
-                final isHovered = _hoveredStorageKey == key;
-                final isLoading = _loadingKey == key;
+            delegate: SliverChildBuilderDelegate((_, i) {
+              final font = fonts[i];
+              final key = font.storageKey;
+              final sel = activeFont == key;
+              final isHovered = _hoveredStorageKey == key;
+              final isLoading = _loadingKey == key;
 
-                return MouseRegion(
-                  onEnter: (_) =>
-                      setState(() => _hoveredStorageKey = key),
-                  onExit: (_) =>
-                      setState(() => _hoveredStorageKey = null),
-                  cursor: SystemMouseCursors.click,
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 4),
-                    decoration: BoxDecoration(
+              return MouseRegion(
+                onEnter: (_) => setState(() => _hoveredStorageKey = key),
+                onExit: (_) => setState(() => _hoveredStorageKey = null),
+                cursor: SystemMouseCursors.click,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 4),
+                  decoration: BoxDecoration(
+                    color: sel
+                        ? colors.primary.withAlpha(30)
+                        : isHovered
+                        ? colors.primary.withAlpha(15)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(
                       color: sel
-                          ? colors.primary.withAlpha(30)
+                          ? colors.primary.withAlpha(80)
                           : isHovered
-                              ? colors.primary.withAlpha(15)
-                              : Colors.transparent,
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      border: Border.all(
-                        color: sel
-                            ? colors.primary.withAlpha(80)
-                            : isHovered
-                                ? colors.primary.withAlpha(40)
-                                : colors.border,
-                        width: 1.0,
-                      ),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      clipBehavior: Clip.antiAlias,
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      child: ListTile(
-                        dense: true,
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12),
-                        leading: sel
-                            ? Icon(Icons.check_rounded,
-                                size: 16, color: colors.primary)
-                            : null,
-                        trailing: isLoading
-                            ? SizedBox(
-                                width: 14,
-                                height: 14,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 1.5,
-                                  color: colors.primary,
-                                ),
-                              )
-                            : null,
-                        title: Text(
-                          font.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: font.previewStyle(
-                            fontSize: 20,
-                            color: sel ? colors.primary : scheme.onSurface,
-                            fontWeight:
-                                sel ? FontWeight.w700 : FontWeight.normal,
-                          ),
-                        ),
-                        subtitle: Text(
-                          font.name,
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                        onTap: () => _applyFont(font),
-                      ),
+                          ? colors.primary.withAlpha(40)
+                          : colors.border,
+                      width: 1.0,
                     ),
                   ),
-                );
-              },
-              childCount: fonts.length,
-            ),
+                  child: Material(
+                    color: Colors.transparent,
+                    clipBehavior: Clip.antiAlias,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                      ),
+                      leading: sel
+                          ? Icon(
+                              Icons.check_rounded,
+                              size: 16,
+                              color: colors.primary,
+                            )
+                          : null,
+                      trailing: isLoading
+                          ? SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 1.5,
+                                color: colors.primary,
+                              ),
+                            )
+                          : null,
+                      title: Text(
+                        font.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: font.previewStyle(
+                          fontSize: 20,
+                          color: sel ? colors.primary : scheme.onSurface,
+                          fontWeight: sel ? FontWeight.w700 : FontWeight.normal,
+                        ),
+                      ),
+                      subtitle: Text(
+                        font.name,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                      onTap: () => _applyFont(font),
+                    ),
+                  ),
+                ),
+              );
+            }, childCount: fonts.length),
           ),
         ),
 
@@ -279,13 +289,17 @@ class _FontHeaderDelegate extends SliverPersistentHeaderDelegate {
   static const double _linkRowHeight = 34.0;
 
   @override
-  double get minExtent => _kHeaderHeight + (showLinkToggle ? _linkRowHeight : 0);
+  double get minExtent =>
+      _kHeaderHeight + (showLinkToggle ? _linkRowHeight : 0);
   @override
   double get maxExtent => minExtent;
 
   @override
   Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return ColoredBox(
       color: colors.surface,
       child: Column(
@@ -313,7 +327,13 @@ class _FontHeaderDelegate extends SliverPersistentHeaderDelegate {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.link_rounded, size: 14, color: linkHourMinFont ? colors.primary : scheme.onSurfaceVariant),
+                      Icon(
+                        Icons.link_rounded,
+                        size: 14,
+                        color: linkHourMinFont
+                            ? colors.primary
+                            : scheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         'Link Hour & Min font',
@@ -325,7 +345,10 @@ class _FontHeaderDelegate extends SliverPersistentHeaderDelegate {
                       ),
                     ],
                   ),
-                  Switch.adaptive(value: linkHourMinFont, onChanged: (_) => onToggleLink()),
+                  Switch.adaptive(
+                    value: linkHourMinFont,
+                    onChanged: (_) => onToggleLink(),
+                  ),
                 ],
               ),
             ),
@@ -414,8 +437,7 @@ class _FontHeaderPreview extends StatelessWidget {
           if (activeFont != null) ...[
             const SizedBox(width: 6),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
               decoration: BoxDecoration(
                 color: scheme.secondaryContainer,
                 borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -451,37 +473,48 @@ class _FontSourceToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: FontSource.values.map((s) {
-        final selected = source == s;
-        final label = s == FontSource.api ? 'Custom' : 'Google Fonts';
-        return Padding(
-          padding: const EdgeInsets.only(right: 6),
-          child: GestureDetector(
-            onTap: () => onChanged(s),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: selected ? colors.primary : Colors.transparent,
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                border: Border.all(
-                  color: selected ? colors.primary : colors.border,
-                ),
-              ),
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                  color: selected ? Colors.white : scheme.onSurfaceVariant,
-                ),
-              ),
+    const rows = [
+      [FontSource.api, FontSource.google],
+      [FontSource.fontsource, FontSource.fontshare],
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final row in rows)
+          Padding(
+            padding: EdgeInsets.only(bottom: row == rows.last ? 0 : 6),
+            child: Row(children: row.map(_chip).toList()),
+          ),
+      ],
+    );
+  }
+
+  Widget _chip(FontSource s) {
+    final selected = source == s;
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: GestureDetector(
+        onTap: () => onChanged(s),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: selected ? colors.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            border: Border.all(
+              color: selected ? colors.primary : colors.border,
             ),
           ),
-        );
-      }).toList(),
+          child: Text(
+            s.label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+              color: selected ? Colors.white : scheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
