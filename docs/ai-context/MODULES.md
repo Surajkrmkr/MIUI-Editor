@@ -24,9 +24,11 @@ Core Shared
 ## Core Module: `/lib/core/`
 
 ### Purpose
+
 Global shared components used by all sub-apps.
 
 ### Structure
+
 ```
 core/
 ├── theme/
@@ -40,6 +42,7 @@ core/
 ```
 
 ### Key Exports
+
 - `AppColors.*` — All color tokens
 - `AppTheme.light()`, `AppTheme.dark()` — Theme definitions
 - `AppRadius.*` — Border radius constants
@@ -47,6 +50,7 @@ core/
 - `context.appColors` — Theme extension access
 
 ### No Modifications
+
 This directory should remain stable. Only add new design tokens here if introducing a new color/spacing/radius system-wide.
 
 ---
@@ -54,9 +58,11 @@ This directory should remain stable. Only add new design tokens here if introduc
 ## App Module 1: `/lib/theme_editor/`
 
 ### Purpose
+
 MIUI Theme Editor for creating and editing MIUI themes (lockscreens, icons, modules, MTZ files).
 
 ### Structure
+
 ```
 theme_editor/
 ├── core/
@@ -82,9 +88,11 @@ theme_editor/
 ```
 
 ### Entry Point
+
 `UserProfileScreen` → Launch from `lib/main.dart`
 
 ### Features
+
 - **Lockscreen Editor**: Edit lockscreen themes
 - **Icon Pack Manager**: Create and manage icon sets
 - **Module Theme Editor**: Customize theme modules
@@ -92,13 +100,16 @@ theme_editor/
 - **Font Picker**: Select and customize fonts
 
 ### State Management
+
 - Riverpod for UI state
 - Local state only (no remote API)
 
 ### Navigation Pattern
+
 Simple Navigator (no GoRouter)
 
 ### Key Files to Update When Adding Features
+
 - `presentation/features/` — Add new feature directory
 - `presentation/providers/service_providers.dart` — Register new providers
 
@@ -107,9 +118,11 @@ Simple Navigator (no GoRouter)
 ## App Module 2: `/lib/image_utility/`
 
 ### Purpose
+
 Image manipulation and wallpaper management (resize, crop, convert, export, download).
 
 ### Structure
+
 ```
 image_utility/
 ├── core/
@@ -163,9 +176,11 @@ image_utility/
 ```
 
 ### Entry Point
+
 GoRouter-based (multiple routes)
 
 ### Features
+
 - **Image Operations**: Resize, crop, convert, export
 - **Wallpaper Downloads**: From Unsplash, Pexels, Pixabay
 - **Image Generation**: Gemini, Firefly, Upscayl integration
@@ -173,14 +188,17 @@ GoRouter-based (multiple routes)
 - **Wallpaper Detail**: View, tag, organize wallpapers
 
 ### State Management
+
 - Riverpod FutureProviders for async operations
 - StreamProviders for download progress
 - StateNotifierProviders for local state
 
 ### Navigation Pattern
+
 **GoRouter** with named routes in `core/router/app_router.dart`
 
 ### API Integrations
+
 - Unsplash API
 - Pexels API
 - Pixabay API
@@ -189,6 +207,7 @@ GoRouter-based (multiple routes)
 - Upscayl (upscaling service)
 
 ### Key Files to Update When Adding Features
+
 - `features/[feature]/data/` — Add data sources
 - `features/[feature]/domain/` — Add entities and repositories
 - `features/[feature]/presentation/` — Add pages and providers
@@ -199,9 +218,11 @@ GoRouter-based (multiple routes)
 ## App Module 3: `/lib/theme_deployment/`
 
 ### Purpose
+
 Upload themes to designer portal and manage deployment automation.
 
 ### Structure
+
 ```
 theme_deployment/
 ├── domain/
@@ -213,20 +234,25 @@ theme_deployment/
 ```
 
 ### Entry Point
+
 `DeploymentPage`
 
 ### Features
+
 - **Theme Upload**: Upload MTZ files
 - **Designer Portal**: Access design management tools
 - **Automation**: Scripting and batch operations
 
 ### State Management
+
 - Basic Riverpod setup
 
 ### Navigation Pattern
+
 Simple Navigator (single page app)
 
 ### Key Integration Points
+
 - Theme upload endpoints
 - Designer portal API
 - Automation scripting
@@ -236,9 +262,11 @@ Simple Navigator (single page app)
 ## App Module 4: `/lib/wall_rio/`
 
 ### Purpose
+
 CMS for wallpaper management with Git version control and analytics.
 
 ### Structure
+
 ```
 wall_rio/
 ├── application/
@@ -256,34 +284,43 @@ wall_rio/
 ```
 
 ### Entry Point
+
 GoRouter-based routing
 
 ### Storage
+
 **Hive** local database for:
+
 - Saved file paths (`SavedFilePathImplAdapter`)
 - Local versions (`LocalVersionImplAdapter`)
 
 ### Features
+
 - **Wallpaper Management**: Organize, categorize wallpapers
 - **Git Integration**: Version control for wallpapers
 - **Analytics**: Tracking and insights
 - **Push Notifications**: Update notifications
 
 ### State Management
+
 - Riverpod for UI state
 - Hive for persistent data
 
 ### Navigation Pattern
+
 **GoRouter** with routes in `application/providers/router_provider.dart`
 
 ### Database Adapters
+
 Register in `main.dart`:
+
 ```dart
 Hive.registerAdapter(SavedFilePathImplAdapter());
 Hive.registerAdapter(LocalVersionImplAdapter());
 ```
 
 ### Key Files to Update When Adding Features
+
 - `domain/models/cms_models.dart` — Add Hive model classes
 - `presentation/screens/` — Add new screens
 - `application/providers/router_provider.dart` — Register routes
@@ -293,9 +330,11 @@ Hive.registerAdapter(LocalVersionImplAdapter());
 ## App Module 5: `/lib/buffy_walls/`
 
 ### Purpose
+
 Wallpaper CMS with categorization and GitLab push integration.
 
 ### Structure
+
 ```
 buffy_walls/
 ├── domain/
@@ -308,24 +347,30 @@ buffy_walls/
 ```
 
 ### Entry Point
+
 `BuffyDashboardScreen`
 
 ### Features
+
 - **Dashboard**: Overview of wallpapers
 - **Category Manager**: Organize by category
 - **Uploader**: Upload wallpapers with metadata
 - **GitLab Integration**: Push to GitLab repository
 
 ### State Management
+
 - Riverpod for state
 
 ### Navigation Pattern
+
 Simple Navigator
 
 ### External Integration
+
 - GitLab API
 
 ### Key Files to Update When Adding Features
+
 - `presentation/screens/` — Add new screens
 - `presentation/widgets/` — Add reusable components
 
@@ -334,9 +379,11 @@ Simple Navigator
 ## Reusable Widgets Module: `/lib/widgets/`
 
 ### Purpose
+
 Shared components used across multiple apps.
 
 ### Contents
+
 ```
 widgets/
 ├── glass_card.dart          # Glassmorphism container
@@ -345,7 +392,9 @@ widgets/
 ```
 
 ### Usage
+
 Import from any app and use directly:
+
 ```dart
 import 'package:miui_icon_generator/widgets/glass_card.dart';
 ```
@@ -354,13 +403,13 @@ import 'package:miui_icon_generator/widgets/glass_card.dart';
 
 ## Module Integration Matrix
 
-| Module | Uses Image Utility | Uses Theme Editor | Uses WallRio | Uses AI |
-|--------|-------------------|------------------|------------|---------|
-| Theme Editor | ❌ | — | ❌ | ❌ |
-| Image Utility | — | ❌ | ❌ | ✅ |
-| Themes Deployment | ❌ | ✅ | ❌ | ❌ |
-| WallRio CMS | ✅ | ❌ | — | ❌ |
-| BuffyWalls CMS | ✅ | ❌ | ❌ | ❌ |
+| Module            | Uses Image Utility | Uses Theme Editor | Uses WallRio | Uses AI |
+| ----------------- | ------------------ | ----------------- | ------------ | ------- |
+| Theme Editor      | ❌                 | —                 | ❌           | ❌      |
+| Image Utility     | —                  | ❌                | ❌           | ✅      |
+| Themes Deployment | ❌                 | ✅                | ❌           | ❌      |
+| WallRio CMS       | ✅                 | ❌                | —            | ❌      |
+| BuffyWalls CMS    | ✅                 | ❌                | ❌           | ❌      |
 
 **Note**: Each app is independent. Cross-app communication should go through shared core only.
 
@@ -371,6 +420,7 @@ import 'package:miui_icon_generator/widgets/glass_card.dart';
 ### Steps
 
 1. **Create module directory** in appropriate location:
+
    ```bash
    lib/[app_name]/
    # or
@@ -378,6 +428,7 @@ import 'package:miui_icon_generator/widgets/glass_card.dart';
    ```
 
 2. **Create layer structure**:
+
    ```bash
    [module]/
    ├── core/              # App-specific services
@@ -416,6 +467,7 @@ import 'package:miui_icon_generator/widgets/glass_card.dart';
 ## Maintenance: Module Health Check
 
 For each module, verify:
+
 - [ ] Clean layer separation (data/domain/presentation)
 - [ ] No cross-app imports (except core and widgets)
 - [ ] Uses Riverpod exclusively
