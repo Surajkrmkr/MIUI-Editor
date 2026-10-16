@@ -83,20 +83,13 @@ class ExportSystemModulesUseCase {
   /// wallpapers for the white controls drawn on top.
   static const _lightWallpaperDim = Color(0x99262626);
 
-  /// Removes outputs that would override the generated light theme: dark-mode
-  /// folders from older exports and Sample2's doodle window background.
+  /// Each module is regenerated from scratch; older exports left Sample2's
+  /// fixed art (doodle backgrounds, dark dialer, old status-bar icons) and
+  /// dark-mode folders here, which would override the generated theme.
   static void _removeStaleOutputs(String themePath) {
     for (final m in modules) {
-      final night = Directory(PathConstants.p('$themePath$m/nightmode'));
-      if (night.existsSync()) night.deleteSync(recursive: true);
-      for (final d in ['drawable-xxhdpi', 'drawable-nxhdpi']) {
-        final f = File(
-          PathConstants.p(
-            '$themePath$m/framework-miui-res/res/$d/window_bg_light.9.png',
-          ),
-        );
-        if (f.existsSync()) f.deleteSync();
-      }
+      final dir = Directory(PathConstants.p('$themePath$m'));
+      if (dir.existsSync()) dir.deleteSync(recursive: true);
     }
   }
 
@@ -184,6 +177,10 @@ class ExportSystemModulesUseCase {
             'shade_dim_color': _lightWallpaperDim,
             'notification_control_center_blur_dim_color': _lightWallpaperDim,
           },
+        }),
+        // Fills the letter-avatar circle (stock #f4ffffff); black hid it.
+        'com.android.contacts' => withColors(remapped, {
+          'word_photo_color': Color.lerp(Colors.white, pal.accent, .22)!,
         }),
         _ => remapped,
       };
@@ -474,6 +471,20 @@ class ExportSystemModulesUseCase {
       m,
       'miuix_appcompat_window_bg_light.9.png',
       wall,
+    );
+    // Stock section header ("A", "B"…) is an opaque white bar; keep it clear
+    // so the wallpaper shows, with the reference theme's metrics.
+    await w.nine(
+      m,
+      'list_view_item_group_header_bg_light.9.png',
+      144,
+      100,
+      const NinePatchSpec(
+        xDivs: [81, 83],
+        yDivs: [57, 58],
+        padding: [80, 60, 1, 1],
+      ),
+      (c, r) {},
     );
     await _bars(w, m, wall, {
       'actionbar_drawable_bg.9.png': (276, true),
