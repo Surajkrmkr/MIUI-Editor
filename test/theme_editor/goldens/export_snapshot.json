@@ -1,0 +1,1050 @@
+{
+  "clock_2x4!/manifest.xml": {
+    "kind": "xml",
+    "bytes": 1491,
+    "sha256": "b999a40ed7110aed605d89cfc8195b122ed6c75435f199edd88d90a1956b9e9c"
+  },
+  "com.android.contacts!/res/drawable-xxhdpi/actionbar_drawable_bg.9.png": {
+    "kind": "png",
+    "w": 1080,
+    "h": 276,
+    "mean": [
+      196,
+      197,
+      203,
+      255
+    ]
+  },
+  "com.android.contacts!/res/drawable-xxhdpi/bottom_navigation_background.9.png": {
+    "kind": "png",
+    "w": 1080,
+    "h": 248,
+    "mean": [
+      202,
+      199,
+      210,
+      255
+    ]
+  },
+  "com.android.contacts!/res/drawable-xxhdpi/dialer_btn_call_bg.png": {
+    "kind": "png",
+    "w": 180,
+    "h": 180,
+    "mean": [
+      62,
+      75,
+      198,
+      196
+    ]
+  },
+  "com.android.contacts!/res/drawable-xxhdpi/dialerpad_background.9.png": {
+    "kind": "png",
+    "w": 200,
+    "h": 220,
+    "mean": [
+      214,
+      212,
+      218,
+      239
+    ]
+  },
+  "com.android.contacts!/res/drawable-xxhdpi/list_view_item_group_header_bg_light.9.png": {
+    "kind": "png",
+    "w": 144,
+    "h": 100,
+    "mean": [
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "com.android.contacts!/res/drawable-xxhdpi/miuix_appcompat_search_mode_edit_text_bg_light.9.png": {
+    "kind": "png",
+    "w": 130,
+    "h": 120,
+    "mean": [
+      149,
+      149,
+      149,
+      53
+    ]
+  },
+  "com.android.contacts!/res/drawable-xxhdpi/miuix_appcompat_window_bg_light.9.png": {
+    "kind": "png",
+    "w": 1080,
+    "h": 2400,
+    "mean": [
+      199,
+      198,
+      207,
+      255
+    ]
+  },
+  "com.android.contacts!/theme_fallback.xml": {
+    "kind": "xml",
+    "bytes": 559,
+    "sha256": "67fc53448e02adb558de2e437d4390a482f16e354e227ea1c6314a7ac24ccf52"
+  },
+  "com.android.contacts!/theme_values.xml": {
+    "kind": "xml",
+    "bytes": 19753,
+    "sha256": "dd0c35b62c7a7aff4ef99209591cdb6aebc2cfdf642cbaee38a7b130fea4eeb2"
+  },
+  "com.android.mms!/res/drawable-xxhdpi/attachment_screen_bg.9.png": {
+    "kind": "png",
+    "w": 1080,
+    "h": 2400,
+    "mean": [
+      199,
+      198,
+      207,
+      255
+    ]
+  },
+  "com.android.mms!/res/drawable-xxhdpi/compose_message_editor_bg.9.png": {
+    "kind": "png",
+    "w": 200,
+    "h": 138,
+    "mean": [
+      148,
+      148,
+      148,
+      52
+    ]
+  },
+  "com.android.mms!/res/drawable-xxhdpi/conversation_actionbar_bg.9.png": {
+    "kind": "png",
+    "w": 1080,
+    "h": 276,
+    "mean": [
+      196,
+      197,
+      203,
+      255
+    ]
+  },
+  "com.android.mms!/res/drawable-xxhdpi/conversation_actionbar_bottom_bg.9.png": {
+    "kind": "png",
+    "w": 1080,
+    "h": 248,
+    "mean": [
+      202,
+      199,
+      210,
+      255
+    ]
+  },
+  "com.android.mms!/res/drawable-xxhdpi/conversation_bg.9.png": {
+    "kind": "png",
+    "w": 1080,
+    "h": 2400,
+    "mean": [
+      199,
+      198,
+      207,
+      255
+    ]
+  },
+  "com.android.mms!/res/drawable-xxhdpi/ic_conversation_empty.png": {
+    "kind": "png",
+    "w": 300,
+    "h": 192,
+    "mean": [
+      24,
+      50,
+      102,
+      55
+    ]
+  },
+  "com.android.mms!/res/drawable-xxhdpi/message_bubble_in_bg_n.9.png": {
+    "kind": "png",
+    "w": 168,
+    "h": 168,
+    "mean": [
+      218,
+      218,
+      218,
+      164
+    ]
+  },
+  "com.android.mms!/res/drawable-xxhdpi/message_bubble_out_bg_n.9.png": {
+    "kind": "png",
+    "w": 204,
+    "h": 168,
+    "mean": [
+      57,
+      68,
+      179,
+      177
+    ]
+  },
+  "com.android.mms!/res/drawable-xxhdpi/message_bubble_out_last_bg.9.png": {
+    "kind": "png",
+    "w": 204,
+    "h": 168,
+    "mean": [
+      57,
+      68,
+      179,
+      177
+    ]
+  },
+  "com.android.mms!/res/drawable-xxhdpi/message_edit_bottom_panel.9.png": {
+    "kind": "png",
+    "w": 1080,
+    "h": 238,
+    "mean": [
+      202,
+      199,
+      210,
+      255
+    ]
+  },
+  "com.android.mms!/res/drawable-xxhdpi/mi_message_bubble_out_bg_n.9.png": {
+    "kind": "png",
+    "w": 204,
+    "h": 168,
+    "mean": [
+      57,
+      68,
+      179,
+      177
+    ]
+  },
+  "com.android.mms!/res/drawable-xxhdpi/miuix_appcompat_action_button_main_new.png": {
+    "kind": "png",
+    "w": 180,
+    "h": 180,
+    "mean": [
+      7,
+      7,
+      7,
+      7
+    ]
+  },
+  "com.android.mms!/res/drawable-xxhdpi/miuix_appcompat_fab_empty_holder.png": {
+    "kind": "png",
+    "w": 190,
+    "h": 190,
+    "mean": [
+      62,
+      75,
+      198,
+      196
+    ]
+  },
+  "com.android.mms!/res/drawable-xxhdpi/miuix_appcompat_search_mode_edit_text_bg_light.9.png": {
+    "kind": "png",
+    "w": 130,
+    "h": 120,
+    "mean": [
+      149,
+      149,
+      149,
+      53
+    ]
+  },
+  "com.android.mms!/res/drawable-xxhdpi/miuix_appcompat_window_bg_light.9.png": {
+    "kind": "png",
+    "w": 1080,
+    "h": 2400,
+    "mean": [
+      199,
+      198,
+      207,
+      255
+    ]
+  },
+  "com.android.mms!/res/drawable-xxhdpi/search_bg.9.png": {
+    "kind": "png",
+    "w": 1080,
+    "h": 2400,
+    "mean": [
+      199,
+      198,
+      207,
+      255
+    ]
+  },
+  "com.android.mms!/res/drawable-xxhdpi/window_bg_verification_list.9.png": {
+    "kind": "png",
+    "w": 1080,
+    "h": 2400,
+    "mean": [
+      199,
+      198,
+      207,
+      255
+    ]
+  },
+  "com.android.mms!/theme_fallback.xml": {
+    "kind": "xml",
+    "bytes": 1304,
+    "sha256": "768decc9efe6f7a4cf6f72394aa3867d33377abd1108f28e5d84c029ddbd2472"
+  },
+  "com.android.mms!/theme_values.xml": {
+    "kind": "xml",
+    "bytes": 16578,
+    "sha256": "7015120ac9afa1623213bd19f82d810f5b397a11288c7f96230f5b437fac7161"
+  },
+  "com.android.settings!/res/drawable-xxhdpi/com_android_thememanager.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      48,
+      139,
+      179,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/healthy_use_device_icon.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      89,
+      38,
+      179,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_accessibility_generic.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      179,
+      27,
+      113,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_account_settings.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      29,
+      179,
+      143,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_alarms_ring.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      33,
+      57,
+      179,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_app_timer.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      34,
+      58,
+      179,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_battery_settings.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      36,
+      136,
+      179,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_bluetooth_settings.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      82,
+      26,
+      179,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_bugreport_settings.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      179,
+      50,
+      123,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_device_connection.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      179,
+      25,
+      112,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_display_settings.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      30,
+      55,
+      179,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_enhanced.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      39,
+      179,
+      146,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_hyper_ai.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      82,
+      27,
+      179,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_interconnection.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      37,
+      136,
+      179,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_minors_control.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      160,
+      33,
+      175,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_miui_home_settings.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      35,
+      179,
+      145,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_my_device.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      34,
+      58,
+      179,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_notification_center.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      35,
+      136,
+      179,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_other_advanced_settings.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      15,
+      130,
+      178,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_portable_wlan_hotspot_settings.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      161,
+      36,
+      175,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_privacy_protection.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      98,
+      51,
+      179,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_ringtone_notification.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      161,
+      41,
+      175,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_security_center_settings.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      41,
+      179,
+      146,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_security_settings_settings.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      34,
+      58,
+      179,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_settings_dualsim.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      19,
+      131,
+      178,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_settings_satellite.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      179,
+      43,
+      120,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_sound_settings.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      84,
+      30,
+      179,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_system_app_settings.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      162,
+      44,
+      175,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_telephone_ring.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      81,
+      25,
+      179,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_unlock_set_settings.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      179,
+      45,
+      121,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_user_guide.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      160,
+      34,
+      175,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_vip_service_settings.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      45,
+      179,
+      147,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_vpn.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      32,
+      179,
+      144,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/ic_wifi_settings.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      27,
+      52,
+      179,
+      174
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/miuix_appcompat_search_mode_edit_text_bg_light.9.png": {
+    "kind": "png",
+    "w": 130,
+    "h": 120,
+    "mean": [
+      149,
+      149,
+      149,
+      53
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/miuix_appcompat_settings_window_bg_light.9.png": {
+    "kind": "png",
+    "w": 1080,
+    "h": 2400,
+    "mean": [
+      199,
+      198,
+      207,
+      255
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/miuix_preference_card_group_background_light.9.png": {
+    "kind": "png",
+    "w": 247,
+    "h": 218,
+    "mean": [
+      238,
+      240,
+      243,
+      211
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/search_flexbox_bg.9.png": {
+    "kind": "png",
+    "w": 78,
+    "h": 78,
+    "mean": [
+      154,
+      154,
+      154,
+      58
+    ]
+  },
+  "com.android.settings!/res/drawable-xxhdpi/wallet_icon.png": {
+    "kind": "png",
+    "w": 84,
+    "h": 84,
+    "mean": [
+      162,
+      49,
+      175,
+      174
+    ]
+  },
+  "com.android.settings!/theme_fallback.xml": {
+    "kind": "xml",
+    "bytes": 1005,
+    "sha256": "72404f472ea7927a040f03590aa3987f1b7f13cc59cac645c7189e12e870cd78"
+  },
+  "com.android.settings!/theme_values.xml": {
+    "kind": "xml",
+    "bytes": 19643,
+    "sha256": "f2db9761e934f97c4a6731c41d695fa67224a6013c20fe9392cf1d4a154d6ce7"
+  },
+  "com.android.systemui!/res/drawable-xxhdpi/modal_dialog_bg.9.png": {
+    "kind": "png",
+    "w": 138,
+    "h": 138,
+    "mean": [
+      203,
+      205,
+      208,
+      205
+    ]
+  },
+  "com.android.systemui!/res/drawable-xxhdpi/notification_item_bg.9.png": {
+    "kind": "png",
+    "w": 138,
+    "h": 138,
+    "mean": [
+      203,
+      205,
+      209,
+      200
+    ]
+  },
+  "com.android.systemui!/theme_fallback.xml": {
+    "kind": "xml",
+    "bytes": 188,
+    "sha256": "c1829fad356a7cbb48a72ac0f27ee367dabb9c8ebc083f874ed25fc14a9442fb"
+  },
+  "com.android.systemui!/theme_values.xml": {
+    "kind": "xml",
+    "bytes": 5226,
+    "sha256": "4976b6563df6eaa762910e9cfd39db38546c24d69b207b96cc56bb24c2662c9b"
+  },
+  "description.xml": {
+    "kind": "xml",
+    "bytes": 476,
+    "sha256": "2d31902b151e5c3504603411e87ae2ad786cc959f9de41cab977958ab0a53d7b"
+  },
+  "icons!/res/drawable-xhdpi/com.android.contacts.png": {
+    "kind": "png",
+    "w": 180,
+    "h": 180,
+    "mean": [
+      70,
+      72,
+      124,
+      123
+    ]
+  },
+  "icons!/res/drawable-xhdpi/com.android.mms.png": {
+    "kind": "png",
+    "w": 180,
+    "h": 180,
+    "mean": [
+      73,
+      76,
+      124,
+      123
+    ]
+  },
+  "icons!/res/drawable-xhdpi/com.android.settings.png": {
+    "kind": "png",
+    "w": 180,
+    "h": 180,
+    "mean": [
+      71,
+      73,
+      124,
+      123
+    ]
+  },
+  "icons!/res/drawable-xhdpi/icon_border.png": {
+    "kind": "png",
+    "w": 180,
+    "h": 180,
+    "mean": [
+      17,
+      17,
+      17,
+      4
+    ]
+  },
+  "icons!/res/drawable-xhdpi/icon_folder.png": {
+    "kind": "png",
+    "w": 180,
+    "h": 180,
+    "mean": [
+      60,
+      63,
+      124,
+      123
+    ]
+  },
+  "icons!/res/drawable-xhdpi/icon_folder_light.png": {
+    "kind": "png",
+    "w": 180,
+    "h": 180,
+    "mean": [
+      60,
+      63,
+      124,
+      123
+    ]
+  },
+  "icons!/res/drawable-xhdpi/icon_mask.png": {
+    "kind": "png",
+    "w": 180,
+    "h": 180,
+    "mean": [
+      28,
+      29,
+      57,
+      57
+    ]
+  },
+  "icons!/res/drawable-xhdpi/icon_pattern.png": {
+    "kind": "png",
+    "w": 180,
+    "h": 180,
+    "mean": [
+      60,
+      63,
+      124,
+      123
+    ]
+  },
+  "icons!/res/drawable-xxhdpi/com.android.contacts.png": {
+    "kind": "png",
+    "w": 180,
+    "h": 180,
+    "mean": [
+      70,
+      72,
+      124,
+      123
+    ]
+  },
+  "icons!/res/drawable-xxhdpi/com.android.mms.png": {
+    "kind": "png",
+    "w": 180,
+    "h": 180,
+    "mean": [
+      73,
+      76,
+      124,
+      123
+    ]
+  },
+  "icons!/res/drawable-xxhdpi/com.android.settings.png": {
+    "kind": "png",
+    "w": 180,
+    "h": 180,
+    "mean": [
+      71,
+      73,
+      124,
+      123
+    ]
+  },
+  "icons!/res/drawable-xxhdpi/icon_border.png": {
+    "kind": "png",
+    "w": 180,
+    "h": 180,
+    "mean": [
+      17,
+      17,
+      17,
+      4
+    ]
+  },
+  "icons!/res/drawable-xxhdpi/icon_folder.png": {
+    "kind": "png",
+    "w": 180,
+    "h": 180,
+    "mean": [
+      60,
+      63,
+      124,
+      123
+    ]
+  },
+  "icons!/res/drawable-xxhdpi/icon_folder_light.png": {
+    "kind": "png",
+    "w": 180,
+    "h": 180,
+    "mean": [
+      60,
+      63,
+      124,
+      123
+    ]
+  },
+  "icons!/res/drawable-xxhdpi/icon_mask.png": {
+    "kind": "png",
+    "w": 180,
+    "h": 180,
+    "mean": [
+      28,
+      29,
+      57,
+      57
+    ]
+  },
+  "icons!/res/drawable-xxhdpi/icon_pattern.png": {
+    "kind": "png",
+    "w": 180,
+    "h": 180,
+    "mean": [
+      60,
+      63,
+      124,
+      123
+    ]
+  },
+  "icons!/transform_config.xml": {
+    "kind": "xml",
+    "bytes": 336,
+    "sha256": "3f0e1daf57ab368a43b574a975c10fbe619a42a921f37ee9c2891ce5aca189cf"
+  },
+  "miui.systemui.plugin!/res/drawable-xxhdpi/qs_background_disabled.png": {
+    "kind": "png",
+    "w": 188,
+    "h": 188,
+    "mean": [
+      187,
+      187,
+      187,
+      41
+    ]
+  },
+  "miui.systemui.plugin!/res/drawable-xxhdpi/qs_background_enabled.png": {
+    "kind": "png",
+    "w": 188,
+    "h": 188,
+    "mean": [
+      187,
+      187,
+      187,
+      169
+    ]
+  },
+  "miui.systemui.plugin!/res/drawable-xxhdpi/qs_background_restricted.png": {
+    "kind": "png",
+    "w": 188,
+    "h": 188,
+    "mean": [
+      186,
+      186,
+      186,
+      28
+    ]
+  },
+  "miui.systemui.plugin!/res/drawable-xxhdpi/qs_background_unavailable.png": {
+    "kind": "png",
+    "w": 188,
+    "h": 188,
+    "mean": [
+      186,
+      186,
+      186,
+      24
+    ]
+  },
+  "miui.systemui.plugin!/res/drawable-xxhdpi/qs_card_background_disabled.9.png": {
+    "kind": "png",
+    "w": 210,
+    "h": 210,
+    "mean": [
+      179,
+      179,
+      179,
+      40
+    ]
+  },
+  "miui.systemui.plugin!/res/drawable-xxhdpi/qs_card_background_enabled.9.png": {
+    "kind": "png",
+    "w": 210,
+    "h": 210,
+    "mean": [
+      179,
+      179,
+      179,
+      162
+    ]
+  },
+  "miui.systemui.plugin!/res/drawable-xxhdpi/qs_card_background_unavailable.9.png": {
+    "kind": "png",
+    "w": 210,
+    "h": 210,
+    "mean": [
+      178,
+      178,
+      178,
+      23
+    ]
+  },
+  "miui.systemui.plugin!/theme_fallback.xml": {
+    "kind": "xml",
+    "bytes": 1931,
+    "sha256": "2dcf13c2dd8e01401ba26b0962d82d4b4bc1b31838d9ba1e70d1f4ed4f1a5986"
+  },
+  "miui.systemui.plugin!/theme_values.xml": {
+    "kind": "xml",
+    "bytes": 5449,
+    "sha256": "328dc914d94c1ecff39e21bb6bdab17c1eeb063a89ff47df54eddd60083e4d42"
+  },
+  "plugin_config.xml": {
+    "kind": "xml",
+    "bytes": 169,
+    "sha256": "150a09053f7872a3490507b10787f13a616ab6d975ebf2af10dbd61e40c6db5c"
+  },
+  "wallpaper/default_lock_wallpaper.jpg": {
+    "kind": "bin",
+    "bytes": 645313,
+    "sha256": "5eea88e2124bb17cd2887475cc76ff62753b4439acd0ddbe66ac371beeedfd1d"
+  },
+  "wallpaper/default_wallpaper.jpg": {
+    "kind": "bin",
+    "bytes": 645313,
+    "sha256": "5eea88e2124bb17cd2887475cc76ff62753b4439acd0ddbe66ac371beeedfd1d"
+  }
+}

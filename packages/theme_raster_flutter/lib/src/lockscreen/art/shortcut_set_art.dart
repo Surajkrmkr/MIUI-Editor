@@ -1,9 +1,16 @@
 import 'dart:math';
 import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_constants.dart';
-import '../../../../domain/entities/element_widget.dart';
+import 'package:theme_core/theme_core.dart';
+import 'package:theme_core/lockscreen_layout.dart' as core;
+import 'package:theme_core/lockscreen_layout.dart' show ShortcutApp;
+import '../../adapters.dart';
+import '../lock_element.dart';
+import '../lock_element_spec_bridge.dart';
 import 'shortcut_glyphs.dart';
+
+export 'package:theme_core/lockscreen_layout.dart'
+    show ShortcutApp, supportsShortcutEdge;
 
 class _TileLook {
   const _TileLook({
@@ -42,250 +49,47 @@ class _TileLook {
 }
 
 /// App that a shortcut tile opens; [iconType] supplies package/class for MAML.
-enum ShortcutApp {
-  messages(
-    'Messages',
-    Icons.chat_bubble_rounded,
-    ElementType.mmsIcon,
-    Color(0xFF34C759),
-  ),
-  camera(
-    'Camera',
-    Icons.camera_alt_rounded,
-    ElementType.cameraIcon,
-    Color(0xFF4A8BF5),
-  ),
-  music(
-    'Music',
-    Icons.music_note_rounded,
-    ElementType.musicIcon,
-    Color(0xFFFC3C6E),
-  ),
-  browser(
-    'Browser',
-    Icons.explore_rounded,
-    ElementType.browserIcon,
-    Color(0xFF3D7BF7),
-  ),
-  whatsapp(
-    'WhatsApp',
-    Icons.call_rounded,
-    ElementType.whatsAppIcon,
-    Color(0xFF25D366),
-  ),
-  phone('Phone', Icons.call_rounded, ElementType.dialerIcon, Color(0xFF34C759)),
-  settings(
-    'Settings',
-    Icons.settings_rounded,
-    ElementType.settingIcon,
-    Color(0xFF8E8E93),
-  ),
-  flashlight(
-    'Flashlight',
-    Icons.flashlight_on_rounded,
-    null,
-    Color(0xFFFFC107),
-  ),
-  gallery(
-    'Gallery',
-    Icons.photo_rounded,
-    ElementType.galleryIcon,
-    Color(0xFFFF9500),
-  ),
-  contacts(
-    'Contacts',
-    Icons.contacts_rounded,
-    ElementType.contactIcon,
-    Color(0xFF5AC8FA),
-  ),
-  calendar(
-    'Calendar',
-    Icons.calendar_month_rounded,
-    ElementType.calendarIcon,
-    Color(0xFFFF3B30),
-  ),
-  clock(
-    'Clock',
-    Icons.schedule_rounded,
-    ElementType.clockIcon,
-    Color(0xFF1C1C1E),
-  ),
-  notes(
-    'Notes',
-    Icons.sticky_note_2_rounded,
-    ElementType.notesIcon,
-    Color(0xFFFFCC00),
-  ),
-  calculator(
-    'Calculator',
-    Icons.calculate_rounded,
-    ElementType.calculatorIcon,
-    Color(0xFFFF9500),
-  ),
-  weather(
-    'Weather',
-    Icons.wb_sunny_rounded,
-    ElementType.weatherIcon,
-    Color(0xFF5AC8FA),
-  ),
-  telegram(
-    'Telegram',
-    Icons.send_rounded,
-    ElementType.telegramIcon,
-    Color(0xFF2AABEE),
-  ),
-  instagram(
-    'Instagram',
-    Icons.photo_camera_outlined,
-    ElementType.instagramIcon,
-    Color(0xFFE1306C),
-  ),
-  spotify(
-    'Spotify',
-    Icons.graphic_eq_rounded,
-    ElementType.spotifyIcon,
-    Color(0xFF1DB954),
-  ),
-  theme(
-    'Themes',
-    Icons.palette_rounded,
-    ElementType.themeIcon,
-    Color(0xFFAF52DE),
-  ),
-  facebook(
-    'Facebook',
-    Icons.facebook_rounded,
-    null,
-    Color(0xFF1877F2),
-    'com.facebook.katana',
-    'com.facebook.katana.LoginActivity',
-  ),
-  video(
-    'Video',
-    Icons.play_circle_rounded,
-    ElementType.videoIcon,
-    Color(0xFFFF5A5F),
-  );
+/// Launcher glyph and brand color per app; the enum itself lives in theme_core.
+extension ShortcutAppX on ShortcutApp {
+  IconData get icon => switch (this) {
+    ShortcutApp.messages => Icons.chat_bubble_rounded,
+    ShortcutApp.camera => Icons.camera_alt_rounded,
+    ShortcutApp.music => Icons.music_note_rounded,
+    ShortcutApp.browser => Icons.explore_rounded,
+    ShortcutApp.whatsapp => Icons.call_rounded,
+    ShortcutApp.phone => Icons.call_rounded,
+    ShortcutApp.settings => Icons.settings_rounded,
+    ShortcutApp.flashlight => Icons.flashlight_on_rounded,
+    ShortcutApp.gallery => Icons.photo_rounded,
+    ShortcutApp.contacts => Icons.contacts_rounded,
+    ShortcutApp.calendar => Icons.calendar_month_rounded,
+    ShortcutApp.clock => Icons.schedule_rounded,
+    ShortcutApp.notes => Icons.sticky_note_2_rounded,
+    ShortcutApp.calculator => Icons.calculate_rounded,
+    ShortcutApp.weather => Icons.wb_sunny_rounded,
+    ShortcutApp.telegram => Icons.send_rounded,
+    ShortcutApp.instagram => Icons.photo_camera_outlined,
+    ShortcutApp.spotify => Icons.graphic_eq_rounded,
+    ShortcutApp.theme => Icons.palette_rounded,
+    ShortcutApp.facebook => Icons.facebook_rounded,
+    ShortcutApp.video => Icons.play_circle_rounded,
+  };
 
-  const ShortcutApp(
-    this.label,
-    this.icon,
-    this.iconType,
-    this.brand, [
-    this.package,
-    this.activity,
-  ]);
-  final String label;
-  final IconData icon;
-  final ElementType? iconType;
-  final Color brand;
-
-  /// Launch target for apps without a single-icon element.
-  final String? package, activity;
-
-  static List<ShortcutApp> parse(String keys) => [
-    for (final key in keys.split(','))
-      if (ShortcutApp.values.where((a) => a.name == key.trim()).firstOrNull
-          case final app?)
-        app,
-  ];
+  Color get brand => brandColor.toColor();
 }
 
-bool _isDock(ShortcutStyle s) =>
-    s == ShortcutStyle.glossDock ||
-    s == ShortcutStyle.darkDock ||
-    s == ShortcutStyle.pastelDock ||
-    s == ShortcutStyle.neonCapsule ||
-    s == ShortcutStyle.candyCapsule;
+ShortcutEdge _edgeOf(LockElement el) => core.shortcutEdgeOf(el.toSpec());
 
-bool _isCapsule(ShortcutStyle s) =>
-    s == ShortcutStyle.neonCapsule || s == ShortcutStyle.candyCapsule;
-
-/// Dock styles whose panel can sit on the left, right or away from the edge.
-bool supportsShortcutEdge(ShortcutStyle s) => _isDock(s) && !_isCapsule(s);
-
-ShortcutEdge _edgeOf(LockElement el) => supportsShortcutEdge(el.shortcutStyle)
-    ? el.shortcutEdge
-    : ShortcutEdge.floating;
-
-/// Geometry in theme pixels (before `scale`), shared by preview and export.
+/// Geometry in theme pixels (before `scale`), shared by preview and export;
+/// the math lives in theme_core, this adds Flutter types for the painters.
 class ShortcutSetLayout {
-  const ShortcutSetLayout._(this.size, this.tiles, this.panel);
+  ShortcutSetLayout.of(LockElement el)
+    : this._(core.ShortcutSetLayout.of(el.toSpec()));
 
-  factory ShortcutSetLayout.of(LockElement el) {
-    final n = ShortcutApp.parse(el.shortcutApps).length;
-    final w = el.width;
-    switch (el.shortcutStyle) {
-      case ShortcutStyle.socialRow:
-      case ShortcutStyle.softRow:
-      case ShortcutStyle.glossOrbs:
-        final tile = w / (n + max(0, n - 1) * .18 + .5);
-        final pad = tile * .25;
-        final h = tile + pad * 2;
-        return ShortcutSetLayout._(Size(w, h), [
-          for (var i = 0; i < n; i++)
-            Rect.fromLTWH(pad + i * tile * 1.18, pad, tile, tile),
-        ], Offset.zero & Size(w, h));
-      case ShortcutStyle.hexGrid:
-        final gap = w * .045;
-        final tile = (w - gap * 1.5) / 2.5;
-        final rows = (n + 1) ~/ 2;
-        return ShortcutSetLayout._(
-          Size(w, max(1, tile + max(0, rows - 1) * tile * .9)),
-          [
-            for (var i = 0; i < n; i++)
-              Rect.fromLTWH(
-                (i % 2) * (tile + gap) +
-                    ((i ~/ 2).isOdd ? (tile + gap) / 2 : 0),
-                (i ~/ 2) * tile * .9,
-                tile,
-                tile,
-              ),
-          ],
-          null,
-        );
-      default:
-    }
-    if (el.shortcutStyle == ShortcutStyle.socialCards) {
-      final h = w * .4;
-      final gap = w * .07;
-      return ShortcutSetLayout._(Size(w, max(1, n * h + max(0, n - 1) * gap)), [
-        for (var i = 0; i < n; i++) Rect.fromLTWH(0, i * (h + gap), w, h),
-      ], null);
-    }
-    if (_isDock(el.shortcutStyle)) {
-      final neon = _isCapsule(el.shortcutStyle);
-      final tile = w * (neon ? .62 : .64);
-      final gap = tile * (neon ? .3 : .12);
-      final top = tile * (neon ? .6 : .55);
-      final h = top * 2 + n * tile + max(0, n - 1) * gap;
-      final x = switch (_edgeOf(el)) {
-        ShortcutEdge.right => w * .13,
-        ShortcutEdge.left => w - w * .13 - tile,
-        ShortcutEdge.floating => (w - tile) / 2,
-      };
-      return ShortcutSetLayout._(Size(w, h), [
-        for (var i = 0; i < n; i++)
-          Rect.fromLTWH(x, top + i * (tile + gap), tile, tile),
-      ], Offset.zero & Size(w, h));
-    }
-    final gap = w * .07;
-    final tile = (w - gap) / 2;
-    final rows = (n + 1) ~/ 2;
-    return ShortcutSetLayout._(
-      Size(w, max(1, rows * tile + max(0, rows - 1) * gap)),
-      [
-        for (var i = 0; i < n; i++)
-          Rect.fromLTWH(
-            (i % 2) * (tile + gap),
-            (i ~/ 2) * (tile + gap),
-            tile,
-            tile,
-          ),
-      ],
-      null,
-    );
-  }
+  ShortcutSetLayout._(core.ShortcutSetLayout c)
+    : size = c.size.toSize(),
+      tiles = [for (final t in c.tiles) t.toRect()],
+      panel = c.panel?.toRect();
 
   final Size size;
   final List<Rect> tiles;
@@ -1410,7 +1214,7 @@ class ShortcutSetPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const k = 1 / AppConstants.screenRatio;
+    const k = 1 / lockscreenScreenRatio;
     final l = ShortcutSetLayout.of(element);
     return SizedBox(
       width: l.size.width * k,

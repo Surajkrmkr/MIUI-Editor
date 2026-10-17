@@ -3,8 +3,10 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/utils/wallpaper_palette.dart';
-import '../../../../domain/entities/control_center_template.dart';
+import 'package:theme_core/theme_core.dart'
+    show CcTileShape, ControlCenterTemplate;
+
+import 'wallpaper_palette.dart';
 
 /// Tile states the control center ships drawables for.
 enum TileState { enabled, disabled, restricted, unavailable }

@@ -5,16 +5,14 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:path/path.dart' as path;
 
-import '../../core/constants/path_constants.dart';
-import '../../core/errors/failures.dart';
-import '../../core/utils/nine_patch_png.dart';
-import '../../core/utils/wallpaper_palette.dart';
-import '../../presentation/features/icon_editor/utils/control_center_painter.dart';
-import '../../presentation/features/icon_editor/utils/icon_shape_utils.dart';
-import '../../presentation/features/icon_editor/utils/icon_visual_utils.dart';
-import '../../presentation/providers/icon_editor_provider.dart';
-import '../entities/icon_effect.dart';
+import 'package:theme_core/theme_core.dart';
+import '../adapters.dart';
+import '../icons/icon_shape_utils.dart';
+import '../icons/icon_visual_utils.dart';
+import 'control_center_painter.dart';
+import 'wallpaper_palette.dart';
 
 /// Generates HyperOS 3 control center (`miui.systemui.plugin`), notification
 /// shade (`com.android.systemui`), dialer (`com.android.contacts`),
@@ -24,26 +22,18 @@ import '../entities/icon_effect.dart';
 /// Value templates live in `assets/modules/hyperos3/<module>/`; their
 /// reference colors are re-mapped to the theme palette. Every drawable is
 /// drawn from the theme (shape, radius, effect, texture, gradient, accent).
-class ExportSystemModulesUseCase {
-  const ExportSystemModulesUseCase();
+class SystemModulesRenderer {
+  const SystemModulesRenderer();
 
-  static const List<String> modules = [
-    'miui.systemui.plugin',
-    'com.android.systemui',
-    'com.android.contacts',
-    'com.android.mms',
-    'com.android.settings',
-  ];
-
-  static const _drawableDir = 'res/drawable-xxhdpi/';
+  static const List<String> modules = ThemeModules.system;
 
   /// [style] supplies shape, radius, effect, texture and gradient;
   /// [iconFolder] is the active icon pack (used for empty-state art).
-  Future<Failure?> call({
+  Future<Failure?> render({
     required Color accent,
-    required String themePath,
+    required ThemeLayout layout,
     required String wallpaperSourcePath,
-    IconEditorState style = const IconEditorState(),
+    IconStyle style = const IconStyle(),
     String iconFolder = 'u1',
   }) async {
     try {
@@ -55,9 +45,9 @@ class ExportSystemModulesUseCase {
       final palette = await wallpaperPalette(wallpaperSourcePath);
       final cc = CcStyle(template: style.ccTemplate, palette: palette);
       final wall = await _WallpaperBackground.load(wallpaperSourcePath);
-      _removeStaleOutputs(themePath);
+      _removeStaleOutputs(layout);
       await _writeModules(
-        themePath,
+        layout,
         wall,
         accent,
         style,
@@ -65,7 +55,7 @@ class ExportSystemModulesUseCase {
         iconFolder,
         templates,
       );
-      final missing = missingOutputs(themePath);
+      final missing = missingOutputs(layout);
       if (missing.isNotEmpty) {
         return ExportFailure(
           'System modules incomplete, missing: ${missing.take(5).join(', ')}',
@@ -86,9 +76,9 @@ class ExportSystemModulesUseCase {
   /// Each module is regenerated from scratch; older exports left Sample2's
   /// fixed art (doodle backgrounds, dark dialer, old status-bar icons) and
   /// dark-mode folders here, which would override the generated theme.
-  static void _removeStaleOutputs(String themePath) {
+  static void _removeStaleOutputs(ThemeLayout layout) {
     for (final m in modules) {
-      final dir = Directory(PathConstants.p('$themePath$m'));
+      final dir = Directory(layout.module(m));
       if (dir.existsSync()) dir.deleteSync(recursive: true);
     }
   }
@@ -116,34 +106,16 @@ class ExportSystemModulesUseCase {
     }
   }
 
-  /// Key generated files that must exist after a successful run (day and
-  /// night). Used to reject half-written themes before packing an MTZ.
-  static List<String> missingOutputs(String themePath) {
-    const required = {
-      'miui.systemui.plugin': 'qs_background_enabled.png',
-      'com.android.systemui': 'notification_item_bg.9.png',
-      'com.android.mms': 'miuix_appcompat_action_button_main_new.png',
-      'com.android.settings': 'ic_wifi_settings.png',
-    };
-    return [
-      for (final m in modules) ...[
-        if (!File(PathConstants.p('$themePath$m/theme_values.xml'))
-            .existsSync())
-          '$m/theme_values.xml',
-        if (required[m] case final f?
-            when !File(PathConstants.p(
-              '$themePath$m/$_drawableDir$f',
-            )).existsSync())
-          '$m/$_drawableDir$f',
-      ],
-    ];
-  }
+  /// Key generated files that must exist after a successful run; used to
+  /// reject half-written themes before packing an MTZ.
+  static List<String> missingOutputs(ThemeLayout layout) =>
+      ThemeModules.missingOutputs(layout);
 
   Future<void> _writeModules(
-    String themePath,
+    ThemeLayout layout,
     _WallpaperBackground wall,
     Color accent,
-    IconEditorState style,
+    IconStyle style,
     CcStyle cc,
     String iconFolder,
     Map<String, String> templates,
@@ -154,10 +126,8 @@ class ExportSystemModulesUseCase {
     final look = SurfaceStyle.fromEditor(style, pal);
 
     for (final m in modules) {
-      final dir = PathConstants.p('$themePath$m/');
-      await Directory(
-        PathConstants.p('$dir$_drawableDir'),
-      ).create(recursive: true);
+      final dir = layout.module(m);
+      await Directory(layout.moduleDrawables(m)).create(recursive: true);
       final values = templates['assets/modules/hyperos3/$m/theme_values.xml']!;
       final remapped = remapValues(
         values,
@@ -184,15 +154,13 @@ class ExportSystemModulesUseCase {
         }),
         _ => remapped,
       };
-      await File(
-        PathConstants.p('${dir}theme_values.xml'),
-      ).writeAsString(themed);
-      await File(PathConstants.p('${dir}theme_fallback.xml')).writeAsString(
+      await File(path.join(dir, 'theme_values.xml')).writeAsString(themed);
+      await File(path.join(dir, 'theme_fallback.xml')).writeAsString(
         templates['assets/modules/hyperos3/$m/theme_fallback.xml']!,
       );
     }
 
-    final w = _Writer(themePath);
+    final w = _Writer(layout);
     await _controlCenter(w, cc);
     await _notifications(w, pal, look);
     await _messaging(w, pal, look, wall, iconFolder);
@@ -308,13 +276,14 @@ class ExportSystemModulesUseCase {
   }
 
   /// Replaces the values of the named colors (other entries untouched).
-  @visibleForTesting
   static String withColors(String xml, Map<String, Color> colors) {
     var out = xml;
     final missing = StringBuffer();
     for (final MapEntry(key: name, value: c) in colors.entries) {
       final hex = c.toARGB32().toRadixString(16).padLeft(8, '0');
-      final re = RegExp('(<color name="$name"\\s*>)#[0-9a-fA-F]{6,8}(</color>)');
+      final re = RegExp(
+        '(<color name="$name"\\s*>)#[0-9a-fA-F]{6,8}(</color>)',
+      );
       if (re.hasMatch(out)) {
         out = out.replaceAllMapped(re, (mm) => '${mm[1]}#$hex${mm[2]}');
       } else {
@@ -531,7 +500,7 @@ class ExportSystemModulesUseCase {
     SystemPalette p,
     SurfaceStyle look,
     _WallpaperBackground wall,
-    IconEditorState style,
+    IconStyle style,
   ) async {
     const m = 'com.android.settings';
     await _windowBackground(
@@ -595,7 +564,7 @@ class ExportSystemModulesUseCase {
   void _settingsIcon(
     Canvas c,
     Rect r,
-    IconEditorState style,
+    IconStyle style,
     SystemPalette p,
     IconData glyph,
     int index,
@@ -611,12 +580,11 @@ class ExportSystemModulesUseCase {
           .toColor();
     }
 
+    final bg = style.bgColor.toColor(), bg2 = style.bgColor2.toColor();
     final hue =
-        HSLColor.fromColor(style.bgColor).hue +
-        shifts[index % shifts.length] +
-        360;
-    final from = legible(style.bgColor, hue);
-    final to = legible(style.bgColor2, hue + 18);
+        HSLColor.fromColor(bg).hue + shifts[index % shifts.length] + 360;
+    final from = legible(bg, hue);
+    final to = legible(bg2, hue + 18);
     final path = IconShapeUtils.path(
       style.shape,
       r.deflate(1),
@@ -654,7 +622,7 @@ class ExportSystemModulesUseCase {
           fontFamily: glyph.fontFamily,
           package: glyph.fontPackage,
           fontSize: r.width * .56,
-          color: style.iconColor,
+          color: style.iconColor.toColor(),
         ),
       ),
       textDirection: TextDirection.ltr,
@@ -844,7 +812,7 @@ class SurfaceStyle {
     this.dark,
   );
 
-  factory SurfaceStyle.fromEditor(IconEditorState s, SystemPalette p) {
+  factory SurfaceStyle.fromEditor(IconStyle s, SystemPalette p) {
     final kind = switch (s.effect) {
       IconEffect.liquidGlass ||
       IconEffect.glass ||
@@ -1030,10 +998,7 @@ class _WallpaperBackground {
       dst,
       Paint()..filterQuality = FilterQuality.high,
     );
-    c.drawRect(
-      dst,
-      Paint()..color = Colors.white.withValues(alpha: veil),
-    );
+    c.drawRect(dst, Paint()..color = Colors.white.withValues(alpha: veil));
     final image = await rec.endRecording().toImage(_w, _h);
     src.dispose();
 
@@ -1093,8 +1058,8 @@ class _WallpaperBackground {
 }
 
 class _Writer {
-  _Writer(this.themePath);
-  final String themePath;
+  _Writer(this.layout);
+  final ThemeLayout layout;
 
   Future<Uint8List> _render(
     int w,
@@ -1111,8 +1076,9 @@ class _Writer {
   }
 
   Future<void> _save(String module, String name, Uint8List bytes) async {
-    final dir = '$themePath$module/${ExportSystemModulesUseCase._drawableDir}';
-    await File(PathConstants.p('$dir$name')).writeAsBytes(bytes);
+    await File(
+      path.join(layout.moduleDrawables(module), name),
+    ).writeAsBytes(bytes);
   }
 
   Future<void> png(

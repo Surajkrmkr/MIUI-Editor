@@ -2345,13 +2345,11 @@ class _SubCard extends StatelessWidget {
     required this.title,
     required this.icon,
     required this.children,
-    this.trailing,
   });
 
   final String title;
   final IconData icon;
   final List<Widget> children;
-  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -2391,7 +2389,6 @@ class _SubCard extends StatelessWidget {
                   ),
                 ),
               ),
-              if (trailing != null) trailing!,
             ],
           ),
           const SizedBox(height: 12),

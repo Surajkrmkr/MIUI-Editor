@@ -27,7 +27,6 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
   Widget build(BuildContext context) {
     final cmsState = ref.watch(buffyCmsProvider);
     final settings = ref.watch(buffySettingsProvider);
-    final colors = context.appColors;
 
     return Scaffold(
       appBar: AppBar(

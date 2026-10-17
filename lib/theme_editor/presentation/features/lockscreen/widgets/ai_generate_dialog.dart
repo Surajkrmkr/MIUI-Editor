@@ -125,15 +125,18 @@ class _InputPhase extends StatelessWidget {
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.auto_awesome_rounded,
-                      color: Colors.white, size: 18),
+                  child: const Icon(
+                    Icons.auto_awesome_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Text(
                   'AI Lockscreen Generator',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),
@@ -180,7 +183,9 @@ class _InputPhase extends StatelessWidget {
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 6),
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: selected
                               ? scheme.primary
@@ -208,22 +213,29 @@ class _InputPhase extends StatelessWidget {
             if (error != null) ...[
               const SizedBox(height: 10),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: scheme.errorContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.error_outline,
-                        size: 14, color: scheme.onErrorContainer),
+                    Icon(
+                      Icons.error_outline,
+                      size: 14,
+                      color: scheme.onErrorContainer,
+                    ),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         error!,
                         style: TextStyle(
-                            fontSize: 11, color: scheme.onErrorContainer),
+                          fontSize: 11,
+                          color: scheme.onErrorContainer,
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -239,10 +251,7 @@ class _InputPhase extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
-                  onPressed: onCancel,
-                  child: const Text('Cancel'),
-                ),
+                TextButton(onPressed: onCancel, child: const Text('Cancel')),
                 const SizedBox(width: 8),
                 FilledButton.icon(
                   icon: const Icon(Icons.auto_awesome_rounded, size: 14),
@@ -285,17 +294,14 @@ class _LoadingPhase extends StatelessWidget {
             const SizedBox(height: 20),
             Text(
               'Generating $count layout${count > 1 ? 's' : ''}…',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 6),
             Text(
               'AI is designing your lockscreen',
-              style: TextStyle(
-                fontSize: 12,
-                color: scheme.onSurfaceVariant,
-              ),
+              style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
             ),
           ],
         ),
@@ -344,8 +350,11 @@ class _VariantsPhase extends StatelessWidget {
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.auto_awesome_rounded,
-                      color: Colors.white, size: 18),
+                  child: const Icon(
+                    Icons.auto_awesome_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Column(
@@ -353,10 +362,9 @@ class _VariantsPhase extends StatelessWidget {
                   children: [
                     Text(
                       '${variants.length} Layout${variants.length > 1 ? 's' : ''} Generated',
-                      style:
-                          Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     Text(
                       'Tap a layout to apply it to your canvas',
@@ -382,7 +390,8 @@ class _VariantsPhase extends StatelessWidget {
                   final variant = entry.value;
                   return Padding(
                     padding: EdgeInsets.only(
-                        right: i < variants.length - 1 ? 16 : 0),
+                      right: i < variants.length - 1 ? 16 : 0,
+                    ),
                     child: _VariantCard(
                       index: i + 1,
                       elements: variant,
@@ -407,8 +416,10 @@ class _VariantsPhase extends StatelessWidget {
                 const SizedBox(width: 8),
                 TextButton(
                   onPressed: onCancel,
-                  child: Text('Cancel',
-                      style: TextStyle(color: scheme.onSurfaceVariant)),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: scheme.onSurfaceVariant),
+                  ),
                 ),
               ],
             ),
@@ -492,7 +503,7 @@ class _VariantCardState extends State<_VariantCard> {
                             color: scheme.primary.withAlpha(40),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
-                          )
+                          ),
                         ]
                       : null,
                 ),
@@ -510,12 +521,17 @@ class _VariantCardState extends State<_VariantCard> {
                   label: Text('Use #${widget.index}'),
                   style: FilledButton.styleFrom(
                     textStyle: const TextStyle(
-                        fontSize: 11, fontWeight: FontWeight.w700),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     minimumSize: const Size(_displayW, 32),
-                    backgroundColor:
-                        _hovering ? scheme.primary : scheme.primaryContainer,
+                    backgroundColor: _hovering
+                        ? scheme.primary
+                        : scheme.primaryContainer,
                     foregroundColor: _hovering
                         ? scheme.onPrimary
                         : scheme.onPrimaryContainer,

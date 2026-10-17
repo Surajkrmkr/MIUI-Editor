@@ -166,9 +166,9 @@ class _BatchAddDialogState extends ConsumerState<BatchAddDialog> {
   }
 
   double _colorDistance(Color c1, Color c2) {
-    return (c1.red - c2.red).abs() + 
-           (c1.green - c2.green).abs() + 
-           (c1.blue - c2.blue).abs().toDouble();
+    // 255 times the channel gaps, i.e. the old sum of 0-255 differences.
+    return 255 *
+        ((c1.r - c2.r).abs() + (c1.g - c2.g).abs() + (c1.b - c2.b).abs());
   }
 
   void _autofillItemUrls(_BatchItem item) {

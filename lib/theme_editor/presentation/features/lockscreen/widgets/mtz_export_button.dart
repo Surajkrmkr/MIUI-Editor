@@ -32,8 +32,9 @@ class MtzExportButton extends ConsumerWidget {
   }
 
   Future<void> _export(BuildContext context, WidgetRef ref) async {
-    final (path, failure) =
-        await ref.read(lockscreenProvider.notifier).exportMtz(context);
+    final (path, failure) = await ref
+        .read(lockscreenProvider.notifier)
+        .exportMtz(context);
 
     if (!context.mounted) return;
 
@@ -45,9 +46,9 @@ class MtzExportButton extends ConsumerWidget {
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Exported: $path ✅')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Exported: $path ✅')));
     }
   }
 }

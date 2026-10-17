@@ -1,9 +1,12 @@
+import 'package:theme_core/theme_core.dart'
+    show lockscreenScreenRatio, lockscreenViewHeight, lockscreenViewWidth;
+
 abstract final class AppConstants {
   static const String appName = 'MIUI Editor';
 
-  static const double screenHeight = 600.0;
-  static const double screenWidth = 276.92;
-  static const double screenRatio = 2340 / 600;
+  static const double screenHeight = lockscreenViewHeight;
+  static const double screenWidth = lockscreenViewWidth;
+  static const double screenRatio = lockscreenScreenRatio;
 
   static const double winWidth = 1400;
   static const double winHeight = 750;

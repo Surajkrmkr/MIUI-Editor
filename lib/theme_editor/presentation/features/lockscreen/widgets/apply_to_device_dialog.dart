@@ -2,7 +2,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../core/theme/app_radius.dart';
 import '../../../../../core/theme/app_spacing.dart';
 import '../../../../core/services/adb/adb_locator.dart';
 import '../../../../core/services/adb/adb_models.dart';
@@ -815,7 +814,6 @@ class _StepRow extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final isDone = status == StepStatus.done;
     final isRunning = status == StepStatus.running;
-    final isFailed = status == StepStatus.failed;
 
     final Widget icon = switch (status) {
       StepStatus.pending => Icon(

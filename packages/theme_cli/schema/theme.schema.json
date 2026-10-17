@@ -1,0 +1,836 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MIUI/HyperOS theme spec",
+  "description": "Everything needed to build one HyperOS 3 theme (.mtz). Relative paths resolve against the folder holding this file.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Lets editors find this schema; ignored by the tool."
+    },
+    "specVersion": {
+      "const": 1
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Theme name, shown on the phone."
+        },
+        "designer": {
+          "type": "string"
+        },
+        "authorTag": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "uiVersion": {
+          "type": "integer",
+          "description": "Target is 17."
+        },
+        "profile": {
+          "type": "string",
+          "description": "Editor profile; picks default icon pack."
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "workspace": {
+      "type": "object",
+      "description": "Where the desktop editor keeps this theme.",
+      "properties": {
+        "week": {
+          "type": "string"
+        },
+        "folder": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "wallpaper": {
+      "type": "object",
+      "properties": {
+        "home": {
+          "type": "string",
+          "description": "Image file path."
+        },
+        "lock": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "home"
+      ],
+      "additionalProperties": false
+    },
+    "icons": {
+      "type": "object",
+      "properties": {
+        "pack": {
+          "type": "string",
+          "description": "assets/icons/<pack>"
+        },
+        "margin": {
+          "type": "number"
+        },
+        "padding": {
+          "type": "number"
+        },
+        "radius": {
+          "type": "number"
+        },
+        "borderWidth": {
+          "type": "number"
+        },
+        "shape": {
+          "enum": [
+            "squircle",
+            "circle",
+            "square",
+            "cookie4",
+            "cookie7",
+            "scallop",
+            "clover",
+            "flower",
+            "sunny",
+            "burst",
+            "arch",
+            "pill",
+            "hexagon",
+            "pentagon",
+            "diamond",
+            "leaf",
+            "heart",
+            "shield",
+            "blob"
+          ]
+        },
+        "iconColor": {
+          "$ref": "#/$defs/color"
+        },
+        "borderColor": {
+          "$ref": "#/$defs/color"
+        },
+        "background": {
+          "type": "object",
+          "properties": {
+            "colors": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/color"
+              }
+            },
+            "randomColors": {
+              "type": "boolean"
+            },
+            "palette": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/color"
+              }
+            },
+            "gradient": {
+              "type": "object",
+              "properties": {
+                "start": {
+                  "$ref": "#/$defs/alignment"
+                },
+                "end": {
+                  "$ref": "#/$defs/alignment"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "effect": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "enum": [
+                "none",
+                "liquidGlass",
+                "glass",
+                "clay",
+                "softUi",
+                "gloss",
+                "aurora",
+                "holographic",
+                "chrome",
+                "gold",
+                "neon",
+                "bevel",
+                "spotlight"
+              ]
+            },
+            "intensity": {
+              "type": "number"
+            },
+            "blur": {
+              "type": "number"
+            },
+            "elevation": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false
+        },
+        "texture": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "enum": [
+                "none",
+                "grain",
+                "paper",
+                "linen",
+                "brushedMetal",
+                "carbonFiber",
+                "marble",
+                "terrazzo",
+                "halftone",
+                "dots",
+                "grid",
+                "stripes",
+                "waves",
+                "topographic",
+                "glitter",
+                "wood",
+                "leather",
+                "concrete"
+              ]
+            },
+            "scale": {
+              "type": "number"
+            },
+            "opacity": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "pack"
+      ],
+      "additionalProperties": false
+    },
+    "systemUi": {
+      "type": "object",
+      "properties": {
+        "accent": {
+          "$ref": "#/$defs/color"
+        },
+        "controlCenterTemplate": {
+          "enum": [
+            "frostedGlass",
+            "crystalJelly",
+            "candyGloss",
+            "bubblePill",
+            "softClay",
+            "auroraGlass",
+            "neonRing",
+            "miniDots"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "lockscreen": {
+      "type": "object",
+      "properties": {
+        "bgAlpha": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "assetsDir": {
+          "type": "string",
+          "description": "Folder with bg.png and the default lockscreen images."
+        },
+        "elements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/element"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "fonts": {
+      "type": "array",
+      "description": "Font files for every element font except Roboto. Omit path when the build is given --fonts-dir.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ref": {
+            "type": "string",
+            "description": "The element font: Family, gf:Family or rf:…"
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ref"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "output": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "dir": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "specVersion",
+    "meta",
+    "wallpaper",
+    "icons"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "color": {
+      "description": "\"#RRGGBB\", \"#AARRGGBB\" or an ARGB integer.",
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^#?([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$"
+        },
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        }
+      ]
+    },
+    "alignment": {
+      "description": "A name such as \"Alignment.center\" or [x, y] in -1..1.",
+      "oneOf": [
+        {
+          "enum": [
+            "Alignment.topLeft",
+            "Alignment.topCenter",
+            "Alignment.topRight",
+            "Alignment.centerLeft",
+            "Alignment.center",
+            "Alignment.centerRight",
+            "Alignment.bottomLeft",
+            "Alignment.bottomCenter",
+            "Alignment.bottomRight"
+          ]
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      ]
+    },
+    "element": {
+      "type": "object",
+      "description": "One lockscreen element. Only \"type\" is required; every other field has a default.",
+      "properties": {
+        "type": {
+          "enum": [
+            "containerBG1",
+            "containerBG2",
+            "containerBG3",
+            "containerBG4",
+            "containerBG5",
+            "pngBG1",
+            "pngBG2",
+            "pngBG3",
+            "pngBG4",
+            "pngBG5",
+            "videoWallpaper",
+            "hourClock",
+            "minClock",
+            "secClock",
+            "dotClock",
+            "dotClock2",
+            "amPmClock",
+            "weekClock",
+            "monthClock",
+            "dateClock",
+            "weatherIconClock",
+            "notification",
+            "dateTimeText1",
+            "dateTimeText2",
+            "dateTimeText3",
+            "normalText1",
+            "normalText2",
+            "normalText3",
+            "normalText4",
+            "normalText5",
+            "musicBg",
+            "musicNext",
+            "musicPrev",
+            "musicPlay",
+            "musicPause",
+            "cameraIcon",
+            "themeIcon",
+            "musicIcon",
+            "dialerIcon",
+            "mmsIcon",
+            "contactIcon",
+            "whatsAppIcon",
+            "telegramIcon",
+            "instagramIcon",
+            "spotifyIcon",
+            "settingIcon",
+            "galleryIcon",
+            "swipeUpUnlock",
+            "tapToUnlock",
+            "slideToUnlock",
+            "weatherTemp",
+            "weatherDesc",
+            "analogClockBg",
+            "analogHourHand",
+            "analogMinHand",
+            "analogSecHand",
+            "analogClock",
+            "shortcutSet",
+            "calendarGrid",
+            "toggleSwitch",
+            "missedCalls",
+            "stepsCount",
+            "batteryLevel",
+            "progressBar",
+            "batteryText",
+            "rectangleShape",
+            "circleShape",
+            "ellipseShape",
+            "lineShape",
+            "arcShape",
+            "stepsGoal",
+            "stepsDistance",
+            "stepsCalories",
+            "stepsDuration",
+            "stepsSummary",
+            "weatherCity",
+            "weatherTemperatureRange",
+            "weatherAqi",
+            "weatherHumidity",
+            "calendarIcon",
+            "weatherIcon",
+            "clockIcon",
+            "notesIcon",
+            "browserIcon",
+            "calculatorIcon",
+            "compassIcon",
+            "fileManagerIcon",
+            "videoIcon",
+            "securityIcon",
+            "radioIcon",
+            "recorderIcon",
+            "downloadsIcon",
+            "dragToUnlock"
+          ]
+        },
+        "dx": {
+          "type": "number"
+        },
+        "dy": {
+          "type": "number"
+        },
+        "scale": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "instanceId": {
+          "type": "string"
+        },
+        "progressSource": {
+          "enum": [
+            "none",
+            "battery",
+            "hour",
+            "minute",
+            "second",
+            "steps"
+          ]
+        },
+        "radius": {
+          "type": "number"
+        },
+        "unlockIcon": {
+          "enum": [
+            "automatic",
+            "lock",
+            "lockOpen",
+            "chevron",
+            "arrow",
+            "power",
+            "none",
+            "customPng",
+            "plug",
+            "fingerprint",
+            "play"
+          ]
+        },
+        "unlockIconPath": {
+          "type": "string"
+        },
+        "unlockText": {
+          "type": "string"
+        },
+        "unlockInline": {
+          "type": "boolean"
+        },
+        "calendarRows": {
+          "type": "number"
+        },
+        "calendarShowMonth": {
+          "type": "boolean"
+        },
+        "calendarShowWeekdays": {
+          "type": "boolean"
+        },
+        "unlockIconScale": {
+          "type": "number"
+        },
+        "unlockCornerRadius": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "unlockBackgroundOpacity": {
+          "type": "number"
+        },
+        "unlockThumbOpacity": {
+          "type": "number"
+        },
+        "unlockSkin": {
+          "enum": [
+            "classic",
+            "waveNotch",
+            "glowOrb",
+            "ringButton",
+            "gradientPill",
+            "ghostStack",
+            "insetTile",
+            "neonOrbs",
+            "outlineTile",
+            "cardStack",
+            "pillStack",
+            "carved",
+            "meet",
+            "neonLine",
+            "liquidGlass",
+            "gradientFlow",
+            "groove"
+          ]
+        },
+        "unlockAccent": {
+          "$ref": "#/$defs/color"
+        },
+        "unlockTargetPath": {
+          "type": "string"
+        },
+        "analogStyle": {
+          "enum": [
+            "indigo",
+            "minimal",
+            "classic",
+            "numerals",
+            "dots",
+            "ring",
+            "sport",
+            "woodPanel",
+            "crimsonGlass",
+            "romanWall",
+            "neonGlow",
+            "auroraRing",
+            "luxuryGold",
+            "frostedGlass",
+            "orbit",
+            "orbitDigital",
+            "flowerCard"
+          ]
+        },
+        "shortcutStyle": {
+          "enum": [
+            "glossDock",
+            "whiteTiles",
+            "leafTiles",
+            "darkDock",
+            "pastelDock",
+            "socialRow",
+            "hexGrid",
+            "neonCapsule",
+            "socialCards",
+            "candyCapsule",
+            "softRow",
+            "glossOrbs"
+          ]
+        },
+        "shortcutEdge": {
+          "enum": [
+            "right",
+            "left",
+            "floating"
+          ]
+        },
+        "calendarStyle": {
+          "enum": [
+            "classic",
+            "pillColumn",
+            "plusCircles",
+            "stripHeader"
+          ]
+        },
+        "shortcutApps": {
+          "type": "string"
+        },
+        "borderWidth": {
+          "type": "number"
+        },
+        "angle": {
+          "type": "number"
+        },
+        "fontSize": {
+          "type": "number"
+        },
+        "borderColor": {
+          "$ref": "#/$defs/color"
+        },
+        "color": {
+          "$ref": "#/$defs/color"
+        },
+        "colorSecondary": {
+          "$ref": "#/$defs/color"
+        },
+        "colorDigit1": {
+          "$ref": "#/$defs/color"
+        },
+        "colorDigit2": {
+          "$ref": "#/$defs/color"
+        },
+        "strokeColor": {
+          "$ref": "#/$defs/color"
+        },
+        "strokeColorDigit1": {
+          "$ref": "#/$defs/color"
+        },
+        "strokeColorDigit2": {
+          "$ref": "#/$defs/color"
+        },
+        "strokeWidth": {
+          "type": "number"
+        },
+        "gradientType": {
+          "enum": [
+            "linear",
+            "radial",
+            "sweep"
+          ]
+        },
+        "gradStartAlign": {
+          "$ref": "#/$defs/alignment"
+        },
+        "gradEndAlign": {
+          "$ref": "#/$defs/alignment"
+        },
+        "align": {
+          "$ref": "#/$defs/alignment"
+        },
+        "font": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "fontWeight": {
+          "description": "\"FontWeight.w700\" or 700.",
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^FontWeight\\.w[1-9]00$"
+            },
+            {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 900
+            }
+          ]
+        },
+        "isShort": {
+          "type": "boolean"
+        },
+        "isWrap": {
+          "type": "boolean"
+        },
+        "showGuideLines": {
+          "type": "boolean"
+        },
+        "isVisible": {
+          "type": "boolean"
+        },
+        "isLocked": {
+          "type": "boolean"
+        },
+        "useSeparateColors": {
+          "type": "boolean"
+        },
+        "blurRadius": {
+          "type": "number"
+        },
+        "isLiquidGlass": {
+          "type": "boolean"
+        },
+        "shapeStrokeWidth": {
+          "type": "number"
+        },
+        "startAngle": {
+          "type": "number"
+        },
+        "sweepAngle": {
+          "type": "number"
+        },
+        "batteryArc": {
+          "type": "boolean"
+        },
+        "animation": {
+          "enum": [
+            "none",
+            "position",
+            "rotation",
+            "alpha",
+            "scale",
+            "size"
+          ]
+        },
+        "animationDuration": {
+          "type": "number"
+        },
+        "animationAmount": {
+          "type": "number"
+        },
+        "animationOffsetY": {
+          "type": "number"
+        },
+        "animationLoop": {
+          "type": "boolean"
+        },
+        "notificationLimit": {
+          "type": "number"
+        },
+        "animations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "enum": [
+                  "none",
+                  "position",
+                  "rotation",
+                  "alpha",
+                  "scale",
+                  "size"
+                ]
+              },
+              "duration": {
+                "type": "integer"
+              },
+              "amount": {
+                "type": "number"
+              },
+              "offsetY": {
+                "type": "number"
+              },
+              "loop": {
+                "type": "boolean"
+              },
+              "ease": {
+                "enum": [
+                  "linear",
+                  "sineEaseIn",
+                  "sineEaseOut",
+                  "sineEaseInOut",
+                  "quadEaseIn",
+                  "quadEaseOut",
+                  "quadEaseInOut",
+                  "cubicEaseIn",
+                  "cubicEaseOut",
+                  "cubicEaseInOut",
+                  "quartEaseIn",
+                  "quartEaseOut",
+                  "quartEaseInOut",
+                  "quintEaseIn",
+                  "quintEaseOut",
+                  "quintEaseInOut",
+                  "expoEaseIn",
+                  "expoEaseOut",
+                  "expoEaseInOut",
+                  "circEaseIn",
+                  "circEaseOut",
+                  "circEaseInOut",
+                  "backEaseIn",
+                  "backEaseOut",
+                  "backEaseInOut",
+                  "elasticEaseIn",
+                  "elasticEaseOut",
+                  "elasticEaseInOut",
+                  "bounceEaseIn",
+                  "bounceEaseOut",
+                  "bounceEaseInOut"
+                ]
+              },
+              "startX": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "startY": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

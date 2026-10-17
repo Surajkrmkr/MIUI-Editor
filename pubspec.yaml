@@ -8,9 +8,17 @@ version: 2.0.0+1
 environment:
   sdk: ^3.8.0
 
+workspace:
+  - packages/theme_core
+  - packages/theme_cli
+  - packages/theme_raster_flutter
+
 dependencies:
   flutter:
     sdk: flutter
+
+  theme_core: any
+  theme_raster_flutter: any
 
   # State Management
   flutter_riverpod: ^2.3.6

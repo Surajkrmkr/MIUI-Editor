@@ -12,7 +12,8 @@ class ManifestEditorDialog extends ConsumerStatefulWidget {
   const ManifestEditorDialog({super.key});
 
   @override
-  ConsumerState<ManifestEditorDialog> createState() => _ManifestEditorDialogState();
+  ConsumerState<ManifestEditorDialog> createState() =>
+      _ManifestEditorDialogState();
 }
 
 class _ManifestEditorDialogState extends ConsumerState<ManifestEditorDialog> {
@@ -23,9 +24,7 @@ class _ManifestEditorDialogState extends ConsumerState<ManifestEditorDialog> {
   @override
   void initState() {
     super.initState();
-    _codeController = CodeController(
-      language: xml,
-    );
+    _codeController = CodeController(language: xml);
     _loadManifest();
   }
 
@@ -43,7 +42,8 @@ class _ManifestEditorDialogState extends ConsumerState<ManifestEditorDialog> {
       final content = await fs.readString(_filePath!);
       _codeController.text = content;
     } else {
-      _codeController.text = '<!-- manifest.xml not found. Please export first. -->';
+      _codeController.text =
+          '<!-- manifest.xml not found. Please export first. -->';
     }
     setState(() => _isLoading = false);
   }
@@ -53,9 +53,9 @@ class _ManifestEditorDialogState extends ConsumerState<ManifestEditorDialog> {
     final fs = ref.read(fileServiceProvider);
     await fs.writeString(_filePath!, _codeController.text);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Manifest saved')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Manifest saved')));
       Navigator.pop(context);
     }
   }
@@ -74,8 +74,12 @@ class _ManifestEditorDialogState extends ConsumerState<ManifestEditorDialog> {
     customTheme['tag'] = TextStyle(color: colors.primary);
     customTheme['keyword'] = TextStyle(color: colors.primary);
     customTheme['selector-tag'] = TextStyle(color: colors.primary);
-    customTheme['attr'] = const TextStyle(color: Color(0xFF569CD6)); // VS Code blue for attributes
-    customTheme['string'] = const TextStyle(color: Color(0xFFCE9178)); // VS Code orange for strings
+    customTheme['attr'] = const TextStyle(
+      color: Color(0xFF569CD6),
+    ); // VS Code blue for attributes
+    customTheme['string'] = const TextStyle(
+      color: Color(0xFFCE9178),
+    ); // VS Code orange for strings
 
     return AlertDialog(
       title: const Text('Manifest Editor'),
@@ -160,4 +164,3 @@ class _ManifestEditorDialogState extends ConsumerState<ManifestEditorDialog> {
     super.dispose();
   }
 }
-

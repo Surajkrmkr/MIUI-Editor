@@ -1,156 +1,39 @@
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_constants.dart';
-import '../../../../domain/entities/element_widget.dart';
+import 'package:theme_core/theme_core.dart';
+import 'package:theme_core/lockscreen_layout.dart' as core;
+import '../../adapters.dart';
+import '../lock_element.dart';
+import '../lock_element_spec_bridge.dart';
 
-enum _Shape { circle, tile, pill }
+export 'package:theme_core/lockscreen_layout.dart'
+    show UnlockSkinShape, UnlockSkinSpec;
 
-class _Spec {
-  const _Spec(
-    this.shape, {
-    this.thumbWidth = 1,
-    this.trails = 0,
-    this.shadow = false,
-    this.inset = false,
-    this.chevrons = false,
-    this.carved = false,
-    this.glow = false,
-    this.gloss = false,
-    this.flow = false,
-    this.groove = false,
-    this.pad = .08,
-  });
-  final _Shape shape;
-  final double thumbWidth, pad;
-  final int trails;
-  final bool shadow, inset, chevrons, carved, glow, gloss, flow, groove;
-}
+typedef _Spec = core.UnlockSkinSpec;
+typedef _Shape = core.UnlockSkinShape;
 
-const _slideSpecs = <UnlockSkin, _Spec>{
-  UnlockSkin.ghostStack: _Spec(_Shape.tile, trails: 2, pad: .1),
-  UnlockSkin.insetTile: _Spec(_Shape.tile, inset: true, pad: .1),
-  UnlockSkin.neonOrbs: _Spec(_Shape.circle, trails: 2, chevrons: true),
-  UnlockSkin.outlineTile: _Spec(_Shape.tile, shadow: true, pad: .12),
-  UnlockSkin.cardStack: _Spec(_Shape.tile, trails: 2, shadow: true, pad: .07),
-  UnlockSkin.pillStack: _Spec(_Shape.pill, thumbWidth: 1.6, trails: 2),
-  UnlockSkin.carved: _Spec(
-    _Shape.tile,
-    trails: 2,
-    shadow: true,
-    carved: true,
-    pad: .1,
-  ),
-  UnlockSkin.neonLine: _Spec(
-    _Shape.circle,
-    glow: true,
-    chevrons: true,
-    pad: .2,
-  ),
-  UnlockSkin.liquidGlass: _Spec(_Shape.circle, gloss: true, pad: .1),
-  UnlockSkin.gradientFlow: _Spec(
-    _Shape.pill,
-    thumbWidth: 1.5,
-    shadow: true,
-    flow: true,
-    pad: .1,
-  ),
-  UnlockSkin.groove: _Spec(_Shape.circle, groove: true, shadow: true, pad: .2),
-};
-
-_Spec _specOf(LockElement el) =>
-    _slideSpecs[el.unlockSkin] ?? const _Spec(_Shape.tile, pad: .1);
+_Spec _specOf(LockElement el) => core.unlockSkinSpecOf(el.toSpec());
 
 /// Geometry of a skinned unlock control in theme pixels (before `scale`),
-/// shared by the editor preview and the MAML export.
+/// shared by the editor preview and the MAML export; the math lives in
+/// theme_core, this adds Flutter types for the painters.
 class UnlockSkinLayout {
-  const UnlockSkinLayout._({
-    required this.width,
-    required this.height,
-    required this.thumbY,
-    required this.thumbWidth,
-    required this.thumbHeight,
-    required this.thumbPaintWidth,
-    required this.travel,
-    required this.iconCenter,
-    required this.iconSize,
-    required this.textRect,
-    this.target,
-  });
+  UnlockSkinLayout.of(LockElement el)
+    : this._(core.UnlockSkinLayout.of(el.toSpec()));
 
-  factory UnlockSkinLayout.of(LockElement el) {
-    final w = el.width, h = el.unlockHeight;
-    final hasText = el.unlockText.isNotEmpty;
-    final iconScale = el.unlockIconScale.clamp(.2, 1).toDouble();
-    if (el.type == ElementType.tapToUnlock) {
-      final Offset center;
-      final double size;
-      final Rect text;
-      switch (el.unlockSkin) {
-        case UnlockSkin.waveNotch:
-          center = Offset(w * .6, hasText ? h * .44 : h / 2);
-          size = min(w * .6, h * .3) * iconScale;
-          text = Rect.fromLTRB(w * .3, h * .56, w * .95, h * .68);
-        case UnlockSkin.gradientPill:
-          center = Offset(min(h, w * .4) / 2, h / 2);
-          size = min(h, w * .4) * .7 * iconScale;
-          text = Rect.fromLTRB(min(h, w * .4), 0, w - h * .3, h);
-        default:
-          final d = min(w, hasText ? h * .7 : h) * .62;
-          center = Offset(w / 2, hasText ? h * .38 : h / 2);
-          size = d * iconScale;
-          text = Rect.fromLTRB(w * .05, h * .76, w * .95, h * .96);
-      }
-      return UnlockSkinLayout._(
-        width: w,
-        height: h,
-        thumbY: 0,
-        thumbWidth: 0,
-        thumbHeight: 0,
-        thumbPaintWidth: 0,
-        travel: 0,
-        iconCenter: center,
-        iconSize: size,
-        textRect: text,
-      );
-    }
-    if (el.unlockSkin == UnlockSkin.meet) {
-      final s = h * .74;
-      return UnlockSkinLayout._(
-        width: w,
-        height: h,
-        thumbY: 0,
-        thumbWidth: s,
-        thumbHeight: s,
-        thumbPaintWidth: s,
-        travel: max(0, w - s * 1.82),
-        iconCenter: Offset(s / 2, s / 2),
-        iconSize: s,
-        textRect: Rect.fromLTRB(h * .3, s, w - h * .3, h),
-        target: Rect.fromLTWH(w - s, 0, s, s),
-      );
-    }
-    final spec = _specOf(el);
-    final thumbW = h * spec.thumbWidth;
-    final paintW = thumbW + spec.trails * h * .16;
-    return UnlockSkinLayout._(
-      width: w,
-      height: h,
-      thumbY: 0,
-      thumbWidth: thumbW,
-      thumbHeight: h,
-      thumbPaintWidth: paintW,
-      travel: max(0, w - paintW),
-      iconCenter: Offset(thumbW / 2, h / 2),
-      iconSize: min(thumbW, h) * (1 - spec.pad * 2) * iconScale,
-      textRect: Rect.fromLTRB(
-        paintW + h * .12,
-        0,
-        w - h * (spec.chevrons ? 1.1 : .25),
-        h,
-      ),
-    );
-  }
+  UnlockSkinLayout._(core.UnlockSkinLayout c)
+    : width = c.width,
+      height = c.height,
+      thumbY = c.thumbY,
+      thumbWidth = c.thumbWidth,
+      thumbHeight = c.thumbHeight,
+      thumbPaintWidth = c.thumbPaintWidth,
+      travel = c.travel,
+      iconCenter = c.iconCenter.toOffset(),
+      iconSize = c.iconSize,
+      textRect = c.textRect.toRect(),
+      target = c.target?.toRect();
 
   final double width, height;
   final double thumbY, thumbWidth, thumbHeight, thumbPaintWidth, travel;
@@ -233,7 +116,7 @@ class UnlockSkinView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const k = 1 / AppConstants.screenRatio;
+    const k = 1 / lockscreenScreenRatio;
     final el = element;
     final l = UnlockSkinLayout.of(el);
     final tap = el.type == ElementType.tapToUnlock;

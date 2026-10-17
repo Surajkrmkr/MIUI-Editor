@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
-import '../../application/providers/buffy_cms_provider.dart';
 import '../../application/providers/buffy_settings_provider.dart';
 import 'buffy_settings_dialog.dart';
 

@@ -85,12 +85,13 @@ class WidgetCenterDialog extends ConsumerWidget {
                         GridView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                            childAspectRatio: 1.4,
-                          ),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                                childAspectRatio: 1.4,
+                              ),
                           itemCount: entry.value.length,
                           itemBuilder: (context, index) {
                             final widget = entry.value[index];
@@ -153,8 +154,11 @@ class _WidgetCard extends ConsumerWidget {
                     ),
                   ),
                   const Spacer(),
-                  Icon(Icons.add_circle_outline_rounded,
-                      size: 20, color: scheme.onSurface.withAlpha(60)),
+                  Icon(
+                    Icons.add_circle_outline_rounded,
+                    size: 20,
+                    color: scheme.onSurface.withAlpha(60),
+                  ),
                 ],
               ),
               const Spacer(),
@@ -170,10 +174,7 @@ class _WidgetCard extends ConsumerWidget {
                 widget.description,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: scheme.onSurfaceVariant,
-                ),
+                style: TextStyle(fontSize: 10, color: scheme.onSurfaceVariant),
               ),
             ],
           ),
@@ -184,11 +185,16 @@ class _WidgetCard extends ConsumerWidget {
 
   IconData _getIconForCategory(String category) {
     switch (category.toLowerCase()) {
-      case 'date': return Icons.calendar_today_rounded;
-      case 'music': return Icons.music_note_rounded;
-      case 'weather': return Icons.cloud_rounded;
-      case 'shortcuts': return Icons.apps_rounded;
-      default: return Icons.widgets_rounded;
+      case 'date':
+        return Icons.calendar_today_rounded;
+      case 'music':
+        return Icons.music_note_rounded;
+      case 'weather':
+        return Icons.cloud_rounded;
+      case 'shortcuts':
+        return Icons.apps_rounded;
+      default:
+        return Icons.widgets_rounded;
     }
   }
 }

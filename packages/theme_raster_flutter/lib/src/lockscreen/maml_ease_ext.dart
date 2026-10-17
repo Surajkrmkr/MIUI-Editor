@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../domain/entities/element_widget.dart';
+import 'package:theme_core/theme_core.dart' show MamlEase;
 
 extension MamlEaseX on MamlEase {
-  String get mamlName => '${name[0].toUpperCase()}${name.substring(1)}';
-
   Curve get curve {
     switch (this) {
       case MamlEase.linear:

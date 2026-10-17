@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import 'package:path/path.dart' as p;
-import 'package:uuid/uuid.dart';
-import '../../application/providers/buffy_cms_provider.dart';
 import '../../application/services/buffy_wallpaper_import_service.dart';
-import '../../domain/models/buffy_wallpaper.dart';
 
 class BuffyBatchAddDialog extends ConsumerStatefulWidget {
   final List<String> existingCategories;

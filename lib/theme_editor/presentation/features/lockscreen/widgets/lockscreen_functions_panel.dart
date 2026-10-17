@@ -356,7 +356,6 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
 
 class _SectionCard extends StatefulWidget {
   const _SectionCard({
-    super.key,
     required this.title,
     required this.child,
     this.collapsible = false,
@@ -450,18 +449,12 @@ class _SectionCardState extends State<_SectionCard> {
               onTap: () => setState(() => _expanded = !_expanded),
               borderRadius: BorderRadius.circular(6),
               child: Padding(
-                padding: EdgeInsets.only(
-                  top: 2,
-                  bottom: _expanded ? 10 : 2,
-                ),
+                padding: EdgeInsets.only(top: 2, bottom: _expanded ? 10 : 2),
                 child: header,
               ),
             )
           else
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: header,
-            ),
+            Padding(padding: const EdgeInsets.only(bottom: 10), child: header),
           if (widget.collapsible)
             AnimatedCrossFade(
               duration: const Duration(milliseconds: 200),

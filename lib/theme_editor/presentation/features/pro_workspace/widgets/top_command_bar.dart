@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/theme_extensions.dart';
@@ -8,6 +9,7 @@ import '../../../providers/icon_editor_provider.dart';
 import '../../../providers/export_provider.dart';
 import '../../../providers/lockscreen_provider.dart';
 import '../../../providers/adb_provider.dart';
+import '../../../providers/spec_provider.dart';
 import '../../lockscreen/widgets/apply_to_device_dialog.dart';
 import 'floating_layers_panel.dart';
 
@@ -160,6 +162,12 @@ class TopCommandBar extends ConsumerWidget {
             },
           ),
 
+          IconButton(
+            icon: const Icon(Icons.description_outlined, size: 20),
+            tooltip: 'Save theme spec…',
+            onPressed: () => _saveSpec(context, ref),
+          ),
+
           // Palette strip
           Consumer(
             builder: (_, ref, __) {
@@ -248,6 +256,31 @@ class TopCommandBar extends ConsumerWidget {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _saveSpec(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final spec = ref.read(themeSpecProvider);
+    if (spec == null) {
+      messenger.showSnackBar(const SnackBar(content: Text('No active theme')));
+      return;
+    }
+    final picked = await FilePicker.platform.saveFile(
+      dialogTitle: 'Save theme spec',
+      fileName: '${spec.meta.title}.json',
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+    );
+    if (picked == null) return;
+    final path = picked.endsWith('.json') ? picked : '$picked.json';
+    final failure = await ref.read(themeSpecSaveAsProvider)(path);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          failure == null ? 'Saved $path' : 'Save failed: ${failure.message}',
+        ),
       ),
     );
   }

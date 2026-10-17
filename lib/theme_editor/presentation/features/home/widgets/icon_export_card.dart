@@ -31,8 +31,7 @@ class IconExportCard extends ConsumerWidget {
                 : Icons.format_paint_outlined,
             loading: exportState.isRunning,
             isSuccess: exportState.isExported,
-            onPressed: () =>
-                ref.read(exportProvider.notifier).exportAll(context),
+            onPressed: () => ref.read(exportProvider.notifier).exportAll(),
           ),
 
           // Progress bar

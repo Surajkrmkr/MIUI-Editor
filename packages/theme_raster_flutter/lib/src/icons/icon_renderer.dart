@@ -5,13 +5,13 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:path/path.dart' as path;
 
-import '../../core/constants/path_constants.dart';
-import '../../core/errors/failures.dart';
-import '../../domain/entities/user_profile.dart';
-import '../../presentation/providers/icon_editor_provider.dart';
-import '../../presentation/features/icon_editor/utils/icon_shape_utils.dart';
-import '../../presentation/features/icon_editor/utils/icon_visual_utils.dart';
+import 'package:theme_core/theme_core.dart';
+
+import '../adapters.dart';
+import 'icon_shape_utils.dart';
+import 'icon_visual_utils.dart';
 
 /// Renders every SVG icon directly via [dart:ui] Canvas — no widget tree,
 /// no ScreenshotController. Composites gradient background + SVG + overlays
@@ -19,31 +19,30 @@ import '../../presentation/features/icon_editor/utils/icon_visual_utils.dart';
 /// Also writes transform_config.xml.
 ///
 /// Reports progress via [onProgress] so the UI can show a live counter.
-class ExportIconsUseCase {
-  const ExportIconsUseCase();
+class IconRenderer {
+  const IconRenderer();
 
   static const double _pixelRatio = 4.0;
   static const int _canvasSize = 180; // 45 logical × 4
 
-  Future<Failure?> call({
-    required BuildContext context,
-    required IconEditorState editorState,
-    required UserProfile profile,
-    required String themePath,
+  Future<Failure?> render({
+    required IconStyle style,
+
+    /// Icon pack folder under `assets/icons`, e.g. `u7`.
+    required String pack,
+    required ThemeLayout layout,
     required List<String> iconNames,
-    required void Function(int done, int total) onProgress,
+    void Function(int done, int total)? onProgress,
   }) async {
     try {
-      final xhdpiDir = PathConstants.iconsXhdpi(themePath);
-      final xxhdpiDir = PathConstants.iconsXxhdpi(themePath);
+      final xhdpiDir = layout.iconsXhdpi;
+      final xxhdpiDir = layout.iconsXxhdpi;
       await Directory(xhdpiDir).create(recursive: true);
       await Directory(xxhdpiDir).create(recursive: true);
 
       // Pre-load overlay images ONCE instead of per-icon.
-      final beforePath = PathConstants.p(
-          '${PathConstants.lockscreenAdvance(themePath)}beforeVector.png');
-      final afterPath = PathConstants.p(
-          '${PathConstants.lockscreenAdvance(themePath)}afterVector.png');
+      final beforePath = layout.beforeVectorPng;
+      final afterPath = layout.afterVectorPng;
 
       final ui.Image? beforeImage = File(beforePath).existsSync()
           ? await _loadUiImage(File(beforePath).readAsBytesSync())
@@ -52,17 +51,21 @@ class ExportIconsUseCase {
           ? await _loadUiImage(File(afterPath).readAsBytesSync())
           : null;
 
-      final colors = editorState.randomColors
-          ? editorState.bgColors
-          : [editorState.bgColor, editorState.bgColor2];
+      final colors = [
+        for (final c
+            in style.randomColors
+                ? style.bgColors
+                : [style.bgColor, style.bgColor2])
+          c.toColor(),
+      ];
 
       final allIconNames = [...iconNames, ...extraIconList];
       int done = 0;
       for (final name in allIconNames) {
         final bytes = await _renderIcon(
           name: name,
-          profile: profile,
-          state: editorState,
+          pack: pack,
+          state: style,
           colors: colors,
           beforeImage: beforeImage,
           afterImage: afterImage,
@@ -70,20 +73,18 @@ class ExportIconsUseCase {
 
         // Write both resolution folders in parallel.
         await Future.wait([
-          File(PathConstants.p('$xhdpiDir$name.png')).writeAsBytes(bytes),
-          File(PathConstants.p('$xxhdpiDir$name.png')).writeAsBytes(bytes),
+          File(path.join(xhdpiDir, '$name.png')).writeAsBytes(bytes),
+          File(path.join(xxhdpiDir, '$name.png')).writeAsBytes(bytes),
         ]);
 
         done++;
-        onProgress(done, allIconNames.length);
+        onProgress?.call(done, allIconNames.length);
       }
 
       beforeImage?.dispose();
       afterImage?.dispose();
 
-      await File(PathConstants.p(
-              '${themePath}icons${PathConstants.sep}transform_config.xml'))
-          .writeAsString(_transformConfigXml);
+      await File(layout.transformConfigXml).writeAsString(_transformConfigXml);
 
       return null;
     } catch (e) {
@@ -101,8 +102,8 @@ class ExportIconsUseCase {
 
   static Future<Uint8List> _renderIcon({
     required String name,
-    required UserProfile profile,
-    required IconEditorState state,
+    required String pack,
+    required IconStyle state,
     required List<Color> colors,
     required ui.Image? beforeImage,
     required ui.Image? afterImage,
@@ -136,8 +137,9 @@ class ExportIconsUseCase {
 
     // 1 ── Clip everything to the shape (or mask radius)
     if (isIconMask) {
-      canvas.clipRRect(ui.RRect.fromRectAndRadius(
-          innerRect, ui.Radius.circular(clipRadius)));
+      canvas.clipRRect(
+        ui.RRect.fromRectAndRadius(innerRect, ui.Radius.circular(clipRadius)),
+      );
     } else {
       canvas.clipPath(iconPath);
     }
@@ -146,8 +148,12 @@ class ExportIconsUseCase {
     if (beforeImage != null) {
       canvas.drawImageRect(
         beforeImage,
-        ui.Rect.fromLTWH(0, 0, beforeImage.width.toDouble(),
-            beforeImage.height.toDouble()),
+        ui.Rect.fromLTWH(
+          0,
+          0,
+          beforeImage.width.toDouble(),
+          beforeImage.height.toDouble(),
+        ),
         innerRect,
         ui.Paint(),
       );
@@ -155,8 +161,8 @@ class ExportIconsUseCase {
 
     // 3 ── Gradient background
     if (!_skipBg(name)) {
-      final gradStart = state.bgGradStart as Alignment;
-      final gradEnd = state.bgGradEnd as Alignment;
+      final gradStart = state.bgGradStart;
+      final gradEnd = state.bgGradEnd;
       final startOffset = ui.Offset(
         innerRect.left + (gradStart.x + 1) / 2 * innerRect.width,
         innerRect.top + (gradStart.y + 1) / 2 * innerRect.height,
@@ -174,7 +180,11 @@ class ExportIconsUseCase {
       final paint = ui.Paint();
       if (effectiveColors.length > 1) {
         paint.shader = ui.Gradient.linear(
-            startOffset, endOffset, effectiveColors, const [0.0, 1.0]);
+          startOffset,
+          endOffset,
+          effectiveColors,
+          const [0.0, 1.0],
+        );
       } else {
         paint.color = effectiveColors.first;
       }
@@ -183,18 +193,18 @@ class ExportIconsUseCase {
 
       // 3.5 ── Apply Textures & Effects
       IconVisualUtils.applyTexture(
-        canvas, 
-        iconPath, 
-        state.texture, 
+        canvas,
+        iconPath,
+        state.texture,
         innerRect,
         scale: state.textureScale,
         opacity: state.textureOpacity,
       );
       IconVisualUtils.applyEffect(
-        canvas, 
-        iconPath, 
-        state.effect, 
-        innerRect, 
+        canvas,
+        iconPath,
+        state.effect,
+        innerRect,
         effectiveColors.first,
         intensity: state.effectIntensity,
         blur: state.effectBlur * p,
@@ -209,15 +219,14 @@ class ExportIconsUseCase {
         ui.Paint()
           ..style = ui.PaintingStyle.stroke
           ..strokeWidth = borderWidth
-          ..color = state.borderColor,
+          ..color = state.borderColor.toColor(),
       );
     }
 
     // 5 ── SVG icon
     if (!_skipSvg(name)) {
       final svgArea = innerRect.deflate(padding + borderWidth);
-      final loader =
-          SvgAssetLoader('assets/icons/${profile.iconFolder}/$name.svg');
+      final loader = SvgAssetLoader('assets/icons/$pack/$name.svg');
       final pictureInfo = await vg.loadPicture(loader, null);
 
       final scaleX = svgArea.width / pictureInfo.size.width;
@@ -227,11 +236,12 @@ class ExportIconsUseCase {
       canvas.translate(svgArea.left, svgArea.top);
       canvas.scale(scaleX, scaleY);
       canvas.saveLayer(
-        ui.Rect.fromLTWH(
-            0, 0, pictureInfo.size.width, pictureInfo.size.height),
+        ui.Rect.fromLTWH(0, 0, pictureInfo.size.width, pictureInfo.size.height),
         ui.Paint()
-          ..colorFilter =
-              ui.ColorFilter.mode(state.iconColor, ui.BlendMode.srcIn),
+          ..colorFilter = ui.ColorFilter.mode(
+            state.iconColor.toColor(),
+            ui.BlendMode.srcIn,
+          ),
       );
       canvas.drawPicture(pictureInfo.picture);
       canvas.restore(); // saveLayer
@@ -244,8 +254,12 @@ class ExportIconsUseCase {
     if (afterImage != null) {
       canvas.drawImageRect(
         afterImage,
-        ui.Rect.fromLTWH(0, 0, afterImage.width.toDouble(),
-            afterImage.height.toDouble()),
+        ui.Rect.fromLTWH(
+          0,
+          0,
+          afterImage.width.toDouble(),
+          afterImage.height.toDouble(),
+        ),
         innerRect,
         ui.Paint(),
       );
@@ -255,8 +269,7 @@ class ExportIconsUseCase {
     final image = await picture.toImage(_canvasSize, _canvasSize);
     picture.dispose();
 
-    final byteData =
-        await image.toByteData(format: ui.ImageByteFormat.png);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     image.dispose();
 
     return byteData!.buffer.asUint8List();
@@ -276,7 +289,7 @@ class ExportIconsUseCase {
     'icon_folder',
     'icon_folder_light',
     'icon_pattern',
-    'icon_mask'
+    'icon_mask',
   };
   // border-only: transparent inside — skip both BG fill and SVG.
   static const _borderOnlyIcon = 'icon_border';

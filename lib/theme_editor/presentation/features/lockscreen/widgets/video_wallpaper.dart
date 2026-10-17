@@ -88,8 +88,12 @@ class _VideoWallpaperWidgetState extends State<VideoWallpaperWidget> {
         child: FittedBox(
           fit: BoxFit.cover,
           child: SizedBox(
-            width: ctrl.value.size.width > 0 ? ctrl.value.size.width : AppConstants.screenWidth,
-            height: ctrl.value.size.height > 0 ? ctrl.value.size.height : AppConstants.screenHeight,
+            width: ctrl.value.size.width > 0
+                ? ctrl.value.size.width
+                : AppConstants.screenWidth,
+            height: ctrl.value.size.height > 0
+                ? ctrl.value.size.height
+                : AppConstants.screenHeight,
             child: VideoPlayer(ctrl),
           ),
         ),

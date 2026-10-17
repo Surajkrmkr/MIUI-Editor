@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
-import '../../core/errors/failures.dart';
+import 'package:theme_core/theme_core.dart';
+import '../../core/extensions/core_value_adapters.dart';
 import '../../domain/entities/user_profile.dart';
-import '../../presentation/providers/icon_editor_provider.dart';
 import 'export_icons_usecase.dart';
 import 'export_module_usecase.dart';
 import 'export_system_modules_usecase.dart';
@@ -21,10 +20,9 @@ class ExportCombinedUseCase {
   final ExportSystemModulesUseCase exportSystemModules;
 
   Future<Failure?> call({
-    required BuildContext context,
-    required IconEditorState editorState,
+    required IconStyle style,
     required UserProfile profile,
-    required String themePath,
+    required ThemeLayout layout,
     required String themeName,
     required String wallpaperSourcePath,
     required List<String> iconNames,
@@ -35,10 +33,9 @@ class ExportCombinedUseCase {
   }) async {
     // Phase 1 — Icons
     final iconFailure = await exportIcons.call(
-      context: context,
-      editorState: editorState,
+      style: style,
       profile: profile,
-      themePath: themePath,
+      layout: layout,
       iconNames: iconNames,
       onProgress: onProgress,
     );
@@ -46,9 +43,8 @@ class ExportCombinedUseCase {
 
     // Phase 2 — Module (description, clock, colors, wallpaper)
     final moduleFailure = await exportModule.call(
-      accentColor: editorState.accentColor,
       profile: profile,
-      themePath: themePath,
+      layout: layout,
       themeName: themeName,
       wallpaperSourcePath: wallpaperSourcePath,
       designerName: designerName,
@@ -59,10 +55,10 @@ class ExportCombinedUseCase {
 
     // Phase 3 — HyperOS 3 control center, notifications, dialer, messaging
     return exportSystemModules.call(
-      accent: editorState.accentColor,
-      themePath: themePath,
+      accent: style.accent.toColor(),
+      layout: layout,
       wallpaperSourcePath: wallpaperSourcePath,
-      style: editorState,
+      style: style,
       iconFolder: profile.iconFolder,
     );
   }

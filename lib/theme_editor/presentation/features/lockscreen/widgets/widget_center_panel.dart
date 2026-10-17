@@ -54,13 +54,16 @@ class WidgetCenterPanel extends ConsumerWidget {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Theme(
-                  data: Theme.of(context)
-                      .copyWith(dividerColor: Colors.transparent),
+                  data: Theme.of(
+                    context,
+                  ).copyWith(dividerColor: Colors.transparent),
                   child: ExpansionTile(
                     title: Text(
                       entry.key,
                       style: const TextStyle(
-                          fontSize: 13, fontWeight: FontWeight.w600),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     shape: RoundedRectangleBorder(
                       side: BorderSide(color: colors.border),
@@ -75,7 +78,9 @@ class WidgetCenterPanel extends ConsumerWidget {
                     children: entry.value.map((widget) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         child: Material(
                           color: Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
@@ -91,8 +96,7 @@ class WidgetCenterPanel extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
                                     children: [

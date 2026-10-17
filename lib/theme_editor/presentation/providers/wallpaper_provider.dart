@@ -23,6 +23,7 @@ class WallpaperState {
     this.designerName = '',
     this.authorTag = '',
     this.uiVersion = '',
+    this.namedTheme,
   });
 
   final String folderNum;
@@ -37,6 +38,10 @@ class WallpaperState {
   final String authorTag;
   final String uiVersion;
 
+  /// A name for the wallpaper at `path` that replaces its file name, e.g. a
+  /// spec's title; ignored once another wallpaper is selected.
+  final ({String path, String name})? namedTheme;
+
   WallpaperState copyWith({
     String? folderNum,
     String? weekNum,
@@ -49,6 +54,7 @@ class WallpaperState {
     String? designerName,
     String? authorTag,
     String? uiVersion,
+    ({String path, String name})? namedTheme,
   }) =>
       WallpaperState(
         folderNum: folderNum ?? this.folderNum,
@@ -62,6 +68,7 @@ class WallpaperState {
         designerName: designerName ?? this.designerName,
         authorTag: authorTag ?? this.authorTag,
         uiVersion: uiVersion ?? this.uiVersion,
+        namedTheme: namedTheme ?? this.namedTheme,
       );
 
   String? get currentPath => paths.isNotEmpty ? paths[index] : null;
@@ -69,6 +76,7 @@ class WallpaperState {
   String? get currentThemeName {
     final p = currentPath;
     if (p == null) return null;
+    if (namedTheme?.path == p) return namedTheme!.name;
     return p.split(Platform.isWindows ? r'\' : '/').last.split('.').first;
   }
 }
@@ -121,6 +129,34 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
     }
   }
 
+  // ── Open a theme described by a spec ──────────────────────────────────────
+
+  /// Makes [wallpaperPath] the only wallpaper and [themeName] the theme's
+  /// name. Designer, author tag and UI version apply to this session only;
+  /// they are not written to the saved settings.
+  Future<void> openTheme({
+    required String wallpaperPath,
+    required String weekNum,
+    required String folderNum,
+    required String themeName,
+    String designerName = '',
+    String authorTag = '',
+    String uiVersion = '',
+  }) async {
+    state = state.copyWith(
+      isLoading: false,
+      folderNum: folderNum,
+      weekNum: weekNum,
+      paths: [wallpaperPath],
+      index: 0,
+      namedTheme: (path: wallpaperPath, name: themeName),
+      designerName: designerName.isEmpty ? null : designerName,
+      authorTag: authorTag.isEmpty ? null : authorTag,
+      uiVersion: uiVersion.isEmpty ? null : uiVersion,
+    );
+    await _onThemeActivated(weekNum, wallpaperPath);
+  }
+
   // ── Navigate to a different wallpaper / theme ─────────────────────────────
 
   Future<void> setIndex(int i) async {
@@ -135,8 +171,7 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
   // ── Core: everything that must happen when the active theme changes ────────
 
   Future<void> _onThemeActivated(String weekNum, String wallPath) async {
-    final themeName =
-        wallPath.split(Platform.isWindows ? r'\' : '/').last.split('.').first;
+    final themeName = state.currentThemeName!;
 
     ref.read(exportProvider.notifier).resetExportState();
     ref.read(lockscreenProvider.notifier).resetExportState();

@@ -7,7 +7,6 @@ import '../../application/providers/buffy_cms_provider.dart';
 import '../../application/providers/buffy_credentials_provider.dart';
 import '../../application/providers/buffy_analytics_provider.dart';
 import '../../domain/models/buffy_credential_models.dart';
-import '../../infrastructure/services/buffy_settings_service.dart';
 
 class BuffySettingsDialog extends ConsumerStatefulWidget {
   const BuffySettingsDialog({super.key});

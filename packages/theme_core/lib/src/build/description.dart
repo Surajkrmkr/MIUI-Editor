@@ -1,6 +1,11 @@
 class ThemeDescription {
   ThemeDescription._();
 
+  static String _esc(String v) => v
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;');
+
   static String buildDescription({
     required String themeName,
     required String designerName,
@@ -9,11 +14,11 @@ class ThemeDescription {
   }) =>
       '''<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
 <MIUI-Theme>
-  <title>$themeName</title>
-  <designer>$designerName</designer>
-  <author>$authorTag</author>
+  <title>${_esc(themeName)}</title>
+  <designer>${_esc(designerName)}</designer>
+  <author>${_esc(authorTag)}</author>
   <version>1.0</version>
-  <uiVersion>$uiVersion</uiVersion>
+  <uiVersion>${_esc(uiVersion)}</uiVersion>
   <editorVersion>2.0.5</editorVersion>
   <resourceType>theme</resourceType>
   <moduleVersion>com.android.contacts:0.0.2;com.android.mms:0.0.2;com.android.settings:0.0.2;com.android.systemui:0.0.2;</moduleVersion>

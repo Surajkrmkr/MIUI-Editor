@@ -26,15 +26,31 @@ abstract final class AssetPaths {
   static String weatherIcon(String code) =>
       'assets/lockscreen/weatherIcon/weather_$code.png';
   static String userAvatar(String name) => 'assets/users/$name.png';
-  static String ninePatch(String name)  => 'assets/9pngs/$name';
+  static String ninePatch(String name) => 'assets/9pngs/$name';
   static const String tagsJson = 'assets/tags/tags.json';
 
-  static const List<int> weatherCodes = [0,1,2,3,4,7,12,13,18,22,24];
+  static const List<int> weatherCodes = [0, 1, 2, 3, 4, 7, 12, 13, 18, 22, 24];
   static const List<String?> weekNames = [
-    'Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
   ];
   static const List<String?> monthNames = [
-    'January','February','March','April','May','June',
-    'July','August','September','October','November','December'
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
 }

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:developer' as dev;
 import 'package:http/http.dart' as http;
-import 'package:miui_icon_generator/theme_editor/domain/entities/theme_project.dart';
 import 'package:miui_icon_generator/theme_editor/presentation/providers/service_providers.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../domain/entities/element_widget.dart';
@@ -471,11 +470,4 @@ Optional only: color, colorSecondary, borderColor, colorDigit1, colorDigit2, gra
         .toList()
       ..sort();
   }
-
-  // ── Unused stubs ─────────────────────────────────────────────────────────────
-
-  Future<List<ColorEntry>?> generatePalette(String prompt) async => null;
-  Future<String?> suggestIconStyle(IconVariant current) async => null;
-  Stream<String> streamChat(String userMessage, ThemeProject context) =>
-      Stream.value('Response');
 }

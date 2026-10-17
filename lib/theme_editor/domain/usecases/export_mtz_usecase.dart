@@ -1,147 +1,42 @@
 import 'dart:io';
-import 'package:archive/archive_io.dart';
-import '../../core/constants/path_constants.dart';
-import '../../core/errors/failures.dart';
-import 'export_system_modules_usecase.dart';
 
-/// Packs the theme folder into a .mtz (zip) file.
+import 'package:theme_core/theme_core.dart';
+
+/// Packs the theme folder into a `.mtz`.
 ///
-/// Structure inside the .mtz:
-///   description.xml
-///   plugin_config.xml
-///   wallpaper/          (directory)
-///   icons               (zipped sub-module)
-///   clock_2x4           (zipped sub-module)
-///   lockscreen          (zipped sub-module)
-///
-/// Each module sub-directory is zipped separately (without its folder name
-/// at the root of the zip) to match the MIUI theme engine expectation.
-///
-/// When [dualVersion] is true, two MTZ files are produced:
-///   - themeName_HyperOS1.mtz  → description.xml with uiVersion=15
-///   - themeName_HyperOS3.mtz  → description.xml with uiVersion=17
+/// With [dualVersion] it also builds a HyperOS 1 variant, a legacy option the
+/// HyperOS 3 build in theme_core doesn't know about:
+///   - `<name>_V1.mtz` with uiVersion 15
+///   - `<name>_V3.mtz` with uiVersion 17
 class ExportMtzUseCase {
   const ExportMtzUseCase();
 
-  static const List<String> _modules = [
-    'icons',
-    'clock_2x4',
-    'lockscreen',
-    'miui.systemui.plugin',
-    'com.android.systemui',
-    'com.android.contacts',
-    'com.android.mms',
-    'com.android.settings',
-  ];
+  static const _packager = MtzPackager();
 
   Future<(String?, Failure?)> call({
-    required String themePath,
+    required ThemeLayout layout,
     required String themeName,
     bool dualVersion = false,
   }) async {
-    final hasSystemModules = ExportSystemModulesUseCase.modules.any(
-      (m) => Directory(PathConstants.p('$themePath$m')).existsSync(),
-    );
-    if (hasSystemModules) {
-      final missing = ExportSystemModulesUseCase.missingOutputs(themePath);
-      if (missing.isNotEmpty) {
-        return (
-          null,
-          ExportFailure(
-            'Theme export is incomplete (missing ${missing.first}). '
-            'Run Export again and fix its error before building the MTZ.',
-          ),
-        );
-      }
+    if (!dualVersion) {
+      return _packager.pack(layout: layout, name: themeName);
     }
-    if (dualVersion) {
-      return _exportDual(themePath, themeName);
+
+    final descFile = File(layout.descriptionXml);
+    final original = descFile.existsSync()
+        ? await descFile.readAsString()
+        : null;
+    for (final (suffix, uiVersion) in const [('_V1', '15'), ('_V3', '17')]) {
+      final (_, failure) = await _packager.pack(
+        layout: layout,
+        name: '$themeName$suffix',
+        descriptionXml: original?.replaceFirst(
+          RegExp(r'<uiVersion>[^<]*</uiVersion>'),
+          '<uiVersion>$uiVersion</uiVersion>',
+        ),
+      );
+      if (failure != null) return (null, failure);
     }
-    return _exportSingle(themePath, themeName, null);
-  }
-
-  // ── Dual version export ────────────────────────────────────────────────────
-
-  Future<(String?, Failure?)> _exportDual(
-      String themePath, String themeName) async {
-    final (_, f1) =
-        await _exportSingle(themePath, '${themeName}_V1', '15');
-    if (f1 != null) return (null, f1);
-
-    final (path2, f2) =
-        await _exportSingle(themePath, '${themeName}_V3', '17');
-    if (f2 != null) return (null, f2);
-
-    final parentDir = Directory(themePath).parent.path;
-    return (parentDir, null);
-  }
-
-  // ── Single version export ──────────────────────────────────────────────────
-
-  Future<(String?, Failure?)> _exportSingle(
-    String themePath,
-    String themeName,
-    String? overrideUiVersion,
-  ) async {
-    final parentDir = Directory(themePath).parent.path;
-    final mtzPath =
-        PathConstants.p('$parentDir${PathConstants.sep}$themeName.mtz');
-    final tempDir = PathConstants.p('${themePath}temp${PathConstants.sep}');
-
-    ZipFileEncoder? encoder;
-    try {
-      await Directory(tempDir).create(recursive: true);
-      encoder = ZipFileEncoder()..create(mtzPath);
-
-      // description.xml — optionally with overridden uiVersion
-      final descFile = File(PathConstants.p('${themePath}description.xml'));
-      if (descFile.existsSync()) {
-        if (overrideUiVersion != null) {
-          final original = await descFile.readAsString();
-          final modified = original.replaceFirst(
-            RegExp(r'<uiVersion>[^<]*</uiVersion>'),
-            '<uiVersion>$overrideUiVersion</uiVersion>',
-          );
-          final tempDescPath =
-              PathConstants.p('${tempDir}description.xml');
-          await File(tempDescPath).writeAsString(modified);
-          encoder.addFile(File(tempDescPath));
-        } else {
-          encoder.addFile(descFile);
-        }
-      }
-
-      // plugin_config.xml
-      final pluginFile =
-          File(PathConstants.p('${themePath}plugin_config.xml'));
-      if (pluginFile.existsSync()) encoder.addFile(pluginFile);
-
-      // Wallpaper directory (flat — no sub-zip)
-      final wallDir = Directory(PathConstants.wallpaperDir(themePath));
-      if (wallDir.existsSync()) encoder.addDirectory(wallDir);
-
-      // Each module → zipped into temp/ then added to main zip
-      for (final mod in _modules) {
-        final modDir = Directory(PathConstants.p('$themePath$mod'));
-        if (!modDir.existsSync()) continue;
-
-        final subZipPath = PathConstants.p('$tempDir$mod');
-        final subEnc = ZipFileEncoder()..create(subZipPath);
-        await subEnc.addDirectory(modDir, includeDirName: false);
-        subEnc.close();
-        await encoder.addFile(File(subZipPath));
-      }
-
-      await encoder.close();
-      encoder = null;
-
-      // Clean up temp
-      await Directory(tempDir).delete(recursive: true);
-
-      return (mtzPath, null);
-    } catch (e) {
-      encoder?.close();
-      return (null, ExportFailure(e.toString()));
-    }
+    return (layout.parentDir, null);
   }
 }

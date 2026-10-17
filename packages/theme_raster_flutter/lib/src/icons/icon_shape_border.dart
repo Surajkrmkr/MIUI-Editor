@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../domain/entities/icon_shape.dart';
+import 'package:theme_core/theme_core.dart' show IconShape;
 import 'icon_shape_utils.dart';
 
 /// [ShapeBorder] adapter over [IconShapeUtils.path] for decorations.

@@ -5,15 +5,10 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FontLoader;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:miui_icon_generator/theme_editor/core/utils/nine_patch_png.dart';
+import 'package:theme_core/theme_core.dart';
 import 'package:miui_icon_generator/theme_editor/core/utils/wallpaper_palette.dart';
-import 'package:miui_icon_generator/theme_editor/domain/entities/control_center_template.dart';
 import 'package:miui_icon_generator/theme_editor/presentation/features/icon_editor/utils/control_center_painter.dart';
-import 'package:miui_icon_generator/theme_editor/domain/entities/icon_shape.dart';
-import 'package:miui_icon_generator/theme_editor/domain/entities/icon_effect.dart';
-import 'package:miui_icon_generator/theme_editor/domain/entities/icon_texture.dart';
 import 'package:miui_icon_generator/theme_editor/domain/usecases/export_system_modules_usecase.dart';
-import 'package:miui_icon_generator/theme_editor/presentation/providers/icon_editor_provider.dart';
 import 'package:xml/xml.dart';
 
 /// Loads the Material Icons font so glyph-based drawables render in tests.
@@ -130,14 +125,14 @@ void main() {
 
         final failure = await const ExportSystemModulesUseCase().call(
           accent: _accent,
-          themePath: '${root.path}/',
+          layout: ThemeLayout(root.path),
           wallpaperSourcePath: wall,
-          style: const IconEditorState(
+          style: const IconStyle(
             shape: IconShape.cookie7,
             effect: IconEffect.liquidGlass,
             texture: IconTexture.grain,
-            bgColor: Color(0xff3d7bff),
-            bgColor2: Color(0xff8a5cff),
+            bgColor: Rgba(0xff3d7bff),
+            bgColor2: Rgba(0xff8a5cff),
           ),
           iconFolder: 'u10',
         );

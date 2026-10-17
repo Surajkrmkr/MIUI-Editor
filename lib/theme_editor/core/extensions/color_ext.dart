@@ -1,24 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:theme_core/theme_core.dart';
+import 'core_value_adapters.dart';
 
 extension ColorX on Color {
-  String toHex({bool withAlpha = false}) {
-    final rr = (r * 255).round().toRadixString(16).padLeft(2, '0');
-    final gg = (g * 255).round().toRadixString(16).padLeft(2, '0');
-    final bb = (b * 255).round().toRadixString(16).padLeft(2, '0');
-    if (withAlpha) {
-      final aa = (a * 255).round().toRadixString(16).padLeft(2, '0');
-      return '#$aa$rr$gg$bb'.toUpperCase();
-    }
-    return '#$rr$gg$bb'.toUpperCase();
-  }
+  String toHex({bool withAlpha = false}) =>
+      toRgba().toHex(withAlpha: withAlpha);
 
-  String toMamlHex() =>
-      '#FF${(r * 255).round().toRadixString(16).padLeft(2, '0')}'
-      '${(g * 255).round().toRadixString(16).padLeft(2, '0')}'
-      '${(b * 255).round().toRadixString(16).padLeft(2, '0')}'.toUpperCase();
+  String toMamlHex() => toRgba().toMamlHex();
 
-  static Color fromHex(String hex) {
-    final clean = hex.replaceAll('#', '');
-    return Color(int.parse(clean.length == 6 ? 'FF$clean' : clean, radix: 16));
-  }
+  static Color fromHex(String hex) => Rgba.fromHex(hex).toColor();
 }

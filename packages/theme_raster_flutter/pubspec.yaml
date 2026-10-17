@@ -1,0 +1,20 @@
+name: theme_raster_flutter
+description: Renders theme images (icons, system drawables, lockscreen frames) with dart:ui.
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_svg: ^2.2.4
+  intl: ^0.19.0
+  path: ^1.8.3
+  screenshot: ^3.0.0
+  theme_core: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

@@ -2,8 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:miui_icon_generator/theme_editor/domain/entities/icon_effect.dart';
-import 'package:miui_icon_generator/theme_editor/domain/entities/icon_texture.dart';
+import 'package:theme_core/theme_core.dart' show IconEffect, IconTexture;
 
 /// Paints textures and effects clipped to an icon's background [ui.Path].
 ///

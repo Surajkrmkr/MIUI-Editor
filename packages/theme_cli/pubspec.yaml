@@ -1,0 +1,19 @@
+name: theme_cli
+description: Command-line tool for validating, building and previewing MIUI/HyperOS themes.
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  args: ^2.5.0
+  image: ^4.8.0
+  path: ^1.8.3
+  theme_core: any
+
+dev_dependencies:
+  test: ^1.25.0
+
+executables:
+  theme:

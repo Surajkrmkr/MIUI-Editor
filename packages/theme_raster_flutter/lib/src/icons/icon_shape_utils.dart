@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../../../../domain/entities/icon_shape.dart';
+import 'package:theme_core/theme_core.dart' show IconShape;
 import 'icon_shape_border.dart';
 
 /// Builds every [IconShape] as a single closed [Path] fitted to any rect.

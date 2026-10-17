@@ -2,38 +2,38 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:path/path.dart' as pth;
 import 'package:screenshot/screenshot.dart';
-import '../../core/constants/app_constants.dart';
-import '../../core/constants/asset_paths.dart';
-import '../../core/constants/path_constants.dart';
-import '../../core/errors/failures.dart';
-import '../../core/utils/font_utils.dart';
-import '../../domain/entities/element_widget.dart';
-import '../../presentation/common/widgets/gradient_text.dart';
-import '../../presentation/features/lockscreen/widgets/unlock_skin_art.dart';
-import '../../presentation/features/lockscreen/widgets/analog_clock_art.dart';
-import '../../presentation/features/lockscreen/widgets/shortcut_set_art.dart';
-import '../../presentation/features/lockscreen/widgets/calendar_style_art.dart';
-import '../../presentation/providers/element_provider.dart';
+import 'package:theme_core/theme_core.dart';
+import 'package:theme_core/lockscreen_layout.dart' show AnalogClockType;
 
-class ExportLockscreenPngsUseCase {
-  const ExportLockscreenPngsUseCase({this.batchSize = 8});
+import 'art/analog_clock_art.dart';
+import 'art/calendar_style_art.dart';
+import 'art/shortcut_set_art.dart';
+import 'art/unlock_skin_art.dart';
+import 'font_text_style.dart';
+import 'gradient_text.dart';
+import 'lock_element.dart';
+
+class LockscreenFrameRenderer {
+  const LockscreenFrameRenderer({this.batchSize = 8});
 
   /// Number of frames captured in parallel per batch.
   /// 8 is a safe default for desktop — increase to 12-16 on fast machines.
   final int batchSize;
 
-  Future<Failure?> call({
+  Future<Failure?> render({
     required BuildContext context,
-    required ElementState elementState,
-    required String themePath,
+    required List<LockElement> elements,
+    required ThemeLayout layout,
     required void Function(int done, int total) onProgress,
   }) async {
     try {
-      final lsAdv = PathConstants.lockscreenAdvance(themePath);
-      final exportable = elementState.elements
+      final lsAdv = '${layout.lockscreenAdvance}${pth.separator}';
+      final exportable = elements
           .where(
             (e) =>
                 e.isVisible &&
@@ -91,12 +91,12 @@ class ExportLockscreenPngsUseCase {
   // ── Build frame list for a single element ─────────────────────────────────
 
   List<_Frame> _framesFor(LockElement el, String lsAdv) {
-    String dir(String sub) => PathConstants.p('$lsAdv$sub${PathConstants.sep}');
+    String dir(String sub) => '$lsAdv$sub${pth.separator}';
 
     if (el.type.defaultIconAsset case final asset?) {
       final relative = (el.path.isEmpty ? el.type.defaultPath : el.path)
           .replaceAll(r'\', '/');
-      final path = PathConstants.p(
+      final path = pth.normalize(
         '$lsAdv${relative.startsWith('/') ? relative.substring(1) : relative}.png',
       );
       if (File(path).existsSync()) return [];
@@ -124,7 +124,7 @@ class ExportLockscreenPngsUseCase {
                   textDirection: TextDirection.ltr,
                   child: part.value,
                 ),
-                path: PathConstants.p(
+                path: pth.normalize(
                   '${dir("unlock")}${el.name}${part.key}.png',
                 ),
               ),
@@ -162,7 +162,7 @@ class ExportLockscreenPngsUseCase {
                       ),
               ),
             ),
-            path: PathConstants.p('${dir("unlock")}${el.name}.png'),
+            path: pth.normalize('${dir("unlock")}${el.name}.png'),
           ),
         ];
       case ElementType.hourClock:
@@ -173,7 +173,7 @@ class ExportLockscreenPngsUseCase {
               el,
               _clockText(el, i.toString().padLeft(2, '0')),
             ),
-            path: PathConstants.p('${dir("hour")}hour_$i.png'),
+            path: pth.normalize('${dir("hour")}hour_$i.png'),
           ),
         );
 
@@ -185,7 +185,7 @@ class ExportLockscreenPngsUseCase {
               el,
               _clockText(el, i.toString().padLeft(2, '0')),
             ),
-            path: PathConstants.p('${dir("min")}min_$i.png'),
+            path: pth.normalize('${dir("min")}min_$i.png'),
           ),
         );
 
@@ -197,7 +197,7 @@ class ExportLockscreenPngsUseCase {
               el,
               _clockText(el, i.toString().padLeft(2, '0')),
             ),
-            path: PathConstants.p('${dir("sec")}sec_$i.png'),
+            path: pth.normalize('${dir("sec")}sec_$i.png'),
           ),
         );
 
@@ -205,7 +205,7 @@ class ExportLockscreenPngsUseCase {
         return [
           _Frame(
             widget: _phoneFrame(el, _clockText(el, ':')),
-            path: PathConstants.p('${dir("dot")}dot.png'),
+            path: pth.normalize('${dir("dot")}dot.png'),
           ),
         ];
 
@@ -213,7 +213,7 @@ class ExportLockscreenPngsUseCase {
         return [
           _Frame(
             widget: _phoneFrame(el, _clockText(el, ':')),
-            path: PathConstants.p('${dir("dot")}dot2.png'),
+            path: pth.normalize('${dir("dot")}dot2.png'),
           ),
         ];
 
@@ -222,7 +222,7 @@ class ExportLockscreenPngsUseCase {
           2,
           (i) => _Frame(
             widget: _phoneFrame(el, _clockText(el, i == 0 ? 'AM' : 'PM')),
-            path: PathConstants.p('${dir("ampm")}ampm_$i.png'),
+            path: pth.normalize('${dir("ampm")}ampm_$i.png'),
           ),
         );
 
@@ -236,7 +236,7 @@ class ExportLockscreenPngsUseCase {
               : raw;
           return _Frame(
             widget: _phoneFrame(el, _clockText(el, txt)),
-            path: PathConstants.p('${dir("week")}week_$i.png'),
+            path: pth.normalize('${dir("week")}week_$i.png'),
           );
         });
 
@@ -248,7 +248,7 @@ class ExportLockscreenPngsUseCase {
               el,
               _clockText(el, el.isShort ? raw.substring(0, 3) : raw),
             ),
-            path: PathConstants.p('${dir("month")}month_${i + 1}.png'),
+            path: pth.normalize('${dir("month")}month_${i + 1}.png'),
           );
         });
 
@@ -260,7 +260,7 @@ class ExportLockscreenPngsUseCase {
               el,
               _clockText(el, (i + 1).toString().padLeft(2, '0')),
             ),
-            path: PathConstants.p('${dir("date")}date_${i + 1}.png'),
+            path: pth.normalize('${dir("date")}date_${i + 1}.png'),
           ),
         );
 
@@ -276,7 +276,7 @@ class ExportLockscreenPngsUseCase {
                     fit: BoxFit.contain,
                   ),
                 ),
-                path: PathConstants.p('${dir("weather")}weather_$code.png'),
+                path: pth.normalize('${dir("weather")}weather_$code.png'),
               ),
             )
             .toList();
@@ -290,7 +290,7 @@ class ExportLockscreenPngsUseCase {
                 textDirection: TextDirection.ltr,
                 child: CalendarStyleArt.exportPanel(el),
               ),
-              path: PathConstants.p('${dir("calendar")}${el.name}_panel.png'),
+              path: pth.normalize('${dir("calendar")}${el.name}_panel.png'),
             ),
           ];
         }
@@ -302,7 +302,7 @@ class ExportLockscreenPngsUseCase {
                   textDirection: TextDirection.ltr,
                   child: part.value,
                 ),
-                path: PathConstants.p(
+                path: pth.normalize(
                   '${dir("shortcut")}${el.name}${part.key}.png',
                 ),
               ),
@@ -316,7 +316,7 @@ class ExportLockscreenPngsUseCase {
                   textDirection: TextDirection.ltr,
                   child: AnalogClockArt.part(el, part, el.width / 3),
                 ),
-                path: PathConstants.p(
+                path: pth.normalize(
                   '${dir("analog")}${el.name}${AnalogClockArt.suffix(el, part)}.png',
                 ),
               ),
@@ -327,7 +327,7 @@ class ExportLockscreenPngsUseCase {
           return [
             _Frame(
               widget: _phoneFrame(el, _containerWidget(el)),
-              path: PathConstants.p('${dir("container")}${el.name}.png'),
+              path: pth.normalize('${dir("container")}${el.name}.png'),
             ),
           ];
         }
@@ -342,8 +342,8 @@ class ExportLockscreenPngsUseCase {
     return Directionality(
       textDirection: TextDirection.ltr,
       child: SizedBox(
-        height: AppConstants.screenHeight,
-        width: AppConstants.screenWidth,
+        height: lockscreenViewHeight,
+        width: lockscreenViewWidth,
         // Transparent background — MIUI composites layers itself
         child: Stack(
           children: [
@@ -357,8 +357,8 @@ class ExportLockscreenPngsUseCase {
                 child: Transform.rotate(
                   angle: -el.angle * pi / 180,
                   child: SizedBox(
-                    height: AppConstants.screenHeight,
-                    width: AppConstants.screenWidth,
+                    height: lockscreenViewHeight,
+                    width: lockscreenViewWidth,
                     child: Align(alignment: el.align, child: child),
                   ),
                 ),

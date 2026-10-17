@@ -1,101 +1,42 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_constants.dart';
-import '../../../../domain/entities/element_widget.dart';
+import 'package:theme_core/theme_core.dart';
+import 'package:theme_core/lockscreen_layout.dart' as core;
+import '../../adapters.dart';
+import '../lock_element.dart';
+import '../lock_element_spec_bridge.dart';
+import '../lockscreen_clock.dart';
 
-/// Geometry of a styled calendar in theme pixels (before `scale`).
+/// Geometry of a styled calendar in theme pixels (before `scale`); the math
+/// lives in theme_core, this adds Flutter types for the painters.
 class CalendarLayout {
-  CalendarLayout.of(this.el)
-    : inner = Rect.fromLTRB(
-        el.width * .04,
-        el.height * .1,
-        el.width * .96,
-        el.height * .9,
-      );
+  CalendarLayout.of(LockElement el)
+    : this._(el, core.CalendarLayout.of(el.toSpec()));
+
+  CalendarLayout._(this.el, this._c) : inner = _c.inner.toRect();
 
   final LockElement el;
+  final core.CalendarLayout _c;
   final Rect inner;
 
-  double get rowH => inner.height / el.calendarDisplayRows;
-  double get colW => inner.width / 7;
-  int? get monthRow => el.calendarShowMonth ? 0 : null;
-  int? get weekdayRow =>
-      el.calendarShowWeekdays ? (el.calendarShowMonth ? 1 : 0) : null;
-  int get firstDateRow => el.calendarDisplayRows - el.calendarWeekRows;
+  double get rowH => _c.rowH;
+  double get colW => _c.colW;
+  int? get monthRow => _c.monthRow;
+  int? get weekdayRow => _c.weekdayRow;
+  int get firstDateRow => _c.firstDateRow;
+  bool get showsDates => _c.showsDates;
+  List<String> get labels => _c.labels;
+  double get panelRadius => _c.panelRadius;
 
-  Rect cell(int row, int col) => Rect.fromLTWH(
-    inner.left + col * colW,
-    inner.top + row * rowH,
-    colW,
-    rowH,
-  );
-
-  bool get showsDates => el.calendarStyle != CalendarStyle.plusCircles;
-
-  /// Weekday labels in column order.
-  List<String> get labels => switch (el.calendarStyle) {
-    CalendarStyle.pillColumn => const [
-      'Sun',
-      'Mon',
-      'Tue',
-      'Wed',
-      'Thu',
-      'Fri',
-      'Sat',
-    ],
-    CalendarStyle.plusCircles => const [
-      'MON',
-      'TUE',
-      'WED',
-      'THU',
-      'FRI',
-      'SAT',
-      'SUN',
-    ],
-    _ => const ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'],
-  };
+  Rect cell(int row, int col) => _c.cell(row, col).toRect();
 
   /// Today's highlight for the date cell at [row]/[col].
-  RRect highlight(int row, int col) {
-    final c = cell(row, col);
-    if (el.calendarStyle == CalendarStyle.pillColumn &&
-        el.calendarWeekRows == 1 &&
-        weekdayRow != null) {
-      final top = cell(weekdayRow!, col).top - rowH * .12;
-      final r = Rect.fromLTRB(
-        c.left + colW * .14,
-        top,
-        c.right - colW * .14,
-        c.bottom + rowH * .12,
-      );
-      return RRect.fromRectAndRadius(r, Radius.circular(r.width / 2));
-    }
-    final r = Rect.fromCenter(
-      center: c.center,
-      width: min(colW * .72, rowH * 1.05),
-      height: rowH * .82,
-    );
-    return RRect.fromRectAndRadius(r, Radius.circular(r.height * .45));
-  }
+  RRect highlight(int row, int col) => _c.highlight(row, col).toRRect();
 
-  double get panelRadius => min(
-    el.height *
-        switch (el.calendarStyle) {
-          CalendarStyle.pillColumn => .16,
-          CalendarStyle.plusCircles => .14,
-          _ => .3,
-        },
-    el.width * .08,
-  );
-
-  Color labelColor(int col) =>
-      el.calendarStyle == CalendarStyle.stripHeader && (col == 0 || col == 6)
-      ? el.strokeColor
-      : el.color;
+  Color labelColor(int col) => _c.labelColor(col).toColor();
 
   /// Text colour of today's date on top of the highlight.
-  Color get todayText =>
-      el.calendarStyle == CalendarStyle.stripHeader ? el.borderColor : el.color;
+  Color get todayText => _c.todayText.toColor();
 }
 
 /// Static background (panel, header strip, circles) exported as one PNG.
@@ -127,10 +68,10 @@ class CalendarStylePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const k = 1 / AppConstants.screenRatio;
+    const k = 1 / lockscreenScreenRatio;
     final el = element;
     final l = CalendarLayout.of(el);
-    final now = DateTime.now();
+    final now = lockscreenNow();
     final dates = el.calendarDates(now);
     TextStyle style(Color color) => TextStyle(
       color: color,

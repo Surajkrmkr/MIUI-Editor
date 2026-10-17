@@ -4,6 +4,7 @@ import 'package:miui_icon_generator/core/theme/app_radius.dart';
 import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import '../../../providers/export_provider.dart';
 import '../../../providers/lockscreen_provider.dart';
+import '../../../providers/spec_provider.dart';
 import '../../../providers/workspace_provider.dart';
 
 class ExportButtons extends ConsumerWidget {
@@ -64,7 +65,7 @@ class ExportButtons extends ConsumerWidget {
                   loading: exportState.isRunning,
                   isSuccess: exportState.isExported,
                   onPressed: () =>
-                      ref.read(exportProvider.notifier).exportAll(context),
+                      ref.read(exportProvider.notifier).exportAll(),
                 ),
               ),
               const SizedBox(width: 10),
@@ -79,6 +80,16 @@ class ExportButtons extends ConsumerWidget {
                 ),
               ),
             ],
+          ),
+
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () => _saveSpec(context, ref),
+              icon: const Icon(Icons.data_object_rounded, size: 16),
+              label: const Text('Save theme spec'),
+            ),
           ),
 
           // Progress bar (Global for the section)
@@ -118,6 +129,20 @@ class ExportButtons extends ConsumerWidget {
               ),
           ],
         ],
+      ),
+    );
+  }
+
+  Future<void> _saveSpec(BuildContext context, WidgetRef ref) async {
+    final (path, failure) = await ref.read(themeSpecSaverProvider)();
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          failure == null
+              ? 'Saved spec: $path'
+              : 'Spec not saved: ${failure.message}',
+        ),
       ),
     );
   }

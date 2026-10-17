@@ -1,0 +1,17 @@
+{
+  "servers": {
+    "theme-cli": {
+      "type": "stdio",
+      "command": "dart",
+      "args": [
+        "/Users/surajkrmkr/Github/miui_editor/packages/theme_cli/bin/theme.dart",
+        "mcp"
+      ],
+      "env": {
+        "THEME_ROOT": "/Users/surajkrmkr/Storage/Xiaomi Contract",
+        "THEME_FONTS_DIR": "/Users/surajkrmkr/Github/font-api/fonts",
+        "FLUTTER": "/Users/surajkrmkr/Dev/flutter/bin/flutter"
+      }
+    }
+  }
+}

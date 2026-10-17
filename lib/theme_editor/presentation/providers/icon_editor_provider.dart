@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:theme_core/theme_core.dart' show IconStyle;
 
+import '../../core/extensions/core_value_adapters.dart';
 import '../../domain/entities/control_center_template.dart';
 import '../../domain/entities/icon_effect.dart';
 import '../../domain/entities/icon_shape.dart';
@@ -14,8 +16,9 @@ final iconAssetsProvider = FutureProvider<List<String>>((ref) async {
   final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
   final names = manifest
       .listAssets()
-      .where((k) =>
-          k.startsWith('assets/icons/$iconFolder/') && k.endsWith('.svg'))
+      .where(
+        (k) => k.startsWith('assets/icons/$iconFolder/') && k.endsWith('.svg'),
+      )
       .map((k) => k.split('/').last.replaceAll('.svg', ''))
       .toList();
   return names;
@@ -67,6 +70,58 @@ class IconEditorState {
   final double textureScale, textureOpacity;
   final ControlCenterTemplate ccTemplate;
 
+  /// Editor state for a style loaded from a spec; export flags start cleared.
+  factory IconEditorState.fromStyle(IconStyle s) => IconEditorState(
+    margin: s.margin,
+    padding: s.padding,
+    radius: s.radius,
+    borderWidth: s.borderWidth,
+    bgColor: s.bgColor.toColor(),
+    bgColor2: s.bgColor2.toColor(),
+    bgGradStart: s.bgGradStart.toAlignment(),
+    bgGradEnd: s.bgGradEnd.toAlignment(),
+    bgColors: [for (final c in s.bgColors) c.toColor()],
+    randomColors: s.randomColors,
+    iconColor: s.iconColor.toColor(),
+    borderColor: s.borderColor.toColor(),
+    accentColor: s.accent.toColor(),
+    shape: s.shape,
+    effect: s.effect,
+    effectIntensity: s.effectIntensity,
+    effectBlur: s.effectBlur,
+    effectElevation: s.effectElevation,
+    texture: s.texture,
+    textureScale: s.textureScale,
+    textureOpacity: s.textureOpacity,
+    ccTemplate: s.ccTemplate,
+  );
+
+  /// The part of the editor state that affects exported drawables.
+  IconStyle toStyle() => IconStyle(
+    margin: margin,
+    padding: padding,
+    radius: radius,
+    borderWidth: borderWidth,
+    bgColor: bgColor.toRgba(),
+    bgColor2: bgColor2.toRgba(),
+    bgGradStart: bgGradStart.toAlignment2(),
+    bgGradEnd: bgGradEnd.toAlignment2(),
+    bgColors: [for (final c in bgColors) c.toRgba()],
+    randomColors: randomColors,
+    iconColor: iconColor.toRgba(),
+    borderColor: borderColor.toRgba(),
+    accent: accentColor.toRgba(),
+    shape: shape,
+    effect: effect,
+    effectIntensity: effectIntensity,
+    effectBlur: effectBlur,
+    effectElevation: effectElevation,
+    texture: texture,
+    textureScale: textureScale,
+    textureOpacity: textureOpacity,
+    ccTemplate: ccTemplate,
+  );
+
   IconEditorState copyWith({
     double? margin,
     double? padding,
@@ -95,36 +150,35 @@ class IconEditorState {
     double? textureScale,
     double? textureOpacity,
     ControlCenterTemplate? ccTemplate,
-  }) =>
-      IconEditorState(
-        margin: margin ?? this.margin,
-        padding: padding ?? this.padding,
-        radius: radius ?? this.radius,
-        borderWidth: borderWidth ?? this.borderWidth,
-        bgColor: bgColor ?? this.bgColor,
-        bgColor2: bgColor2 ?? this.bgColor2,
-        iconColor: iconColor ?? this.iconColor,
-        borderColor: borderColor ?? this.borderColor,
-        accentColor: accentColor ?? this.accentColor,
-        bgGradStart: bgGradStart ?? this.bgGradStart,
-        bgGradEnd: bgGradEnd ?? this.bgGradEnd,
-        bgColors: bgColors ?? this.bgColors,
-        randomColors: randomColors ?? this.randomColors,
-        beforeVectorPath: beforeVectorPath ?? this.beforeVectorPath,
-        afterVectorPath: afterVectorPath ?? this.afterVectorPath,
-        isExporting: isExporting ?? this.isExporting,
-        isExported: isExported ?? this.isExported,
-        exportProgress: exportProgress ?? this.exportProgress,
-        shape: shape ?? this.shape,
-        effect: effect ?? this.effect,
-        texture: texture ?? this.texture,
-        effectIntensity: effectIntensity ?? this.effectIntensity,
-        effectBlur: effectBlur ?? this.effectBlur,
-        effectElevation: effectElevation ?? this.effectElevation,
-        textureScale: textureScale ?? this.textureScale,
-        textureOpacity: textureOpacity ?? this.textureOpacity,
-        ccTemplate: ccTemplate ?? this.ccTemplate,
-      );
+  }) => IconEditorState(
+    margin: margin ?? this.margin,
+    padding: padding ?? this.padding,
+    radius: radius ?? this.radius,
+    borderWidth: borderWidth ?? this.borderWidth,
+    bgColor: bgColor ?? this.bgColor,
+    bgColor2: bgColor2 ?? this.bgColor2,
+    iconColor: iconColor ?? this.iconColor,
+    borderColor: borderColor ?? this.borderColor,
+    accentColor: accentColor ?? this.accentColor,
+    bgGradStart: bgGradStart ?? this.bgGradStart,
+    bgGradEnd: bgGradEnd ?? this.bgGradEnd,
+    bgColors: bgColors ?? this.bgColors,
+    randomColors: randomColors ?? this.randomColors,
+    beforeVectorPath: beforeVectorPath ?? this.beforeVectorPath,
+    afterVectorPath: afterVectorPath ?? this.afterVectorPath,
+    isExporting: isExporting ?? this.isExporting,
+    isExported: isExported ?? this.isExported,
+    exportProgress: exportProgress ?? this.exportProgress,
+    shape: shape ?? this.shape,
+    effect: effect ?? this.effect,
+    texture: texture ?? this.texture,
+    effectIntensity: effectIntensity ?? this.effectIntensity,
+    effectBlur: effectBlur ?? this.effectBlur,
+    effectElevation: effectElevation ?? this.effectElevation,
+    textureScale: textureScale ?? this.textureScale,
+    textureOpacity: textureOpacity ?? this.textureOpacity,
+    ccTemplate: ccTemplate ?? this.ccTemplate,
+  );
 }
 
 class IconEditorNotifier extends Notifier<IconEditorState> {
@@ -153,11 +207,16 @@ class IconEditorNotifier extends Notifier<IconEditorState> {
   void setIconTexture(IconTexture t) => state = state.copyWith(texture: t);
   void setCcTemplate(ControlCenterTemplate t) =>
       state = state.copyWith(ccTemplate: t);
-  void setEffectIntensity(double v) => state = state.copyWith(effectIntensity: v);
+  void setEffectIntensity(double v) =>
+      state = state.copyWith(effectIntensity: v);
   void setEffectBlur(double v) => state = state.copyWith(effectBlur: v);
-  void setEffectElevation(double v) => state = state.copyWith(effectElevation: v);
+  void setEffectElevation(double v) =>
+      state = state.copyWith(effectElevation: v);
   void setTextureScale(double v) => state = state.copyWith(textureScale: v);
   void setTextureOpacity(double v) => state = state.copyWith(textureOpacity: v);
+
+  /// Replaces every style setting, e.g. with the style a spec describes.
+  void loadStyle(IconStyle style) => state = IconEditorState.fromStyle(style);
 
   void setExporting(bool v) => state = state.copyWith(isExporting: v);
   void setExported(bool v) => state = state.copyWith(isExported: v);
@@ -166,4 +225,5 @@ class IconEditorNotifier extends Notifier<IconEditorState> {
 
 final iconEditorProvider =
     NotifierProvider<IconEditorNotifier, IconEditorState>(
-        IconEditorNotifier.new);
+      IconEditorNotifier.new,
+    );
