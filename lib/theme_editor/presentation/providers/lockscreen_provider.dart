@@ -1317,7 +1317,8 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       final image =
           "<Image src='${src}_$i.png' x='${n(-inset)}' y='${n(-inset)}' w='${n(t.width + inset * 2)}' h='${n(t.height + inset * 2)}'/>";
       buffer.write(
-        "<Button name='${el.name}_$i' x='${n(t.left)}' y='${n(t.top)}' w='${n(t.width)}' h='${n(t.height)}'>"
+        // alignChildren makes the image coordinates relative to this button.
+        "<Button name='${el.name}_$i' x='${n(t.left)}' y='${n(t.top)}' w='${n(t.width)}' h='${n(t.height)}' alignChildren='true'>"
         '<Normal>$image</Normal>'
         "<Pressed><Group alpha='170'>$image</Group></Pressed>"
         "<Triggers><Trigger action='up'>$action</Trigger></Triggers></Button>",
@@ -1528,7 +1529,7 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
     ElementType.themeIcon: [
       'icon/theme',
       'com.android.thememanager',
-      'com.android.thememanager.ThemeResourceProxyTabActivity',
+      'com.android.thememanager.ThemeResourceTabActivity',
     ],
     ElementType.settingIcon: [
       'icon/setting',
@@ -1608,8 +1609,8 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
     ],
     ElementType.browserIcon: [
       'icon/browser',
-      'com.android.browser',
-      'com.android.browser.BrowserActivity',
+      'com.mi.globalbrowser',
+      'com.mi.globalbrowser.Main',
     ],
     ElementType.calculatorIcon: [
       'icon/calculator',
