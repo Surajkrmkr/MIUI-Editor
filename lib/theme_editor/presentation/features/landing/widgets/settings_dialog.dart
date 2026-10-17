@@ -34,25 +34,33 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
     super.initState();
     final s = ref.read(wallpaperProvider);
     final prefs = ref.read(sharedPrefsProvider);
-    final settings =
-        ThemeSettings.decode(prefs.getString('themeSettings') ?? '{}');
+    final settings = ThemeSettings.decode(
+      prefs.getString('themeSettings') ?? '{}',
+    );
 
-    _countCtrl     = TextEditingController(text: s.themeCount.toString());
-    _basePathCtrl  = TextEditingController(
-        text: settings.basePath ?? PathConstants.customBasePath);
-    _designerCtrl  = TextEditingController(text: s.designerName);
+    _countCtrl = TextEditingController(text: s.themeCount.toString());
+    _basePathCtrl = TextEditingController(
+      text: settings.basePath ?? PathConstants.customBasePath,
+    );
+    _designerCtrl = TextEditingController(text: s.designerName);
     _authorTagCtrl = TextEditingController(text: s.authorTag);
     _uiVersionCtrl = TextEditingController(text: s.uiVersion);
     _geminiKeyCtrl = TextEditingController(
-        text: prefs.getString(AppConstants.prefsGeminiKey) ?? '');
+      text: prefs.getString(AppConstants.prefsGeminiKey) ?? '',
+    );
     _groqKeyCtrl = TextEditingController(
-        text: prefs.getString(AppConstants.prefsGroqKey) ?? '');
+      text: prefs.getString(AppConstants.prefsGroqKey) ?? '',
+    );
     _ollamaHostCtrl = TextEditingController(
-        text: prefs.getString(AppConstants.prefsOllamaHost) ??
-            AppConstants.ollamaDefaultHost);
+      text:
+          prefs.getString(AppConstants.prefsOllamaHost) ??
+          AppConstants.ollamaDefaultHost,
+    );
     _ollamaModelCtrl = TextEditingController(
-        text: prefs.getString(AppConstants.prefsOllamaModel) ??
-            AppConstants.ollamaDefaultModel);
+      text:
+          prefs.getString(AppConstants.prefsOllamaModel) ??
+          AppConstants.ollamaDefaultModel,
+    );
   }
 
   @override
@@ -70,7 +78,9 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
   }
 
   void _saveProvider(AiProvider p) {
-    ref.read(sharedPrefsProvider).setString(AppConstants.prefsAiProvider, p.name);
+    ref
+        .read(sharedPrefsProvider)
+        .setString(AppConstants.prefsAiProvider, p.name);
     ref.read(aiProviderProvider.notifier).state = p;
   }
 
@@ -100,7 +110,9 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
 
   void _save() {
     final count = int.tryParse(_countCtrl.text);
-    ref.read(wallpaperProvider.notifier).updateSettings(
+    ref
+        .read(wallpaperProvider.notifier)
+        .updateSettings(
           themeCount: count != null && count > 0 ? count : null,
           basePath: _basePathCtrl.text.trim(),
           designerName: _designerCtrl.text.trim(),
@@ -127,19 +139,22 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
               decoration: BoxDecoration(
                 color: cs.primary.withAlpha(20),
                 borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(AppRadius.xl)),
-                border:
-                    Border(bottom: BorderSide(color: cs.outline.withAlpha(40))),
+                  top: Radius.circular(AppRadius.xl),
+                ),
+                border: Border(
+                  bottom: BorderSide(color: cs.outline.withAlpha(40)),
+                ),
               ),
               child: Row(
                 children: [
                   Icon(Icons.tune_rounded, color: cs.primary),
                   const SizedBox(width: 12),
-                  Text('Settings',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(fontWeight: FontWeight.w600)),
+                  Text(
+                    'Settings',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close_rounded),
@@ -219,17 +234,17 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
                             padding: const EdgeInsets.only(right: 8),
                             child: _ProviderChip(
                               label: switch (p) {
-                                AiProvider.groq   => 'Groq',
+                                AiProvider.groq => 'Groq',
                                 AiProvider.gemini => 'Gemini',
                                 AiProvider.ollama => 'Ollama',
                               },
                               subtitle: switch (p) {
-                                AiProvider.groq   => 'Free cloud',
+                                AiProvider.groq => 'Free cloud',
                                 AiProvider.gemini => 'Google AI',
                                 AiProvider.ollama => 'Local / offline',
                               },
                               icon: switch (p) {
-                                AiProvider.groq   => Icons.bolt_rounded,
+                                AiProvider.groq => Icons.bolt_rounded,
                                 AiProvider.gemini => Icons.auto_awesome_rounded,
                                 AiProvider.ollama => Icons.computer_rounded,
                               },
@@ -290,12 +305,14 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
                                         width: 14,
                                         height: 14,
                                         child: CircularProgressIndicator(
-                                            strokeWidth: 2),
+                                          strokeWidth: 2,
+                                        ),
                                       )
                                     : const Icon(Icons.list_rounded, size: 16),
                                 label: const Text('List available models'),
                                 style: TextButton.styleFrom(
-                                    visualDensity: VisualDensity.compact),
+                                  visualDensity: VisualDensity.compact,
+                                ),
                                 onPressed: _loadingModels
                                     ? null
                                     : () async {
@@ -303,22 +320,23 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
                                         try {
                                           final ds = AiRemoteDataSource(
                                             provider: AiProvider.gemini,
-                                            geminiKey:
-                                                _geminiKeyCtrl.text.trim(),
+                                            geminiKey: _geminiKeyCtrl.text
+                                                .trim(),
                                           );
-                                          final models =
-                                              await ds.listGeminiModels();
+                                          final models = await ds
+                                              .listGeminiModels();
                                           setSt(() {
                                             _geminiModels = models;
                                             _loadingModels = false;
                                           });
                                         } catch (e) {
-                                          setSt(
-                                              () => _loadingModels = false);
+                                          setSt(() => _loadingModels = false);
                                           if (context.mounted) {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(SnackBar(
-                                                    content: Text('$e')));
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(content: Text('$e')),
+                                            );
                                           }
                                         }
                                       },
@@ -331,8 +349,9 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: cs.surfaceContainerHighest,
-                                  borderRadius:
-                                      BorderRadius.circular(AppRadius.sm),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.sm,
+                                  ),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -343,17 +362,23 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
                                           .textTheme
                                           .labelSmall
                                           ?.copyWith(
-                                              fontWeight: FontWeight.w600),
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                     ),
                                     const SizedBox(height: 4),
-                                    ..._geminiModels!.map((m) => Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 1),
-                                          child: Text(m,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodySmall),
-                                        )),
+                                    ..._geminiModels!.map(
+                                      (m) => Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 1,
+                                        ),
+                                        child: Text(
+                                          m,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall,
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -425,13 +450,13 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
   }
 
   Widget _sectionLabel(BuildContext context, String text) => Text(
-        text,
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.8,
-            ),
-      );
+    text,
+    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+      color: Theme.of(context).colorScheme.primary,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.8,
+    ),
+  );
 
   Widget _field({
     required TextEditingController controller,
@@ -439,16 +464,15 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
     required String hint,
     required IconData icon,
     required void Function(String) onChanged,
-  }) =>
-      TextField(
-        controller: controller,
-        onChanged: onChanged,
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          prefixIcon: Icon(icon, size: 18),
-        ),
-      );
+  }) => TextField(
+    controller: controller,
+    onChanged: onChanged,
+    decoration: InputDecoration(
+      labelText: label,
+      hintText: hint,
+      prefixIcon: Icon(icon, size: 18),
+    ),
+  );
 }
 
 // ── Reusable AI sub-widgets ───────────────────────────────────────────────────
@@ -476,7 +500,9 @@ class _ProviderChip extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? cs.primary.withAlpha(20) : cs.surfaceContainerHighest,
+          color: selected
+              ? cs.primary.withAlpha(20)
+              : cs.surfaceContainerHighest,
           border: Border.all(
             color: selected ? cs.primary : cs.outline.withAlpha(60),
             width: selected ? 1.5 : 1,
@@ -488,21 +514,28 @@ class _ProviderChip extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, size: 16,
-                    color: selected ? cs.primary : cs.onSurfaceVariant),
+                Icon(
+                  icon,
+                  size: 16,
+                  color: selected ? cs.primary : cs.onSurfaceVariant,
+                ),
                 const SizedBox(width: 6),
-                Text(label,
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: selected ? cs.primary : null,
-                          fontWeight: selected ? FontWeight.w600 : null,
-                        )),
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: selected ? cs.primary : null,
+                    fontWeight: selected ? FontWeight.w600 : null,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 2),
-            Text(subtitle,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: cs.onSurfaceVariant,
-                    )),
+            Text(
+              subtitle,
+              style: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
           ],
         ),
       ),
@@ -511,8 +544,11 @@ class _ProviderChip extends StatelessWidget {
 }
 
 class _AiNote extends StatelessWidget {
-  const _AiNote(
-      {required this.icon, required this.text, this.isWarning = false});
+  const _AiNote({
+    required this.icon,
+    required this.text,
+    this.isWarning = false,
+  });
   final IconData icon;
   final String text;
   final bool isWarning;
@@ -534,11 +570,12 @@ class _AiNote extends StatelessWidget {
           Icon(icon, size: 16, color: color),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(text,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: color)),
+            child: Text(
+              text,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: color),
+            ),
           ),
         ],
       ),
@@ -627,17 +664,20 @@ class _OllamaModelListState extends State<_OllamaModelList> {
                     children: [
                       Text(
                         'Installed models — paste one into the Model field above:',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelSmall
-                            ?.copyWith(fontWeight: FontWeight.w600),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       const SizedBox(height: 4),
-                      ..._models!.map((m) => Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 1),
-                            child: Text(m,
-                                style: Theme.of(context).textTheme.bodySmall),
-                          )),
+                      ..._models!.map(
+                        (m) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 1),
+                          child: Text(
+                            m,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
           ),
@@ -668,22 +708,22 @@ class _ObscuredFieldState extends State<_ObscuredField> {
 
   @override
   Widget build(BuildContext context) => TextField(
-        controller: widget.controller,
-        obscureText: _obscured,
-        onChanged: widget.onChanged,
-        decoration: InputDecoration(
-          labelText: widget.label,
-          hintText: widget.hint,
-          prefixIcon: const Icon(Icons.key_rounded, size: 18),
-          suffixIcon: IconButton(
-            icon: Icon(
-              _obscured ? Icons.visibility_rounded : Icons.visibility_off_rounded,
-              size: 18,
-            ),
-            onPressed: () => setState(() => _obscured = !_obscured),
-          ),
+    controller: widget.controller,
+    obscureText: _obscured,
+    onChanged: widget.onChanged,
+    decoration: InputDecoration(
+      labelText: widget.label,
+      hintText: widget.hint,
+      prefixIcon: const Icon(Icons.key_rounded, size: 18),
+      suffixIcon: IconButton(
+        icon: Icon(
+          _obscured ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+          size: 18,
         ),
-      );
+        onPressed: () => setState(() => _obscured = !_obscured),
+      ),
+    ),
+  );
 }
 
 // ── Theme count stepper ───────────────────────────────────────────────────────
@@ -726,37 +766,42 @@ class _ThemeCountRowState extends State<_ThemeCountRow> {
         ),
         const SizedBox(width: 8),
         _StepButton(
-            icon: Icons.remove_rounded,
-            color: cs.error,
-            onTap: () => _adjust(-1)),
+          icon: Icons.remove_rounded,
+          color: cs.error,
+          onTap: () => _adjust(-1),
+        ),
         const SizedBox(width: 6),
         _StepButton(
-            icon: Icons.add_rounded,
-            color: cs.primary,
-            onTap: () => _adjust(1)),
+          icon: Icons.add_rounded,
+          color: cs.primary,
+          onTap: () => _adjust(1),
+        ),
       ],
     );
   }
 }
 
 class _StepButton extends StatelessWidget {
-  const _StepButton(
-      {required this.icon, required this.color, required this.onTap});
+  const _StepButton({
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) => Material(
-        color: color.withAlpha(20),
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadius.sm),
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Icon(icon, size: 18, color: color),
-          ),
-        ),
-      );
+    color: color.withAlpha(20),
+    borderRadius: BorderRadius.circular(AppRadius.sm),
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.sm),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Icon(icon, size: 18, color: color),
+      ),
+    ),
+  );
 }

@@ -462,7 +462,12 @@ import 'package:miui_icon_generator/widgets/glass_card.dart';
 - Initial supported widgets are Tap to Unlock and Slide to Unlock. To add another widget, extend the domain-supported types and appearance schema, provide its thumbnail renderer in the presentation layer, and add corresponding preview/native-export tests. Repository transport and collection commands remain unchanged. Incompatible changes to the portable contract require a new version and explicit migration.
 - `ElementNotifier.applyStyle` applies one undoable change to the active unlocked layer. Floating layers show frontmost first; drag indices are translated into the underlying back-to-front element list used by native export. Delete, visibility, and lock actions target element IDs.
 - The fingerprint starter is a visual Tap unlock style, not a biometric-authentication implementation.
-- Focused regression coverage: `test/theme_editor/layers_and_styles_test.dart`.
+- Preset thumbnails use the canvas unlock, shortcut, analog, and calendar renderers. Custom unlock icon/target images are bundled under the preset's `assets/` directory and resolved by the preset repository, including for card previews. Legacy absolute paths remain readable.
+- Native slider paths use a screen-width tolerance to avoid canceling fast overshooting gestures; zero anchors and endpoint-constrained movement must remain unchanged.
+- Apply to Device > Theme push path selects either `/sdcard/Download/auto/temp.mtz` (default) or `/sdcard/Android/data/com.android.thememanager/files/temp.mtz`. The persisted selection controls push, verification, and every apply intent, and is disabled during device operations.
+- Calendar widgets and styles support Use Wallpaper Colors for their text, selected date, panel, and strip/circle palette. Outline Width is shown only for renderers that consume it: non-classic unlock skins, Classic/Ring/Crimson Glass/Frosted Glass analog styles, and adjustable-border shortcut panels. Calendar and borderless styles do not expose the slider.
+- Shortcut styles must not substitute another app's identity. Native launches share one builder: system intents resolve phone, SMS, contacts, calendar, and settings; named apps resolve their package's launcher instead of a fixed activity class. Flashlight remains a broadcast without unlocking.
+- Focused regression coverage: `test/theme_editor/lockscreen_regressions_test.dart` and `test/theme_editor/preset_favorites_test.dart`.
 
 ## Maintenance: Module Health Check
 

@@ -14,8 +14,37 @@ import 'service_providers.dart';
 import 'wallpaper_provider.dart';
 
 final adbServiceProvider = Provider<AdbService>(
-  (_) => AdbService(AdbLocator()),
+  (ref) => AdbService(
+    AdbLocator(),
+    destinationPath: ref.watch(adbThemeDestinationProvider).path,
+  ),
 );
+
+class AdbThemeDestinationNotifier extends Notifier<AdbThemeDestination> {
+  static const preferenceKey = 'adb_theme_destination';
+
+  @override
+  AdbThemeDestination build() {
+    final stored = ref.watch(sharedPrefsProvider).getString(preferenceKey);
+    return AdbThemeDestination.values
+            .where((destination) => destination.path == stored)
+            .firstOrNull ??
+        AdbThemeDestination.downloads;
+  }
+
+  Future<void> select(AdbThemeDestination destination) async {
+    final saved = await ref
+        .read(sharedPrefsProvider)
+        .setString(preferenceKey, destination.path);
+    if (!saved) throw StateError('Could not save ADB destination');
+    state = destination;
+  }
+}
+
+final adbThemeDestinationProvider =
+    NotifierProvider<AdbThemeDestinationNotifier, AdbThemeDestination>(
+      AdbThemeDestinationNotifier.new,
+    );
 
 enum StepStatus { pending, running, done, failed }
 

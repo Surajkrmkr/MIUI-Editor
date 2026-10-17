@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -15,6 +14,7 @@ import 'preset_thumbnail.dart';
 import 'preset_preview_dialog.dart';
 import 'preset_favorite_controls.dart';
 import '../../../providers/preset_favorites_provider.dart';
+import '../../../providers/usecase_providers.dart';
 
 // ── Frame geometry (must match IPhoneFrame constants) ────────────────────────
 const _frameW = AppConstants.screenWidth + 26; // 302.92
@@ -46,14 +46,12 @@ class PresetCard extends ConsumerWidget {
   /// [Navigator.pop] — the caller decides what happens next (inline use).
   final VoidCallback? onApplied;
 
-  Future<List<LockElement>> _load() async {
-    final file = File('$path${Platform.pathSeparator}preset.json');
-    if (!await file.exists()) return [];
-    final raw = await file.readAsString();
-    final list = jsonDecode(raw) as List<dynamic>;
-    return list
-        .map((e) => LockElement.fromJson(e as Map<String, dynamic>))
-        .toList();
+  Future<List<LockElement>> _load(WidgetRef ref) async {
+    final (elements, failure) = await ref
+        .read(loadPresetUseCaseProvider)
+        .call('$path${Platform.pathSeparator}preset.json');
+    if (failure != null) throw FileSystemException(failure.message);
+    return elements ?? [];
   }
 
   @override
@@ -62,7 +60,7 @@ class PresetCard extends ConsumerWidget {
     final previewFile = File('$path${Platform.pathSeparator}preview.png');
 
     return FutureBuilder<List<LockElement>>(
-      future: _load(),
+      future: _load(ref),
       builder: (context, snapshot) {
         Widget phoneContent;
 

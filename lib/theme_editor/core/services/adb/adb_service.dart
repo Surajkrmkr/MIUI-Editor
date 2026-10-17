@@ -7,9 +7,12 @@ import 'adb_process.dart';
 
 /// All adb interaction for pushing and applying an .mtz on a phone.
 class AdbService {
-  AdbService(this._locator);
+  AdbService(this._locator, {this.destinationPath = deviceMtzPath});
 
   final AdbLocator _locator;
+  final String destinationPath;
+  String get destinationDirectory =>
+      destinationPath.substring(0, destinationPath.lastIndexOf('/'));
 
   // Device paths are POSIX on every host OS.
   static const String deviceDir = '/sdcard/Download/auto';
@@ -234,17 +237,17 @@ class AdbService {
     }
     final size = await file.length();
 
-    final mkdir = await _adb(AdbStep.push, const [
+    final mkdir = await _adb(AdbStep.push, [
       'shell',
       'mkdir',
       '-p',
-      deviceDir,
+      destinationDirectory,
     ], serial: serial);
     if (mkdir == null) return _noAdb(AdbStep.push);
     if (!mkdir.ok) {
       return AdbResult.failure(
         AdbStep.push,
-        'Could not create $deviceDir',
+        'Could not create $destinationDirectory',
         stdout: mkdir.stdout,
         stderr: mkdir.stderr,
       );
@@ -252,7 +255,7 @@ class AdbService {
 
     final push = await _adb(
       AdbStep.push,
-      ['push', localPath, deviceMtzPath],
+      ['push', localPath, destinationPath],
       serial: serial,
       timeout: _pushTimeout,
     );
@@ -266,14 +269,14 @@ class AdbService {
       );
     }
 
-    final ls = await _adb(AdbStep.push, const [
+    final ls = await _adb(AdbStep.push, [
       'shell',
       'ls',
       '-l',
-      deviceMtzPath,
+      destinationPath,
     ], serial: serial);
     if (ls == null) return _noAdb(AdbStep.push);
-    if (!AdbParsers.lsShowsFile(ls.stdout, deviceMtzPath, size)) {
+    if (!AdbParsers.lsShowsFile(ls.stdout, destinationPath, size)) {
       return AdbResult.failure(
         AdbStep.push,
         'Pushed file could not be verified on the device (expected $size bytes)',
@@ -285,6 +288,13 @@ class AdbService {
   }
 
   /// Starts the first working apply activity. Returns its component.
+  List<String> applyArguments(ApplyActivity activity) {
+    final args = <String>['shell', 'am', 'start', '-n', activity.component];
+    final extras = {...activity.extras, 'theme_file_path': destinationPath};
+    extras.forEach((key, value) => args.addAll(['-e', key, value]));
+    return args;
+  }
+
   Future<AdbResult<String>> launchApply(
     String serial, {
     String? cachedComponent,
@@ -313,8 +323,7 @@ class AdbService {
 
     final log = StringBuffer();
     for (final activity in ordered) {
-      final args = <String>['shell', 'am', 'start', '-n', activity.component];
-      activity.extras.forEach((k, v) => args.addAll(['-e', k, v]));
+      final args = applyArguments(activity);
       final out = await _adb(AdbStep.launch, args, serial: serial);
       if (out == null) return _noAdb(AdbStep.launch);
       final combined = '${out.stdout}\n${out.stderr}';

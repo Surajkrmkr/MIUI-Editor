@@ -1157,7 +1157,7 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
           "<NormalState>$thumb</NormalState><PressedState>$thumb</PressedState>"
           '${drag ? "<ReachedState>$thumb</ReachedState>" : ""}'
           "</StartPoint><EndPoint x='$travel' y='0' w='$height' h='$height' align='center' alignV='center'>"
-          "<Path x='0' y='0' tolerance='${(height / 2).round()}'>"
+          "<Path x='0' y='0' tolerance='1080'>"
           "<Position x='0' y='0'/><Position x='$travel' y='0'/>"
           "</Path></EndPoint></Unlocker></Group></Group>";
     }
@@ -1302,14 +1302,11 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       final inset = ShortcutSetArt.exportInset(t);
       final app = apps[i];
       final action = switch (app.iconType) {
-        final type? =>
-          "<IntentCommand action='android.intent.action.MAIN' package='${_iconMeta[type]![1]}' class='${_iconMeta[type]![2]}'>"
-              "<Extra name='StartActivityWhenLocked' type='boolean' expression='1'/></IntentCommand>"
-              "<ExternCommand command='unlock' condition='not(#set_lock)'/>",
-        null when app.package != null =>
-          "<IntentCommand action='android.intent.action.MAIN' package='${app.package}' class='${app.activity}'>"
-              "<Extra name='StartActivityWhenLocked' type='boolean' expression='1'/></IntentCommand>"
-              "<ExternCommand command='unlock' condition='not(#set_lock)'/>",
+        final type? => _appLaunchXml(type),
+        null when app.package != null => _appLaunchXml(
+          null,
+          package: app.package,
+        ),
         null =>
           "<IntentCommand action='miui.intent.action.TOGGLE_TORCH' broadcast='true'>"
               "<Extra name='miui.intent.extra.IS_TOGGLE' type='boolean' expression='1'/></IntentCommand>",
@@ -1390,7 +1387,7 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
         '<NormalState>$thumb</NormalState><PressedState>$thumb</PressedState>'
         '${drag ? "<ReachedState>$thumb</ReachedState>" : ""}'
         "</StartPoint><EndPoint x='${n(l.travel)}' y='${n(l.thumbY)}' w='${n(l.thumbWidth)}' h='${n(l.thumbHeight)}' align='center' alignV='center'>"
-        "<Path x='0' y='${n(l.thumbY)}' tolerance='${(l.thumbHeight * el.scale / 2).round()}'>"
+        "<Path x='0' y='${n(l.thumbY)}' tolerance='1080'>"
         "<Position x='0' y='0'/><Position x='${n(l.travel)}' y='0'/>"
         '</Path></EndPoint></Unlocker></Group></Group>';
   }
@@ -1514,10 +1511,47 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
         "<Button align='center' alignV='center' w='$w' h='$h'>"
         "<Normal>$image</Normal>"
         "<Triggers><Trigger action='up'>"
-        "<IntentCommand action='android.intent.action.MAIN' package='${meta[1]}' class='${meta[2]}'>"
-        "<Extra name='StartActivityWhenLocked' type='boolean' expression='1'/></IntentCommand>"
-        "<ExternCommand command='unlock' condition='not(#set_lock)'/>"
+        '${_appLaunchXml(el.type)}'
         "</Trigger></Triggers></Button></Group>";
+  }
+
+  String _appLaunchXml(ElementType? type, {String? package}) {
+    final attributes = switch (type) {
+      ElementType.dialerIcon => {'action': 'android.intent.action.DIAL'},
+      ElementType.mmsIcon => {
+        'action': 'android.intent.action.SENDTO',
+        'uri': 'sms:',
+      },
+      ElementType.contactIcon => {
+        'action': 'android.intent.action.MAIN',
+        'category': 'android.intent.category.APP_CONTACTS',
+      },
+      ElementType.calendarIcon => {
+        'action': 'android.intent.action.MAIN',
+        'category': 'android.intent.category.APP_CALENDAR',
+      },
+      ElementType.settingIcon => {'action': 'android.settings.SETTINGS'},
+      _ => {
+        'action': 'android.intent.action.MAIN',
+        'category': 'android.intent.category.LAUNCHER',
+        'package': package ?? _iconMeta[type]![1],
+      },
+    };
+    final command = XmlElement(
+      XmlName('IntentCommand'),
+      [
+        for (final entry in attributes.entries)
+          XmlAttribute(XmlName(entry.key), entry.value),
+      ],
+      [
+        XmlElement(XmlName('Extra'), [
+          XmlAttribute(XmlName('name'), 'StartActivityWhenLocked'),
+          XmlAttribute(XmlName('type'), 'boolean'),
+          XmlAttribute(XmlName('expression'), '1'),
+        ]),
+      ],
+    );
+    return '${command.toXmlString()}<ExternCommand command="unlock" condition="not(#set_lock)"/>';
   }
 
   static const Map<ElementType, List<String>> _iconMeta = {

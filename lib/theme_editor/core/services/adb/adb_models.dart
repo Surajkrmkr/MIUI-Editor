@@ -1,3 +1,15 @@
+enum AdbThemeDestination {
+  downloads('Downloads', '/sdcard/Download/auto/temp.mtz'),
+  themeManager(
+    'Theme Manager',
+    '/sdcard/Android/data/com.android.thememanager/files/temp.mtz',
+  );
+
+  const AdbThemeDestination(this.label, this.path);
+  final String label;
+  final String path;
+}
+
 /// Steps of the "Apply to Device" flow, also used to tag results.
 enum AdbStep {
   locate('Locating ADB'),

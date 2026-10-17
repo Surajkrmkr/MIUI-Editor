@@ -711,7 +711,7 @@ class ShortcutSetArt {
       ShortcutApp.whatsapp => CustomPaint(
         size: Size.square(s * .5),
         painter: const GlyphPainter(
-          GlyphKind.handset,
+          GlyphKind.whatsapp,
           ink: Color(0xFFBDBDBD),
           gradient: silver,
         ),
@@ -1026,11 +1026,7 @@ class ShortcutSetArt {
             const Color(0xFFB9A4F2),
             const Color(0xFF3B2F63),
           ),
-          ShortcutApp.music => (
-            GlyphKind.tiktokNote,
-            Colors.white,
-            Colors.white,
-          ),
+          ShortcutApp.music => (GlyphKind.note, Colors.white, Colors.white),
           ShortcutApp.theme => (
             GlyphKind.brush,
             const Color(0xFFE58AB4),
@@ -1219,7 +1215,7 @@ class ShortcutSetArt {
           ShortcutApp.music => (
             const Color(0xFFE5675B),
             const Color(0xFFA8302A),
-            GlyphKind.youtube,
+            GlyphKind.note,
           ),
           ShortcutApp.spotify => (
             const Color(0xFF7FA2F0),

@@ -39,6 +39,24 @@ class ElementInfoPanel extends ConsumerWidget {
 
     final el = state.active!;
     final isUnlock = el.type.isUnlockControl;
+    final supportsOutlineWidth =
+        (isUnlock && el.unlockSkin != UnlockSkin.classic) ||
+        (el.type == ElementType.analogClock &&
+            const {
+              AnalogStyle.classic,
+              AnalogStyle.ring,
+              AnalogStyle.crimsonGlass,
+              AnalogStyle.frostedGlass,
+            }.contains(el.analogStyle)) ||
+        (el.type == ElementType.shortcutSet &&
+            const {
+              ShortcutStyle.glossDock,
+              ShortcutStyle.darkDock,
+              ShortcutStyle.pastelDock,
+              ShortcutStyle.neonCapsule,
+              ShortcutStyle.socialRow,
+              ShortcutStyle.glossOrbs,
+            }.contains(el.shortcutStyle));
     final usesFontSize =
         (el.type.isText && el.type != ElementType.notification) ||
         el.type == ElementType.calendarGrid;
@@ -155,121 +173,57 @@ class ElementInfoPanel extends ConsumerWidget {
           if (!el.type.isIcon &&
               !el.type.isMusic &&
               !el.type.isVideo &&
-              !el.type.isPng &&
-              !usesDigitColors)
+              !el.type.isPng)
             _Section(
               title: 'COLOR',
               child: Column(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _ColorBtn(
-                          color: el.color,
-                          label: el.type == ElementType.notification
-                              ? 'Text'
-                              : isUnlock
-                              ? 'Icon'
-                              : el.type == ElementType.arcShape
-                              ? 'Progress'
-                              : 'Primary',
-                          onChanged: (c) => n.setColor(el.type, c),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _ColorBtn(
-                          color: el.colorSecondary,
-                          label: el.type == ElementType.notification || isUnlock
-                              ? 'Background'
-                              : el.type == ElementType.arcShape
-                              ? 'Track'
-                              : 'Secondary',
-                          onChanged: (c) => n.setColorSecondary(el.type, c),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if ((isUnlock && el.unlockSkin != UnlockSkin.classic) ||
-                      el.type == ElementType.analogClock ||
-                      el.type == ElementType.shortcutSet ||
-                      (el.type == ElementType.calendarGrid &&
-                          el.calendarStyle != CalendarStyle.classic)) ...[
+                  if (isHourMinSec) ...[
+                    _ToggleRow(
+                      label: 'Separate Digit Colors',
+                      value: el.useSeparateColors,
+                      onChanged: (v) => n.setUseSeparateColors(el.type, v),
+                    ),
                     const SizedBox(height: 10),
+                  ],
+                  if (usesDigitColors) ...[
                     Row(
                       children: [
                         Expanded(
                           child: _ColorBtn(
-                            color: el.unlockAccent,
-                            label: el.type == ElementType.analogClock
-                                ? 'Second Hand'
-                                : el.type == ElementType.shortcutSet
-                                ? 'Tile'
-                                : el.type == ElementType.calendarGrid
-                                ? 'Panel'
-                                : 'Accent',
-                            onChanged: (c) => n.update(
-                              el.type,
-                              (e) => e.copyWith(unlockAccent: c),
-                            ),
+                            color: el.colorDigit1,
+                            label: 'Digit 1',
+                            onChanged: (c) => n.setColorDigit1(el.type, c),
                           ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: _ColorBtn(
-                            color: el.borderColor,
-                            label: el.type == ElementType.analogClock
-                                ? 'Ticks & Rim'
-                                : el.type == ElementType.shortcutSet
-                                ? 'Tile 2 / Outline'
-                                : el.type == ElementType.calendarGrid
-                                ? 'Strip / Circles'
-                                : 'Outline',
-                            onChanged: (c) => n.update(
-                              el.type,
-                              (e) => e.copyWith(borderColor: c),
-                            ),
+                            color: el.colorDigit2,
+                            label: 'Digit 2',
+                            onChanged: (c) => n.setColorDigit2(el.type, c),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    _SliderRow(
-                      label: 'Outline Width',
-                      value: el.borderWidth,
-                      min: 0,
-                      max: 40,
-                      onChanged: (v) =>
-                          n.update(el.type, (e) => e.copyWith(borderWidth: v)),
-                    ),
-                  ],
-                  if (isUnlock ||
-                      el.type == ElementType.analogClock ||
-                      el.type == ElementType.shortcutSet) ...[
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.wallpaper_rounded, size: 16),
-                        label: const Text(
-                          'Use Wallpaper Colors',
-                          style: TextStyle(fontSize: 11),
-                        ),
-                        onPressed: el.isLocked
-                            ? null
-                            : () => _applyWallpaperColors(context, ref, el),
-                      ),
-                    ),
-                  ],
-                  if (isHourMinSec) ...[
                     const SizedBox(height: 10),
                     Row(
                       children: [
                         Expanded(
                           child: _ColorBtn(
-                            color: el.strokeColor,
-                            label: 'Stroke Color',
-                            onChanged: (c) => n.setStrokeColor(el.type, c),
+                            color: el.strokeColorDigit1,
+                            label: 'Digit 1 Stroke',
+                            onChanged: (c) =>
+                                n.setStrokeColorDigit1(el.type, c),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _ColorBtn(
+                            color: el.strokeColorDigit2,
+                            label: 'Digit 2 Stroke',
+                            onChanged: (c) =>
+                                n.setStrokeColorDigit2(el.type, c),
                           ),
                         ),
                       ],
@@ -282,87 +236,122 @@ class ElementInfoPanel extends ConsumerWidget {
                       max: 20,
                       onChanged: (v) => n.setStrokeWidth(el.type, v),
                     ),
-                  ],
-                  if (usesGradient) ...[
-                    const SizedBox(height: 10),
-                    _GradAlignRow(
-                      start: el.gradStartAlign,
-                      end: el.gradEndAlign,
-                      onStart: (a) => n.setGradStart(el.type, a),
-                      onEnd: (a) => n.setGradEnd(el.type, a),
+                  ] else ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _ColorBtn(
+                            color: el.color,
+                            label: el.type == ElementType.notification
+                                ? 'Text'
+                                : isUnlock
+                                ? 'Icon'
+                                : el.type == ElementType.arcShape
+                                ? 'Progress'
+                                : 'Primary',
+                            onChanged: (c) => n.setColor(el.type, c),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _ColorBtn(
+                            color: el.colorSecondary,
+                            label:
+                                el.type == ElementType.notification || isUnlock
+                                ? 'Background'
+                                : el.type == ElementType.arcShape
+                                ? 'Track'
+                                : 'Secondary',
+                            onChanged: (c) => n.setColorSecondary(el.type, c),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ],
-              ),
-            ),
-
-          if (el.type.isClock && !el.type.isIcon)
-            _Section(
-              title: 'CLOCK OPTIONS',
-              child: Column(
-                children: [
-                  if (el.type == ElementType.weekClock ||
-                      el.type == ElementType.monthClock) ...[
-                    _ToggleRow(
-                      label: 'Short format',
-                      value: el.isShort,
-                      onChanged: (v) => n.setIsShort(el.type, v),
-                    ),
-                    const SizedBox(height: 6),
-                    _ToggleRow(
-                      label: 'Wrap text',
-                      value: el.isWrap,
-                      onChanged: (v) => n.setIsWrap(el.type, v),
-                    ),
-                  ],
-                  if (el.type == ElementType.hourClock ||
-                      el.type == ElementType.minClock ||
-                      el.type == ElementType.secClock) ...[
-                    const SizedBox(height: 6),
-                    _ToggleRow(
-                      label: 'Separate Digit Colors',
-                      value: el.useSeparateColors,
-                      onChanged: (v) => n.setUseSeparateColors(el.type, v),
-                    ),
-                    if (el.useSeparateColors) ...[
+                    if ((isUnlock && el.unlockSkin != UnlockSkin.classic) ||
+                        el.type == ElementType.analogClock ||
+                        el.type == ElementType.shortcutSet ||
+                        (el.type == ElementType.calendarGrid &&
+                            el.calendarStyle != CalendarStyle.classic)) ...[
                       const SizedBox(height: 10),
                       Row(
                         children: [
                           Expanded(
                             child: _ColorBtn(
-                              color: el.colorDigit1,
-                              label: 'Digit 1',
-                              onChanged: (c) => n.setColorDigit1(el.type, c),
+                              color: el.unlockAccent,
+                              label: el.type == ElementType.analogClock
+                                  ? 'Second Hand'
+                                  : el.type == ElementType.shortcutSet
+                                  ? 'Tile'
+                                  : el.type == ElementType.calendarGrid
+                                  ? 'Panel'
+                                  : 'Accent',
+                              onChanged: (c) => n.update(
+                                el.type,
+                                (e) => e.copyWith(unlockAccent: c),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: _ColorBtn(
-                              color: el.colorDigit2,
-                              label: 'Digit 2',
-                              onChanged: (c) => n.setColorDigit2(el.type, c),
+                              color: el.borderColor,
+                              label: el.type == ElementType.analogClock
+                                  ? 'Ticks & Rim'
+                                  : el.type == ElementType.shortcutSet
+                                  ? 'Tile 2 / Outline'
+                                  : el.type == ElementType.calendarGrid
+                                  ? 'Strip / Circles'
+                                  : 'Outline',
+                              onChanged: (c) => n.update(
+                                el.type,
+                                (e) => e.copyWith(borderColor: c),
+                              ),
                             ),
                           ),
                         ],
                       ),
+                      if (supportsOutlineWidth) ...[
+                        const SizedBox(height: 6),
+                        _SliderRow(
+                          label: 'Outline Width',
+                          value: el.borderWidth,
+                          min: 0,
+                          max: 40,
+                          onChanged: (v) => n.update(
+                            el.type,
+                            (e) => e.copyWith(borderWidth: v),
+                          ),
+                        ),
+                      ],
+                    ],
+                    if (isUnlock ||
+                        el.type == ElementType.analogClock ||
+                        el.type == ElementType.shortcutSet ||
+                        el.type == ElementType.calendarGrid) ...[
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.wallpaper_rounded, size: 16),
+                          label: const Text(
+                            'Use Wallpaper Colors',
+                            style: TextStyle(fontSize: 11),
+                          ),
+                          onPressed: el.isLocked
+                              ? null
+                              : () => _applyWallpaperColors(context, ref, el),
+                        ),
+                      ),
+                    ],
+                    if (isHourMinSec) ...[
                       const SizedBox(height: 10),
                       Row(
                         children: [
                           Expanded(
                             child: _ColorBtn(
-                              color: el.strokeColorDigit1,
-                              label: 'Digit 1 Stroke',
-                              onChanged: (c) =>
-                                  n.setStrokeColorDigit1(el.type, c),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: _ColorBtn(
-                              color: el.strokeColorDigit2,
-                              label: 'Digit 2 Stroke',
-                              onChanged: (c) =>
-                                  n.setStrokeColorDigit2(el.type, c),
+                              color: el.strokeColor,
+                              label: 'Stroke Color',
+                              onChanged: (c) => n.setStrokeColor(el.type, c),
                             ),
                           ),
                         ],
@@ -374,6 +363,15 @@ class ElementInfoPanel extends ConsumerWidget {
                         min: 0,
                         max: 20,
                         onChanged: (v) => n.setStrokeWidth(el.type, v),
+                      ),
+                    ],
+                    if (usesGradient) ...[
+                      const SizedBox(height: 10),
+                      _GradAlignRow(
+                        start: el.gradStartAlign,
+                        end: el.gradEndAlign,
+                        onStart: (a) => n.setGradStart(el.type, a),
+                        onEnd: (a) => n.setGradEnd(el.type, a),
                       ),
                     ],
                   ],
@@ -572,6 +570,27 @@ class ElementInfoPanel extends ConsumerWidget {
               ),
             ),
 
+          if (el.type == ElementType.weekClock ||
+              el.type == ElementType.monthClock)
+            _Section(
+              title: 'DATE FORMAT',
+              child: Column(
+                children: [
+                  _ToggleRow(
+                    label: 'Short format',
+                    value: el.isShort,
+                    onChanged: (v) => n.setIsShort(el.type, v),
+                  ),
+                  const SizedBox(height: 6),
+                  _ToggleRow(
+                    label: 'Wrap text',
+                    value: el.isWrap,
+                    onChanged: (v) => n.setIsWrap(el.type, v),
+                  ),
+                ],
+              ),
+            ),
+
           if (el.type.isText || el.type == ElementType.calendarGrid || isUnlock)
             _Section(
               title: 'TEXT STYLE',
@@ -641,32 +660,64 @@ class ElementInfoPanel extends ConsumerWidget {
             _Section(
               title: 'CALENDAR',
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  DropdownButtonFormField<int>(
-                    key: ValueKey('${el.name}-rows-${el.calendarWeekRows}'),
-                    initialValue: el.calendarWeekRows,
-                    decoration: const InputDecoration(labelText: 'Date rows'),
-                    items: const [
-                      DropdownMenuItem(value: 6, child: Text('Full month')),
-                      DropdownMenuItem(value: 1, child: Text('One row')),
-                      DropdownMenuItem(value: 2, child: Text('Two rows')),
-                    ],
-                    onChanged: (rows) {
-                      if (rows == null) return;
-                      n.update(
-                        el.type,
-                        (element) => element.copyWith(
-                          calendarRows: rows,
-                          height:
-                              element.height /
-                              element.calendarDisplayRows *
-                              (rows +
-                                  (element.calendarShowMonth ? 1 : 0) +
-                                  (element.calendarShowWeekdays ? 1 : 0)),
-                        ),
-                      );
-                    },
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text(
+                      'Date rows',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
                   ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: SegmentedButton<int>(
+                      segments: const [
+                        ButtonSegment(value: 1, label: Text('One row')),
+                        ButtonSegment(value: 2, label: Text('Two rows')),
+                        ButtonSegment(value: 6, label: Text('Full month')),
+                      ],
+                      selected: {
+                        el.calendarWeekRows == 1
+                            ? 1
+                            : el.calendarWeekRows == 2
+                            ? 2
+                            : 6,
+                      },
+                      showSelectedIcon: false,
+                      style: const ButtonStyle(
+                        visualDensity: VisualDensity.compact,
+                        textStyle: WidgetStatePropertyAll(
+                          TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      onSelectionChanged: (values) {
+                        final rows = values.single;
+                        n.update(
+                          el.type,
+                          (element) => element.copyWith(
+                            calendarRows: rows,
+                            height:
+                                (element.height /
+                                        element.calendarDisplayRows *
+                                        (rows +
+                                            (element.calendarShowMonth
+                                                ? 1
+                                                : 0) +
+                                            (element.calendarShowWeekdays
+                                                ? 1
+                                                : 0)))
+                                    .roundToDouble(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   _ToggleRow(
                     label: 'Month heading',
                     value: el.calendarShowMonth,
@@ -675,9 +726,11 @@ class ElementInfoPanel extends ConsumerWidget {
                       (element) => element.copyWith(
                         calendarShowMonth: value,
                         height:
-                            element.height /
-                            element.calendarDisplayRows *
-                            (element.calendarDisplayRows + (value ? 1 : -1)),
+                            (element.height /
+                                    element.calendarDisplayRows *
+                                    (element.calendarDisplayRows +
+                                        (value ? 1 : -1)))
+                                .roundToDouble(),
                       ),
                     ),
                   ),
@@ -689,39 +742,50 @@ class ElementInfoPanel extends ConsumerWidget {
                       (element) => element.copyWith(
                         calendarShowWeekdays: value,
                         height:
-                            element.height /
-                            element.calendarDisplayRows *
-                            (element.calendarDisplayRows + (value ? 1 : -1)),
+                            (element.height /
+                                    element.calendarDisplayRows *
+                                    (element.calendarDisplayRows +
+                                        (value ? 1 : -1)))
+                                .roundToDouble(),
                       ),
                     ),
                   ),
+                  const SizedBox(height: 4),
                   _SliderRow(
                     label: 'Highlight radius',
-                    value: el.radius.clamp(0, 40),
+                    value: el.radius.clamp(0, 40).roundToDouble(),
                     min: 0,
                     max: 40,
+                    decimals: 0,
+                    unit: 'px',
                     onChanged: (value) => n.setRadius(el.type, value),
                   ),
                   _SliderRow(
                     label: 'Width',
-                    value: el.width.clamp(140, 1080),
+                    value: el.width.clamp(140, 1080).roundToDouble(),
                     min: 140,
                     max: 1080,
+                    decimals: 0,
+                    unit: 'px',
                     onChanged: (value) => n.update(
                       el.type,
-                      (element) =>
-                          element.copyWith(width: value.clamp(140, 1080)),
+                      (element) => element.copyWith(
+                        width: value.clamp(140, 1080).roundToDouble(),
+                      ),
                     ),
                   ),
                   _SliderRow(
                     label: 'Height',
-                    value: el.height.clamp(40, 1600),
+                    value: el.height.clamp(40, 1600).roundToDouble(),
                     min: 40,
                     max: 1600,
+                    decimals: 0,
+                    unit: 'px',
                     onChanged: (value) => n.update(
                       el.type,
-                      (element) =>
-                          element.copyWith(height: value.clamp(40, 1600)),
+                      (element) => element.copyWith(
+                        height: value.clamp(40, 1600).roundToDouble(),
+                      ),
                     ),
                   ),
                 ],
@@ -777,37 +841,115 @@ class ElementInfoPanel extends ConsumerWidget {
                   ).indexed)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 6),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: DropdownButtonFormField<ShortcutApp>(
-                              key: ValueKey('${el.name}-slot-$i-${app.name}'),
-                              initialValue: app,
-                              isDense: true,
-                              decoration: InputDecoration(
-                                isDense: true,
-                                labelText: 'Slot ${i + 1}',
+                      child: Container(
+                        padding: const EdgeInsets.only(
+                          left: 8,
+                          right: 4,
+                          top: 3,
+                          bottom: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: scheme.surfaceContainerHighest.withValues(
+                            alpha: 0.35,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: scheme.outlineVariant.withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 3,
                               ),
-                              items: [
-                                for (final option in ShortcutApp.values)
-                                  DropdownMenuItem(
-                                    value: option,
-                                    child: Row(
-                                      children: [
-                                        Icon(option.icon, size: 16),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          option.label,
-                                          style: const TextStyle(fontSize: 12),
-                                        ),
-                                      ],
-                                    ),
+                              decoration: BoxDecoration(
+                                color: scheme.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'Slot ${i + 1}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: scheme.primary,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<ShortcutApp>(
+                                  key: ValueKey(
+                                    '${el.name}-slot-$i-${app.name}',
                                   ),
-                              ],
-                              onChanged: (value) {
-                                if (value == null) return;
-                                final apps = ShortcutApp.parse(el.shortcutApps);
-                                apps[i] = value;
+                                  value: app,
+                                  isDense: true,
+                                  isExpanded: true,
+                                  icon: Icon(
+                                    Icons.keyboard_arrow_down_rounded,
+                                    size: 18,
+                                    color: scheme.onSurfaceVariant,
+                                  ),
+                                  items: [
+                                    for (final option in ShortcutApp.values)
+                                      DropdownMenuItem(
+                                        value: option,
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              option.icon,
+                                              size: 16,
+                                              color: option == app
+                                                  ? scheme.primary
+                                                  : scheme.onSurfaceVariant,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              option.label,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: option == app
+                                                    ? FontWeight.w600
+                                                    : FontWeight.normal,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                  onChanged: (value) {
+                                    if (value == null) return;
+                                    final apps = ShortcutApp.parse(
+                                      el.shortcutApps,
+                                    );
+                                    apps[i] = value;
+                                    n.update(
+                                      el.type,
+                                      (e) => e.copyWith(
+                                        shortcutApps: apps
+                                            .map((a) => a.name)
+                                            .join(','),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: 'Remove',
+                              visualDensity: VisualDensity.compact,
+                              iconSize: 16,
+                              splashRadius: 14,
+                              style: IconButton.styleFrom(
+                                foregroundColor: scheme.onSurfaceVariant,
+                                hoverColor: scheme.error.withValues(alpha: 0.1),
+                              ),
+                              icon: const Icon(Icons.close_rounded),
+                              onPressed: () {
+                                final apps = ShortcutApp.parse(el.shortcutApps)
+                                  ..removeAt(i);
                                 n.update(
                                   el.type,
                                   (e) => e.copyWith(
@@ -818,63 +960,73 @@ class ElementInfoPanel extends ConsumerWidget {
                                 );
                               },
                             ),
-                          ),
-                          IconButton(
-                            tooltip: 'Remove',
-                            visualDensity: VisualDensity.compact,
-                            icon: const Icon(Icons.close_rounded, size: 16),
-                            onPressed: () {
-                              final apps = ShortcutApp.parse(el.shortcutApps)
-                                ..removeAt(i);
-                              n.update(
-                                el.type,
-                                (e) => e.copyWith(
-                                  shortcutApps: apps
-                                      .map((a) => a.name)
-                                      .join(','),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  if (ShortcutApp.parse(el.shortcutApps).length < 8)
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.add_rounded, size: 16),
-                      label: const Text(
-                        'Add Shortcut',
-                        style: TextStyle(fontSize: 11),
-                      ),
-                      onPressed: () => n.update(
-                        el.type,
-                        (e) => e.copyWith(
-                          shortcutApps: [
-                            ...ShortcutApp.parse(
-                              e.shortcutApps,
-                            ).map((a) => a.name),
-                            ShortcutApp.values
-                                .firstWhere(
-                                  (a) =>
-                                      a != ShortcutApp.messages &&
-                                      a != ShortcutApp.phone &&
-                                      !ShortcutApp.parse(
-                                        e.shortcutApps,
-                                      ).contains(a),
-                                  orElse: () => ShortcutApp.camera,
-                                )
-                                .name,
-                          ].join(','),
+                          ],
                         ),
                       ),
                     ),
-                  const SizedBox(height: 6),
+                  if (ShortcutApp.parse(el.shortcutApps).length < 8)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2, bottom: 4),
+                      child: SizedBox(
+                        height: 36,
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                              color: scheme.primary.withValues(alpha: 0.35),
+                            ),
+                            backgroundColor: scheme.primary.withValues(
+                              alpha: 0.04,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          icon: Icon(
+                            Icons.add_rounded,
+                            size: 16,
+                            color: scheme.primary,
+                          ),
+                          label: Text(
+                            'Add Shortcut',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: scheme.primary,
+                            ),
+                          ),
+                          onPressed: () => n.update(
+                            el.type,
+                            (e) => e.copyWith(
+                              shortcutApps: [
+                                ...ShortcutApp.parse(
+                                  e.shortcutApps,
+                                ).map((a) => a.name),
+                                ShortcutApp.values
+                                    .firstWhere(
+                                      (a) =>
+                                          a != ShortcutApp.messages &&
+                                          a != ShortcutApp.phone &&
+                                          !ShortcutApp.parse(
+                                            e.shortcutApps,
+                                          ).contains(a),
+                                      orElse: () => ShortcutApp.camera,
+                                    )
+                                    .name,
+                              ].join(','),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 8),
                   _SliderRow(
                     label: 'Icon Size',
                     value: (el.unlockIconScale.clamp(.2, 1) * 100)
                         .roundToDouble(),
                     min: 20,
                     max: 100,
+                    decimals: 0,
+                    unit: 'px',
                     onChanged: (v) => n.update(
                       el.type,
                       (e) => e.copyWith(unlockIconScale: v / 100),
@@ -886,6 +1038,8 @@ class ElementInfoPanel extends ConsumerWidget {
                         .roundToDouble(),
                     min: 0,
                     max: 100,
+                    decimals: 0,
+                    unit: '%',
                     onChanged: (v) => n.update(
                       el.type,
                       (e) => e.copyWith(unlockBackgroundOpacity: v / 100),
@@ -966,16 +1120,16 @@ class ElementInfoPanel extends ConsumerWidget {
                             fontSize: 12,
                             color: scheme.onSurfaceVariant,
                           ),
-                          prefixIcon: Icon(
-                            el.unlockIcon.icon ??
-                                (el.unlockIcon == UnlockIcon.none
-                                    ? Icons.block_rounded
-                                    : el.unlockIcon == UnlockIcon.customPng
-                                    ? Icons.image_outlined
-                                    : Icons.auto_mode_rounded),
-                            size: 18,
-                            color: colors.primary,
-                          ),
+                          // prefixIcon: Icon(
+                          //   el.unlockIcon.icon ??
+                          //       (el.unlockIcon == UnlockIcon.none
+                          //           ? Icons.block_rounded
+                          //           : el.unlockIcon == UnlockIcon.customPng
+                          //           ? Icons.image_outlined
+                          //           : Icons.auto_mode_rounded),
+                          //   size: 18,
+                          //   color: colors.primary,
+                          // ),
                           filled: true,
                           fillColor: colors.bgSubtle,
                           border: OutlineInputBorder(
@@ -2788,12 +2942,11 @@ class _SliderRow extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 2),
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
             trackHeight: 3,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-            overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5.5),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 11),
           ),
           child: Slider(
             value: clamped,
@@ -2832,9 +2985,16 @@ class _EditableValueState extends State<_EditableValue> {
   late final TextEditingController _controller;
   bool _isEditing = false;
 
-  String _format(double v) => widget.decimals == 0
-      ? v.round().toString()
-      : v.toStringAsFixed(widget.decimals);
+  String _format(double v) {
+    if (widget.decimals == 0 || v == v.roundToDouble()) {
+      return v.round().toString();
+    }
+    var s = v.toStringAsFixed(widget.decimals);
+    if (s.contains('.')) {
+      s = s.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
+    }
+    return s;
+  }
 
   @override
   void initState() {
@@ -2870,14 +3030,23 @@ class _EditableValueState extends State<_EditableValue> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final formatted = _format(widget.value);
     final display = widget.unit != null
         ? '$formatted ${widget.unit}'
         : formatted;
 
-    return SizedBox(
-      width: widget.unit != null ? 68 : 60,
-      height: 24,
+    final badgeBg = isDark
+        ? scheme.surfaceContainerHighest.withValues(alpha: 0.6)
+        : scheme.primary.withValues(alpha: 0.08);
+    final borderColor = isDark
+        ? scheme.outlineVariant.withValues(alpha: 0.35)
+        : scheme.primary.withValues(alpha: 0.2);
+    final textColor = scheme.primary;
+
+    return Container(
+      constraints: BoxConstraints(minWidth: widget.unit != null ? 52 : 42),
+      height: 22,
       child: _isEditing
           ? TextField(
               controller: _controller,
@@ -2889,39 +3058,50 @@ class _EditableValueState extends State<_EditableValue> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: scheme.onPrimaryContainer,
+                fontWeight: FontWeight.w600,
+                color: scheme.onSurface,
               ),
               decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 4,
+                  vertical: 0,
+                ),
+                isDense: true,
                 filled: true,
-                fillColor: scheme.primaryContainer,
+                fillColor: scheme.surface,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(6),
+                  borderSide: BorderSide(color: scheme.primary, width: 1.5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(6),
+                  borderSide: BorderSide(color: scheme.primary, width: 1.5),
                 ),
               ),
               onTapOutside: (_) => _commitValue(),
               onSubmitted: (_) => _commitValue(),
             )
-          : GestureDetector(
+          : InkWell(
+              borderRadius: BorderRadius.circular(6),
               onTap: () {
                 _controller.text = _format(widget.value);
                 setState(() => _isEditing = true);
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: scheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
+                  color: badgeBg,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Text(
                   display,
                   style: TextStyle(
                     fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: scheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w600,
+                    color: textColor,
+                    letterSpacing: 0.2,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
