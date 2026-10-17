@@ -96,6 +96,7 @@ dependencies:
   flutter_class_parser: ^0.2.5
   animated_box_decoration: ^0.0.7
   flutter_shaders: ^0.1.3
+  font_awesome_flutter: ^11.0.0
 
 
 dev_dependencies:

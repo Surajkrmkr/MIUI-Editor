@@ -63,6 +63,8 @@ enum ElementType {
   analogHourHand,
   analogMinHand,
   analogSecHand,
+  analogClock,
+  shortcutSet,
   calendarGrid,
   toggleSwitch,
   missedCalls,
@@ -244,8 +246,13 @@ extension ElementTypeX on ElementType {
     ElementType.analogHourHand,
     ElementType.analogMinHand,
     ElementType.analogSecHand,
+    ElementType.analogClock,
   }.contains(this);
-  bool get isExportable => isClock || isContainer;
+  bool get isExportable =>
+      isClock ||
+      isContainer ||
+      this == ElementType.shortcutSet ||
+      this == ElementType.calendarGrid;
   bool get swipeUpUnlock => this == ElementType.swipeUpUnlock;
   bool get isUnlockControl =>
       this == ElementType.tapToUnlock ||
@@ -305,6 +312,8 @@ const Map<String, List<ElementType>> kElementGroups = {
     ElementType.weekClock,
   ],
   'Date': [ElementType.monthClock, ElementType.dateClock],
+  'Analog Clock': [ElementType.analogClock],
+  'Shortcut Sets': [ElementType.shortcutSet],
   'Weather': [
     ElementType.weatherIconClock,
     ElementType.weatherTemp,
@@ -566,11 +575,74 @@ enum UnlockIcon {
   none(null, 'None'),
   customPng(null, 'PNG image'),
   plug(Icons.power_rounded, 'Plug'),
-  fingerprint(Icons.fingerprint_rounded, 'Fingerprint');
+  fingerprint(Icons.fingerprint_rounded, 'Fingerprint'),
+  play(Icons.play_arrow_rounded, 'Play');
 
   const UnlockIcon(this.icon, this.label);
   final IconData? icon;
   final String label;
+}
+
+enum ShortcutStyle {
+  glossDock,
+  whiteTiles,
+  leafTiles,
+  darkDock,
+  pastelDock,
+  socialRow,
+  hexGrid,
+  neonCapsule,
+  socialCards,
+  candyCapsule,
+  softRow,
+  glossOrbs,
+}
+
+/// Which screen edge a dock is attached to; [floating] rounds every corner.
+enum ShortcutEdge { right, left, floating }
+
+/// Look of the calendar grid; [classic] is the original plain grid.
+enum CalendarStyle { classic, pillColumn, plusCircles, stripHeader }
+
+enum AnalogStyle {
+  indigo,
+  minimal,
+  classic,
+  numerals,
+  dots,
+  ring,
+  sport,
+  woodPanel,
+  crimsonGlass,
+  romanWall,
+  neonGlow,
+  auroraRing,
+  luxuryGold,
+  frostedGlass,
+  orbit,
+  orbitDigital,
+  flowerCard,
+}
+
+/// Visual skin of tap/slide/drag unlock controls; [classic] is the original look.
+enum UnlockSkin {
+  classic,
+  waveNotch,
+  glowOrb,
+  ringButton,
+  gradientPill,
+  ghostStack,
+  insetTile,
+  neonOrbs,
+  outlineTile,
+  cardStack,
+  pillStack,
+  carved,
+  meet,
+  neonLine,
+  liquidGlass,
+  gradientFlow,
+  groove,
 }
 
 class LockElement {
@@ -595,6 +667,14 @@ class LockElement {
     this.unlockCornerRadius,
     this.unlockBackgroundOpacity = 48 / 255,
     this.unlockThumbOpacity = 96 / 255,
+    this.unlockSkin = UnlockSkin.classic,
+    this.unlockAccent = const Color(0xFFFFFFFF),
+    this.unlockTargetPath = '',
+    this.analogStyle = AnalogStyle.indigo,
+    this.shortcutStyle = ShortcutStyle.glossDock,
+    this.shortcutEdge = ShortcutEdge.right,
+    this.calendarStyle = CalendarStyle.classic,
+    this.shortcutApps = 'gallery,camera,music,browser,whatsapp,settings',
     this.borderWidth = 0,
     this.borderColor = const Color(0xFFFFFFFF),
     this.color = const Color(0xFFFFFFFF),
@@ -735,6 +815,16 @@ class LockElement {
 
   final double unlockIconScale, unlockBackgroundOpacity, unlockThumbOpacity;
   final double? unlockCornerRadius;
+  final UnlockSkin unlockSkin;
+  final Color unlockAccent;
+  final String unlockTargetPath;
+  final AnalogStyle analogStyle;
+  final ShortcutStyle shortcutStyle;
+  final ShortcutEdge shortcutEdge;
+  final CalendarStyle calendarStyle;
+
+  /// Comma-separated shortcut app keys, in slot order.
+  final String shortcutApps;
   UnlockIcon get effectiveUnlockIcon => unlockIcon == UnlockIcon.automatic
       ? (type == ElementType.dragToUnlock
             ? UnlockIcon.plug
@@ -787,6 +877,14 @@ class LockElement {
     double? unlockCornerRadius,
     double? unlockBackgroundOpacity,
     double? unlockThumbOpacity,
+    UnlockSkin? unlockSkin,
+    Color? unlockAccent,
+    String? unlockTargetPath,
+    AnalogStyle? analogStyle,
+    ShortcutStyle? shortcutStyle,
+    ShortcutEdge? shortcutEdge,
+    CalendarStyle? calendarStyle,
+    String? shortcutApps,
     double? borderWidth,
     double? angle,
     double? fontSize,
@@ -848,6 +946,14 @@ class LockElement {
     unlockBackgroundOpacity:
         unlockBackgroundOpacity ?? this.unlockBackgroundOpacity,
     unlockThumbOpacity: unlockThumbOpacity ?? this.unlockThumbOpacity,
+    unlockSkin: unlockSkin ?? this.unlockSkin,
+    unlockAccent: unlockAccent ?? this.unlockAccent,
+    unlockTargetPath: unlockTargetPath ?? this.unlockTargetPath,
+    analogStyle: analogStyle ?? this.analogStyle,
+    shortcutStyle: shortcutStyle ?? this.shortcutStyle,
+    shortcutEdge: shortcutEdge ?? this.shortcutEdge,
+    calendarStyle: calendarStyle ?? this.calendarStyle,
+    shortcutApps: shortcutApps ?? this.shortcutApps,
     borderWidth: borderWidth ?? this.borderWidth,
     angle: angle ?? this.angle,
     fontSize: fontSize ?? this.fontSize,
@@ -910,6 +1016,14 @@ class LockElement {
     'unlockCornerRadius': unlockCornerRadius,
     'unlockBackgroundOpacity': unlockBackgroundOpacity,
     'unlockThumbOpacity': unlockThumbOpacity,
+    'unlockSkin': unlockSkin.name,
+    'unlockAccent': unlockAccent.toARGB32(),
+    'unlockTargetPath': unlockTargetPath,
+    'analogStyle': analogStyle.name,
+    'shortcutStyle': shortcutStyle.name,
+    'shortcutEdge': shortcutEdge.name,
+    'calendarStyle': calendarStyle.name,
+    'shortcutApps': shortcutApps,
     'borderWidth': borderWidth,
     'angle': angle,
     'fontSize': fontSize,
@@ -989,6 +1103,31 @@ class LockElement {
         ),
     unlockThumbOpacity:
         ((j['unlockThumbOpacity'] as num?)?.toDouble() ?? 96 / 255).clamp(0, 1),
+    unlockSkin: UnlockSkin.values.firstWhere(
+      (skin) => skin.name == j['unlockSkin'],
+      orElse: () => UnlockSkin.classic,
+    ),
+    unlockAccent: Color(j['unlockAccent'] as int? ?? 0xFFFFFFFF),
+    unlockTargetPath: j['unlockTargetPath'] as String? ?? '',
+    analogStyle: AnalogStyle.values.firstWhere(
+      (style) => style.name == j['analogStyle'],
+      orElse: () => AnalogStyle.indigo,
+    ),
+    shortcutStyle: ShortcutStyle.values.firstWhere(
+      (style) => style.name == j['shortcutStyle'],
+      orElse: () => ShortcutStyle.glossDock,
+    ),
+    shortcutEdge: ShortcutEdge.values.firstWhere(
+      (edge) => edge.name == j['shortcutEdge'],
+      orElse: () => ShortcutEdge.right,
+    ),
+    calendarStyle: CalendarStyle.values.firstWhere(
+      (style) => style.name == j['calendarStyle'],
+      orElse: () => CalendarStyle.classic,
+    ),
+    shortcutApps:
+        j['shortcutApps'] as String? ??
+        'gallery,camera,music,browser,whatsapp,settings',
     borderWidth: (j['borderWidth'] as num?)?.toDouble() ?? 0,
     angle: (j['angle'] as num?)?.toDouble() ?? 0,
     fontSize: (j['fontSize'] as num?)?.toDouble() ?? 20,

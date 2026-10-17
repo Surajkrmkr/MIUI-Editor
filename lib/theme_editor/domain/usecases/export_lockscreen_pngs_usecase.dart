@@ -12,6 +12,10 @@ import '../../core/errors/failures.dart';
 import '../../core/utils/font_utils.dart';
 import '../../domain/entities/element_widget.dart';
 import '../../presentation/common/widgets/gradient_text.dart';
+import '../../presentation/features/lockscreen/widgets/unlock_skin_art.dart';
+import '../../presentation/features/lockscreen/widgets/analog_clock_art.dart';
+import '../../presentation/features/lockscreen/widgets/shortcut_set_art.dart';
+import '../../presentation/features/lockscreen/widgets/calendar_style_art.dart';
 import '../../presentation/providers/element_provider.dart';
 
 class ExportLockscreenPngsUseCase {
@@ -112,7 +116,23 @@ class ExportLockscreenPngsUseCase {
       case ElementType.tapToUnlock:
       case ElementType.slideToUnlock:
       case ElementType.dragToUnlock:
-        if (el.effectiveUnlockIcon == UnlockIcon.none) return [];
+        final skinParts = [
+          if (el.unlockSkin != UnlockSkin.classic)
+            for (final part in UnlockSkinArt.exportParts(el).entries)
+              _Frame(
+                widget: Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: part.value,
+                ),
+                path: PathConstants.p(
+                  '${dir("unlock")}${el.name}${part.key}.png',
+                ),
+              ),
+        ];
+        if (el.unlockSkin == UnlockSkin.meet ||
+            el.effectiveUnlockIcon == UnlockIcon.none) {
+          return skinParts;
+        }
         final customPng = el.effectiveUnlockIcon == UnlockIcon.customPng;
         if (customPng &&
             (el.unlockIconPath.isEmpty ||
@@ -123,6 +143,7 @@ class ExportLockscreenPngsUseCase {
           );
         }
         return [
+          ...skinParts,
           _Frame(
             widget: Directionality(
               textDirection: TextDirection.ltr,
@@ -261,6 +282,46 @@ class ExportLockscreenPngsUseCase {
             .toList();
 
       default:
+        if (el.type == ElementType.calendarGrid) {
+          if (el.calendarStyle == CalendarStyle.classic) return [];
+          return [
+            _Frame(
+              widget: Directionality(
+                textDirection: TextDirection.ltr,
+                child: CalendarStyleArt.exportPanel(el),
+              ),
+              path: PathConstants.p('${dir("calendar")}${el.name}_panel.png'),
+            ),
+          ];
+        }
+        if (el.type == ElementType.shortcutSet) {
+          return [
+            for (final part in ShortcutSetArt.exportParts(el).entries)
+              _Frame(
+                widget: Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: part.value,
+                ),
+                path: PathConstants.p(
+                  '${dir("shortcut")}${el.name}${part.key}.png',
+                ),
+              ),
+          ];
+        }
+        if (el.type.isAnalog) {
+          return [
+            for (final part in analogPartsOf(el))
+              _Frame(
+                widget: Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: AnalogClockArt.part(el, part, el.width / 3),
+                ),
+                path: PathConstants.p(
+                  '${dir("analog")}${el.name}${AnalogClockArt.suffix(el, part)}.png',
+                ),
+              ),
+          ];
+        }
         // Container types (containerBG1–5)
         if (el.type.isContainer) {
           return [

@@ -12,6 +12,9 @@ import '../../../../domain/entities/widget_style.dart';
 import '../../../providers/element_provider.dart';
 import '../../../providers/widget_style_provider.dart';
 import 'unlock_control_preview.dart';
+import 'analog_clock_art.dart';
+import 'shortcut_set_art.dart';
+import 'calendar_style_art.dart';
 
 class WidgetStylesPanel extends ConsumerStatefulWidget {
   const WidgetStylesPanel({super.key, required this.element});
@@ -173,11 +176,23 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
     final scheme = Theme.of(context).colorScheme;
     final library = ref.watch(widgetStyleSetsProvider);
     final saved = library.asData?.value;
-    final sets = [builtinUnlockStyles, ...?saved];
+    final sets = [...builtinStyleSets, ...?saved]
+        .where((item) => item.styles.any((s) => s.type == widget.element.type))
+        .toList();
     final set =
-        sets.where((item) => item.id == _setId).firstOrNull ?? sets.first;
+        sets.where((item) => item.id == _setId).firstOrNull ??
+        sets.firstOrNull ??
+        builtinStyleSets.first;
     final styles = set.styles
         .where((style) => style.type == widget.element.type)
+        // Calendar styles are listed for the layout currently chosen.
+        .where(
+          (style) =>
+              style.type != ElementType.calendarGrid ||
+              style.appearance['calendarRows'] == null ||
+              style.appearance['calendarRows'] ==
+                  widget.element.calendarWeekRows,
+        )
         .toList();
 
     return Column(
@@ -195,13 +210,12 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
           ),
           decoration: InputDecoration(
             isDense: true,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            labelText: 'Style Set',
-            labelStyle: TextStyle(
-              fontSize: 12,
-              color: scheme.onSurfaceVariant,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 8,
             ),
+            labelText: 'Style Set',
+            labelStyle: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
             prefixIcon: Icon(
               Icons.style_outlined,
               size: 16,
@@ -234,7 +248,7 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 12),
                     ),
-                    if (item.id == builtinUnlockStyles.id) ...[
+                    if (builtinStyleSets.any((b) => b.id == item.id)) ...[
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -294,7 +308,7 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
               tooltip: 'Export style set (.json)',
               onPressed: _busy ? null : () => _export(set),
             ),
-            if (set.id != builtinUnlockStyles.id) ...[
+            if (!builtinStyleSets.any((b) => b.id == set.id)) ...[
               const SizedBox(width: 4),
               _ToolbarButton(
                 icon: Icons.delete_outline_rounded,
@@ -327,7 +341,11 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
             ),
             child: Row(
               children: [
-                Icon(Icons.error_outline_rounded, size: 16, color: scheme.error),
+                Icon(
+                  Icons.error_outline_rounded,
+                  size: 16,
+                  color: scheme.error,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -684,6 +702,18 @@ class _StylePreview extends StatelessWidget {
   final LockElement element;
   @override
   Widget build(BuildContext context) {
+    if (element.type == ElementType.shortcutSet) {
+      return ShortcutSetPreview(element: element);
+    }
+    if (element.type == ElementType.calendarGrid) {
+      return element.calendarStyle == CalendarStyle.classic
+          ? SizedBox(
+              width: element.width / AppConstants.screenRatio,
+              height: element.height / AppConstants.screenRatio,
+              child: const Center(child: Icon(Icons.calendar_month_rounded)),
+            )
+          : CalendarStylePreview(element: element);
+    }
     final angle = element.angle * pi / 180;
     final width = element.width / AppConstants.screenRatio;
     final height = element.unlockHeight / AppConstants.screenRatio;
@@ -697,7 +727,9 @@ class _StylePreview extends StatelessWidget {
         maxHeight: height,
         child: Transform.rotate(
           angle: angle,
-          child: UnlockControlPreview(element: element),
+          child: element.type == ElementType.analogClock
+              ? AnalogClockPreview(element: element)
+              : UnlockControlPreview(element: element),
         ),
       ),
     );

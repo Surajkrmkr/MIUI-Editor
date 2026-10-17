@@ -13,7 +13,10 @@ import '../../../../core/constants/path_constants.dart';
 import '../../../providers/wallpaper_provider.dart';
 import '../../../providers/service_providers.dart';
 import '../../../../domain/entities/widget_style.dart';
+import '../../../../domain/usecases/export_system_modules_usecase.dart';
 import 'widget_styles_panel.dart';
+import 'analog_clock_art.dart';
+import 'shortcut_set_art.dart';
 
 class ElementInfoPanel extends ConsumerWidget {
   const ElementInfoPanel({super.key});
@@ -121,6 +124,34 @@ class ElementInfoPanel extends ConsumerWidget {
               ),
             ),
 
+          if (el.type.isAnalog && el.type != ElementType.analogClock)
+            _Section(
+              title: 'ASSET',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AppDropZone(
+                    label: el.type == ElementType.analogClockBg
+                        ? 'Drop Dial PNG'
+                        : 'Drop Hand PNG (pointing to 12)',
+                    allowedExtensions: const ['.png', '.PNG'],
+                    onDropped: (path) =>
+                        _importAnalogPng(context, ref, el, path),
+                  ),
+                  if (AnalogClockArt.customPng(el) != null)
+                    TextButton.icon(
+                      icon: const Icon(Icons.restore_rounded, size: 16),
+                      label: const Text(
+                        'Reset to Default',
+                        style: TextStyle(fontSize: 11),
+                      ),
+                      onPressed: () =>
+                          n.update(el.type, (e) => e.copyWith(path: '')),
+                    ),
+                ],
+              ),
+            ),
+
           if (!el.type.isIcon &&
               !el.type.isMusic &&
               !el.type.isVideo &&
@@ -159,6 +190,77 @@ class ElementInfoPanel extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  if ((isUnlock && el.unlockSkin != UnlockSkin.classic) ||
+                      el.type == ElementType.analogClock ||
+                      el.type == ElementType.shortcutSet ||
+                      (el.type == ElementType.calendarGrid &&
+                          el.calendarStyle != CalendarStyle.classic)) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _ColorBtn(
+                            color: el.unlockAccent,
+                            label: el.type == ElementType.analogClock
+                                ? 'Second Hand'
+                                : el.type == ElementType.shortcutSet
+                                ? 'Tile'
+                                : el.type == ElementType.calendarGrid
+                                ? 'Panel'
+                                : 'Accent',
+                            onChanged: (c) => n.update(
+                              el.type,
+                              (e) => e.copyWith(unlockAccent: c),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _ColorBtn(
+                            color: el.borderColor,
+                            label: el.type == ElementType.analogClock
+                                ? 'Ticks & Rim'
+                                : el.type == ElementType.shortcutSet
+                                ? 'Tile 2 / Outline'
+                                : el.type == ElementType.calendarGrid
+                                ? 'Strip / Circles'
+                                : 'Outline',
+                            onChanged: (c) => n.update(
+                              el.type,
+                              (e) => e.copyWith(borderColor: c),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    _SliderRow(
+                      label: 'Outline Width',
+                      value: el.borderWidth,
+                      min: 0,
+                      max: 40,
+                      onChanged: (v) =>
+                          n.update(el.type, (e) => e.copyWith(borderWidth: v)),
+                    ),
+                  ],
+                  if (isUnlock ||
+                      el.type == ElementType.analogClock ||
+                      el.type == ElementType.shortcutSet) ...[
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.wallpaper_rounded, size: 16),
+                        label: const Text(
+                          'Use Wallpaper Colors',
+                          style: TextStyle(fontSize: 11),
+                        ),
+                        onPressed: el.isLocked
+                            ? null
+                            : () => _applyWallpaperColors(context, ref, el),
+                      ),
+                    ),
+                  ],
                   if (isHourMinSec) ...[
                     const SizedBox(height: 10),
                     Row(
@@ -633,6 +735,166 @@ class ElementInfoPanel extends ConsumerWidget {
                 element: el,
               ),
             ),
+          if (el.type == ElementType.shortcutSet)
+            _Section(
+              title: 'SHORTCUTS',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (supportsShortcutEdge(el.shortcutStyle)) ...[
+                    SegmentedButton<ShortcutEdge>(
+                      segments: const [
+                        ButtonSegment(
+                          value: ShortcutEdge.left,
+                          label: Text('Left edge'),
+                        ),
+                        ButtonSegment(
+                          value: ShortcutEdge.floating,
+                          label: Text('Floating'),
+                        ),
+                        ButtonSegment(
+                          value: ShortcutEdge.right,
+                          label: Text('Right edge'),
+                        ),
+                      ],
+                      selected: {el.shortcutEdge},
+                      showSelectedIcon: false,
+                      style: const ButtonStyle(
+                        visualDensity: VisualDensity.compact,
+                        textStyle: WidgetStatePropertyAll(
+                          TextStyle(fontSize: 11),
+                        ),
+                      ),
+                      onSelectionChanged: (values) => n.update(
+                        el.type,
+                        (e) => e.copyWith(shortcutEdge: values.single),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                  for (final (i, app) in ShortcutApp.parse(
+                    el.shortcutApps,
+                  ).indexed)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<ShortcutApp>(
+                              key: ValueKey('${el.name}-slot-$i-${app.name}'),
+                              initialValue: app,
+                              isDense: true,
+                              decoration: InputDecoration(
+                                isDense: true,
+                                labelText: 'Slot ${i + 1}',
+                              ),
+                              items: [
+                                for (final option in ShortcutApp.values)
+                                  DropdownMenuItem(
+                                    value: option,
+                                    child: Row(
+                                      children: [
+                                        Icon(option.icon, size: 16),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          option.label,
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                              onChanged: (value) {
+                                if (value == null) return;
+                                final apps = ShortcutApp.parse(el.shortcutApps);
+                                apps[i] = value;
+                                n.update(
+                                  el.type,
+                                  (e) => e.copyWith(
+                                    shortcutApps: apps
+                                        .map((a) => a.name)
+                                        .join(','),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: 'Remove',
+                            visualDensity: VisualDensity.compact,
+                            icon: const Icon(Icons.close_rounded, size: 16),
+                            onPressed: () {
+                              final apps = ShortcutApp.parse(el.shortcutApps)
+                                ..removeAt(i);
+                              n.update(
+                                el.type,
+                                (e) => e.copyWith(
+                                  shortcutApps: apps
+                                      .map((a) => a.name)
+                                      .join(','),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (ShortcutApp.parse(el.shortcutApps).length < 8)
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.add_rounded, size: 16),
+                      label: const Text(
+                        'Add Shortcut',
+                        style: TextStyle(fontSize: 11),
+                      ),
+                      onPressed: () => n.update(
+                        el.type,
+                        (e) => e.copyWith(
+                          shortcutApps: [
+                            ...ShortcutApp.parse(
+                              e.shortcutApps,
+                            ).map((a) => a.name),
+                            ShortcutApp.values
+                                .firstWhere(
+                                  (a) =>
+                                      a != ShortcutApp.messages &&
+                                      a != ShortcutApp.phone &&
+                                      !ShortcutApp.parse(
+                                        e.shortcutApps,
+                                      ).contains(a),
+                                  orElse: () => ShortcutApp.camera,
+                                )
+                                .name,
+                          ].join(','),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 6),
+                  _SliderRow(
+                    label: 'Icon Size',
+                    value: (el.unlockIconScale.clamp(.2, 1) * 100)
+                        .roundToDouble(),
+                    min: 20,
+                    max: 100,
+                    onChanged: (v) => n.update(
+                      el.type,
+                      (e) => e.copyWith(unlockIconScale: v / 100),
+                    ),
+                  ),
+                  _SliderRow(
+                    label: 'Panel Opacity',
+                    value: (el.unlockBackgroundOpacity.clamp(0, 1) * 100)
+                        .roundToDouble(),
+                    min: 0,
+                    max: 100,
+                    onChanged: (v) => n.update(
+                      el.type,
+                      (e) => e.copyWith(unlockBackgroundOpacity: v / 100),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           if (isUnlock)
             _Section(
               title: 'UNLOCK AREA',
@@ -836,6 +1098,40 @@ class ElementInfoPanel extends ConsumerWidget {
                             ],
                           ),
                         ),
+                      ],
+                      if (el.unlockSkin == UnlockSkin.meet) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          'Left image: choose "PNG image" above. Right image:',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        AppDropZone(
+                          label: 'Drop Right PNG',
+                          allowedExtensions: const ['.png', '.PNG'],
+                          onDropped: (path) => _importUnlockPng(
+                            context,
+                            ref,
+                            el,
+                            path,
+                            target: true,
+                          ),
+                        ),
+                        if (el.unlockTargetPath.isNotEmpty)
+                          TextButton.icon(
+                            icon: const Icon(Icons.restore_rounded, size: 16),
+                            label: const Text(
+                              'Reset Right Image',
+                              style: TextStyle(fontSize: 11),
+                            ),
+                            onPressed: () => n.update(
+                              el.type,
+                              (e) => e.copyWith(unlockTargetPath: ''),
+                            ),
+                          ),
                       ],
                       if (el.effectiveUnlockIcon != UnlockIcon.none) ...[
                         const SizedBox(height: 10),
@@ -1092,12 +1388,40 @@ class ElementInfoPanel extends ConsumerWidget {
     );
   }
 
+  Future<void> _applyWallpaperColors(
+    BuildContext context,
+    WidgetRef ref,
+    LockElement element,
+  ) async {
+    final path = ref.read(wallpaperProvider).currentPath;
+    if (path == null || !File(path).existsSync()) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Load a wallpaper first')));
+      return;
+    }
+    final palette = await ExportSystemModulesUseCase.wallpaperPalette(path);
+    if (!context.mounted) return;
+    ref
+        .read(elementProvider.notifier)
+        .update(
+          element.type,
+          (current) => current.copyWith(
+            color: palette.light,
+            colorSecondary: palette.dark,
+            unlockAccent: palette.primary,
+            borderColor: palette.secondary,
+          ),
+        );
+  }
+
   Future<void> _importUnlockPng(
     BuildContext context,
     WidgetRef ref,
     LockElement element,
-    String source,
-  ) async {
+    String source, {
+    bool target = false,
+  }) async {
     try {
       final codec = await ui.instantiateImageCodec(
         await File(source).readAsBytes(),
@@ -1112,7 +1436,7 @@ class ElementInfoPanel extends ConsumerWidget {
           wallpaper.currentThemeName!,
         );
         destination = PathConstants.p(
-          '${PathConstants.lockscreenAdvance(theme)}unlock/custom/${element.name}.png',
+          '${PathConstants.lockscreenAdvance(theme)}unlock/custom/${element.name}${target ? '_target' : ''}.png',
         );
         if (File(source).absolute.path != File(destination).absolute.path) {
           await ref.read(fileServiceProvider).copyFile(source, destination);
@@ -1123,10 +1447,12 @@ class ElementInfoPanel extends ConsumerWidget {
           .read(elementProvider.notifier)
           .update(
             element.type,
-            (current) => current.copyWith(
-              unlockIcon: UnlockIcon.customPng,
-              unlockIconPath: destination,
-            ),
+            (current) => target
+                ? current.copyWith(unlockTargetPath: destination)
+                : current.copyWith(
+                    unlockIcon: UnlockIcon.customPng,
+                    unlockIconPath: destination,
+                  ),
           );
     } catch (error) {
       if (!context.mounted) return;
@@ -1134,6 +1460,29 @@ class ElementInfoPanel extends ConsumerWidget {
         context,
       ).showSnackBar(SnackBar(content: Text('Could not load PNG: $error')));
     }
+  }
+
+  Future<void> _importAnalogPng(
+    BuildContext context,
+    WidgetRef ref,
+    LockElement element,
+    String source,
+  ) async {
+    final ws = ref.read(wallpaperProvider);
+    var destination = source;
+    if (ws.weekNum != null && ws.currentThemeName != null) {
+      final theme = PathConstants.themePath(ws.weekNum!, ws.currentThemeName!);
+      destination = PathConstants.p(
+        '${PathConstants.lockscreenAdvance(theme)}analog/custom/${element.name}.png',
+      );
+      if (File(source).absolute.path != File(destination).absolute.path) {
+        await ref.read(fileServiceProvider).copyFile(source, destination);
+      }
+    }
+    if (!context.mounted) return;
+    ref
+        .read(elementProvider.notifier)
+        .update(element.type, (e) => e.copyWith(path: destination));
   }
 
   Future<void> _copyAsset(WidgetRef ref, String src, LockElement el) async {

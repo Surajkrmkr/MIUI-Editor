@@ -31,13 +31,15 @@ class WidgetStyle {
               'color',
               'colorSecondary',
               'borderColor',
+              'unlockAccent',
+              'strokeColor',
             }.contains(entry.key) &&
             value is! int) {
           throw FormatException(
             'Colors must be integer ARGB values: ${entry.key}',
           );
         }
-      } else if (entry.key == 'unlockInline') {
+      } else if (_flags.contains(entry.key)) {
         if (entry.value is! bool) {
           throw const FormatException('Invalid unlock layout');
         }
@@ -49,6 +51,26 @@ class WidgetStyle {
     if (appearance['unlockIcon'] case final String icon) {
       if (!UnlockIcon.values.any((value) => value.name == icon)) {
         throw const FormatException('Unknown unlock icon');
+      }
+    }
+    if (appearance['calendarStyle'] case final String style) {
+      if (!CalendarStyle.values.any((value) => value.name == style)) {
+        throw const FormatException('Unknown calendar style');
+      }
+    }
+    if (appearance['shortcutStyle'] case final String style) {
+      if (!ShortcutStyle.values.any((value) => value.name == style)) {
+        throw const FormatException('Unknown shortcut style');
+      }
+    }
+    if (appearance['analogStyle'] case final String style) {
+      if (!AnalogStyle.values.any((value) => value.name == style)) {
+        throw const FormatException('Unknown analog style');
+      }
+    }
+    if (appearance['unlockSkin'] case final String skin) {
+      if (!UnlockSkin.values.any((value) => value.name == skin)) {
+        throw const FormatException('Unknown unlock skin');
       }
     }
     if (appearance['fontWeight'] case final String weight) {
@@ -63,7 +85,12 @@ class WidgetStyle {
   final Map<String, dynamic> appearance;
 
   static bool supports(ElementType type) =>
-      type == ElementType.tapToUnlock || type == ElementType.slideToUnlock;
+      type == ElementType.tapToUnlock ||
+      type == ElementType.slideToUnlock ||
+      type == ElementType.dragToUnlock ||
+      type == ElementType.analogClock ||
+      type == ElementType.shortcutSet ||
+      type == ElementType.calendarGrid;
 
   static const numericBounds = <String, (double, double)>{
     'width': (48, 1080),
@@ -79,11 +106,26 @@ class WidgetStyle {
     'unlockThumbOpacity': (0, 1),
     'borderWidth': (0, 40),
     'borderColor': (0, 4294967295),
+    'unlockAccent': (0, 4294967295),
+    'strokeColor': (0, 4294967295),
+    'calendarRows': (1, 6),
+  };
+  static const _flags = {
+    'unlockInline',
+    'calendarShowMonth',
+    'calendarShowWeekdays',
   };
   static final properties = Set<String>.unmodifiable({
     ...numericBounds.keys,
+    ..._flags,
+    'calendarStyle',
     'unlockIcon',
     'unlockIconPath',
+    'unlockTargetPath',
+    'unlockSkin',
+    'analogStyle',
+    'shortcutStyle',
+    'shortcutApps',
     'unlockText',
     'fontWeight',
     'unlockInline',
@@ -111,7 +153,12 @@ class WidgetStyle {
     if (element.type != type) {
       throw const FormatException('Style does not match the selected widget');
     }
-    return LockElement.fromJson({...element.toJson(), ...appearance});
+    return LockElement.fromJson({
+      ...element.toJson(),
+      // Styles saved before skins existed describe the classic look.
+      'unlockSkin': UnlockSkin.classic.name,
+      ...appearance,
+    });
   }
 }
 

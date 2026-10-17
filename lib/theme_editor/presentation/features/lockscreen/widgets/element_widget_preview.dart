@@ -17,6 +17,9 @@ import '../../../providers/wallpaper_provider.dart';
 import '../../../common/widgets/gradient_text.dart';
 import 'video_wallpaper.dart';
 import 'unlock_control_preview.dart';
+import 'analog_clock_art.dart';
+import 'shortcut_set_art.dart';
+import 'calendar_style_art.dart';
 
 class ElementWidgetPreview extends ConsumerWidget {
   const ElementWidgetPreview({super.key});
@@ -494,6 +497,10 @@ class _DraggableElementState extends ConsumerState<_DraggableElement>
         ),
       );
     }
+    if (el.type == ElementType.shortcutSet) {
+      return ShortcutSetPreview(element: el);
+    }
+    if (el.type.isAnalog) return AnalogClockPreview(element: el);
     if (el.type.isClock) return _clock(el);
     if (el.type.isContainer) return _container(el);
     if (el.type == ElementType.notification) return _notification(el);
@@ -557,6 +564,9 @@ class _DraggableElementState extends ConsumerState<_DraggableElement>
   }
 
   Widget _calendar(LockElement element) {
+    if (element.calendarStyle != CalendarStyle.classic) {
+      return CalendarStylePreview(element: element);
+    }
     final now = DateTime.now();
     final dates = element.calendarDates(now);
     final width = element.width / AppConstants.screenRatio;

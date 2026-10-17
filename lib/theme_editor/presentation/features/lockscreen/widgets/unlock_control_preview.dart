@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../domain/entities/element_widget.dart';
+import 'unlock_skin_art.dart';
 
 class UnlockControlPreview extends StatelessWidget {
   const UnlockControlPreview({super.key, required this.element});
@@ -10,6 +11,12 @@ class UnlockControlPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (element.unlockSkin != UnlockSkin.classic) {
+      return UnlockSkinView(
+        key: ValueKey('unlock-preview-${element.name}'),
+        element: element,
+      );
+    }
     final width = element.width / AppConstants.screenRatio;
     final height = element.unlockHeight / AppConstants.screenRatio;
     final tap = element.type == ElementType.tapToUnlock;

@@ -13,6 +13,10 @@ import '../../core/errors/failures.dart';
 import '../../core/utils/remote_fonts.dart';
 import '../../domain/entities/element_widget.dart';
 import '../features/lockscreen/widgets/element_widget_preview.dart';
+import '../features/lockscreen/widgets/unlock_skin_art.dart';
+import '../features/lockscreen/widgets/analog_clock_art.dart';
+import '../features/lockscreen/widgets/shortcut_set_art.dart';
+import '../features/lockscreen/widgets/calendar_style_art.dart';
 import 'element_provider.dart';
 import 'font_provider.dart';
 import 'export_provider.dart';
@@ -836,6 +840,22 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
 
   String? _dynamicXml(LockElement el) {
     const ratio = 3.9;
+    if (el.type == ElementType.shortcutSet) return _shortcutSetXml(el, ratio);
+    if (el.type.isAnalog) {
+      final s = el.width * el.scale;
+      final x = '#sw/2+${(el.dx * ratio).toStringAsFixed(2)}-${s / 2}';
+      final y = '#sh/2+${(el.dy * ratio).toStringAsFixed(2)}-${s / 2}';
+      final base = (360 - el.angle) % 360;
+      return [
+        for (final part in analogPartsOf(el))
+          "<Image name='${el.name}${AnalogClockArt.suffix(el, part)}' src='analog/${el.name}${AnalogClockArt.suffix(el, part)}.png' x='$x' y='$y' w='$s' h='$s'"
+              " pivotX='${s / 2}' pivotY='${s / 2}' antiAlias='true'"
+              " angle='${part.angleExpression == null ? base : '${part.angleExpression}+$base'}'/>",
+        if (el.type == ElementType.analogClock &&
+            el.analogStyle == AnalogStyle.orbitDigital)
+          _orbitDigitalXml(el, s, ratio),
+      ].join();
+    }
     final w = (el.width * el.scale).toStringAsFixed(2);
     final h = (el.height * el.scale).toStringAsFixed(2);
     final dx = (el.dx * ratio).toStringAsFixed(2);
@@ -1010,6 +1030,11 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       ]).toXmlString();
     }
 
+    if (el.type == ElementType.calendarGrid &&
+        el.calendarStyle != CalendarStyle.classic) {
+      return _styledCalendarXml(el, dx, dy, ang, sz, bold);
+    }
+
     if (el.type == ElementType.calendarGrid) {
       final cellWidth = el.width / 7;
       final cellHeight = el.height / el.calendarDisplayRows;
@@ -1077,6 +1102,10 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
           "</AttrDataBinders></List></Group>";
     }
 
+    if (el.type.isUnlockControl && el.unlockSkin != UnlockSkin.classic) {
+      return _skinnedUnlockXml(el, dxAdj, dy, ang);
+    }
+
     if (el.type == ElementType.tapToUnlock) {
       final width = el.width * el.scale;
       final height = el.height * el.scale;
@@ -1136,6 +1165,233 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
     if (el.type.isMusic) return _musicXml(el, w, h, dx, dy, ang);
     if (el.type.isIcon) return _iconXml(el, w, h, dx, dy, ang);
     return null;
+  }
+
+  /// Live digits and orbiting minute/second bubbles of the Orbit digital face.
+  String _orbitDigitalXml(LockElement el, double s, double ratio) {
+    final cx = '#sw/2+${(el.dx * ratio).toStringAsFixed(2)}';
+    final cy = '#sh/2+${(el.dy * ratio).toStringAsFixed(2)}';
+    final ink = el.unlockAccent.toHex(withAlpha: true);
+    final disc = el.colorSecondary.toHex(withAlpha: true);
+    String f(double v) => (v * s).toStringAsFixed(2);
+    // MAML trig functions take radians; 6° per minute/second.
+    String px(double r, String v) => '$cx+${f(r)}*sin(#$v*0.1047198)';
+    String py(double r, String v) => '$cy-${f(r)}*cos(#$v*0.1047198)';
+    String text(String x, String y, double size, String attrs) =>
+        "<Text x='$x' y='$y' align='center' alignV='center' size='${f(size)}'"
+        " color='$ink' bold='true' $attrs/>";
+    const o = OrbitDigital.minuteOrbit, so = OrbitDigital.secondOrbit;
+    return text(
+          cx,
+          cy,
+          OrbitDigital.hourText,
+          "format='%02d' paras='ifelse(#time_format==1,#hour24,#hour12)'",
+        ) +
+        "<DateTime x='$cx' y='$cy+${f(OrbitDigital.dayY)}' align='center' alignV='center'"
+            " size='${f(OrbitDigital.dayText)}' color='$ink' format='EEE'/>" +
+        "<DateTime x='$cx' y='$cy+${f(OrbitDigital.dateY)}' align='center' alignV='center'"
+            " size='${f(OrbitDigital.dateText)}' color='$ink' bold='true' format='MM/dd'/>" +
+        "<Circle x='${px(o, 'minute')}' y='${py(o, 'minute')}' r='${f(OrbitDigital.minuteBubble)}' fillColor='$disc'/>" +
+        text(
+          px(o, 'minute'),
+          py(o, 'minute'),
+          OrbitDigital.minuteText,
+          "format='%02d' paras='#minute'",
+        ) +
+        "<Line x='${px(so, 'second')}' y='${py(so, 'second')}'"
+            " x1='${px(OrbitDigital.secondStem, 'second')}' y1='${py(OrbitDigital.secondStem, 'second')}'"
+            " strokeColor='$disc' weight='${f(.008)}' cap='round'/>" +
+        "<Circle x='${px(so, 'second')}' y='${py(so, 'second')}' r='${f(OrbitDigital.secondBubble)}' fillColor='$disc'/>" +
+        text(
+          px(so, 'second'),
+          py(so, 'second'),
+          OrbitDigital.secondText,
+          "format='%02d' paras='#second'",
+        );
+  }
+
+  String _styledCalendarXml(
+    LockElement el,
+    String dx,
+    String dy,
+    String ang,
+    String sz,
+    String bold,
+  ) {
+    final l = CalendarLayout.of(el);
+    String f(double v) => v.toStringAsFixed(2);
+    String hex(Color c) => c.toHex(withAlpha: true);
+    final inset = CalendarStyleArt.exportInset(el);
+    final fullMonth = el.calendarWeekRows == 6;
+    final day = fullMonth
+        ? '(#__calendar_i-#calendar_first+1)'
+        : '(#date-(#day_of_week-1)+#__calendar_i)';
+    final visible = fullMonth ? 'ge($day,1)*le($day,#calendar_days)' : '1';
+    String label(Rect r, String text, Color color) =>
+        "<Text text='$text' x='${f(r.center.dx)}' y='${f(r.center.dy)}' align='center' alignV='center'"
+        " size='$sz' color='${hex(color)}' bold='$bold'/>";
+    final b = StringBuffer(
+      "<Group x='#sw/2+$dx' y='#sh/2+$dy' angle='$ang' scale='${el.scale}'>"
+      "<Group x='-${el.width / 2}' y='-${el.height / 2}'>"
+      "<Image src='calendar/${el.name}_panel.png' x='${f(-inset)}' y='${f(-inset)}'"
+      " w='${f(el.width + inset * 2)}' h='${f(el.height + inset * 2)}'/>"
+      "<Var name='calendar_first' expression='(#day_of_week-1-(#date-1)%7+7)%7'/>"
+      "<Var name='calendar_leap' expression='eq(#year%4,0)*ne(#year%100,0)+eq(#year%400,0)'/>"
+      "<Var name='calendar_days' expression='ifelse(eq(#month,1),28+#calendar_leap,eq(#month,3)+eq(#month,5)+eq(#month,8)+eq(#month,10),30,31)'/>",
+    );
+    if (l.showsDates) {
+      final h = l.highlight(l.firstDateRow, 0);
+      const dRow = 'int(#__calendar_i/7)';
+      b.write(
+        "<Array count='${el.calendarWeekRows * 7}' indexName='__calendar_i'>"
+        "<Rectangle x='${f(h.left)}+(#__calendar_i%7)*${f(l.colW)}' y='${f(h.top)}+$dRow*${f(l.rowH)}'"
+        " w='${f(h.width)}' h='${f(h.height)}' cornerRadius='${f(h.tlRadiusX)}'"
+        " fillColor='${hex(el.colorSecondary)}' visibility='$visible*eq($day,#date)'/>"
+        '</Array>',
+      );
+    }
+    if (l.monthRow case final row?) {
+      final r = l.cell(row, 0);
+      b.write(
+        "<DateTime format='MMMM yyyy' x='${f(l.inner.center.dx)}' y='${f(r.center.dy)}'"
+        " align='center' alignV='center' size='$sz' color='${hex(el.color)}' bold='$bold'/>",
+      );
+    }
+    if (l.weekdayRow case final row?) {
+      for (var c = 0; c < 7; c++) {
+        b.write(label(l.cell(row, c), l.labels[c], l.labelColor(c)));
+      }
+    }
+    if (l.showsDates) {
+      final x = '${f(l.inner.left)}+(#__calendar_i%7+0.5)*${f(l.colW)}';
+      final y =
+          '${f(l.inner.top)}+(int(#__calendar_i/7)+${l.firstDateRow + .5})*${f(l.rowH)}';
+      String dateText(Color color, String show) =>
+          "<DateTime format='d' value='#time_sys+($day-#date)*86400000' x='$x' y='$y'"
+          " align='center' alignV='center' size='$sz' color='${hex(color)}' bold='$bold'"
+          " visibility='$show'/>";
+      b.write(
+        "<Array count='${el.calendarWeekRows * 7}' indexName='__calendar_i'>"
+        '${dateText(el.color, '$visible*ne($day,#date)')}'
+        '${dateText(l.todayText, '$visible*eq($day,#date)')}'
+        '</Array>',
+      );
+    }
+    b.write('</Group></Group>');
+    return b.toString();
+  }
+
+  String _shortcutSetXml(LockElement el, double ratio) {
+    final l = ShortcutSetLayout.of(el);
+    final apps = ShortcutApp.parse(el.shortcutApps);
+    String n(double v) => (v * el.scale).toStringAsFixed(2);
+    final src = 'shortcut/${el.name}';
+    final buffer = StringBuffer(
+      "<Group x='#sw/2+${(el.dx * ratio).toStringAsFixed(2)}-${n(l.size.width / 2)}'"
+      " y='#sh/2+${(el.dy * ratio).toStringAsFixed(2)}-${n(l.size.height / 2)}'"
+      " angle='${(360 - el.angle) % 360}'>",
+    );
+    if (l.panel case final p?) {
+      final inset = ShortcutSetArt.panelInset(p);
+      buffer.write(
+        "<Image src='${src}_panel.png' x='${n(p.left - inset)}' y='${n(p.top - inset)}' w='${n(p.width + inset * 2)}' h='${n(p.height + inset * 2)}'/>",
+      );
+    }
+    for (var i = 0; i < l.tiles.length; i++) {
+      final t = l.tiles[i];
+      final inset = ShortcutSetArt.exportInset(t);
+      final app = apps[i];
+      final action = switch (app.iconType) {
+        final type? =>
+          "<IntentCommand action='android.intent.action.MAIN' package='${_iconMeta[type]![1]}' class='${_iconMeta[type]![2]}'>"
+              "<Extra name='StartActivityWhenLocked' type='boolean' expression='1'/></IntentCommand>"
+              "<ExternCommand command='unlock' condition='not(#set_lock)'/>",
+        null when app.package != null =>
+          "<IntentCommand action='android.intent.action.MAIN' package='${app.package}' class='${app.activity}'>"
+              "<Extra name='StartActivityWhenLocked' type='boolean' expression='1'/></IntentCommand>"
+              "<ExternCommand command='unlock' condition='not(#set_lock)'/>",
+        null =>
+          "<IntentCommand action='miui.intent.action.TOGGLE_TORCH' broadcast='true'>"
+              "<Extra name='miui.intent.extra.IS_TOGGLE' type='boolean' expression='1'/></IntentCommand>",
+      };
+      final image =
+          "<Image src='${src}_$i.png' x='${n(-inset)}' y='${n(-inset)}' w='${n(t.width + inset * 2)}' h='${n(t.height + inset * 2)}'/>";
+      buffer.write(
+        "<Button name='${el.name}_$i' x='${n(t.left)}' y='${n(t.top)}' w='${n(t.width)}' h='${n(t.height)}'>"
+        '<Normal>$image</Normal>'
+        "<Pressed><Group alpha='170'>$image</Group></Pressed>"
+        "<Triggers><Trigger action='up'>$action</Trigger></Triggers></Button>",
+      );
+    }
+    buffer.write('</Group>');
+    return buffer.toString();
+  }
+
+  String _skinnedUnlockXml(
+    LockElement el,
+    String dxAdj,
+    String dy,
+    String ang,
+  ) {
+    final l = UnlockSkinLayout.of(el);
+    String n(double v) => (v * el.scale).toStringAsFixed(2);
+    final left = el.align == Alignment.centerLeft
+        ? 0.0
+        : el.align == Alignment.centerRight
+        ? -l.width
+        : -l.width / 2;
+    final src = 'unlock/${el.name}';
+    final track =
+        "<Image src='${src}_track.png' x='0' y='0' w='${n(l.width)}' h='${n(l.height)}'/>";
+    final icon =
+        el.unlockSkin == UnlockSkin.meet ||
+            el.effectiveUnlockIcon == UnlockIcon.none
+        ? ''
+        : "<Image src='$src.png' x='${n(l.iconCenter.dx)}' y='${n(l.iconCenter.dy)}' w='${n(l.iconSize)}' h='${n(l.iconSize)}' align='center' alignV='center'/>";
+    final label = el.unlockText.isEmpty
+        ? ''
+        : XmlElement(XmlName('Text'), [
+            XmlAttribute(XmlName('name'), '${el.name}_label'),
+            XmlAttribute(XmlName('text'), el.unlockText),
+            XmlAttribute(XmlName('x'), n(l.textRect.center.dx)),
+            XmlAttribute(XmlName('y'), n(l.textRect.center.dy)),
+            XmlAttribute(XmlName('w'), n(l.textRect.width)),
+            XmlAttribute(XmlName('align'), 'center'),
+            XmlAttribute(XmlName('alignV'), 'center'),
+            XmlAttribute(
+              XmlName('size'),
+              '${el.unlockTextFontSize * 3.9 * el.scale}',
+            ),
+            XmlAttribute(XmlName('color'), el.color.toHex(withAlpha: true)),
+            XmlAttribute(XmlName('bold'), '${el.isBold}'),
+            XmlAttribute(XmlName('marqueeSpeed'), '0'),
+          ]).toXmlString();
+    final open = "<Group x='#sw/2+$dxAdj' y='#sh/2+$dy' angle='$ang'>";
+    if (el.type == ElementType.tapToUnlock) {
+      final glyph = '$track$icon$label';
+      return "$open<Button name='tap_unlock_button' x='${n(left)}' y='${n(-l.height / 2)}' w='${n(l.width)}' h='${n(l.height)}' alignChildren='true' haptic='true'>"
+          "<Normal>$glyph</Normal><Pressed><Group alpha='160'>$glyph</Group></Pressed>"
+          "<Triggers><Trigger action='up'><ExternCommand command='unlock'/></Trigger></Triggers>"
+          '</Button></Group>';
+    }
+    final drag = el.type == ElementType.dragToUnlock;
+    final thumb =
+        "<Image src='${src}_thumb.png' x='0' y='0' w='${n(l.thumbPaintWidth)}' h='${n(l.thumbHeight)}'/>$icon";
+    final target = switch (l.target) {
+      final t? =>
+        "<Image src='${src}_target.png' x='${n(t.left)}' y='${n(t.top)}' w='${n(t.width)}' h='${n(t.height)}'/>",
+      null => '',
+    };
+    return "$open<Group x='${n(left)}' y='${n(-l.height / 2)}'>"
+        '$track$target$label'
+        "<Unlocker name='${drag ? 'drag_unlocker' : 'slide_unlocker'}' alwaysShow='true' bounceAcceleration='4000' bounceInitSpeed='80'>"
+        "<StartPoint x='0' y='${n(l.thumbY)}' w='${n(l.thumbWidth)}' h='${n(l.thumbHeight)}' anchorX='0' anchorY='0' alignChildren='true'>"
+        '<NormalState>$thumb</NormalState><PressedState>$thumb</PressedState>'
+        '${drag ? "<ReachedState>$thumb</ReachedState>" : ""}'
+        "</StartPoint><EndPoint x='${n(l.travel)}' y='${n(l.thumbY)}' w='${n(l.thumbWidth)}' h='${n(l.thumbHeight)}' align='center' alignV='center'>"
+        "<Path x='0' y='${n(l.thumbY)}' tolerance='${(l.thumbHeight * el.scale / 2).round()}'>"
+        "<Position x='0' y='0'/><Position x='${n(l.travel)}' y='0'/>"
+        '</Path></EndPoint></Unlocker></Group></Group>';
   }
 
   String _unlockIconXml(LockElement element, double width, double height) {

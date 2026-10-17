@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/core/theme/app_radius.dart';
 import '../../../../../core/theme/theme_extensions.dart';
 import '../../../../domain/entities/element_widget.dart';
+import '../../../../domain/entities/builtin_widget_styles.dart';
 import '../../../providers/element_provider.dart';
 
 class ElementListPanel extends ConsumerWidget {
@@ -169,7 +170,24 @@ class ElementListPanel extends ConsumerWidget {
                             ),
                           ),
                           onTap: () {
-                            if (!added || type.isShape) {
+                            if (!added && type == ElementType.shortcutSet) {
+                              notifier.add(
+                                builtinShortcutStyles.styles.first.applyTo(
+                                  const LockElement(
+                                    type: ElementType.shortcutSet,
+                                  ),
+                                ),
+                              );
+                            } else if (!added &&
+                                type == ElementType.analogClock) {
+                              notifier.add(
+                                builtinAnalogStyles.styles.first.applyTo(
+                                  const LockElement(
+                                    type: ElementType.analogClock,
+                                  ),
+                                ),
+                              );
+                            } else if (!added || type.isShape) {
                               notifier.add(
                                 LockElement(
                                   type: type,
