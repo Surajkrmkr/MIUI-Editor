@@ -31,10 +31,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'wall_rio/application/providers/router_provider.dart';
 import 'wall_rio/domain/models/cms_models.dart';
 
-
 // ── BuffyWalls CMS imports ────────────────────────────────────────────────────
 import 'buffy_walls/presentation/screens/buffy_dashboard_screen.dart';
-
 
 // =============================================================================
 
@@ -54,10 +52,7 @@ void main() async {
 
   // Android permissions
   if (Platform.isAndroid) {
-    await [
-      Permission.storage,
-      Permission.manageExternalStorage,
-    ].request();
+    await [Permission.storage, Permission.manageExternalStorage].request();
   }
 
   // Video player
@@ -70,18 +65,18 @@ void main() async {
 
   // Global error widget
   ErrorWidget.builder = (details) => Container(
-        decoration: const BoxDecoration(
-          color: AppColors.darkSurface0,
-          borderRadius: AppRadius.radiusMd,
-        ),
-        alignment: Alignment.center,
-        padding: const EdgeInsets.all(16),
-        child: Text(
-          details.exceptionAsString(),
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: AppColors.errorDark, fontSize: 11),
-        ),
-      );
+    decoration: const BoxDecoration(
+      color: AppColors.darkSurface0,
+      borderRadius: AppRadius.radiusMd,
+    ),
+    alignment: Alignment.center,
+    padding: const EdgeInsets.all(16),
+    child: Text(
+      details.exceptionAsString(),
+      textAlign: TextAlign.center,
+      style: const TextStyle(color: AppColors.errorDark, fontSize: 11),
+    ),
+  );
 
   final prefs = await SharedPreferences.getInstance();
 
@@ -200,10 +195,8 @@ class AppLauncherScreen extends ConsumerWidget {
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (_, animation, __) => app.builder(),
-        transitionsBuilder: (_, animation, __, child) => FadeTransition(
-          opacity: animation,
-          child: child,
-        ),
+        transitionsBuilder: (_, animation, __, child) =>
+            FadeTransition(opacity: animation, child: child),
         transitionDuration: const Duration(milliseconds: 300),
       ),
     );
@@ -233,17 +226,13 @@ class AppLauncherScreen extends ConsumerWidget {
                         const SizedBox(height: 20),
                         Text(
                           'Team Shadow Tools',
-                          style: Theme.of(context)
-                              .textTheme
-                              .displaySmall
+                          style: Theme.of(context).textTheme.displaySmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Select a tool to get started',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyLarge
+                          style: Theme.of(context).textTheme.bodyLarge
                               ?.copyWith(color: colors.textSecondary),
                         ),
                       ],
@@ -314,7 +303,8 @@ class _AppCard extends StatefulWidget {
   State<_AppCard> createState() => _AppCardState();
 }
 
-class _AppCardState extends State<_AppCard> with SingleTickerProviderStateMixin {
+class _AppCardState extends State<_AppCard>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _hoverCtrl;
   late final Animation<double> _enterAnim;
 
@@ -397,7 +387,8 @@ class _AppCardState extends State<_AppCard> with SingleTickerProviderStateMixin 
                     fit: StackFit.expand,
                     children: [
                       // Background image
-                      if (widget.app.bgImageDark != null || widget.app.bgImageLight != null)
+                      if (widget.app.bgImageDark != null ||
+                          widget.app.bgImageLight != null)
                         Image.asset(
                           (Theme.of(context).brightness == Brightness.dark
                                   ? widget.app.bgImageDark
@@ -409,11 +400,11 @@ class _AppCardState extends State<_AppCard> with SingleTickerProviderStateMixin 
 
                       // Dark overlay — lifts on hover
                       Container(
-                        color: (Theme.of(context).brightness == Brightness.dark 
-                                ? Colors.black 
-                                : Colors.white).withAlpha(
-                          lerpDouble(115, 50, t)!.toInt(),
-                        ),
+                        color:
+                            (Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.black
+                                    : Colors.white)
+                                .withAlpha(lerpDouble(115, 50, t)!.toInt()),
                       ),
 
                       // White spotlight following cursor
@@ -476,18 +467,22 @@ class _AppCardState extends State<_AppCard> with SingleTickerProviderStateMixin 
                           children: [
                             Text(
                               widget.app.title,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
+                              style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(
                                     fontWeight: FontWeight.w700,
-                                    color: Theme.of(context).brightness == Brightness.dark 
-                                        ? Colors.white 
+                                    color:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.white
                                         : Colors.black87,
-                                    shadows: Theme.of(context).brightness == Brightness.dark 
+                                    shadows:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
                                         ? [
                                             Shadow(
-                                              color: Colors.black.withAlpha(140),
+                                              color: Colors.black.withAlpha(
+                                                140,
+                                              ),
                                               blurRadius: 8,
                                             ),
                                           ]
@@ -497,12 +492,12 @@ class _AppCardState extends State<_AppCard> with SingleTickerProviderStateMixin 
                             const SizedBox(height: 4),
                             Text(
                               widget.app.subtitle,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
-                                    color: Theme.of(context).brightness == Brightness.dark 
-                                        ? Colors.white70 
+                                    color:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.white70
                                         : Colors.black54,
                                   ),
                             ),
@@ -621,4 +616,3 @@ class _BuffyWallsCMSApp extends ConsumerWidget {
     );
   }
 }
-

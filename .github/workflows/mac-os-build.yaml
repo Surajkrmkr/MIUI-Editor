@@ -58,4 +58,3 @@ jobs:
           files: |
             build/macos/Build/Products/Release/Miui-Editor-${{ github.ref_name }}-macos.zip
             build/macos/Build/Products/Release/Miui-Editor-${{ github.ref_name }}-macos.zip.sha256
-
