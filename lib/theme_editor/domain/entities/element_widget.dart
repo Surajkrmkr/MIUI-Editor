@@ -1043,7 +1043,7 @@ class LockElement {
     'font': font,
     'path': path,
     'text': text,
-    'fontWeight': fontWeight.toString(),
+    'fontWeight': 'FontWeight.w${fontWeight.value}',
     'isShort': isShort,
     'isWrap': isWrap,
     'showGuideLines': showGuideLines,
