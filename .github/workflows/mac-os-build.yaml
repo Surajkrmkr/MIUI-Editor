@@ -2,7 +2,8 @@ name: Miui Theme Editor Build Generation For Mac OS
 
 on:
   push:
-    tags: ["macos*"]
+    tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -12,33 +13,38 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
           channel: "stable"
           cache: true
-          cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:" # optional, change this to force refresh cache
-          cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:" # optional, change this to specify the cache path
-          architecture: x64 # optional, x64 or arm64
+
       - run: flutter --version
-      - name: Install project dependencies
-        run: flutter pub get
-      - name: Generate intermediates
-        run: flutter pub run build_runner build --delete-conflicting-outputs
+
       - name: Enable mac os support
         run: flutter config --enable-macos-desktop
+
+      - name: Install project dependencies
+        run: flutter pub get
+
+      - name: Generate intermediates
+        run: dart run build_runner build --delete-conflicting-outputs
+
       - name: Flutter Build Release for Mac OS
-        run: flutter build macos
+        run: flutter build macos --release
+
       - name: Archive Release
-        uses: thedoctor0/zip-release@master
-        with:
-          type: "zip"
-          filename: Miui-Editor-${{github.ref_name}}-macos.zip
-          directory: build/macos/Build/Products/Release
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent build/macos/Build/Products/Release/miui_editor.app build/macos/Build/Products/Release/Miui-Editor-${{ github.ref_name }}-macos.zip
+
       - name: Mac OS Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: build/macos/Build/Products/Release/Miui-Editor-${{github.ref_name}}-macos.zip
+          files: build/macos/Build/Products/Release/Miui-Editor-${{ github.ref_name }}-macos.zip
+
