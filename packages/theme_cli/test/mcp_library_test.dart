@@ -494,4 +494,37 @@ void main() {
       expect((await call('preview_theme', {'week': 3}))['isError'], isTrue);
     });
   });
+
+  group('get_rules', () {
+    void rules(String text) => File(root.rulesFile)
+      ..createSync(recursive: true)
+      ..writeAsStringSync(text);
+
+    test('returns the rules file', () async {
+      rules('# Rules\n- one unlock\n');
+      expect(text(await call('get_rules', {})), contains('one unlock'));
+    });
+
+    test('returns one section up to the next heading of its level', () async {
+      rules(
+        '# Icons\n- match wallpaper\n## Shape\n- round\n# Lock\n- unlock\n',
+      );
+      final icons = text(await call('get_rules', {'section': 'icons'}));
+      expect(icons, contains('match wallpaper'));
+      expect(icons, contains('round'));
+      expect(icons, isNot(contains('unlock')));
+      final shape = text(await call('get_rules', {'section': 'Shape'}));
+      expect(shape, isNot(contains('match wallpaper')));
+    });
+
+    test('an unknown section is an error', () async {
+      rules('# Icons\n- x\n');
+      final r = await call('get_rules', {'section': 'nope'});
+      expect(r['isError'], isTrue);
+    });
+
+    test('no file says so', () async {
+      expect(text(await call('get_rules', {})), contains('no rules'));
+    });
+  });
 }

@@ -20,6 +20,9 @@ class ThemeRoot {
   String get assetsDir => p.join(path, 'Sample2', 'lockscreen', 'advance');
   String get presetsDir => p.join(path, 'Preset');
 
+  /// The designer's rules for the AI agent, in plain text or Markdown.
+  String get rulesFile => p.join(path, 'Rules.md');
+
   /// Where the desktop editor saves the designer's own widget style sets.
   String get widgetStylesDir => p.join(path, 'WidgetStyles');
 

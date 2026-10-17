@@ -308,7 +308,61 @@ List<McpTool> libraryTools(ThemeToolContext ctx) => [
       );
     },
   ),
+  McpTool(
+    name: 'get_rules',
+    description:
+        'The designer\'s rules for themes, from Rules.md in the root folder. '
+        'Read them before designing and follow them; validate_spec does not '
+        'check most of them.',
+    inputSchema: const {
+      'type': 'object',
+      'properties': {
+        'section': {
+          'type': 'string',
+          'description': 'Only the rules under this heading, e.g. Icons.',
+        },
+      },
+    },
+    readOnly: true,
+    handler: (args, progress) async {
+      final file = File(_root(ctx).rulesFile);
+      if (!file.existsSync()) {
+        return ToolResult('There are no rules; ${file.path} does not exist.');
+      }
+      final text = file.readAsStringSync();
+      final section = (args['section'] as String? ?? '').trim().toLowerCase();
+      if (section.isEmpty) return ToolResult(text);
+      final picked = _rulesSection(text, section);
+      if (picked == null) {
+        throw ToolException('No heading "$section" in the rules.');
+      }
+      return ToolResult(picked);
+    },
+  ),
 ];
+
+/// The lines under the Markdown heading named [heading], up to the next
+/// heading of the same or a higher level; null when there is none.
+String? _rulesSection(String text, String heading) {
+  final lines = text.split('\n');
+  final level = RegExp(r'^(#+)\s*(.*?)\s*$');
+  int? depth;
+  final out = <String>[];
+  for (final line in lines) {
+    final m = level.firstMatch(line);
+    if (depth == null) {
+      if (m != null && m[2]!.toLowerCase() == heading) {
+        depth = m[1]!.length;
+        out.add(line);
+      }
+    } else if (m != null && m[1]!.length <= depth) {
+      break;
+    } else {
+      out.add(line);
+    }
+  }
+  return depth == null ? null : out.join('\n').trim();
+}
 
 List<File> _wallpapers(Directory dir) =>
     dir

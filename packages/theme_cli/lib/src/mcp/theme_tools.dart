@@ -33,11 +33,17 @@ const _instructions =
     'or pass fonts_dirs. Use build_batch for many specs; it skips themes '
     'that are already built.';
 
+const _rulesNote =
+    ' The designer keeps rules for themes: call get_rules before designing '
+    'and follow them; validate_spec does not check most of them.';
+
 McpServer themeMcpServer(ThemeToolContext ctx, {void Function(String)? log}) =>
     McpServer(
       name: 'theme-cli',
       version: '1.0.0',
-      instructions: _instructions,
+      instructions: ctx.root == null
+          ? _instructions
+          : _instructions + _rulesNote,
       log: log,
       tools: themeTools(ctx),
     );
