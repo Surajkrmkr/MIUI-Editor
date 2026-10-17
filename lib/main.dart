@@ -16,6 +16,7 @@ import 'core/theme/theme_provider.dart';
 // ── Theme Editor imports ──────────────────────────────────────────────────────
 import 'theme_editor/core/services/window_service.dart';
 import 'theme_editor/presentation/features/splash/user_profile_screen.dart';
+import 'theme_editor/presentation/features/update/update_dialog.dart';
 import 'theme_editor/presentation/providers/service_providers.dart';
 
 // ── Image Utility imports ─────────────────────────────────────────────────────
@@ -108,7 +109,7 @@ class RootApp extends ConsumerWidget {
       themeMode: themeMode,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      home: const AppLauncherScreen(),
+      home: const UpdateGate(child: AppLauncherScreen()),
     );
   }
 }

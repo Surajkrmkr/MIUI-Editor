@@ -34,11 +34,20 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Flutter Build Release for Mac OS
-        run: flutter build macos --release
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            flutter build macos --release --build-name="${GITHUB_REF_NAME#v}"
+          else
+            flutter build macos --release
+          fi
 
       - name: Archive Release
         run: |
           ditto -c -k --sequesterRsrc --keepParent build/macos/Build/Products/Release/miui_editor.app build/macos/Build/Products/Release/Miui-Editor-${{ github.ref_name }}-macos.zip
+
+      - name: Checksum
+        working-directory: build/macos/Build/Products/Release
+        run: shasum -a 256 Miui-Editor-${{ github.ref_name }}-macos.zip > Miui-Editor-${{ github.ref_name }}-macos.zip.sha256
 
       - name: Mac OS Release
         uses: softprops/action-gh-release@v2
@@ -46,5 +55,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: build/macos/Build/Products/Release/Miui-Editor-${{ github.ref_name }}-macos.zip
+          files: |
+            build/macos/Build/Products/Release/Miui-Editor-${{ github.ref_name }}-macos.zip
+            build/macos/Build/Products/Release/Miui-Editor-${{ github.ref_name }}-macos.zip.sha256
 

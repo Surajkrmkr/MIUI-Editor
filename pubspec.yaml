@@ -76,6 +76,11 @@ dependencies:
   # Navigation
   go_router: ^17.1.0
 
+  # App updates
+  package_info_plus: ^9.0.0
+  pub_semver: ^2.2.0
+  crypto: ^3.0.7
+
   # File Operations
   path: ^1.8.3
   file_picker: ^10.3.10

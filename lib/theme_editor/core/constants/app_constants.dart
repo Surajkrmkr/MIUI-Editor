@@ -30,4 +30,9 @@ abstract final class AppConstants {
   static const String prefsAdbLastSerial = 'adb_last_serial';
   static const String prefsAdbActivityCache = 'adb_activity_cache';
   static const String prefsCanvasLock = 'prefs_canvas_lock';
+
+  static const String updateRepoOwner = 'Surajkrmkr';
+  static const String updateRepoName = 'MIUI-Editor';
+  static const String prefsUpdateLastCheck = 'update_last_check';
+  static const String prefsUpdateSkipped = 'update_skipped_version';
 }

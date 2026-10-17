@@ -5,6 +5,7 @@ import 'package:miui_icon_generator/core/theme/app_radius.dart';
 import '../../../providers/directory_provider.dart';
 import '../../../providers/service_providers.dart';
 import '../../../providers/wallpaper_provider.dart';
+import '../../update/update_settings_tile.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/path_constants.dart';
 import '../../../../data/datasources/remote/ai_remote_datasource.dart';
@@ -219,6 +220,10 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
                     _sectionLabel(context, 'Workflow'),
                     const SizedBox(height: 12),
                     _ThemeCountRow(ctrl: _countCtrl, onChanged: _save),
+                    const SizedBox(height: 24),
+                    _sectionLabel(context, 'Updates'),
+                    const SizedBox(height: 12),
+                    const UpdateSettingsTile(),
                     const SizedBox(height: 24),
 
                     // ── AI section ────────────────────────────────────────────
