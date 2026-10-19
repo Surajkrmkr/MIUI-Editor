@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:convert';
 import 'package:archive/archive_io.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:path/path.dart' as p;
 import 'package:screenshot/screenshot.dart';
 import 'package:xml/xml.dart';
 import '../../core/constants/app_constants.dart';
@@ -20,6 +22,7 @@ import 'export_provider.dart';
 import 'wallpaper_provider.dart';
 import 'directory_provider.dart';
 import 'service_providers.dart';
+import 'spec_provider.dart';
 import 'usecase_providers.dart';
 
 class LockscreenState {
@@ -342,15 +345,108 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
 
   // ── Preset — delegates to use cases ──────────────────────────────────────
 
-  Future<Failure?> savePreset(String name, {Uint8List? previewBytes}) => ref
-      .read(savePresetUseCaseProvider)
-      .call(
-        name,
-        ref.read(elementProvider).elements,
-        previewBytes: previewBytes,
+  Future<Failure?> savePreset(
+    String name, {
+    required BuildContext context,
+  }) async {
+    if (name.isEmpty ||
+        p.basename(name) != name ||
+        name == '.' ||
+        name == '..') {
+      return const ValidationFailure(
+        'Preset name must be a single folder name.',
       );
+    }
+    if (ref.read(themeSpecProvider) == null) {
+      return const ValidationFailure('No active theme');
+    }
+    try {
+      final preview = await _capturePresetPreview(context);
+      final presetDir = Directory(p.join(PathConstants.presetPath, name));
+      await presetDir.create(recursive: true);
+      final specFailure = await ref.read(themeSpecSaveAsProvider)(
+        p.join(presetDir.path, 'preset.json'),
+      );
+      if (specFailure != null) return specFailure;
+      await File(p.join(presetDir.path, 'preview.png')).writeAsBytes(preview);
+      await ref.read(directoryProvider.notifier).loadPresetPaths();
+      return null;
+    } catch (e) {
+      return ExportFailure(e.toString());
+    }
+  }
+
+  Future<Uint8List> _capturePresetPreview(BuildContext context) async {
+    final ws = ref.read(wallpaperProvider);
+    final elements = ref.read(elementProvider);
+    final themePath = PathConstants.themePath(
+      ws.weekNum!,
+      ws.currentThemeName!,
+    );
+    final lockscreenPath = PathConstants.lockscreenAdvance(themePath);
+    final wallpaper =
+        ws.currentPath != null && File(ws.currentPath!).existsSync()
+        ? FileImage(File(ws.currentPath!))
+        : null;
+    final background = File(PathConstants.p('${lockscreenPath}bg.png'));
+    final canvas = LockscreenCanvas(
+      elements: elements.elements,
+      wallpaper: wallpaper,
+      bgImage: background.existsSync() ? FileImage(background) : null,
+      dimming: elements.bgAlpha,
+      resolveImage: (relative) {
+        final file = File(PathConstants.p('$lockscreenPath$relative.png'));
+        return file.existsSync() ? file : null;
+      },
+    );
+    return ScreenshotController().captureFromWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: DefaultTextStyle(
+          style: const TextStyle(fontFamily: 'Roboto'),
+          child: canvas,
+        ),
+      ),
+      context: context,
+      pixelRatio: 1,
+      targetSize: const Size(
+        AppConstants.screenWidth,
+        AppConstants.screenHeight,
+      ),
+      delay: const Duration(milliseconds: 100),
+    );
+  }
 
   Future<Failure?> loadPreset(String jsonPath) async {
+    try {
+      final json = jsonDecode(await File(jsonPath).readAsString());
+      if (json is Map) {
+        final parsed = ThemeSpec.parse(json);
+        final spec = parsed.spec;
+        if (spec == null) {
+          return ValidationFailure(
+            parsed.issues
+                .where((issue) => issue.severity == IssueSeverity.error)
+                .join('\n'),
+          );
+        }
+        final (elements, failure) = await ref
+            .read(loadPresetUseCaseProvider)
+            .call(jsonPath);
+        if (failure != null) return failure;
+        if (elements != null) {
+          await applyElements(elements);
+          ref
+              .read(elementProvider.notifier)
+              .setBgAlpha(spec.lockscreen.bgAlpha);
+        }
+        return null;
+      }
+    } on FileSystemException catch (e) {
+      return ExportFailure('Cannot read $jsonPath: ${e.message}');
+    } on FormatException catch (e) {
+      return ValidationFailure('$jsonPath is not valid JSON: ${e.message}');
+    }
     final (elements, failure) = await ref
         .read(loadPresetUseCaseProvider)
         .call(jsonPath);
@@ -410,47 +506,6 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       return (null, ExportFailure(e.toString()));
     }
 
-    // ── Auto-save preset with preview ───────────────────────────────────────
-    try {
-      final wallPath = ws.currentPath;
-      final wallpaper = wallPath != null && File(wallPath).existsSync()
-          ? FileImage(File(wallPath))
-          : null;
-      final bg = File(PathConstants.p('${lsPath}bg.png'));
-      final bgImage = bg.existsSync() ? FileImage(bg) : null;
-      final canvas = LockscreenCanvas(
-        elements: elements,
-        wallpaper: wallpaper,
-        bgImage: bgImage,
-        dimming: elementState.bgAlpha,
-        resolveImage: (relative) {
-          final f = File(PathConstants.p('$lsPath$relative.png'));
-          return f.existsSync() ? f : null;
-        },
-      );
-      final bytes = await ScreenshotController().captureFromWidget(
-        Directionality(
-          textDirection: TextDirection.ltr,
-          child: DefaultTextStyle(
-            style: const TextStyle(fontFamily: 'Roboto'),
-            child: canvas,
-          ),
-        ),
-        context: context,
-        pixelRatio: 1,
-        targetSize: const Size(
-          AppConstants.screenWidth,
-          AppConstants.screenHeight,
-        ),
-        delay: const Duration(milliseconds: 100),
-      );
-      await savePreset(ws.currentThemeName!, previewBytes: bytes);
-      // Refresh preset paths so the new one appears in Load Presets immediately
-      ref.read(directoryProvider.notifier).loadPresetPaths();
-    } catch (e) {
-      debugPrint('Auto-save preset failed: $e');
-    }
-
     final result = await ref
         .read(exportMtzUseCaseProvider)
         .call(
@@ -458,8 +513,19 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
           themeName: ws.currentThemeName!,
           dualVersion: state.dualMtzExport,
         );
-    if (result.$2 == null && recordFontUsage) {
-      await ref.read(fontUsageProvider.notifier).recordExport(elements);
+    if (result.$2 == null) {
+      final presetFailure = await savePreset(
+        ws.currentThemeName!,
+        context: context,
+      );
+      if (presetFailure != null) {
+        debugPrint(
+          'Exported theme preset could not be saved: ${presetFailure.message}',
+        );
+      }
+      if (recordFontUsage) {
+        await ref.read(fontUsageProvider.notifier).recordExport(elements);
+      }
     }
     return result;
   }

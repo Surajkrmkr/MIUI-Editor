@@ -159,6 +159,7 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
                         .read(lockscreenProvider.notifier)
                         .savePreset(
                           DateTime.now().millisecondsSinceEpoch.toString(),
+                          context: context,
                         );
                     if (!context.mounted) return;
                     if (failure != null) {

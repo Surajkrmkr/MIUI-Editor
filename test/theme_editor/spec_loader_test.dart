@@ -8,8 +8,10 @@ import 'package:image/image.dart' as img;
 import 'package:miui_icon_generator/theme_editor/core/constants/path_constants.dart';
 import 'package:miui_icon_generator/theme_editor/domain/entities/element_widget.dart';
 import 'package:miui_icon_generator/theme_editor/domain/entities/user_profile.dart';
+import 'package:miui_icon_generator/theme_editor/data/repositories/preset_repository_impl.dart';
 import 'package:miui_icon_generator/theme_editor/domain/usecases/build_theme_spec.dart';
 import 'package:miui_icon_generator/theme_editor/presentation/providers/icon_editor_provider.dart';
+import 'package:miui_icon_generator/theme_editor/presentation/providers/lockscreen_provider.dart';
 import 'package:miui_icon_generator/theme_editor/presentation/providers/service_providers.dart';
 import 'package:miui_icon_generator/theme_editor/presentation/providers/spec_loader.dart';
 import 'package:miui_icon_generator/theme_editor/presentation/providers/spec_provider.dart';
@@ -28,7 +30,8 @@ void main() {
 
   const week = '12', folder = '3';
   final profile = kUserProfiles[UserProfileType.suraj]!;
-  ThemeLayout layout() => ThemeLayout(PathConstants.themePath(week, 'Neon'));
+  ThemeLayout layout([String name = 'Neon']) =>
+      ThemeLayout(PathConstants.themePath(week, name));
 
   const style = IconEditorState(
     margin: 6,
@@ -79,21 +82,26 @@ void main() {
   ThemeSpec editorSpec({
     UserProfile? withProfile,
     List<LockElement>? elements,
-  }) => buildThemeSpec(
-    themeName: 'Neon',
-    wallpaperPath: wallpaper,
-    designer: 'Designer',
-    authorTag: 'Dg',
-    uiVersion: '17',
-    profile: withProfile ?? profile,
-    style: style.toStyle(),
-    elements: elements ?? const [kitchenSink],
-    bgAlpha: .25,
-    week: week,
-    folder: folder,
-    lockscreenAssetsDir: layout().lockscreenAdvance,
-    outputDir: layout().parentDir,
-  );
+    String themeName = 'Neon',
+    String? wallpaperPath,
+  }) {
+    final themeLayout = layout(themeName);
+    return buildThemeSpec(
+      themeName: themeName,
+      wallpaperPath: wallpaperPath ?? wallpaper,
+      designer: 'Designer',
+      authorTag: 'Dg',
+      uiVersion: '17',
+      profile: withProfile ?? profile,
+      style: style.toStyle(),
+      elements: elements ?? const [kitchenSink],
+      bgAlpha: .25,
+      week: week,
+      folder: folder,
+      lockscreenAssetsDir: themeLayout.lockscreenAdvance,
+      outputDir: themeLayout.parentDir,
+    );
+  }
 
   Future<Failure?> open(ThemeSpec spec, {String? week}) => container.read(
     themeSpecLoaderProvider,
@@ -133,6 +141,117 @@ void main() {
       expect(s.bgColors, style.bgColors);
       expect(s.accentColor, style.accentColor);
       expect(s.shape, IconShape.heart);
+      expect(s.ccTemplate, style.ccTemplate);
+    });
+  });
+
+  testWidgets(
+    'a spec-backed preset changes lockscreen without switching theme',
+    (tester) async {
+      await tester.runAsync(() async {
+        final presetElement = kitchenSink.copyWith(font: 'Roboto');
+        final spec = editorSpec(elements: [presetElement]);
+        final currentWallpaper = p.join(tmp.path, 'walls', 'current.png');
+        File(currentWallpaper)
+          ..createSync(recursive: true)
+          ..writeAsBytesSync(File(wallpaper).readAsBytesSync());
+        final currentProfile = kUserProfiles[UserProfileType.rajat]!;
+        await open(
+          editorSpec(
+            withProfile: currentProfile,
+            themeName: 'Current Theme',
+            wallpaperPath: currentWallpaper,
+          ),
+        );
+        container.read(iconEditorProvider.notifier)
+          ..setIconShape(IconShape.circle)
+          ..setCcTemplate(ControlCenterTemplate.frostedGlass);
+
+        final presetFile = File(
+          p.join(PathConstants.presetPath, 'Neon', 'preset.json'),
+        )..createSync(recursive: true);
+        presetFile.writeAsStringSync(jsonEncode(spec.toJson()));
+
+        final (elements, readFailure) = await PresetRepositoryImpl().load(
+          presetFile.path,
+        );
+        expect(readFailure, isNull);
+        expect(
+          elements!.single.toJson(),
+          presetElement
+              .copyWith(
+                unlockIconPath: p.join(
+                  p.dirname(presetFile.path),
+                  'unlock/icon.png',
+                ),
+                unlockTargetPath: p.join(
+                  p.dirname(presetFile.path),
+                  'unlock/target.png',
+                ),
+              )
+              .toJson(),
+        );
+
+        final failure = await container
+            .read(lockscreenProvider.notifier)
+            .loadPreset(presetFile.path);
+        expect(failure, isNull, reason: failure?.message);
+
+        final workspace = container.read(wallpaperProvider);
+        expect(workspace.currentPath, currentWallpaper);
+        expect(workspace.currentThemeName, 'Current Theme');
+        expect(
+          container.read(activeUserProfileProvider)!.type,
+          currentProfile.type,
+        );
+        expect(
+          container.read(activeUserProfileProvider)!.iconFolder,
+          currentProfile.iconFolder,
+        );
+        expect(container.read(iconEditorProvider).shape, IconShape.circle);
+        expect(
+          container.read(iconEditorProvider).ccTemplate,
+          ControlCenterTemplate.frostedGlass,
+        );
+        final currentSpec = container.read(themeSpecProvider)!;
+        expect(currentSpec.lockscreen.bgAlpha, spec.lockscreen.bgAlpha);
+        expect(currentSpec.lockscreen.elements.single.type, kitchenSink.type);
+      });
+    },
+  );
+
+  testWidgets('saving a preset writes its spec and lockscreen preview', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (_) => const SizedBox(key: ValueKey('preset-context')),
+        ),
+      ),
+    );
+    await tester.runAsync(() async {
+      await open(editorSpec(elements: const []));
+      final context = tester.element(
+        find.byKey(const ValueKey('preset-context')),
+      );
+      final failure = await container
+          .read(lockscreenProvider.notifier)
+          .savePreset('AI Sample', context: context);
+      expect(failure, isNull, reason: failure?.message);
+
+      final presetDir = Directory(
+        p.join(PathConstants.presetPath, 'AI Sample'),
+      );
+      final presetFile = File(p.join(presetDir.path, 'preset.json'));
+      expect(
+        jsonDecode(presetFile.readAsStringSync()),
+        editorSpec(elements: const []).toJson(),
+      );
+      final preview = img.decodePng(
+        File(p.join(presetDir.path, 'preview.png')).readAsBytesSync(),
+      );
+      expect(preview, isNotNull);
     });
   });
 

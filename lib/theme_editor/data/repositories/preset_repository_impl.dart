@@ -3,9 +3,10 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:path/path.dart' as path;
 import '../../core/constants/path_constants.dart';
-import '../../core/errors/failures.dart';
 import '../../domain/entities/element_widget.dart';
+import '../../domain/entities/lock_element_spec_bridge.dart';
 import '../../domain/repositories/preset_repository.dart';
+import 'package:theme_core/theme_core.dart';
 
 class PresetRepositoryImpl implements PresetRepository {
   @override
@@ -72,6 +73,32 @@ class PresetRepositoryImpl implements PresetRepository {
     try {
       final raw = await File(jsonPath).readAsString();
       final base = path.dirname(path.absolute(jsonPath));
+      final decoded = jsonDecode(raw);
+      final List<LockElement> elements;
+      if (decoded is List) {
+        elements = decoded
+            .map((e) => LockElement.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else if (decoded is Map) {
+        final parsed = ThemeSpec.parse(decoded);
+        final spec = parsed.spec;
+        if (spec == null) {
+          throw FormatException(
+            parsed.issues
+                .where((issue) => issue.severity == IssueSeverity.error)
+                .join('\n'),
+          );
+        }
+        elements = [
+          for (final element in spec.lockscreen.elements)
+            element.toLockElement(),
+        ];
+      } else {
+        throw const FormatException(
+          'Preset must contain a spec or element list',
+        );
+      }
+
       String resolve(String value) {
         if (value.isEmpty || path.isAbsolute(value)) return value;
         final resolved = path.normalize(path.join(base, value));
@@ -81,8 +108,7 @@ class PresetRepositoryImpl implements PresetRepository {
         return resolved;
       }
 
-      final list = (jsonDecode(raw) as List<dynamic>)
-          .map((e) => LockElement.fromJson(e as Map<String, dynamic>))
+      final list = elements
           .map(
             (element) => element.copyWith(
               unlockIconPath: resolve(element.unlockIconPath),

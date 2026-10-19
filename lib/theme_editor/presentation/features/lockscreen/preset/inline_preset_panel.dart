@@ -135,7 +135,7 @@ class _SaveButtonState extends ConsumerState<_SaveButton> {
     setState(() => _saving = true);
     final failure = await ref
         .read(lockscreenProvider.notifier)
-        .savePreset(name);
+        .savePreset(name, context: context);
     if (!mounted) return;
     setState(() => _saving = false);
 

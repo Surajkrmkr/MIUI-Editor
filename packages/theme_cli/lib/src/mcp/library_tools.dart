@@ -150,10 +150,10 @@ List<McpTool> libraryTools(ThemeToolContext ctx) => [
   McpTool(
     name: 'list_presets',
     description:
-        'Lists the saved lockscreen presets, with the element types each '
-        'uses and how many are visible. Not a source of designs: use it only '
-        'when the designer asks for a preset by name. Design references come '
-        'from list_references.',
+        'Lists saved presets, with their visible lockscreen element types. '
+        'Presets may include a complete theme spec. Use only when the '
+        'designer asks for a preset by name; design references come from '
+        'list_references.',
     inputSchema: const {
       'type': 'object',
       'properties': {
@@ -239,12 +239,11 @@ List<McpTool> libraryTools(ThemeToolContext ctx) => [
   McpTool(
     name: 'get_preset',
     description:
-        'Reads a lockscreen preset: its elements, ready to paste into a '
-        'spec\'s lockscreen.elements (change colors, positions and fonts to '
-        'suit the wallpaper), and its preview image so you can see the '
-        'look. Fonts it lists need font files. Use it only when the designer '
-        'asks for a preset by name; design references come from '
-        'get_reference.',
+        'Reads a preset, including its complete theme spec when available, '
+        'lockscreen elements and preview. Adapt its wallpaper, icons, '
+        'lockscreen and system-UI style to the requested theme. Fonts it '
+        'lists need font files. Use only when the designer asks for a preset '
+        'by name; design references come from get_reference.',
     inputSchema: const {
       'type': 'object',
       'properties': {
@@ -272,6 +271,13 @@ List<McpTool> libraryTools(ThemeToolContext ctx) => [
       if (!File(p.join(dir.path, 'preset.json')).existsSync()) {
         throw ToolException('No preset called "$name".');
       }
+      final presetJson = jsonDecode(
+        File(p.join(dir.path, 'preset.json')).readAsStringSync(),
+      );
+      final fullSpec =
+          presetJson is Map && ThemeSpec.parse(presetJson).spec != null
+          ? presetJson
+          : null;
       final elements = _presetElements(dir);
       final unreadable = readyElements(elements, dir.path);
       final fonts = {
@@ -289,6 +295,7 @@ List<McpTool> libraryTools(ThemeToolContext ctx) => [
       return ToolResult(
         jsonEncode({
           'name': name,
+          if (fullSpec != null) 'spec': fullSpec,
           if (unreadable > 0)
             'note':
                 '$unreadable alignment values in this preset were unreadable '
@@ -443,9 +450,15 @@ List<Map<String, dynamic>> _presetElements(Directory dir) {
     final json = jsonDecode(
       File(p.join(dir.path, 'preset.json')).readAsStringSync(),
     );
+    final lockscreen = json is Map ? json['lockscreen'] : null;
+    final elements = json is List
+        ? json
+        : lockscreen is Map
+        ? lockscreen['elements']
+        : null;
     return [
-      if (json is List)
-        for (final e in json)
+      if (elements is List)
+        for (final e in elements)
           if (e is Map) Map<String, dynamic>.from(e),
     ];
   } on Object {

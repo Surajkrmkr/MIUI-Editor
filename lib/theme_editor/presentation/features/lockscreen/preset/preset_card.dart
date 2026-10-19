@@ -80,10 +80,18 @@ class PresetCard extends ConsumerWidget {
           name: name,
           index: index,
           onTap: () async {
-            await ref
+            final failure = await ref
                 .read(lockscreenProvider.notifier)
                 .loadPreset('$path${Platform.pathSeparator}preset.json');
             if (!context.mounted) return;
+            if (failure != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Could not apply preset: ${failure.message}'),
+                ),
+              );
+              return;
+            }
             if (onApplied != null) {
               onApplied!();
             } else {
@@ -98,6 +106,23 @@ class PresetCard extends ConsumerWidget {
                     elements: elements,
                     presetName: name,
                     onApply: (mappedElements) async {
+                      final failure = await ref
+                          .read(lockscreenProvider.notifier)
+                          .loadPreset(
+                            '$path${Platform.pathSeparator}preset.json',
+                          );
+                      if (failure != null) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Could not apply preset: ${failure.message}',
+                              ),
+                            ),
+                          );
+                        }
+                        return;
+                      }
                       await ref
                           .read(lockscreenProvider.notifier)
                           .applyElements(mappedElements);

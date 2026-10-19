@@ -285,6 +285,47 @@ void main() {
       expect((await call('list_presets', {'limit': 0}))['isError'], isTrue);
     });
 
+    test('spec-backed presets expose the complete theme to agents', () async {
+      final spec = {
+        'specVersion': 1,
+        'meta': {'title': 'Full Theme'},
+        'wallpaper': {'home': 'wall.jpg'},
+        'icons': {'pack': 'u1'},
+        'systemUi': {'controlCenterTemplate': 'miniDots'},
+        'lockscreen': {
+          'elements': [
+            {'type': 'hourClock'},
+            {'type': 'swipeUpUnlock'},
+          ],
+        },
+      };
+      File(p.join(root.presetsDir, 'Full Theme', 'preset.json'))
+        ..createSync(recursive: true)
+        ..writeAsStringSync(jsonEncode(spec));
+
+      final listed = body(await call('list_presets', {}));
+      expect(listed['total'], 3);
+      expect(
+        (listed['presets'] as List).any(
+          (preset) => preset['name'] == 'Full Theme',
+        ),
+        isTrue,
+      );
+
+      final result = body(
+        await call('get_preset', {'name': 'Full Theme', 'image': false}),
+      );
+      expect((result['spec'] as Map)['meta']['title'], 'Full Theme');
+      expect(
+        (result['spec'] as Map)['systemUi']['controlCenterTemplate'],
+        'miniDots',
+      );
+      expect((result['elements'] as List).map((element) => element['type']), [
+        'hourClock',
+        'swipeUpUnlock',
+      ]);
+    });
+
     test(
       'get_preset returns pasteable elements, the fonts they need and a small preview',
       () async {
