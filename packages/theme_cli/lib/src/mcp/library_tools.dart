@@ -6,19 +6,11 @@ import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
 import 'package:theme_core/theme_core.dart';
 
-import '../root_config.dart';
 import 'mcp_server.dart';
 import 'tool_args.dart';
 import 'tool_context.dart';
 
 const _imageExtensions = {'.jpg', '.jpeg', '.png', '.webp'};
-
-ThemeRoot _root(ThemeToolContext ctx) =>
-    ctx.root ??
-    (throw const ToolException(
-      'This needs the root folder (the one with Wall, THEMES, Sample2 and '
-      'Preset). Start the server with --root or set THEME_ROOT.',
-    ));
 
 /// Tools that look things up in the designer's folders: wallpapers and the
 /// preset lockscreens that serve as references.
@@ -40,7 +32,7 @@ List<McpTool> libraryTools(ThemeToolContext ctx) => [
     },
     readOnly: true,
     handler: (args, progress) async {
-      final root = _root(ctx);
+      final root = requireRoot(ctx);
       final folder = argId(args, 'folder');
       if (folder == null) {
         final dir = Directory(root.wallDir);
@@ -159,14 +151,28 @@ List<McpTool> libraryTools(ThemeToolContext ctx) => [
     name: 'list_presets',
     description:
         'Lists the saved lockscreen presets, with the element types each '
-        'uses. Use them as references: pick one that resembles the look you '
-        'want and read it with get_preset.',
+        'uses and how many are visible. Use them as references: pick a rich '
+        'one (sort by elements) that resembles the look you want and read it '
+        'with get_preset.',
     inputSchema: const {
       'type': 'object',
       'properties': {
         'query': {
           'type': 'string',
           'description': 'Only presets whose name contains this text.',
+        },
+        'min_elements': {
+          'type': 'integer',
+          'minimum': 0,
+          'description':
+              'Only presets with at least this many visible elements. Rich '
+              'lockscreens have 6 or more.',
+        },
+        'sort': {
+          'type': 'string',
+          'enum': ['name', 'elements'],
+          'description':
+              'name (default), or elements to list the richest presets first.',
         },
         'limit': {
           'type': 'integer',
@@ -178,33 +184,52 @@ List<McpTool> libraryTools(ThemeToolContext ctx) => [
     },
     readOnly: true,
     handler: (args, progress) async {
-      final root = _root(ctx);
+      final root = requireRoot(ctx);
       final query = (args['query'] as String? ?? '').toLowerCase();
       final limit = argInt(args, 'limit') ?? 50;
       if (limit < 1 || limit > 300) {
         throw const ToolException('limit must be from 1 to 300.');
       }
+      final minElements = argInt(args, 'min_elements') ?? 0;
+      final sort = args['sort'] as String? ?? 'name';
+      if (sort != 'name' && sort != 'elements') {
+        throw const ToolException('sort must be name or elements.');
+      }
       final dir = Directory(root.presetsDir);
       if (!dir.existsSync()) {
         throw ToolException('No preset folder at ${root.presetsDir}.');
       }
-      final all = [
-        for (final d in dir.listSync().whereType<Directory>())
-          if (p.basename(d.path).toLowerCase().contains(query) &&
-              File(p.join(d.path, 'preset.json')).existsSync())
-            d,
-      ]..sort((a, b) => p.basename(a.path).compareTo(p.basename(b.path)));
+      final all =
+          <({Directory dir, List<Map<String, dynamic>> elements})>[
+              for (final d in dir.listSync().whereType<Directory>())
+                if (p.basename(d.path).toLowerCase().contains(query) &&
+                    File(p.join(d.path, 'preset.json')).existsSync())
+                  (dir: d, elements: _presetElements(d)),
+            ].where((e) => visibleCount(e.elements) >= minElements).toList()
+            ..sort((a, b) {
+              if (sort == 'elements') {
+                final by = visibleCount(
+                  b.elements,
+                ).compareTo(visibleCount(a.elements));
+                if (by != 0) return by;
+              }
+              return p.basename(a.dir.path).compareTo(p.basename(b.dir.path));
+            });
       return ToolResult(
         jsonEncode({
           'total': all.length,
           'presets': [
-            for (final d in all.take(limit))
+            for (final e in all.take(limit))
               {
-                'name': p.basename(d.path),
-                'elements': _presetElements(
-                  d,
-                ).map((e) => '${e['type']}').toSet().toList(),
-                'has_preview': File(p.join(d.path, 'preview.png')).existsSync(),
+                'name': p.basename(e.dir.path),
+                'visible_elements': visibleCount(e.elements),
+                'elements': e.elements
+                    .map((x) => '${x['type']}')
+                    .toSet()
+                    .toList(),
+                'has_preview': File(
+                  p.join(e.dir.path, 'preview.png'),
+                ).existsSync(),
               },
           ],
         }),
@@ -231,7 +256,7 @@ List<McpTool> libraryTools(ThemeToolContext ctx) => [
     },
     readOnly: true,
     handler: (args, progress) async {
-      final root = _root(ctx);
+      final root = requireRoot(ctx);
       final name = args['name'];
       if (name is! String ||
           name.isEmpty ||
@@ -246,27 +271,7 @@ List<McpTool> libraryTools(ThemeToolContext ctx) => [
         throw ToolException('No preset called "$name".');
       }
       final elements = _presetElements(dir);
-      // Older presets stored alignments as "Instance of 'Alignment'"; the
-      // editor reads those as the center, so say so instead of failing.
-      var unreadable = 0;
-      for (final e in elements) {
-        for (final key in LockscreenSpec.alignKeys) {
-          final v = e[key];
-          if (v != null && Alignment2.tryParse(v) == null) {
-            e[key] = 'Alignment.center';
-            unreadable++;
-          }
-        }
-      }
-      // Images the preset carries are stored next to it; make them absolute.
-      for (final e in elements) {
-        for (final key in ['unlockIconPath', 'unlockTargetPath']) {
-          final v = e[key];
-          if (v is String && v.isNotEmpty && !p.isAbsolute(v)) {
-            e[key] = p.join(dir.path, v);
-          }
-        }
-      }
+      final unreadable = readyElements(elements, dir.path);
       final fonts = {
         for (final e in elements)
           if (e['font'] is String &&
@@ -275,25 +280,10 @@ List<McpTool> libraryTools(ThemeToolContext ctx) => [
       }.toList();
 
       final preview = File(p.join(dir.path, 'preview.png'));
-      final images = <ToolImage>[];
-      if ((argBool(args, 'image') ?? true) && preview.existsSync()) {
-        final decoded = img.decodeImage(preview.readAsBytesSync());
-        if (decoded != null) {
-          final small = decoded.width > 360
-              ? img.copyResize(
-                  decoded,
-                  width: 360,
-                  interpolation: img.Interpolation.average,
-                )
-              : decoded;
-          images.add(
-            ToolImage(
-              Uint8List.fromList(img.encodeJpg(small, quality: 85)),
-              mimeType: 'image/jpeg',
-            ),
-          );
-        }
-      }
+      final images = <ToolImage>[
+        if ((argBool(args, 'image') ?? true) && preview.existsSync())
+          ?scaledPicture(preview, 360),
+      ];
       return ToolResult(
         jsonEncode({
           'name': name,
@@ -325,7 +315,7 @@ List<McpTool> libraryTools(ThemeToolContext ctx) => [
     },
     readOnly: true,
     handler: (args, progress) async {
-      final file = File(_root(ctx).rulesFile);
+      final file = File(requireRoot(ctx).rulesFile);
       if (!file.existsSync()) {
         return ToolResult('There are no rules; ${file.path} does not exist.');
       }
@@ -381,7 +371,7 @@ File _wallpaperFile(Map<String, dynamic> args, ThemeToolContext ctx) {
     if (!f.existsSync()) throw ToolException('No such file: $path');
     return f;
   }
-  final root = _root(ctx);
+  final root = requireRoot(ctx);
   final folder = argId(args, 'folder');
   final name = args['name'];
   if (folder == null ||
@@ -406,6 +396,46 @@ File _wallpaperFile(Map<String, dynamic> args, ThemeToolContext ctx) {
   return match;
 }
 
+/// Makes preset elements fit for a spec: old unreadable alignments become the
+/// center, as the editor reads them, and images stored beside the preset get
+/// absolute paths. Returns how many alignments were unreadable.
+int readyElements(List<Map<String, dynamic>> elements, String dir) {
+  var unreadable = 0;
+  for (final e in elements) {
+    for (final key in LockscreenSpec.alignKeys) {
+      final v = e[key];
+      if (v != null && Alignment2.tryParse(v) == null) {
+        e[key] = 'Alignment.center';
+        unreadable++;
+      }
+    }
+    for (final key in ['unlockIconPath', 'unlockTargetPath']) {
+      final v = e[key];
+      if (v is String && v.isNotEmpty && !p.isAbsolute(v)) {
+        e[key] = p.join(dir, v);
+      }
+    }
+  }
+  return unreadable;
+}
+
+/// [file] as a JPEG at most [width] wide; null when it isn't an image.
+ToolImage? scaledPicture(File file, int width) {
+  final decoded = img.decodeImage(file.readAsBytesSync());
+  if (decoded == null) return null;
+  final small = decoded.width > width
+      ? img.copyResize(
+          decoded,
+          width: width,
+          interpolation: img.Interpolation.average,
+        )
+      : decoded;
+  return ToolImage(
+    Uint8List.fromList(img.encodeJpg(small, quality: 85)),
+    mimeType: 'image/jpeg',
+  );
+}
+
 List<Map<String, dynamic>> _presetElements(Directory dir) {
   try {
     final json = jsonDecode(
@@ -420,6 +450,10 @@ List<Map<String, dynamic>> _presetElements(Directory dir) {
     return [];
   }
 }
+
+/// How many of preset [elements] are shown.
+int visibleCount(List<Map<String, dynamic>> elements) =>
+    elements.where((e) => e['isVisible'] != false).length;
 
 /// Orders "2" before "10" and "a2" before "a10".
 int _natural(String a, String b) {

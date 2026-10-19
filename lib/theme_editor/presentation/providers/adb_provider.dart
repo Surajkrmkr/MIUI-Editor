@@ -409,11 +409,16 @@ class ApplyToDeviceNotifier extends Notifier<ApplyToDeviceState> {
       final outcome = r.value!;
       await _saveActivity(outcome.serial, outcome.activity);
       await selectDevice(outcome.serial);
+      final destPath = _adb.destinationPath;
+      final info = outcome.isFallback
+          ? 'Theme pushed to $destPath.\nThemes app opened on ${outcome.serial}. '
+            '(Auto-apply is not supported on HyperOS / modern Theme Manager).'
+          : 'Themes app opened on ${outcome.serial}.';
       state = state.copyWith(
         steps: steps,
         isRunning: false,
         adbPath: _adb.adbPath,
-        info: 'Themes app opened on ${outcome.serial}.',
+        info: info,
       );
       return;
     }

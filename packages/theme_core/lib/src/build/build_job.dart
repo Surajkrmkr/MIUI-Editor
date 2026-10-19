@@ -1,5 +1,17 @@
 import 'dart:convert';
 
+/// How much of a theme a job draws.
+enum BuildMode {
+  /// Everything, packaged as an `.mtz`.
+  build,
+
+  /// Only the lockscreen picture, for a quick look.
+  lockscreen,
+
+  /// Only the wallpaper and app icons, for a quick look at the home screen.
+  icons,
+}
+
 /// One theme to build, handed to the process that does the drawing.
 class BuildJob {
   const BuildJob({
@@ -7,6 +19,7 @@ class BuildJob {
     required this.spec,
     required this.outDir,
     this.preview = false,
+    this.mode = BuildMode.build,
     this.fontsDirs = const [],
     this.baseDir,
   });
@@ -23,6 +36,8 @@ class BuildJob {
   /// Also draw the lockscreen to `<outDir>/<name>.lockscreen.png`.
   final bool preview;
 
+  final BuildMode mode;
+
   /// Absolute folders searched for fonts the spec doesn't give a path for.
   final List<String> fontsDirs;
 
@@ -34,6 +49,7 @@ class BuildJob {
     'spec': spec,
     'outDir': outDir,
     if (preview) 'preview': true,
+    if (mode != BuildMode.build) 'mode': mode.name,
     if (fontsDirs.isNotEmpty) 'fontsDirs': fontsDirs,
     if (baseDir != null) 'baseDir': baseDir,
   };
@@ -43,6 +59,7 @@ class BuildJob {
     spec: j['spec'] as String,
     outDir: j['outDir'] as String,
     preview: j['preview'] as bool? ?? false,
+    mode: BuildMode.values.asNameMap()[j['mode']] ?? BuildMode.build,
     fontsDirs: [for (final d in j['fontsDirs'] as List? ?? const []) '$d'],
     baseDir: j['baseDir'] as String?,
   );

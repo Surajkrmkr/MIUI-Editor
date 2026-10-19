@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:theme_cli/src/mcp/mcp_server.dart';
 import 'package:theme_cli/src/mcp/theme_tools.dart';
+import 'package:theme_core/theme_core.dart' show BuildMode;
 
 import 'support/fake_renderer.dart';
 
@@ -131,6 +132,8 @@ void main() {
       'get_spec_schema',
       'validate_spec',
       'build_theme',
+      'preview_lockscreen',
+      'preview_icons',
       'build_batch',
       'preview_theme',
       'list_wallpapers',
@@ -142,6 +145,10 @@ void main() {
       'get_widget',
       'list_widget_styles',
       'get_widget_style',
+      'get_base_spec',
+      'list_references',
+      'get_reference',
+      'check_uniqueness',
     ]);
   });
 
@@ -349,6 +356,60 @@ void main() {
       ]);
       expect(renderer.jobs, hasLength(2));
       expect(renderer.mostAtOnce, 1);
+    });
+  });
+
+  group('quick previews', () {
+    test('preview_lockscreen returns the lockscreen picture only', () async {
+      final (r, _) = await call('preview_lockscreen', {
+        'spec': jsonEncode(specJson('Quick')),
+      });
+      expect(r['isError'], isNot(true));
+      final content = r['content'] as List;
+      expect(content.where((c) => c['type'] == 'image'), hasLength(1));
+      final info = body(r);
+      expect(info['ok'], isTrue);
+      expect(info['mode'], 'lockscreen');
+      expect(info.containsKey('mtz'), isFalse);
+      expect(info.containsKey('lockscreenPreview'), isFalse);
+      expect(renderer.jobs.single.mode, BuildMode.lockscreen);
+    });
+
+    test('preview_icons returns the home screen picture only', () async {
+      final (r, _) = await call('preview_icons', {
+        'spec': jsonEncode(specJson('Quick')),
+      });
+      expect(
+        (r['content'] as List).where((c) => c['type'] == 'image'),
+        hasLength(1),
+      );
+      expect(body(r)['mode'], 'icons');
+      expect(renderer.jobs.single.mode, BuildMode.icons);
+    });
+
+    test('they leave nothing behind and need no week or folder', () async {
+      final before = Directory.systemTemp
+          .listSync()
+          .where((e) => e.path.contains('theme_quick'))
+          .length;
+      await call('preview_lockscreen', {'spec': jsonEncode(specJson('Q'))});
+      await call('preview_icons', {'spec': jsonEncode(specJson('Q'))});
+      expect(
+        Directory.systemTemp
+            .listSync()
+            .where((e) => e.path.contains('theme_quick'))
+            .length,
+        before,
+      );
+    });
+
+    test('an invalid spec is reported and never rendered', () async {
+      final spec = specJson('Bad', uiVersion: 15);
+      final (r, _) = await call('preview_lockscreen', {
+        'spec': jsonEncode(spec),
+      });
+      expect(r['isError'], isTrue);
+      expect(renderer.jobs, isEmpty);
     });
   });
 

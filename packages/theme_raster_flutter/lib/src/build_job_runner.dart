@@ -92,28 +92,85 @@ Future<void> runBuildJobs({
         );
         continue;
       }
-      final (result, failure) = await builder.build(
-        spec,
-        BuildOptions(
-          baseDir: job.baseDir ?? p.dirname(job.spec),
-          outDir: job.outDir,
-          fontsDirs: job.fontsDirs,
-        ),
-        onProgress: (e) =>
-            log?.call('  ${job.id}: ${e.step.name} ${e.done}/${e.total}'),
+      final options = BuildOptions(
+        baseDir: job.baseDir ?? p.dirname(job.spec),
+        outDir: job.outDir,
+        fontsDirs: job.fontsDirs,
       );
-      if (result == null) {
+      void progress(BuildProgress e) =>
+          log?.call('  ${job.id}: ${e.step.name} ${e.done}/${e.total}');
+
+      if (job.mode == BuildMode.lockscreen) {
+        if (spec.lockscreen.elements.isEmpty) {
+          record(
+            BuildJobResult(
+              id: job.id,
+              ok: false,
+              errorCode: 'build.invalid',
+              message: 'The spec has no lockscreen elements to draw.',
+              seconds: seconds(),
+            ),
+          );
+          continue;
+        }
+        final (layout, failure) = await builder.prepareLockscreenPreview(
+          spec,
+          options,
+        );
+        if (layout == null) {
+          record(_failed(job, failure, seconds()));
+          continue;
+        }
+        final path = p.join(
+          p.absolute(job.outDir),
+          '${spec.outputName}.lockscreen.png',
+        );
+        final drawn = await const LockscreenPreviewRenderer().render(
+          context: context,
+          layout: layout,
+          elements: spec.lockscreen.elements,
+          bgAlpha: spec.lockscreen.bgAlpha,
+          outPath: path,
+        );
         record(
           BuildJobResult(
             id: job.id,
-            ok: false,
-            errorCode: failure is ValidationFailure
-                ? 'build.invalid'
-                : 'build.failed',
-            message: failure?.message,
+            ok: drawn == null,
+            lockscreenPreview: drawn == null ? path : null,
+            errorCode: drawn == null ? null : 'preview.failed',
+            message: drawn?.message,
             seconds: seconds(),
           ),
         );
+        continue;
+      }
+
+      if (job.mode == BuildMode.icons) {
+        final (workspace, failure) = await builder.buildIcons(
+          spec,
+          options,
+          onProgress: progress,
+        );
+        record(
+          workspace == null
+              ? _failed(job, failure, seconds())
+              : BuildJobResult(
+                  id: job.id,
+                  ok: true,
+                  workspace: workspace,
+                  seconds: seconds(),
+                ),
+        );
+        continue;
+      }
+
+      final (result, failure) = await builder.build(
+        spec,
+        options,
+        onProgress: progress,
+      );
+      if (result == null) {
+        record(_failed(job, failure, seconds()));
         continue;
       }
 
@@ -158,3 +215,14 @@ Future<void> runBuildJobs({
     }
   }
 }
+
+BuildJobResult _failed(BuildJob job, Failure? failure, double seconds) =>
+    BuildJobResult(
+      id: job.id,
+      ok: false,
+      errorCode: failure is ValidationFailure
+          ? 'build.invalid'
+          : 'build.failed',
+      message: failure?.message,
+      seconds: seconds,
+    );

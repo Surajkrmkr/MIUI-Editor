@@ -28,7 +28,7 @@ class AdbService {
     'api_called_from': 'ThemeEditor',
   };
 
-  /// Tried in this order.
+  /// Tried in this order for auto-applying via ADB (supported on older MIUI).
   static const List<ApplyActivity> applyActivities = [
     ApplyActivity(
       component:
@@ -56,6 +56,40 @@ class AdbService {
       ],
       extras: _baseExtras,
     ),
+  ];
+
+  /// Fallback activities to open the Themes app on HyperOS / modern MIUI
+  /// where ApplyThemeForScreenshot was removed by Xiaomi.
+  static const List<ApplyActivity> fallbackActivities = [
+    ApplyActivity(
+      component: '$themeManagerPackage/.ThemeResourceTabActivity',
+      dumpsysForms: [
+        '$themeManagerPackage/.ThemeResourceTabActivity',
+        '$themeManagerPackage/$themeManagerPackage.ThemeResourceTabActivity',
+      ],
+      extras: {},
+    ),
+    ApplyActivity(
+      component: '$themeManagerPackage/.activity.ThemeTabActivity',
+      dumpsysForms: [
+        '$themeManagerPackage/.activity.ThemeTabActivity',
+        '$themeManagerPackage/$themeManagerPackage.activity.ThemeTabActivity',
+      ],
+      extras: {},
+    ),
+    ApplyActivity(
+      component: '$themeManagerPackage/.mine.local.customize.ComponentActivity',
+      dumpsysForms: [
+        '$themeManagerPackage/.mine.local.customize.ComponentActivity',
+        '$themeManagerPackage/$themeManagerPackage.mine.local.customize.ComponentActivity',
+      ],
+      extras: {},
+    ),
+  ];
+
+  static const List<ApplyActivity> allKnownActivities = [
+    ...applyActivities,
+    ...fallbackActivities,
   ];
 
   String? get adbPath => _locator.cachedPath;
@@ -290,21 +324,29 @@ class AdbService {
   /// Starts the first working apply activity. Returns its component.
   List<String> applyArguments(ApplyActivity activity) {
     final args = <String>['shell', 'am', 'start', '-n', activity.component];
-    final extras = {...activity.extras, 'theme_file_path': destinationPath};
-    extras.forEach((key, value) => args.addAll(['-e', key, value]));
+    if (activity.extras.isNotEmpty) {
+      final extras = {...activity.extras, 'theme_file_path': destinationPath};
+      extras.forEach((key, value) => args.addAll(['-e', key, value]));
+    }
     return args;
   }
 
-  Future<AdbResult<String>> launchApply(
+  Future<AdbResult<ApplyActivityOutcome>> launchApply(
     String serial, {
     String? cachedComponent,
   }) async {
-    final ordered = <ApplyActivity>[];
-    final cached = applyActivities
+    final orderedApply = <ApplyActivity>[];
+    final orderedFallback = <ApplyActivity>[];
+
+    final cached = allKnownActivities
         .where((a) => a.component == cachedComponent)
         .firstOrNull;
     if (cached != null) {
-      ordered.add(cached);
+      if (applyActivities.contains(cached)) {
+        orderedApply.add(cached);
+      } else {
+        orderedFallback.add(cached);
+      }
     } else {
       final dump = await _adb(AdbStep.launch, const [
         'shell',
@@ -313,16 +355,19 @@ class AdbService {
         themeManagerPackage,
       ], serial: serial);
       if (dump == null) return _noAdb(AdbStep.launch);
-      final found = applyActivities
-          .where((a) => AdbParsers.dumpsysHasActivity(dump.stdout, a))
-          .toList();
-      ordered.addAll(found);
+      orderedApply.addAll(
+        applyActivities.where((a) => AdbParsers.dumpsysHasActivity(dump.stdout, a)),
+      );
+      orderedFallback.addAll(
+        fallbackActivities.where((a) => AdbParsers.dumpsysHasActivity(dump.stdout, a)),
+      );
     }
-    // Fall back to trying everything if detection found nothing usable.
-    ordered.addAll(applyActivities.where((a) => !ordered.contains(a)));
+    // Fall back to trying all activities if detection found nothing usable.
+    orderedApply.addAll(applyActivities.where((a) => !orderedApply.contains(a)));
+    orderedFallback.addAll(fallbackActivities.where((a) => !orderedFallback.contains(a)));
 
     final log = StringBuffer();
-    for (final activity in ordered) {
+    for (final activity in orderedApply) {
       final args = applyArguments(activity);
       final out = await _adb(AdbStep.launch, args, serial: serial);
       if (out == null) return _noAdb(AdbStep.launch);
@@ -331,14 +376,31 @@ class AdbService {
       if (out.ok && !AdbParsers.amStartFailed(combined)) {
         return AdbResult.success(
           AdbStep.launch,
-          activity.component,
+          ApplyActivityOutcome(component: activity.component, isFallback: false),
           stdout: out.stdout,
         );
       }
     }
+
+    // Try fallback Theme Manager activities if ApplyThemeForScreenshot was removed (HyperOS)
+    for (final activity in orderedFallback) {
+      final args = applyArguments(activity);
+      final out = await _adb(AdbStep.launch, args, serial: serial);
+      if (out == null) return _noAdb(AdbStep.launch);
+      final combined = '${out.stdout}\n${out.stderr}';
+      log.writeln('> [fallback] ${activity.component}\n${combined.trim()}\n');
+      if (out.ok && !AdbParsers.amStartFailed(combined)) {
+        return AdbResult.success(
+          AdbStep.launch,
+          ApplyActivityOutcome(component: activity.component, isFallback: true),
+          stdout: log.toString(),
+        );
+      }
+    }
+
     return AdbResult.failure(
       AdbStep.launch,
-      'No apply activity could be started. Is the Themes app '
+      'No apply or Themes app activity could be started. Is the Themes app '
       '($themeManagerPackage) installed and up to date?',
       stdout: log.toString(),
     );
@@ -413,7 +475,11 @@ class AdbService {
 
     return AdbResult.success(
       AdbStep.launch,
-      ApplyOutcome(serial: device.serial, activity: launched.value!),
+      ApplyOutcome(
+        serial: device.serial,
+        activity: launched.value!.component,
+        isFallback: launched.value!.isFallback,
+      ),
       stdout: launched.stdout,
     );
   }

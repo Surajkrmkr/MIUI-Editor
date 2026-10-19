@@ -40,12 +40,17 @@ class LockscreenCanvas extends StatelessWidget {
     super.key,
     required this.elements,
     this.wallpaper,
+    this.bgImage,
     this.dimming = 0,
     this.resolveImage = noLockscreenImages,
   });
 
   final List<LockElement> elements;
   final ImageProvider? wallpaper;
+
+  /// The theme's `bg.png`, drawn over the wallpaper; a transparent one lets
+  /// the wallpaper show.
+  final ImageProvider? bgImage;
 
   /// Black overlay opacity, 0 to 1.
   final double dimming;
@@ -61,6 +66,14 @@ class LockscreenCanvas extends StatelessWidget {
           if (wallpaper != null)
             Image(
               image: wallpaper!,
+              gaplessPlayback: true,
+              fit: BoxFit.cover,
+              width: lockscreenViewWidth,
+              height: lockscreenViewHeight,
+            ),
+          if (bgImage != null)
+            Image(
+              image: bgImage!,
               gaplessPlayback: true,
               fit: BoxFit.cover,
               width: lockscreenViewWidth,

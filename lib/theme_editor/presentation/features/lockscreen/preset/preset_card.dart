@@ -62,25 +62,17 @@ class PresetCard extends ConsumerWidget {
     return FutureBuilder<List<LockElement>>(
       future: _load(ref),
       builder: (context, snapshot) {
-        Widget phoneContent;
-
-        if (previewFile.existsSync()) {
-          phoneContent = Image.file(
-            previewFile,
-            fit: BoxFit.cover,
-            width: AppConstants.screenWidth,
-            height: AppConstants.screenHeight,
-          );
-        } else {
-          phoneContent = switch (snapshot.connectionState) {
-            ConnectionState.done when snapshot.hasData => PresetThumbnail(
-              elements: snapshot.data!,
-              thumbnailWidth: AppConstants.screenWidth,
-            ),
-            ConnectionState.done => _ErrorPlaceholder(),
-            _ => _LoadingPlaceholder(),
-          };
-        }
+        final fallback = switch (snapshot.connectionState) {
+          ConnectionState.done when snapshot.hasData => PresetThumbnail(
+            elements: snapshot.data!,
+            thumbnailWidth: AppConstants.screenWidth,
+          ),
+          ConnectionState.done => _ErrorPlaceholder(),
+          _ => _LoadingPlaceholder(),
+        };
+        final phoneContent = previewFile.existsSync()
+            ? _PresetPreviewImage(file: previewFile, fallback: fallback)
+            : fallback;
 
         final elements = snapshot.data ?? [];
 
@@ -196,6 +188,74 @@ class PresetCard extends ConsumerWidget {
       },
     );
   }
+}
+
+class _PresetPreviewImage extends StatefulWidget {
+  const _PresetPreviewImage({required this.file, required this.fallback});
+
+  final File file;
+  final Widget fallback;
+
+  @override
+  State<_PresetPreviewImage> createState() => _PresetPreviewImageState();
+}
+
+class _PresetPreviewImageState extends State<_PresetPreviewImage> {
+  late Future<bool> _isPhoneImage;
+
+  @override
+  void initState() {
+    super.initState();
+    _isPhoneImage = _checkDimensions();
+  }
+
+  @override
+  void didUpdateWidget(covariant _PresetPreviewImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.file.path != widget.file.path) {
+      _isPhoneImage = _checkDimensions();
+    }
+  }
+
+  Future<bool> _checkDimensions() async {
+    RandomAccessFile? file;
+    try {
+      file = await widget.file.open();
+      if (await file.length() < 24) return false;
+      await file.setPosition(16);
+      final dimensions = await file.read(8);
+      if (dimensions.length != 8) return false;
+      int readUint32(int offset) =>
+          (dimensions[offset] << 24) |
+          (dimensions[offset + 1] << 16) |
+          (dimensions[offset + 2] << 8) |
+          dimensions[offset + 3];
+      final width = readUint32(0);
+      final height = readUint32(4);
+      if (width == 0 || height == 0) return false;
+      final aspectRatio = width / height;
+      return aspectRatio >= 0.35 && aspectRatio <= 0.7;
+    } catch (_) {
+      return false;
+    } finally {
+      await file?.close();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<bool>(
+    future: _isPhoneImage,
+    builder: (context, snapshot) {
+      if (snapshot.data != true) return widget.fallback;
+      return Image.file(
+        widget.file,
+        fit: BoxFit.cover,
+        width: AppConstants.screenWidth,
+        height: AppConstants.screenHeight,
+        errorBuilder: (_, _, _) => widget.fallback,
+      );
+    },
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

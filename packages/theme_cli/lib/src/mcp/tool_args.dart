@@ -60,3 +60,10 @@ String? argId(Map<String, dynamic> args, String key) {
   }
   return id;
 }
+
+ThemeRoot requireRoot(ThemeToolContext ctx) =>
+    ctx.root ??
+    (throw const ToolException(
+      'This needs the root folder (the one with Wall, THEMES, Sample2 and '
+      'Preset). Start the server with --root or set THEME_ROOT.',
+    ));

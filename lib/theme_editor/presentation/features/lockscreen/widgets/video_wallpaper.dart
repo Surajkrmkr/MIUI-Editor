@@ -4,8 +4,13 @@ import 'package:video_player/video_player.dart';
 import '../../../../core/constants/app_constants.dart';
 
 class VideoWallpaperWidget extends StatefulWidget {
-  const VideoWallpaperWidget({super.key, required this.path});
+  const VideoWallpaperWidget({
+    super.key,
+    required this.path,
+    this.isPaused = false,
+  });
   final String path;
+  final bool isPaused;
 
   @override
   State<VideoWallpaperWidget> createState() => _VideoWallpaperWidgetState();
@@ -26,7 +31,21 @@ class _VideoWallpaperWidgetState extends State<VideoWallpaperWidget> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.path != widget.path) {
       _initController(widget.path);
+    } else if (oldWidget.isPaused != widget.isPaused) {
+      _syncPlayback();
     }
+  }
+
+  Future<void> _syncPlayback() async {
+    final controller = _ctrl;
+    if (controller == null || !controller.value.isInitialized) return;
+    try {
+      if (widget.isPaused) {
+        await controller.pause();
+      } else {
+        await controller.play();
+      }
+    } catch (_) {}
   }
 
   Future<void> _initController(String path) async {
@@ -58,7 +77,7 @@ class _VideoWallpaperWidgetState extends State<VideoWallpaperWidget> {
       }
       await controller.setLooping(true);
       await controller.setVolume(0);
-      await controller.play();
+      if (!widget.isPaused) await controller.play();
       _ctrl = controller;
     } catch (e) {
       debugPrint('VideoWallpaper initialization error: $e');

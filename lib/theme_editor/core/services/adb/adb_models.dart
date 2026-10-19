@@ -140,9 +140,25 @@ class ApplyActivity {
   final Map<String, String> extras;
 }
 
+/// Outcome of attempting to launch an apply or Theme Manager activity.
+class ApplyActivityOutcome {
+  const ApplyActivityOutcome({
+    required this.component,
+    this.isFallback = false,
+  });
+
+  final String component;
+  final bool isFallback;
+}
+
 /// Successful end of [AdbService.applyToDevice].
 class ApplyOutcome {
-  const ApplyOutcome({required this.serial, required this.activity});
+  const ApplyOutcome({
+    required this.serial,
+    required this.activity,
+    this.isFallback = false,
+  });
   final String serial;
   final String activity;
+  final bool isFallback;
 }

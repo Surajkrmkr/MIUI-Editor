@@ -43,6 +43,10 @@ import 'tool_context.dart';
   return (sets: sets, problems: problems);
 }
 
+bool _offScreen(Map<String, dynamic> e) =>
+    ((e['dx'] as num?) ?? 0).abs() > 138 ||
+    ((e['dy'] as num?) ?? 0).abs() > 300;
+
 const _unlockTypes = {
   'swipeUpUnlock',
   'tapToUnlock',
@@ -147,6 +151,12 @@ List<McpTool> widgetTools(ThemeToolContext ctx) => [
             'note':
                 'No unlock control in this widget; the lockscreen still '
                 'needs one.',
+          if (w.elements.any(_offScreen))
+            'warning':
+                'Some positions are outside the screen (dx -138 to 138, dy '
+                '-300 to 300 are visible), so use them only as a guide to '
+                'the arrangement: re-place the elements and check with '
+                'preview_lockscreen.',
           'elements': w.elements,
         }),
       );

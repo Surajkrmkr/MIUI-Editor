@@ -355,4 +355,127 @@ void main() {
       expect(failure!.message, contains('assetsDir'));
     });
   });
+
+  group('quick modes', () {
+    test('buildIcons draws the wallpaper and icons and nothing else', () async {
+      final (workspace, failure) = await ThemeBuilder(
+        renderer,
+      ).buildIcons(spec(), options());
+      expect(failure, isNull, reason: failure?.message);
+      expect(workspace, p.join(out, 'Neon'));
+      expect(renderer.calls, ['icons']);
+      final layout = ThemeLayout(workspace!);
+      expect(File(layout.defaultWallpaper).existsSync(), isTrue);
+      expect(
+        File(p.join(layout.iconsXxhdpi, 'com.android.camera.png')).existsSync(),
+        isTrue,
+      );
+      expect(File(layout.mtzFile('Neon')).existsSync(), isFalse);
+      expect(Directory(layout.lockscreenAdvance).existsSync(), isFalse);
+    });
+
+    test('buildIcons does not need lockscreen assets or fonts', () async {
+      final s = spec(
+        lockscreen: {
+          'elements': [
+            {'type': 'hourClock'},
+          ],
+        },
+      );
+      final (workspace, failure) = await ThemeBuilder(
+        renderer,
+      ).buildIcons(s, options());
+      expect(failure, isNull, reason: failure?.message);
+      expect(workspace, isNotNull);
+    });
+
+    test('buildIcons reports a missing wallpaper', () async {
+      final s = spec(wallpaper: {'home': 'missing.jpg'});
+      final (workspace, failure) = await ThemeBuilder(
+        renderer,
+      ).buildIcons(s, options());
+      expect(workspace, isNull);
+      expect(failure, isA<ValidationFailure>());
+    });
+
+    test(
+      'prepareLockscreenPreview links the assets and copies the wallpaper',
+      () async {
+        final s = spec(wallpaper: {'home': 'home.jpg', 'lock': 'lock.jpg'});
+        final (layout, failure) = await ThemeBuilder(
+          renderer,
+        ).prepareLockscreenPreview(s, options());
+        expect(failure, isNull, reason: failure?.message);
+        expect(renderer.calls, isNot(contains('icons')));
+        expect(File(layout!.defaultLockWallpaper).readAsBytesSync(), [2, 2, 2]);
+        expect(
+          File(p.join(layout.lockscreenAdvance, 'bg.png')).readAsBytesSync(),
+          [5],
+        );
+      },
+    );
+
+    test('prepareLockscreenPreview registers the spec fonts', () async {
+      final s = spec(
+        lockscreen: {
+          'assetsDir': 'assets',
+          'elements': [
+            {'type': 'hourClock', 'font': 'gf:Inter'},
+          ],
+        },
+        fonts: [
+          {'ref': 'gf:Inter', 'path': 'Inter.ttf'},
+        ],
+      );
+      final (layout, failure) = await ThemeBuilder(
+        renderer,
+      ).prepareLockscreenPreview(s, options());
+      expect(failure, isNull, reason: failure?.message);
+      expect(layout, isNotNull);
+      expect(renderer.fonts.single.family, 'Inter');
+    });
+
+    test('preparing twice replaces the first and keeps the assets', () async {
+      final b = ThemeBuilder(renderer);
+      await b.prepareLockscreenPreview(spec(), options());
+      final (layout, failure) = await b.prepareLockscreenPreview(
+        spec(),
+        options(),
+      );
+      expect(failure, isNull, reason: failure?.message);
+      expect(File(p.join(tmp.path, 'assets', 'bg.png')).existsSync(), isTrue);
+      expect(
+        File(p.join(layout!.lockscreenAdvance, 'bg.png')).existsSync(),
+        isTrue,
+      );
+    });
+
+    test('a lockscreen without assetsDir is reported', () async {
+      final s = spec(
+        lockscreen: {
+          'elements': [
+            {'type': 'hourClock'},
+          ],
+        },
+      );
+      final (layout, failure) = await ThemeBuilder(
+        renderer,
+      ).prepareLockscreenPreview(s, options());
+      expect(layout, isNull);
+      expect(failure!.message, contains('assetsDir'));
+    });
+
+    test('a job keeps its mode through JSON', () {
+      for (final mode in BuildMode.values) {
+        final job = BuildJob.fromJson(
+          BuildJob(id: 'a', spec: '/s.json', outDir: '/o', mode: mode).toJson(),
+        );
+        expect(job.mode, mode);
+      }
+      expect(
+        BuildJob.fromJson({'id': 'a', 'spec': 's', 'outDir': 'o'}).mode,
+        BuildMode.build,
+      );
+    });
+  });
 }

@@ -1644,14 +1644,29 @@ class ElementInfoPanel extends ConsumerWidget {
     if (ws.weekNum == null || ws.currentThemeName == null) return;
     final tp = PathConstants.themePath(ws.weekNum!, ws.currentThemeName!);
     final lsAdv = PathConstants.lockscreenAdvance(tp);
-    final ext = el.type.isVideo ? 'mp4' : 'png';
     final resolvedPath = el.path.isNotEmpty ? el.path : el.type.defaultPath;
-    final relative = resolvedPath.startsWith(r'')
-        ? resolvedPath.substring(1)
-        : resolvedPath;
-    final dest = PathConstants.p('$lsAdv$relative.$ext');
+    final normalizedPath = resolvedPath.replaceAll(r'\', '/');
+    final relative = normalizedPath.startsWith('/')
+        ? normalizedPath.substring(1)
+        : normalizedPath;
+    final dest = el.type.isVideo
+        ? PathConstants.p('${lsAdv}video.mp4')
+        : PathConstants.p('$lsAdv$relative.png');
     await ref.read(fileServiceProvider).copyFile(src, dest);
-    ref.read(elementProvider.notifier).setGuideLines(el.type, false);
+    final notifier = ref.read(elementProvider.notifier);
+    if (el.type.isVideo) {
+      notifier.update(
+        el.type,
+        (element) => element.copyWith(
+          path: 'video.mp4',
+          isVisible: true,
+          showGuideLines: false,
+        ),
+      );
+      ref.read(videoWallpaperRevisionProvider.notifier).state++;
+    } else {
+      notifier.setGuideLines(el.type, false);
+    }
   }
 }
 

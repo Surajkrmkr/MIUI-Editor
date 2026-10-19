@@ -7,6 +7,7 @@ class ValidationOptions {
     required this.baseDir,
     this.assetsRoot,
     this.checkContrast = true,
+    this.checkDesign = false,
     this.fontsDirs = const [],
   });
 
@@ -19,6 +20,10 @@ class ValidationOptions {
 
   /// Decode the wallpaper to estimate text legibility; skipped when false.
   final bool checkContrast;
+
+  /// Warn about a lockscreen that is bare: few elements, no clock, no live
+  /// information, no decoration or a single font size.
+  final bool checkDesign;
 
   /// Folders searched for a font file when the spec doesn't name one.
   final List<String> fontsDirs;

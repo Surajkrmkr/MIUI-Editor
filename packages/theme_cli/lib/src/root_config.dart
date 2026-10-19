@@ -20,6 +20,12 @@ class ThemeRoot {
   String get assetsDir => p.join(path, 'Sample2', 'lockscreen', 'advance');
   String get presetsDir => p.join(path, 'Preset');
 
+  /// Curated lockscreen pictures the agent studies before designing.
+  String get referencesDir => p.join(path, 'AI preset');
+
+  /// Where the designer's own spec files are kept.
+  String get specsDir => p.join(themesDir, 'specs');
+
   /// The designer's rules for the AI agent, in plain text or Markdown.
   String get rulesFile => p.join(path, 'Rules.md');
 

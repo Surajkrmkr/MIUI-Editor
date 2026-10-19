@@ -35,12 +35,15 @@ class McpCommand extends Command<int> {
   Future<int> run() async {
     final args = argResults!;
     final project = projectDirOf(args, _cwd, const []);
+    final root = rootOf(args, _cwd);
     final context = ThemeToolContext(
-      cwd: _cwd,
+      // With a root, relative paths from the agent land there, not where the
+      // client happened to start the server.
+      cwd: root == null ? _cwd : Directory(root.path),
       project: project,
       sidecar: _sidecarOverride ?? flutterSidecarOf(args, project, _err),
       fontsDirs: fontsDirsOf(args, _cwd),
-      root: rootOf(args, _cwd),
+      root: root,
     );
     if (project == null) {
       _err.writeln(

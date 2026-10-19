@@ -67,6 +67,56 @@ void main() {
     }
   });
 
+  testWidgets(
+    'the base lockscreen sits inside the screen, clear of the edges',
+    (tester) async {
+      await tester.runAsync(loadSdkFonts);
+      solid(layout.defaultLockWallpaper, 20, 40, img.ColorRgb8(0, 0, 0));
+      final elements = ThemeSpec.parse(
+        baseSpec(title: 'T'),
+      ).spec!.lockscreen.elements;
+
+      final im = await render(tester, elements);
+
+      var left = im.width, right = 0, top = im.height, bottom = 0;
+      for (var y = 0; y < im.height; y++) {
+        for (var x = 0; x < im.width; x++) {
+          final c = im.getPixel(x, y);
+          if (c.r + c.g + c.b > 60) {
+            if (x < left) left = x;
+            if (x > right) right = x;
+            if (y < top) top = y;
+            if (y > bottom) bottom = y;
+          }
+        }
+      }
+      // 12 canvas units of margin is 24 px at 2x.
+      expect(left, greaterThanOrEqualTo(24));
+      expect(im.width - 1 - right, greaterThanOrEqualTo(24));
+      expect(top, greaterThan(100), reason: 'clock starts below the top zone');
+      expect(
+        im.height - 1 - bottom,
+        greaterThanOrEqualTo(60),
+        reason: 'unlock keeps a bottom margin',
+      );
+      expect(bottom, greaterThan(1000), reason: 'unlock sits near the bottom');
+    },
+  );
+
+  testWidgets('a transparent bg.png lets the wallpaper show', (tester) async {
+    await tester.runAsync(loadSdkFonts);
+    solid(layout.defaultLockWallpaper, 20, 40, img.ColorRgb8(0, 200, 0));
+    File(p.join(layout.lockscreenAdvance, 'bg.png'))
+      ..createSync(recursive: true)
+      ..writeAsBytesSync(
+        img.encodePng(img.Image(width: 20, height: 40, numChannels: 4)),
+      );
+
+    final im = await render(tester, const []);
+
+    expect(im.getPixel(10, 10).g, 200);
+  });
+
   testWidgets('falls back to the lock wallpaper when bg.png is absent', (
     tester,
   ) async {

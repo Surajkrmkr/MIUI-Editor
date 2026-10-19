@@ -4,6 +4,7 @@ import '../../domain/entities/element_widget.dart';
 import '../../domain/entities/widget_style.dart';
 
 final animationReplayProvider = StateProvider<int>((ref) => 0);
+final videoWallpaperRevisionProvider = StateProvider<int>((ref) => 0);
 
 const clockFontTypes = {
   ElementType.hourClock,

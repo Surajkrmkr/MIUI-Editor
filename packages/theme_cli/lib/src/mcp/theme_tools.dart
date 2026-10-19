@@ -7,6 +7,7 @@ import 'package:theme_core/theme_core.dart';
 import '../batch_runner.dart';
 import 'mcp_server.dart';
 import 'library_tools.dart';
+import 'design_tools.dart';
 import 'widget_tools.dart';
 import 'tool_args.dart';
 import 'tool_context.dart';
@@ -24,7 +25,14 @@ const _instructions =
     'layouts...) come from list_widgets and get_widget, and the saved looks '
     'for unlock controls, analog clocks, shortcuts and calendars from '
     'list_widget_styles and get_widget_style; their elements go straight '
-    'into lockscreen.elements. Then '
+    'into lockscreen.elements. The designer\'s curated lockscreens come '
+    'from list_references and get_reference: study them first. '
+    'validate_spec warns about a bare lockscreen, and check_uniqueness '
+    'compares your design with earlier specs. Always start from '
+    'get_base_spec, whose lockscreen is already aligned, and read its layout '
+    'guide. While designing, check the layout with preview_lockscreen and '
+    'the icons with preview_icons: both are much faster than build_theme, '
+    'which you run once at the end. Then '
     'validate_spec until it reports ok and build_theme with preview on to '
     'get the lockscreen and home screen images back; look at them and '
     'adjust. Give week (and folder, the wallpaper folder) and the theme goes '
@@ -78,6 +86,61 @@ List<McpTool> themeTools(ThemeToolContext ctx) {
     },
   };
 
+  Future<ToolResult> quick(Map<String, dynamic> args, BuildMode mode) async {
+    final input = _SpecInput.of(args, ctx);
+    final scratch = Directory.systemTemp.createTempSync('theme_quick');
+    try {
+      final specPath = input.inline == null
+          ? input.path!
+          : (File(
+              p.join(scratch.path, 'spec.json'),
+            )..writeAsStringSync(jsonEncode(input.inline))).path;
+      final report = await ctx.exclusive(
+        () => BatchRunner(ctx.sidecar).run(
+          [specPath],
+          BatchOptions(
+            outDir: p.join(scratch.path, 'out'),
+            prepare: _preparer(args, ctx),
+            force: true,
+            preview: true,
+            mode: mode,
+            checkDesign: true,
+            fontsDirs: argFontsDirs(args, ctx),
+            assetsRoot: ctx.project,
+            baseDir:
+                input.baseDir ?? (input.inline == null ? null : ctx.cwd.path),
+          ),
+        ),
+      );
+      final e = report.entries.single;
+      final built = e.status == BatchStatus.built;
+      final shot = mode == BuildMode.lockscreen
+          ? e.lockscreenPreview
+          : e.preview;
+      return ToolResult(
+        jsonEncode({
+          'ok': built,
+          'mode': mode.name,
+          if (report.sidecarError != null)
+            'error': {'code': 'sidecar', 'message': report.sidecarError},
+          // The files live in a scratch folder that is deleted below.
+          ...(e.toJson()
+            ..remove('workspace')
+            ..remove('preview')
+            ..remove('lockscreenPreview')
+            ..remove('mtz')),
+        }),
+        images: [
+          if (built && shot != null && File(shot).existsSync())
+            ToolImage(File(shot).readAsBytesSync()),
+        ],
+        isError: !built,
+      );
+    } finally {
+      scratch.deleteSync(recursive: true);
+    }
+  }
+
   return [
     McpTool(
       name: 'get_spec_schema',
@@ -125,6 +188,7 @@ List<McpTool> themeTools(ThemeToolContext ctx) {
           baseDir: input.baseDir ?? ctx.cwd.path,
           assetsRoot: ctx.project,
           checkContrast: argBool(args, 'contrast') ?? true,
+          checkDesign: true,
           fontsDirs: argFontsDirs(args, ctx),
         );
         final prepare = _preparer(args, ctx);
@@ -148,6 +212,7 @@ List<McpTool> themeTools(ThemeToolContext ctx) {
             baseDir: baseDir,
             assetsRoot: options.assetsRoot,
             checkContrast: options.checkContrast,
+            checkDesign: options.checkDesign,
             fontsDirs: options.fontsDirs,
           );
           Object? json;
@@ -206,6 +271,7 @@ List<McpTool> themeTools(ThemeToolContext ctx) {
                 prepare: _preparer(args, ctx),
                 force: true,
                 preview: preview,
+                checkDesign: true,
                 fontsDirs: argFontsDirs(args, ctx),
                 assetsRoot: ctx.project,
                 baseDir: input.baseDir ?? (temp == null ? null : ctx.cwd.path),
@@ -234,6 +300,29 @@ List<McpTool> themeTools(ThemeToolContext ctx) {
           temp?.deleteSync(recursive: true);
         }
       },
+    ),
+    McpTool(
+      name: 'preview_lockscreen',
+      description:
+          'Draws only the lockscreen of a spec and returns its picture: no '
+          'icons, system UI or package, so it is much faster than '
+          'build_theme. Use it to check and fix the layout, alignment and '
+          'colors, then build once at the end. Shortcuts show the default '
+          'app icons, not the theme\'s own.',
+      inputSchema: {'type': 'object', 'properties': specSource},
+      readOnly: true,
+      handler: (args, progress) => quick(args, BuildMode.lockscreen),
+    ),
+    McpTool(
+      name: 'preview_icons',
+      description:
+          'Draws only the wallpaper and app icons of a spec and returns the '
+          'home screen picture: no lockscreen, system UI or package, so it '
+          'is faster than build_theme. Use it to check the icon colors, '
+          'shape and effects against the wallpaper.',
+      inputSchema: {'type': 'object', 'properties': specSource},
+      readOnly: true,
+      handler: (args, progress) => quick(args, BuildMode.icons),
     ),
     McpTool(
       name: 'build_batch',
@@ -378,6 +467,7 @@ List<McpTool> themeTools(ThemeToolContext ctx) {
     ),
     ...libraryTools(ctx),
     ...widgetTools(ctx),
+    ...designTools(ctx),
   ];
 }
 
@@ -429,8 +519,9 @@ const _folderProp = {
 };
 
 const _outDirHelp =
-    'Folder that receives the build. Leave it out and give week instead to '
-    'build into THEMES/Week<week>.';
+    'Folder that receives the build; a relative one is inside the root '
+    'folder. Leave it out and give week instead to build into '
+    'THEMES/Week<week>, which is what you want.';
 
 /// The week and folder arguments, then the root's defaults, for a spec.
 void Function(Map<String, dynamic>, String) _preparer(

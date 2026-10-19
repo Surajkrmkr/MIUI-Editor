@@ -6,12 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:xml/xml.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/constants/path_constants.dart';
 import 'package:theme_core/theme_core.dart';
 import '../../core/utils/remote_fonts.dart';
 import '../../domain/entities/element_widget.dart';
 import '../../domain/entities/lock_element_spec_bridge.dart';
-import '../features/lockscreen/widgets/element_widget_preview.dart';
+import 'package:theme_raster_flutter/theme_raster_flutter.dart'
+    show LockscreenCanvas;
 import 'element_provider.dart';
 import 'font_provider.dart';
 import 'export_provider.dart';
@@ -161,12 +163,7 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       final lsPath = PathConstants.lockscreenAdvance(tp);
 
       // ── Step 1: write manifest.xml ────────────────────────────────────────
-      final doc = buildManifest(els);
-      final fs = ref.read(fileServiceProvider);
-      await fs.writeString(
-        '${lsPath}manifest.xml',
-        doc.toXmlString(pretty: true, indent: '\t'),
-      );
+      await _writeManifest(lsPath, els);
 
       // ── Step 2: export PNG frames (parallel batches) ──────────────────────
       final pngFailure = await exportPngs(context);
@@ -404,30 +401,48 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
     }
     final tp = PathConstants.themePath(ws.weekNum!, ws.currentThemeName!);
 
-    final elements = ref.read(elementProvider).elements;
+    final elementState = ref.read(elementProvider);
+    final elements = elementState.elements;
+    final lsPath = PathConstants.lockscreenAdvance(tp);
+    try {
+      await _writeManifest(lsPath, elementState);
+    } catch (e) {
+      return (null, ExportFailure(e.toString()));
+    }
 
     // ── Auto-save preset with preview ───────────────────────────────────────
     try {
-      final container = ProviderScope.containerOf(context);
+      final wallPath = ws.currentPath;
+      final wallpaper = wallPath != null && File(wallPath).existsSync()
+          ? FileImage(File(wallPath))
+          : null;
+      final bg = File(PathConstants.p('${lsPath}bg.png'));
+      final bgImage = bg.existsSync() ? FileImage(bg) : null;
+      final canvas = LockscreenCanvas(
+        elements: elements,
+        wallpaper: wallpaper,
+        bgImage: bgImage,
+        dimming: elementState.bgAlpha,
+        resolveImage: (relative) {
+          final f = File(PathConstants.p('$lsPath$relative.png'));
+          return f.existsSync() ? f : null;
+        },
+      );
       final bytes = await ScreenshotController().captureFromWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: Directionality(
-            textDirection: TextDirection.ltr,
-            child: Material(
-              type: MaterialType.transparency,
-              child: Overlay(
-                initialEntries: [
-                  OverlayEntry(
-                    builder: (context) => const ElementWidgetPreview(),
-                  ),
-                ],
-              ),
-            ),
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: DefaultTextStyle(
+            style: const TextStyle(fontFamily: 'Roboto'),
+            child: canvas,
           ),
         ),
         context: context,
         pixelRatio: 1,
+        targetSize: const Size(
+          AppConstants.screenWidth,
+          AppConstants.screenHeight,
+        ),
+        delay: const Duration(milliseconds: 100),
       );
       await savePreset(ws.currentThemeName!, previewBytes: bytes);
       // Refresh preset paths so the new one appears in Load Presets immediately
@@ -478,6 +493,14 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
   XmlDocument buildManifest(ElementState els) => const ManifestBuilder().build([
     for (final e in els.elements) e.toSpec(),
   ], bgAlpha: els.bgAlpha);
+
+  Future<void> _writeManifest(String lockscreenPath, ElementState elements) =>
+      ref
+          .read(fileServiceProvider)
+          .writeString(
+            '${lockscreenPath}manifest.xml',
+            buildManifest(elements).toXmlString(pretty: true, indent: '\t'),
+          );
 }
 
 final lockscreenProvider =

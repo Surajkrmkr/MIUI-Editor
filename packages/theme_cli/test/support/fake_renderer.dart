@@ -33,6 +33,19 @@ class FakeRenderer implements Sidecar {
       specs.add(Map<String, dynamic>.from(spec));
       final name = (spec['meta'] as Map)['title'] as String;
       final workspace = p.join(job.outDir, name);
+      final shot = p.join(job.outDir, '$name.lockscreen.png');
+      if (job.mode == BuildMode.lockscreen) {
+        _png(shot, 554, 1200);
+        final r = BuildJobResult(
+          id: job.id,
+          ok: true,
+          lockscreenPreview: shot,
+          seconds: 1,
+        );
+        results.add(r);
+        onResult?.call(r);
+        continue;
+      }
       _png(p.join(workspace, 'wallpaper', 'default_wallpaper.jpg'), 40, 90);
       _png(
         p.join(
@@ -45,7 +58,17 @@ class FakeRenderer implements Sidecar {
         180,
         180,
       );
-      final shot = p.join(job.outDir, '$name.lockscreen.png');
+      if (job.mode == BuildMode.icons) {
+        final r = BuildJobResult(
+          id: job.id,
+          ok: true,
+          workspace: workspace,
+          seconds: 1,
+        );
+        results.add(r);
+        onResult?.call(r);
+        continue;
+      }
       if (job.preview) _png(shot, 554, 1200);
       File(p.join(job.outDir, '$name.mtz')).writeAsBytesSync([1]);
       final r = BuildJobResult(

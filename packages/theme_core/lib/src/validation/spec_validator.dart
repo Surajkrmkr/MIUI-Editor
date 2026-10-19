@@ -6,6 +6,7 @@ import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
 
 import '../assets/asset_paths.dart';
+import '../lockscreen/design_profile.dart';
 import '../lockscreen/element_enums.dart';
 import '../lockscreen/lock_element_spec.dart';
 import '../spec/font_lookup.dart';
@@ -320,7 +321,58 @@ class _Run {
       );
     }
 
+    if (options.checkDesign) _lockscreenDesign(els);
     _lockscreenAssets(els);
+  }
+
+  void _lockscreenDesign(List<LockElementSpec> els) {
+    const at = '/lockscreen/elements';
+    const reference =
+        'Start from a preset (list_presets, get_preset) or add a widget '
+        '(list_widgets).';
+    final design = DesignProfile(els);
+    if (design.count < DesignProfile.minElements) {
+      warn(
+        'lockscreen.sparse',
+        at,
+        'Only ${design.count} visible elements; a good lockscreen has at '
+            'least ${DesignProfile.minElements}.',
+        hint: reference,
+      );
+    }
+    if (!design.hasClock) {
+      warn(
+        'lockscreen.no_clock',
+        at,
+        'No clock.',
+        hint: 'Add hourClock and minClock, dotClock or analogClock.',
+      );
+    }
+    if (!design.hasInfo) {
+      warn(
+        'lockscreen.no_info',
+        at,
+        'Nothing shows live information such as weather, battery, steps, '
+            'calendar or music.',
+        hint: 'Add a widget from list_widgets.',
+      );
+    }
+    if (!design.hasDecoration) {
+      warn(
+        'lockscreen.no_decoration',
+        at,
+        'No shape, card or image to give the layout structure.',
+        hint: 'Add a rectangleShape, a containerBG or a png element.',
+      );
+    }
+    if (design.textCount >= 2 && design.fontSizes < 2) {
+      warn(
+        'lockscreen.one_font_size',
+        at,
+        'All text and clocks use one font size.',
+        hint: 'Vary fontSize so there is a clear main and secondary text.',
+      );
+    }
   }
 
   static const _unlockTypes = {

@@ -67,7 +67,9 @@ class BatchOptions {
     this.retries = 1,
     this.force = false,
     this.preview = false,
+    this.mode = BuildMode.build,
     this.contrast = true,
+    this.checkDesign = false,
     this.fontsDirs = const [],
     this.assetsRoot,
     this.baseDir,
@@ -86,7 +88,13 @@ class BatchOptions {
   /// Rebuild even when the `.mtz` is newer than its spec.
   final bool force;
   final bool preview;
+
+  /// What to draw; the quick modes skip most of a build and the package.
+  final BuildMode mode;
   final bool contrast;
+
+  /// Also warn about bare lockscreens.
+  final bool checkDesign;
   final List<String> fontsDirs;
   final String? assetsRoot;
 
@@ -211,6 +219,7 @@ class BatchRunner {
       baseDir: baseDir,
       assetsRoot: options.assetsRoot,
       checkContrast: options.contrast,
+      checkDesign: options.checkDesign,
       fontsDirs: options.fontsDirs,
     );
     Object? decoded;
@@ -347,6 +356,7 @@ class BatchRunner {
               spec: e.preparedSpec ?? e.spec,
               outDir: p.absolute(options.outDir),
               preview: options.preview,
+              mode: options.mode,
               fontsDirs: options.fontsDirs,
               baseDir:
                   options.baseDir ??

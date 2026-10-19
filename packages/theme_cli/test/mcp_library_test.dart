@@ -246,6 +246,7 @@ void main() {
       expect(r['presets'], [
         {
           'name': 'Abstract Glow',
+          'visible_elements': 4,
           'elements': [
             'swipeUpUnlock',
             'hourClock',
@@ -256,10 +257,19 @@ void main() {
         },
         {
           'name': 'After Midnight',
+          'visible_elements': 1,
           'elements': ['analogClock'],
           'has_preview': false,
         },
       ]);
+    });
+
+    test('list_presets can sort by richness and need a minimum', () async {
+      final richest = body(await call('list_presets', {'sort': 'elements'}));
+      expect((richest['presets'] as List).first['name'], 'Abstract Glow');
+      final rich = body(await call('list_presets', {'min_elements': 3}));
+      expect((rich['presets'] as List).single['name'], 'Abstract Glow');
+      expect((await call('list_presets', {'sort': 'size'}))['isError'], isTrue);
     });
 
     test('list_presets filters by name and limits', () async {
@@ -333,7 +343,9 @@ void main() {
       );
       expect(
         (r['issues'] as List).where(
-          (i) => (i['path'] as String).startsWith('/lockscreen/elements'),
+          (i) =>
+              i['severity'] == 'error' &&
+              (i['path'] as String).startsWith('/lockscreen/elements'),
         ),
         isEmpty,
       );

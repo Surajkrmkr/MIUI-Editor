@@ -10,6 +10,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/path_constants.dart';
 import '../../../../domain/entities/element_widget.dart';
 import '../../../providers/element_provider.dart';
+import '../../../providers/lockscreen_provider.dart';
 import '../../../providers/wallpaper_provider.dart';
 import 'video_wallpaper.dart';
 
@@ -20,9 +21,13 @@ class ElementWidgetPreview extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final els = ref.watch(elementProvider);
     final wallState = ref.watch(wallpaperProvider);
+    final videoRevision = ref.watch(videoWallpaperRevisionProvider);
     final weekNum = wallState.weekNum ?? '1';
     final themeName = wallState.currentThemeName ?? '';
     final currentWallPath = wallState.currentPath;
+    final isExporting = ref.watch(
+      lockscreenProvider.select((state) => state.isExporting),
+    );
 
     String? bgPath, videoPath;
     if (themeName.isNotEmpty) {
@@ -34,7 +39,16 @@ class ElementWidgetPreview extends ConsumerWidget {
     final hasBg = bgPath != null && File(bgPath).existsSync();
     final hasCurrentWall =
         currentWallPath != null && File(currentWallPath).existsSync();
-    final hasVideo = videoPath != null && File(videoPath).existsSync();
+    final hasVisibleVideoElement = els.elements.any(
+      (element) =>
+          element.type.isVideo &&
+          element.isVisible &&
+          element.path == 'video.mp4',
+    );
+    final hasVideo =
+        hasVisibleVideoElement &&
+        videoPath != null &&
+        File(videoPath).existsSync();
 
     return Container(
       height: AppConstants.screenHeight,
@@ -42,56 +56,71 @@ class ElementWidgetPreview extends ConsumerWidget {
       decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
-        child: Stack(
-          children: [
-            // 1. Wallpaper (Current selected or exported bg.png)
-            if (hasBg)
-              Image.memory(
-                File(bgPath).readAsBytesSync(),
-                gaplessPlayback: true,
-                fit: BoxFit.cover,
-                width: AppConstants.screenWidth,
-                height: AppConstants.screenHeight,
-              )
-            else if (hasCurrentWall)
-              Image.file(
-                File(currentWallPath),
-                gaplessPlayback: true,
-                fit: BoxFit.cover,
-                width: AppConstants.screenWidth,
-                height: AppConstants.screenHeight,
-              ),
-
-            // 2. Video layer
-            if (hasVideo)
-              VideoWallpaperWidget(key: ValueKey(videoPath), path: videoPath),
-
-            // 3. Darken overlay (tap to deselect / exit group mode)
-            GestureDetector(
-              onTap: () {
-                final n = ref.read(elementProvider.notifier);
-                n.deselect();
-                n.exitGroupMode();
-              },
-              child: Container(
-                width: AppConstants.screenWidth,
-                height: AppConstants.screenHeight,
-                color: Colors.black.withAlpha((els.bgAlpha * 255).round()),
-              ),
-            ),
-
-            // 4. Elements
-            ...els.elements
-                .where((el) => el.isVisible)
-                .map(
-                  (el) => _DraggableElement(
-                    key: ValueKey(el.name),
-                    el: el,
-                    isGroupMode: els.isGroupMode,
-                    isGroupSelected: els.isSelected(el),
+        child: TickerMode(
+          enabled: !isExporting,
+          child: Stack(
+            children: [
+              // 1. Wallpaper (Current selected or exported bg.png)
+              if (hasBg)
+                RepaintBoundary(
+                  child: Image.file(
+                    File(bgPath),
+                    gaplessPlayback: true,
+                    fit: BoxFit.cover,
+                    width: AppConstants.screenWidth,
+                    height: AppConstants.screenHeight,
+                  ),
+                )
+              else if (hasCurrentWall)
+                RepaintBoundary(
+                  child: Image.file(
+                    File(currentWallPath),
+                    gaplessPlayback: true,
+                    fit: BoxFit.cover,
+                    width: AppConstants.screenWidth,
+                    height: AppConstants.screenHeight,
                   ),
                 ),
-          ],
+
+              // 2. Video layer
+              if (hasVideo)
+                RepaintBoundary(
+                  child: VideoWallpaperWidget(
+                    key: ValueKey((videoPath, videoRevision)),
+                    path: videoPath,
+                    isPaused: isExporting,
+                  ),
+                ),
+
+              // 3. Darken overlay (tap to deselect / exit group mode)
+              GestureDetector(
+                onTap: () {
+                  final n = ref.read(elementProvider.notifier);
+                  n.deselect();
+                  n.exitGroupMode();
+                },
+                child: Container(
+                  width: AppConstants.screenWidth,
+                  height: AppConstants.screenHeight,
+                  color: Colors.black.withAlpha((els.bgAlpha * 255).round()),
+                ),
+              ),
+
+              // 4. Elements
+              ...els.elements
+                  .where((el) => el.isVisible)
+                  .map(
+                    (el) => RepaintBoundary(
+                      child: _DraggableElement(
+                        key: ValueKey(el.name),
+                        el: el,
+                        isGroupMode: els.isGroupMode,
+                        isGroupSelected: els.isSelected(el),
+                      ),
+                    ),
+                  ),
+            ],
+          ),
         ),
       ),
     );
@@ -361,10 +390,9 @@ class _DraggableElementState extends ConsumerState<_DraggableElement>
         height: element.height * factor,
       );
     }
-    Widget child = LockElementView(
-      element: sizedElement,
-      resolveImage: _resolveImage,
-    );
+    Widget child = sizedElement.type.isVideo
+        ? const SizedBox.shrink()
+        : LockElementView(element: sizedElement, resolveImage: _resolveImage);
     for (final type in const [
       ElementAnimation.scale,
       ElementAnimation.rotation,

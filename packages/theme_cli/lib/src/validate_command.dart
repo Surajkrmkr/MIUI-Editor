@@ -29,6 +29,13 @@ class ValidateCommand extends Command<int> {
         defaultsTo: true,
         help: 'Decode the wallpaper to check text legibility.',
       )
+      ..addFlag(
+        'design',
+        negatable: false,
+        help:
+            'Also warn about a bare lockscreen: few elements, no clock, '
+            'no live information, no decoration, one font size.',
+      )
       ..addOption(
         'assets-root',
         valueHelp: 'dir',
@@ -89,6 +96,7 @@ class ValidateCommand extends Command<int> {
       baseDir: p.dirname(specPath),
       assetsRoot: _assetsRoot(specPath),
       checkContrast: argResults!['contrast'] as bool,
+      checkDesign: argResults!['design'] as bool,
       fontsDirs: fontsDirsOf(argResults!, _cwd),
     );
     final prepare = specPreparer(root: rootOf(argResults!, _cwd));

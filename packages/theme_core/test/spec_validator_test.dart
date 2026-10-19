@@ -54,6 +54,7 @@ void main() {
   ValidationReport run(
     Object? json, {
     bool contrast = true,
+    bool design = false,
     String? assetsRoot,
     List<String> fontsDirs = const [],
   }) => validator.validate(
@@ -62,6 +63,7 @@ void main() {
       baseDir: tmp.path,
       assetsRoot: assetsRoot,
       checkContrast: contrast,
+      checkDesign: design,
       fontsDirs: fontsDirs,
     ),
   );
@@ -493,5 +495,84 @@ void main() {
     expect(json['ok'], isFalse);
     expect(json['errors'], 1);
     expect(() => jsonEncode(json), returnsNormally);
+  });
+
+  group('design checks', () {
+    Map<String, dynamic> rich() {
+      final j = good();
+      (j['lockscreen'] as Map)['elements'] = <Map<String, dynamic>>[
+        {'type': 'swipeUpUnlock'},
+        {'type': 'hourClock', 'fontSize': 120},
+        {'type': 'minClock', 'fontSize': 120},
+        {'type': 'dateClock', 'fontSize': 28},
+        {'type': 'weatherTemp', 'fontSize': 40},
+        {'type': 'rectangleShape'},
+        {'type': 'containerBG1'},
+        {'type': 'normalText1', 'fontSize': 18},
+      ];
+      return j;
+    }
+
+    test('are off unless asked for', () {
+      expect(run(good()).issues, isEmpty);
+    });
+
+    test('a bare lockscreen is warned about, and still builds', () {
+      final r = run(good(), design: true);
+      expect(r.ok, isTrue);
+      expect(
+        codes(r),
+        containsAll([
+          'lockscreen.sparse',
+          'lockscreen.no_info',
+          'lockscreen.no_decoration',
+        ]),
+      );
+      expect(codes(r), isNot(contains('lockscreen.no_clock')));
+      expect(issue(r, 'lockscreen.sparse').hint, contains('list_presets'));
+    });
+
+    test('a full lockscreen has no warnings', () {
+      final r = run(rich(), design: true);
+      expect(r.issues, isEmpty, reason: r.issues.join('\n'));
+    });
+
+    test('hidden elements do not count', () {
+      final j = rich();
+      for (final e in (j['lockscreen'] as Map)['elements'] as List) {
+        if (const {
+          'weatherTemp',
+          'rectangleShape',
+          'containerBG1',
+        }.contains(e['type'])) {
+          e['isVisible'] = false;
+        }
+      }
+      final r = run(j, design: true);
+      expect(
+        codes(r),
+        containsAll([
+          'lockscreen.sparse',
+          'lockscreen.no_info',
+          'lockscreen.no_decoration',
+        ]),
+      );
+    });
+
+    test('one font size across several texts is warned about', () {
+      final j = rich();
+      for (final e in (j['lockscreen'] as Map)['elements'] as List) {
+        e['fontSize'] = 30;
+      }
+      expect(codes(run(j, design: true)), ['lockscreen.one_font_size']);
+    });
+
+    test('a missing clock is warned about', () {
+      final j = rich();
+      ((j['lockscreen'] as Map)['elements'] as List).removeWhere(
+        (e) => (e['type'] as String).endsWith('Clock'),
+      );
+      expect(codes(run(j, design: true)), contains('lockscreen.no_clock'));
+    });
   });
 }

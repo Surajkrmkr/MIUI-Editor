@@ -34,9 +34,11 @@ class LockscreenPreviewRenderer {
     lockscreenNow = () => _previewTime;
     try {
       final wallpaper = _wallpaper(layout);
+      final bg = File(p.join(layout.lockscreenAdvance, 'bg.png'));
       final canvas = LockscreenCanvas(
         elements: [for (final e in elements) e.toLockElement()],
         wallpaper: wallpaper == null ? null : FileImage(File(wallpaper)),
+        bgImage: bg.existsSync() ? FileImage(bg) : null,
         dimming: bgAlpha,
         resolveImage: (relative) =>
             File(p.join(layout.lockscreenAdvance, '$relative.png')),
@@ -65,13 +67,9 @@ class LockscreenPreviewRenderer {
     }
   }
 
-  // The same pick the editor makes: the exported bg.png, else the wallpapers.
+  // bg.png is often a transparent placeholder, so it goes over the wallpaper.
   static String? _wallpaper(ThemeLayout layout) {
-    for (final path in [
-      p.join(layout.lockscreenAdvance, 'bg.png'),
-      layout.defaultLockWallpaper,
-      layout.defaultWallpaper,
-    ]) {
+    for (final path in [layout.defaultLockWallpaper, layout.defaultWallpaper]) {
       if (File(path).existsSync()) return path;
     }
     return null;

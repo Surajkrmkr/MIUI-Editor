@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/theme_extensions.dart';
 import 'package:miui_icon_generator/theme_editor/presentation/providers/wallpaper_provider.dart';
 import '../../../../core/constants/path_constants.dart';
+import '../../../../domain/entities/element_widget.dart';
 import '../../../providers/element_provider.dart';
 import '../../../providers/lockscreen_provider.dart';
 import '../../../providers/service_providers.dart';
@@ -299,9 +300,26 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
     final tp = PathConstants.themePath(ws.weekNum!, ws.currentThemeName!);
     final dest = '${PathConstants.lockscreenAdvance(tp)}video.mp4';
     await ref.read(fileServiceProvider).copyFile(path, dest);
-    ref
-        .read(elementProvider.notifier)
-        .setGuideLines(ref.read(elementProvider).activeType, false);
+    final elements = ref.read(elementProvider);
+    final notifier = ref.read(elementProvider.notifier);
+    final videoElement = elements.elements
+        .where((element) => element.type.isVideo)
+        .firstOrNull;
+    if (videoElement == null) {
+      notifier.add(
+        const LockElement(type: ElementType.videoWallpaper, path: 'video.mp4'),
+      );
+    } else {
+      notifier.update(
+        ElementType.videoWallpaper,
+        (element) => element.copyWith(
+          path: 'video.mp4',
+          isVisible: true,
+          showGuideLines: false,
+        ),
+      );
+    }
+    ref.read(videoWallpaperRevisionProvider.notifier).state++;
   }
 
   Future<void> _export(BuildContext context, WidgetRef ref) async {
