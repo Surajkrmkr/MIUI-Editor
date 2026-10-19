@@ -1,3 +1,6 @@
+import '../lockscreen/design_profile.dart';
+import '../spec/theme_spec.dart';
+
 /// Where things go on a lockscreen and in which units; the layout in
 /// [baseSpec] follows it.
 const baseLayoutGuide = '''
@@ -72,4 +75,10 @@ List<Map<String, Object?>> baseElements() => [
   {'type': 'weatherCity', 'dx': 50, 'dy': -8, 'fontSize': 18},
   {'type': 'weatherDesc', 'dx': 50, 'dy': 12, 'fontSize': 14},
   {'type': 'slideToUnlock', 'dy': 250, 'width': 780, 'height': 140},
+  {'type': 'swipeUpUnlock', 'dy': 250},
 ];
+
+/// The starter lockscreen as a design, to tell when a theme never left it.
+final baseDesign = DesignProfile(
+  ThemeSpec.parse(baseSpec(title: 'Base')).spec!.lockscreen.elements,
+);

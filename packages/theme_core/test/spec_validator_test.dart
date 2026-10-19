@@ -55,6 +55,7 @@ void main() {
     Object? json, {
     bool contrast = true,
     bool design = false,
+    List<NamedDesign> similar = const [],
     String? assetsRoot,
     List<String> fontsDirs = const [],
   }) => validator.validate(
@@ -64,6 +65,7 @@ void main() {
       assetsRoot: assetsRoot,
       checkContrast: contrast,
       checkDesign: design,
+      similarDesigns: similar,
       fontsDirs: fontsDirs,
     ),
   );
@@ -529,7 +531,7 @@ void main() {
         ]),
       );
       expect(codes(r), isNot(contains('lockscreen.no_clock')));
-      expect(issue(r, 'lockscreen.sparse').hint, contains('list_presets'));
+      expect(issue(r, 'lockscreen.sparse').hint, contains('get_base_spec'));
     });
 
     test('a full lockscreen has no warnings', () {
@@ -573,6 +575,130 @@ void main() {
         (e) => (e['type'] as String).endsWith('Clock'),
       );
       expect(codes(run(j, design: true)), contains('lockscreen.no_clock'));
+    });
+
+    List<dynamic> elementsOf(Map<String, dynamic> j) =>
+        (j['lockscreen'] as Map)['elements'] as List;
+
+    test('swipeUpUnlock is required and dragToUnlock is not used', () {
+      final j = rich();
+      elementsOf(j).removeWhere((e) => e['type'] == 'swipeUpUnlock');
+      elementsOf(j).add({'type': 'dragToUnlock'});
+      final r = run(j, design: true);
+      expect(r.ok, isTrue);
+      expect(
+        codes(r),
+        containsAll(['lockscreen.no_swipe_up', 'lockscreen.drag_unlock']),
+      );
+    });
+
+    test('music alone is not the required widget', () {
+      final j = rich();
+      elementsOf(j).removeWhere((e) => e['type'] == 'weatherTemp');
+      elementsOf(j).add({'type': 'musicPlay'});
+      expect(codes(run(j, design: true)), contains('lockscreen.no_info'));
+    });
+
+    test('shortcuts must be system apps', () {
+      final j = rich();
+      elementsOf(j).add({
+        'type': 'shortcutSet',
+        'shortcutApps': 'camera, whatsapp,spotify,gallery',
+      });
+      elementsOf(j).add({'type': 'telegramIcon'});
+      final r = run(j, design: true);
+      final bad = r.issues.where((i) => i.code == 'shortcut.third_party');
+      expect(bad, hasLength(2));
+      expect(
+        bad.first.message,
+        allOf(contains('whatsapp'), contains('spotify')),
+      );
+      expect(bad.first.message, isNot(contains('camera')));
+
+      final ok = rich();
+      elementsOf(ok).add({
+        'type': 'shortcutSet',
+        'shortcutApps': 'camera,gallery,phone,messages',
+      });
+      expect(
+        codes(run(ok, design: true)),
+        isNot(contains('shortcut.third_party')),
+      );
+    });
+
+    test('the hour and minute stay together', () {
+      final j = rich();
+      for (final e in elementsOf(j)) {
+        if (e['type'] == 'hourClock') e['dx'] = -100;
+        if (e['type'] == 'minClock') e['dx'] = 100;
+      }
+      expect(codes(run(j, design: true)), ['clock.spread']);
+
+      for (final e in elementsOf(j)) {
+        if (e['type'] == 'hourClock') e['dx'] = -40;
+        if (e['type'] == 'minClock') e['dx'] = 40;
+      }
+      expect(run(j, design: true).issues, isEmpty);
+    });
+
+    test('the weekday, month and day stay together', () {
+      final j = rich();
+      elementsOf(j)
+        ..add({'type': 'weekClock', 'dx': -120, 'fontSize': 18})
+        ..add({'type': 'monthClock', 'dx': 120, 'fontSize': 18});
+      expect(codes(run(j, design: true)), ['date.spread']);
+    });
+
+    NamedDesign earlier(String title, List<Map<String, dynamic>> elements) {
+      final j = good();
+      (j['lockscreen'] as Map)['elements'] = elements;
+      return NamedDesign(
+        title,
+        DesignProfile(ThemeSpec.parse(j).spec!.lockscreen.elements),
+      );
+    }
+
+    test('a design close to an earlier theme is named', () {
+      final j = rich();
+      final same = earlier('Old', [
+        for (final e in elementsOf(j)) {...e},
+      ]);
+      final r = run(j, design: true, similar: [same]);
+      expect(r.ok, isTrue);
+      final i = issue(r, 'lockscreen.too_similar');
+      expect(i.message, contains('"Old"'));
+      expect(i.hint, contains('unlock control'));
+    });
+
+    test('a theme is not compared with itself, or with a different design', () {
+      final j = rich();
+      final mine = earlier('Neon', [
+        for (final e in elementsOf(j)) {...e},
+      ]);
+      expect(
+        codes(run(j, design: true, similar: [mine])),
+        isNot(contains('lockscreen.too_similar')),
+      );
+      final other = earlier('Other', [
+        {'type': 'analogClock', 'dx': 80, 'dy': 120, 'color': '#FF2200'},
+        {'type': 'tapToUnlock'},
+        {'type': 'calendarGrid'},
+      ]);
+      expect(
+        codes(run(j, design: true, similar: [other])),
+        isNot(contains('lockscreen.too_similar')),
+      );
+    });
+
+    test('the starter layout is warned about, a changed one is not', () {
+      final j = good();
+      (j['lockscreen'] as Map)['elements'] = baseElements();
+      final r = run(j, design: true);
+      expect(codes(r), contains('lockscreen.base_layout'));
+      expect(
+        codes(run(rich(), design: true)),
+        isNot(contains('lockscreen.base_layout')),
+      );
     });
   });
 }

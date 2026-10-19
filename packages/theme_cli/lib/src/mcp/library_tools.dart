@@ -151,9 +151,9 @@ List<McpTool> libraryTools(ThemeToolContext ctx) => [
     name: 'list_presets',
     description:
         'Lists the saved lockscreen presets, with the element types each '
-        'uses and how many are visible. Use them as references: pick a rich '
-        'one (sort by elements) that resembles the look you want and read it '
-        'with get_preset.',
+        'uses and how many are visible. Not a source of designs: use it only '
+        'when the designer asks for a preset by name. Design references come '
+        'from list_references.',
     inputSchema: const {
       'type': 'object',
       'properties': {
@@ -242,7 +242,9 @@ List<McpTool> libraryTools(ThemeToolContext ctx) => [
         'Reads a lockscreen preset: its elements, ready to paste into a '
         'spec\'s lockscreen.elements (change colors, positions and fonts to '
         'suit the wallpaper), and its preview image so you can see the '
-        'look. Fonts it lists need font files.',
+        'look. Fonts it lists need font files. Use it only when the designer '
+        'asks for a preset by name; design references come from '
+        'get_reference.',
     inputSchema: const {
       'type': 'object',
       'properties': {

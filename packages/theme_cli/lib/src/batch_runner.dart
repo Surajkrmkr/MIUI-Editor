@@ -70,6 +70,7 @@ class BatchOptions {
     this.mode = BuildMode.build,
     this.contrast = true,
     this.checkDesign = false,
+    this.similarDesigns = const [],
     this.fontsDirs = const [],
     this.assetsRoot,
     this.baseDir,
@@ -95,6 +96,9 @@ class BatchOptions {
 
   /// Also warn about bare lockscreens.
   final bool checkDesign;
+
+  /// Earlier themes to compare designs with; used with [checkDesign].
+  final List<NamedDesign> similarDesigns;
   final List<String> fontsDirs;
   final String? assetsRoot;
 
@@ -220,6 +224,7 @@ class BatchRunner {
       assetsRoot: options.assetsRoot,
       checkContrast: options.contrast,
       checkDesign: options.checkDesign,
+      similarDesigns: options.similarDesigns,
       fontsDirs: options.fontsDirs,
     );
     Object? decoded;

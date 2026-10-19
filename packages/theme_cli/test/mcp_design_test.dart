@@ -57,11 +57,14 @@ void main() {
     ..writeAsBytesSync(img.encodePng(img.Image(width: 400, height: 800)));
 
   group('references', () {
-    test('an empty or missing folder says what to use instead', () async {
-      final r = body(await call('list_references', {}));
-      expect(r['total'], 0);
-      expect(r['note'], contains('list_presets'));
-    });
+    test(
+      'an empty or missing folder tells the agent to ask, not to use Preset',
+      () async {
+        final r = body(await call('list_references', {}));
+        expect(r['total'], 0);
+        expect(r['note'], contains('do not use the Preset folder'));
+      },
+    );
 
     test(
       'pictures, picture + json pairs and preset folders are listed',
@@ -214,6 +217,51 @@ void main() {
         }),
       );
       expect(again['compared_with'], 0);
+    });
+
+    test('earlier specs in week folders are compared too', () async {
+      File(p.join(root.specsDir, 'Week32', 'Old.json'))
+        ..createSync(recursive: true)
+        ..writeAsStringSync(jsonEncode(spec('Old', design)));
+      final r = body(
+        await call('check_uniqueness', {
+          'spec': jsonEncode(spec('New', design)),
+        }),
+      );
+      expect(r['compared_with'], 1);
+      expect(r['verdict'], 'too_similar');
+    });
+
+    test(
+      'validate_spec names a close earlier theme without being asked',
+      () async {
+        File(p.join(root.specsDir, 'Week32', 'Old.json'))
+          ..createSync(recursive: true)
+          ..writeAsStringSync(jsonEncode(spec('Old', design)));
+        final r = body(
+          await call('validate_spec', {
+            'spec': jsonEncode(spec('New', design)),
+            'contrast': false,
+          }),
+        );
+        final warning = (r['issues'] as List).firstWhere(
+          (i) => i['code'] == 'lockscreen.too_similar',
+        );
+        expect(warning['message'], contains('"Old"'));
+      },
+    );
+
+    test('the starter layout is flagged by validate_spec', () async {
+      final base = body(await call('get_base_spec', {'title': 'S'}))['spec'];
+      final r = body(
+        await call('validate_spec', {
+          'spec': jsonEncode(base),
+          'contrast': false,
+        }),
+      );
+      expect([
+        for (final i in r['issues'] as List) i['code'],
+      ], contains('lockscreen.base_layout'));
     });
 
     test('a spec with errors is refused', () async {

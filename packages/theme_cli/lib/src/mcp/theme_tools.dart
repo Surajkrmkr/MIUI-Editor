@@ -18,9 +18,10 @@ export 'tool_context.dart';
 const _instructions =
     'Builds MIUI/HyperOS 3 themes from a JSON spec. Call get_spec_schema for '
     'the format. Pick a wallpaper with list_wallpapers and look at it with '
-    'view_wallpaper (it also gives its dominant colors). To imitate an '
-    'existing lockscreen, find one with list_presets and read it with '
-    'get_preset, which returns its elements and a preview image. The '
+    'view_wallpaper (it also gives its dominant colors). Take design '
+    'references only from the designer\'s AI preset folder, through '
+    'list_references and get_reference; do not use the Preset folder '
+    '(list_presets, get_preset) unless the designer names a preset. The '
     'editor\'s ready-made widgets (battery ring, calendar, music, bento '
     'layouts...) come from list_widgets and get_widget, and the saved looks '
     'for unlock controls, analog clocks, shortcuts and calendars from '
@@ -105,6 +106,7 @@ List<McpTool> themeTools(ThemeToolContext ctx) {
             preview: true,
             mode: mode,
             checkDesign: true,
+            similarDesigns: earlierDesigns(ctx),
             fontsDirs: argFontsDirs(args, ctx),
             assetsRoot: ctx.project,
             baseDir:
@@ -189,6 +191,7 @@ List<McpTool> themeTools(ThemeToolContext ctx) {
           assetsRoot: ctx.project,
           checkContrast: argBool(args, 'contrast') ?? true,
           checkDesign: true,
+          similarDesigns: earlierDesigns(ctx),
           fontsDirs: argFontsDirs(args, ctx),
         );
         final prepare = _preparer(args, ctx);
@@ -213,6 +216,7 @@ List<McpTool> themeTools(ThemeToolContext ctx) {
             assetsRoot: options.assetsRoot,
             checkContrast: options.checkContrast,
             checkDesign: options.checkDesign,
+            similarDesigns: options.similarDesigns,
             fontsDirs: options.fontsDirs,
           );
           Object? json;
@@ -272,6 +276,7 @@ List<McpTool> themeTools(ThemeToolContext ctx) {
                 force: true,
                 preview: preview,
                 checkDesign: true,
+                similarDesigns: earlierDesigns(ctx),
                 fontsDirs: argFontsDirs(args, ctx),
                 assetsRoot: ctx.project,
                 baseDir: input.baseDir ?? (temp == null ? null : ctx.cwd.path),

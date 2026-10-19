@@ -50,7 +50,17 @@ void main() {
       el(ElementType.weatherTemp),
     ]);
     expect(a.similarityTo(c), greaterThan(.8));
-    expect(a.sharedWith(c), contains('clock in the same place'));
+    expect(a.sharedWith(c), contains('4 elements in the same place'));
+  });
+
+  test('the same pieces in other places are not the same design', () {
+    final moved = DesignProfile([
+      el(ElementType.hourClock, dx: 80, dy: 150),
+      el(ElementType.minClock, dx: 80, dy: 200),
+      el(ElementType.slideToUnlock, dy: -200),
+      el(ElementType.weatherTemp, dx: -90, dy: -50),
+    ]);
+    expect(a.similarityTo(moved), lessThan(.55));
   });
 
   test('hidden elements are left out', () {

@@ -73,6 +73,55 @@ DesignProfile? _designOf(Object? json) {
   return spec == null ? null : DesignProfile(spec.lockscreen.elements);
 }
 
+const _maxEarlierSpecs = 5000;
+
+final _designCache =
+    <String, ({int modified, int size, NamedDesign? design})>{};
+
+/// Every readable spec under [dir], at any depth, as a design; unchanged
+/// files are not parsed again.
+List<({String path, NamedDesign design})> readEarlierDesigns(String dir) {
+  final root = Directory(dir);
+  if (!root.existsSync()) return [];
+  final found = <({String path, NamedDesign design})>[];
+  var seen = 0;
+  for (final f in root.listSync(recursive: true).whereType<File>()) {
+    if (p.extension(f.path).toLowerCase() != '.json') continue;
+    if (++seen > _maxEarlierSpecs) break;
+    final stat = f.statSync();
+    final modified = stat.modified.millisecondsSinceEpoch;
+    var cached = _designCache[f.path];
+    if (cached == null ||
+        cached.modified != modified ||
+        cached.size != stat.size) {
+      NamedDesign? design;
+      try {
+        final spec = ThemeSpec.parse(jsonDecode(f.readAsStringSync())).spec;
+        if (spec != null) {
+          design = NamedDesign(
+            spec.meta.title,
+            DesignProfile(spec.lockscreen.elements),
+          );
+        }
+      } on Object {
+        design = null;
+      }
+      cached = (modified: modified, size: stat.size, design: design);
+      _designCache[f.path] = cached;
+    }
+    if (cached.design != null) {
+      found.add((path: f.path, design: cached.design!));
+    }
+  }
+  return found;
+}
+
+/// The designs of the specs already made, for the validator to compare with;
+/// empty without a root folder.
+List<NamedDesign> earlierDesigns(ThemeToolContext ctx) => ctx.root == null
+    ? const []
+    : [for (final e in readEarlierDesigns(ctx.root!.specsDir)) e.design];
+
 Map<String, Object?> _summary(DesignProfile d) => {
   'visible_elements': d.count,
   'clocks': d.clockTypes.toList(),
@@ -89,10 +138,12 @@ List<McpTool> designTools(ThemeToolContext ctx) => [
     description:
         'The starting point for every theme: a complete spec whose lockscreen '
         'is already aligned (clock, weekday, weather card, unlock control, '
-        'nothing overlapping or off screen). Change colors, fonts and styles, '
-        'swap or add pieces, and move them using the layout guide, instead of '
-        'placing everything from nothing. Also returns the guide: the canvas '
-        'size and which fields use which units.',
+        'nothing overlapping or off screen). It shows only where things fit '
+        'and how big they are; it is not a design to ship. Change the clock '
+        'arrangement and position, the card content, the unlock control and '
+        'the colors, using the layout guide for positions. validate_spec '
+        'warns when a theme is still this layout. Also returns the guide: the '
+        'canvas size and which fields use which units.',
     inputSchema: const {
       'type': 'object',
       'properties': {
@@ -131,9 +182,12 @@ List<McpTool> designTools(ThemeToolContext ctx) => [
           ),
           'layout_guide': baseLayoutGuide.trim(),
           'next':
-              'Check it with preview_lockscreen, then change the look. Keep '
-              'positions unless you have a reason; after each move, '
-              'preview_lockscreen again.',
+              'This is the same layout every theme starts from, so do not '
+              'ship it. Make your own design: change the clock arrangement '
+              'and position, what the card shows, the unlock control and the '
+              'colors, and keep elements inside the margins. After each '
+              'move, preview_lockscreen. validate_spec warns when the '
+              'result is still this layout or too close to an earlier theme.',
         }),
       );
     },
@@ -167,8 +221,8 @@ List<McpTool> designTools(ThemeToolContext ctx) => [
           'total': all.length,
           if (all.isEmpty)
             'note':
-                'No references there yet. Use list_presets (sort by '
-                'elements) and get_preset instead.',
+                'The AI preset folder has no pictures yet. Tell the designer '
+                'to add some; do not use the Preset folder instead.',
           'references': [
             for (final r in all)
               {'name': r.name, 'has_elements': r.elementsFile != null},
@@ -320,23 +374,14 @@ List<McpTool> designTools(ThemeToolContext ctx) => [
       }
 
       final scored = <({String name, double score, List<String> shared})>[];
-      final files = dir.listSync().whereType<File>().where(
-        (f) => p.extension(f.path).toLowerCase() == '.json',
-      );
-      for (final f in files) {
-        if (path != null && p.equals(f.path, path)) continue;
-        try {
-          final other = ThemeSpec.parse(jsonDecode(f.readAsStringSync())).spec;
-          if (other == null || other.meta.title == title) continue;
-          final design = DesignProfile(other.lockscreen.elements);
-          scored.add((
-            name: p.basenameWithoutExtension(f.path),
-            score: mine.similarityTo(design),
-            shared: mine.sharedWith(design),
-          ));
-        } on Object {
-          continue;
-        }
+      for (final earlier in readEarlierDesigns(dir.path)) {
+        if (path != null && p.equals(earlier.path, path)) continue;
+        if (earlier.design.title == title) continue;
+        scored.add((
+          name: earlier.design.title,
+          score: mine.similarityTo(earlier.design.design),
+          shared: mine.sharedWith(earlier.design.design),
+        ));
       }
       scored.sort((a, b) => b.score.compareTo(a.score));
       final worst = scored.isEmpty ? 0.0 : scored.first.score;

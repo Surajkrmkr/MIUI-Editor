@@ -27,6 +27,14 @@ extension DesignKinds on ElementType {
   bool get _isAnalog => name.startsWith('analog');
 }
 
+/// An earlier theme's lockscreen, to compare a new design against.
+class NamedDesign {
+  const NamedDesign(this.title, this.design);
+
+  final String title;
+  final DesignProfile design;
+}
+
 /// What a lockscreen is made of: for judging how rich it is and for telling
 /// whether two designs resemble each other. Hidden elements are ignored.
 class DesignProfile {
@@ -39,11 +47,21 @@ class DesignProfile {
   /// Fewer visible elements than this reads as a bare lockscreen.
   static const minElements = 6;
 
+  /// Similarity from which two themes count as the same design.
+  static const sameDesign = .5;
+
+  /// Similarity to the starter layout from which a theme never left it.
+  static const starterLayout = .35;
+
   final List<LockElementSpec> elements;
 
   int get count => elements.length;
   bool get hasClock => elements.any((e) => e.type.isClock);
-  bool get hasInfo => elements.any((e) => e.type.isInfo);
+
+  /// Live information other than music, which the designer keeps out of the
+  /// required widget.
+  bool get hasInfo => elements.any((e) => e.type.isInfo && !e.type.isMusic);
+  bool get hasSwipeUp => elements.any((e) => e.type.swipeUpUnlock);
   bool get hasDecoration => elements.any((e) => e.type.isDecoration);
 
   /// How many different font sizes the texts and digital clocks use.
@@ -67,11 +85,12 @@ class DesignProfile {
   LockElementSpec? get _mainClock =>
       elements.where((e) => e.type.isClock).firstOrNull;
 
-  /// The first unlock control with its skin, e.g. `slideToUnlock/glass`.
+  /// The first visible unlock control with its skin, e.g.
+  /// `slideToUnlock/glass`; swipe-up counts only when nothing else does.
   String? get unlock {
-    final e = elements
-        .where((e) => e.type.isUnlockControl || e.type.swipeUpUnlock)
-        .firstOrNull;
+    final e =
+        elements.where((e) => e.type.isUnlockControl).firstOrNull ??
+        elements.where((e) => e.type.swipeUpUnlock).firstOrNull;
     return e == null ? null : '${e.type.name}/${e.unlockSkin.name}';
   }
 
@@ -107,22 +126,43 @@ class DesignProfile {
     return a.intersection(b).length / a.union(b).length;
   }
 
-  /// 0 for nothing in common, 1 for the same design: the pieces used count
-  /// most, then clock style, unlock control, clock position and color.
-  double similarityTo(DesignProfile other) =>
-      .4 * _jaccard(types, other.types) +
-      .15 * _jaccard(clockTypes, other.clockTypes) +
-      .15 * (unlock == other.unlock ? 1 : 0) +
-      .15 * (clockCell == other.clockCell ? 1 : 0) +
-      .15 * (colorFamily == other.colorFamily ? 1 : 0);
+  Map<String, LockElementSpec> get _firstOfType => {
+    for (final e in elements.reversed) e.type.name: e,
+  };
+
+  /// The element types both designs use that sit within [tolerance] units of
+  /// each other, which is what makes two lockscreens look alike.
+  Set<String> _samePlace(DesignProfile other, {double tolerance = 25}) {
+    final mine = _firstOfType, theirs = other._firstOfType;
+    return {
+      for (final t in mine.keys)
+        if (theirs[t] case final o?
+            when (mine[t]!.dx - o.dx).abs() <= tolerance &&
+                (mine[t]!.dy - o.dy).abs() <= tolerance)
+          t,
+    };
+  }
+
+  /// 0 for nothing in common, 1 for the same design: where the shared
+  /// elements sit counts most, then which pieces are used, the unlock
+  /// control, the clock style and the text color.
+  double similarityTo(DesignProfile other) {
+    final union = types.union(other.types);
+    final place = union.isEmpty ? 1 : _samePlace(other).length / union.length;
+    return .5 * place +
+        .2 * _jaccard(types, other.types) +
+        .1 * (unlock == other.unlock ? 1 : 0) +
+        .1 * _jaccard(clockTypes, other.clockTypes) +
+        .1 * (colorFamily == other.colorFamily ? 1 : 0);
+  }
 
   /// What this design and [other] have in common, for a person to read.
   List<String> sharedWith(DesignProfile other) => [
     if (clockTypes.intersection(other.clockTypes).isNotEmpty)
       'clock ${clockTypes.intersection(other.clockTypes).join(', ')}',
     if (unlock != null && unlock == other.unlock) 'unlock $unlock',
-    if (clockCell != null && clockCell == other.clockCell)
-      'clock in the same place',
+    if (_samePlace(other).length >= 3)
+      '${_samePlace(other).length} elements in the same place',
     if (colorFamily != null && colorFamily == other.colorFamily)
       '$colorFamily text',
     if (types.intersection(other.types).length > 4)

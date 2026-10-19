@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
 
 import '../assets/asset_paths.dart';
+import '../library/base_spec.dart';
 import '../lockscreen/design_profile.dart';
 import '../lockscreen/element_enums.dart';
 import '../lockscreen/lock_element_spec.dart';
@@ -328,8 +330,7 @@ class _Run {
   void _lockscreenDesign(List<LockElementSpec> els) {
     const at = '/lockscreen/elements';
     const reference =
-        'Start from a preset (list_presets, get_preset) or add a widget '
-        '(list_widgets).';
+        'Start from get_base_spec or add a widget (list_widgets).';
     final design = DesignProfile(els);
     if (design.count < DesignProfile.minElements) {
       warn(
@@ -352,9 +353,9 @@ class _Run {
       warn(
         'lockscreen.no_info',
         at,
-        'Nothing shows live information such as weather, battery, steps, '
-            'calendar or music.',
-        hint: 'Add a widget from list_widgets.',
+        'No widget shows live information such as weather, battery, steps or '
+            'calendar (music does not count).',
+        hint: 'Add a widget from list_widgets other than music.',
       );
     }
     if (!design.hasDecoration) {
@@ -373,7 +374,149 @@ class _Run {
         hint: 'Vary fontSize so there is a clear main and secondary text.',
       );
     }
+    if (!design.hasSwipeUp) {
+      warn(
+        'lockscreen.no_swipe_up',
+        at,
+        'No swipeUpUnlock.',
+        hint: 'Every lockscreen has swipeUpUnlock next to its unlock control.',
+      );
+    }
+    for (var i = 0; i < els.length; i++) {
+      final e = els[i];
+      if (!e.isVisible) continue;
+      if (e.type == ElementType.dragToUnlock) {
+        warn(
+          'lockscreen.drag_unlock',
+          '$at/$i',
+          'dragToUnlock is not used.',
+          hint: 'Use slideToUnlock or tapToUnlock with swipeUpUnlock.',
+        );
+      }
+      final shortcuts = e.type == ElementType.shortcutSet
+          ? [
+              for (final key in e.shortcutApps.split(','))
+                if (_thirdPartyApps.contains(key.trim())) key.trim(),
+            ]
+          : [if (_thirdPartyIcons.contains(e.type)) e.type.name];
+      if (shortcuts.isNotEmpty) {
+        warn(
+          'shortcut.third_party',
+          '$at/$i',
+          'Shortcuts use system apps only, not ${shortcuts.join(', ')}.',
+          hint:
+              'Use messages, camera, music, browser, phone, settings, '
+              'flashlight, gallery, contacts, calendar, clock, notes, '
+              'calculator, weather, theme or video.',
+        );
+      }
+    }
+    _spread(
+      design,
+      const {ElementType.hourClock, ElementType.minClock},
+      'clock.spread',
+      'The hour and minute are far apart.',
+      'Keep them one compact group, about the width of a digit apart.',
+      (e) => e.fontSize * e.scale * .9,
+    );
+    _spread(
+      design,
+      const {
+        ElementType.weekClock,
+        ElementType.monthClock,
+        ElementType.dateClock,
+      },
+      'date.spread',
+      'The weekday, month and day are spread apart.',
+      'Keep them close enough to read as one date.',
+      (_) => 90,
+    );
+    _similar(design);
   }
+
+  /// Warns when visible elements of [types] sit further apart than the
+  /// largest of their [limit]s.
+  void _spread(
+    DesignProfile design,
+    Set<ElementType> types,
+    String code,
+    String message,
+    String hint,
+    double Function(LockElementSpec) limit,
+  ) {
+    final group = [
+      for (final e in design.elements)
+        if (types.contains(e.type)) e,
+    ];
+    if (group.length < 2) return;
+    var widest = 0.0;
+    for (final a in group) {
+      for (final b in group) {
+        widest = math.max(
+          widest,
+          math.sqrt(math.pow(a.dx - b.dx, 2) + math.pow(a.dy - b.dy, 2)),
+        );
+      }
+    }
+    if (widest > group.map(limit).reduce(math.max)) {
+      warn(code, '/lockscreen/elements', message, hint: hint);
+    }
+  }
+
+  void _similar(DesignProfile design) {
+    const at = '/lockscreen/elements';
+    const change =
+        'Change the clock style and position, the widgets, the unlock control '
+        'and the color scheme.';
+    final close =
+        [
+            for (final n in options.similarDesigns)
+              if (n.title != spec.meta.title)
+                (
+                  name: n.title,
+                  score: design.similarityTo(n.design),
+                  other: n.design,
+                ),
+          ].where((m) => m.score >= DesignProfile.sameDesign).toList()
+          ..sort((a, b) => b.score.compareTo(a.score));
+    if (close.isNotEmpty) {
+      final top = close.first;
+      final shared = design.sharedWith(top.other);
+      warn(
+        'lockscreen.too_similar',
+        at,
+        'Too close to "${top.name}" (similarity '
+            '${top.score.toStringAsFixed(2)}'
+            '${shared.isEmpty ? '' : '; shares ${shared.join(', ')}'}).',
+        hint: change,
+      );
+    }
+    final starter = design.similarityTo(baseDesign);
+    if (starter >= DesignProfile.starterLayout) {
+      warn(
+        'lockscreen.base_layout',
+        at,
+        'Still the starter layout from get_base_spec (similarity '
+            '${starter.toStringAsFixed(2)}); it only shows where things fit.',
+        hint: change,
+      );
+    }
+  }
+
+  static const _thirdPartyApps = {
+    'whatsapp',
+    'telegram',
+    'instagram',
+    'spotify',
+    'facebook',
+  };
+
+  static const _thirdPartyIcons = {
+    ElementType.whatsAppIcon,
+    ElementType.telegramIcon,
+    ElementType.instagramIcon,
+    ElementType.spotifyIcon,
+  };
 
   static const _unlockTypes = {
     ElementType.swipeUpUnlock,

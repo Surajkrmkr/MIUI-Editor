@@ -24,6 +24,7 @@ void main() {
     expect(d.hasDecoration, isTrue);
     expect(d.fontSizes, greaterThan(1));
     expect(d.unlock, isNotNull);
+    expect(d.hasSwipeUp, isTrue);
   });
 
   test('everything sits on the screen with a margin', () {

@@ -1,3 +1,4 @@
+import '../lockscreen/design_profile.dart';
 import '../spec/spec_issue.dart';
 import '../spec/theme_spec.dart';
 
@@ -8,6 +9,7 @@ class ValidationOptions {
     this.assetsRoot,
     this.checkContrast = true,
     this.checkDesign = false,
+    this.similarDesigns = const [],
     this.fontsDirs = const [],
   });
 
@@ -24,6 +26,10 @@ class ValidationOptions {
   /// Warn about a lockscreen that is bare: few elements, no clock, no live
   /// information, no decoration or a single font size.
   final bool checkDesign;
+
+  /// Earlier themes' lockscreens; with [checkDesign], a spec too close to one
+  /// of them is warned about. A theme with the same title is skipped.
+  final List<NamedDesign> similarDesigns;
 
   /// Folders searched for a font file when the spec doesn't name one.
   final List<String> fontsDirs;
