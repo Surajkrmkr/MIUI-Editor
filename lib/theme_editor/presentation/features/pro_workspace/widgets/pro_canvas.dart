@@ -51,7 +51,8 @@ class _ProCanvasState extends ConsumerState<ProCanvas> {
               maxScale: 10.0,
               child: Center(
                 child: ImageStack(
-                  isLockscreen: page == WorkspacePage.lockscreen ||
+                  isLockscreen:
+                      page == WorkspacePage.lockscreen ||
                       page == WorkspacePage.lockscreenPresets,
                   isHomeScreen: page == WorkspacePage.home,
                 ),
@@ -65,7 +66,8 @@ class _ProCanvasState extends ConsumerState<ProCanvas> {
             right: 16,
             child: _CanvasControlOverlay(
               isLocked: isLocked,
-              onToggleLock: () => ref.read(canvasLockProvider.notifier).toggle(),
+              onToggleLock: () =>
+                  ref.read(canvasLockProvider.notifier).toggle(),
               onResetView: _resetView,
               colors: colors,
             ),
@@ -128,11 +130,7 @@ class _CanvasControlOverlay extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 4),
-          Container(
-            width: 1,
-            height: 14,
-            color: colors.border,
-          ),
+          Container(width: 1, height: 14, color: colors.border),
           const SizedBox(width: 4),
 
           // Lock toggle button + status label

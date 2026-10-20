@@ -134,29 +134,30 @@ void main() {
     });
   });
 
-  testWidgets('opening a custom home wallpaper keeps lockscreen wallpaper active', (
-    tester,
-  ) async {
-    await tester.runAsync(() async {
-      final homeWallpaper = p.join(tmp.path, 'walls', 'home.png');
-      File(homeWallpaper)
-        ..createSync(recursive: true)
-        ..writeAsBytesSync(File(wallpaper).readAsBytesSync());
+  testWidgets(
+    'opening a custom home wallpaper keeps lockscreen wallpaper active',
+    (tester) async {
+      await tester.runAsync(() async {
+        final homeWallpaper = p.join(tmp.path, 'walls', 'home.png');
+        File(homeWallpaper)
+          ..createSync(recursive: true)
+          ..writeAsBytesSync(File(wallpaper).readAsBytesSync());
 
-      final spec = editorSpec(homeWallpaperPath: homeWallpaper);
-      final failure = await open(spec);
+        final spec = editorSpec(homeWallpaperPath: homeWallpaper);
+        final failure = await open(spec);
 
-      expect(failure, isNull, reason: failure?.message);
-      final state = container.read(wallpaperProvider);
-      expect(state.currentPath, wallpaper);
-      expect(state.homeWallpaperEnabled, isTrue);
-      expect(state.homeWallpaperPath, homeWallpaper);
-      expect(container.read(themeSpecProvider)!.wallpaper.toJson(), {
-        'home': homeWallpaper,
-        'lock': wallpaper,
+        expect(failure, isNull, reason: failure?.message);
+        final state = container.read(wallpaperProvider);
+        expect(state.currentPath, wallpaper);
+        expect(state.homeWallpaperEnabled, isTrue);
+        expect(state.homeWallpaperPath, homeWallpaper);
+        expect(container.read(themeSpecProvider)!.wallpaper.toJson(), {
+          'home': homeWallpaper,
+          'lock': wallpaper,
+        });
       });
-    });
-  });
+    },
+  );
 
   testWidgets('the spec style wins over the colors taken from the wallpaper', (
     tester,

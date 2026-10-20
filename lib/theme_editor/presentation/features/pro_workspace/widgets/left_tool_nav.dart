@@ -99,10 +99,7 @@ class LeftToolNav extends ConsumerWidget {
             curve: Curves.easeOutCubic,
             left: 0,
             top: activeIndex >= 0 ? _barTop(activeIndex) : -_kBarH,
-            child: _SliderBar(
-              visible: activeIndex >= 0,
-              color: colors.primary,
-            ),
+            child: _SliderBar(visible: activeIndex >= 0, color: colors.primary),
           ),
         ],
       ),
@@ -167,9 +164,10 @@ class _NavIconState extends State<_NavIcon>
       duration: const Duration(milliseconds: 90),
       reverseDuration: const Duration(milliseconds: 160),
     );
-    _pressScale = Tween<double>(begin: 1.0, end: 0.82).animate(
-      CurvedAnimation(parent: _pressCtrl, curve: Curves.easeOut),
-    );
+    _pressScale = Tween<double>(
+      begin: 1.0,
+      end: 0.82,
+    ).animate(CurvedAnimation(parent: _pressCtrl, curve: Curves.easeOut));
   }
 
   @override
@@ -218,8 +216,8 @@ class _NavIconState extends State<_NavIcon>
                         color: widget.isActive
                             ? colors.primary.withAlpha(28)
                             : _hovering
-                                ? colors.primary.withAlpha(12)
-                                : Colors.transparent,
+                            ? colors.primary.withAlpha(12)
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
                           color: widget.isActive
@@ -236,7 +234,10 @@ class _NavIconState extends State<_NavIcon>
                       switchInCurve: Curves.easeOut,
                       switchOutCurve: Curves.easeIn,
                       transitionBuilder: (child, anim) => ScaleTransition(
-                        scale: Tween<double>(begin: 0.7, end: 1.0).animate(anim),
+                        scale: Tween<double>(
+                          begin: 0.7,
+                          end: 1.0,
+                        ).animate(anim),
                         child: FadeTransition(opacity: anim, child: child),
                       ),
                       child: Icon(
@@ -247,8 +248,8 @@ class _NavIconState extends State<_NavIcon>
                         color: widget.isActive
                             ? colors.primary
                             : _hovering
-                                ? colors.textSecondary
-                                : colors.textDisabled,
+                            ? colors.textSecondary
+                            : colors.textDisabled,
                         size: 20,
                       ),
                     ),

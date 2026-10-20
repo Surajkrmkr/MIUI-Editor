@@ -85,9 +85,7 @@ Future<Failure?> applyThemeSpec(
       'The spec has no workspace week; give one to open it.',
     );
   }
-  final wallpaper = p.normalize(
-    p.absolute(baseDir, spec.wallpaper.lockOrHome),
-  );
+  final wallpaper = p.normalize(p.absolute(baseDir, spec.wallpaper.lockOrHome));
   final homeWallpaper = p.normalize(p.absolute(baseDir, spec.wallpaper.home));
   if (!File(wallpaper).existsSync()) {
     return ValidationFailure('Wallpaper not found: $wallpaper');

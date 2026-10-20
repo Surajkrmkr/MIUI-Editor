@@ -79,8 +79,8 @@ class WallpaperState {
     namedTheme: namedTheme ?? this.namedTheme,
     homeWallpaperEnabled: homeWallpaperEnabled ?? this.homeWallpaperEnabled,
     homeWallpaperPath: clearHomeWallpaper
-      ? null
-      : homeWallpaperPath ?? this.homeWallpaperPath,
+        ? null
+        : homeWallpaperPath ?? this.homeWallpaperPath,
   );
 
   String? get currentPath => paths.isNotEmpty ? paths[index] : null;
@@ -130,10 +130,7 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
   }
 
   void setHomeWallpaper(String path) {
-    state = state.copyWith(
-      homeWallpaperEnabled: true,
-      homeWallpaperPath: path,
-    );
+    state = state.copyWith(homeWallpaperEnabled: true, homeWallpaperPath: path);
   }
 
   void clearHomeWallpaper() {

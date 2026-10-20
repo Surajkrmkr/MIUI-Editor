@@ -21,7 +21,8 @@ class SidebarContent extends ConsumerWidget {
 
     final isLockscreen = workspaceState.page == WorkspacePage.lockscreen;
     final isPresets = workspaceState.page == WorkspacePage.lockscreenPresets;
-    final isIcons = workspaceState.page == WorkspacePage.svgEditor ||
+    final isIcons =
+        workspaceState.page == WorkspacePage.svgEditor ||
         workspaceState.page == WorkspacePage.icons;
 
     return Container(
@@ -73,9 +74,7 @@ class SidebarContent extends ConsumerWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: SingleChildScrollView(child: ElementListPanel()),
-              ),
+              Expanded(child: SingleChildScrollView(child: ElementListPanel())),
               SizedBox(width: 16),
               Expanded(
                 child: Column(

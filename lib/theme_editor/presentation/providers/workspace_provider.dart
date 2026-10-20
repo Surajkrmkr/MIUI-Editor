@@ -12,16 +12,9 @@ enum WorkspacePage {
   home,
 }
 
-enum UiMode {
-  classic,
-  pro,
-}
+enum UiMode { classic, pro }
 
-enum InspectorTab {
-  design,
-  effects,
-  textures,
-}
+enum InspectorTab { design, effects, textures }
 
 class WorkspaceState {
   final WorkspacePage page;
@@ -53,22 +46,23 @@ class WorkspaceState {
 
 class WorkspaceNotifier extends Notifier<WorkspaceState> {
   @override
-  WorkspaceState build() => WorkspaceState(
-        page: WorkspacePage.svgEditor,
-        uiMode: UiMode.pro,
-      );
+  WorkspaceState build() =>
+      WorkspaceState(page: WorkspacePage.svgEditor, uiMode: UiMode.pro);
 
   void setPage(WorkspacePage page) => state = state.copyWith(page: page);
   void setUiMode(UiMode mode) => state = state.copyWith(uiMode: mode);
   void toggleUiMode() => state = state.copyWith(
-        uiMode: state.uiMode == UiMode.classic ? UiMode.pro : UiMode.classic,
-      );
-  void toggleSidebar() => state = state.copyWith(isSidebarExpanded: !state.isSidebarExpanded);
-  void setInspectorTab(InspectorTab tab) => state = state.copyWith(activeInspectorTab: tab);
+    uiMode: state.uiMode == UiMode.classic ? UiMode.pro : UiMode.classic,
+  );
+  void toggleSidebar() =>
+      state = state.copyWith(isSidebarExpanded: !state.isSidebarExpanded);
+  void setInspectorTab(InspectorTab tab) =>
+      state = state.copyWith(activeInspectorTab: tab);
 }
 
-final workspaceProvider =
-    NotifierProvider<WorkspaceNotifier, WorkspaceState>(WorkspaceNotifier.new);
+final workspaceProvider = NotifierProvider<WorkspaceNotifier, WorkspaceState>(
+  WorkspaceNotifier.new,
+);
 
 class CanvasLockNotifier extends Notifier<bool> {
   @override
@@ -100,7 +94,6 @@ class CanvasLockNotifier extends Notifier<bool> {
   }
 }
 
-final canvasLockProvider =
-    NotifierProvider<CanvasLockNotifier, bool>(CanvasLockNotifier.new);
-
-
+final canvasLockProvider = NotifierProvider<CanvasLockNotifier, bool>(
+  CanvasLockNotifier.new,
+);
