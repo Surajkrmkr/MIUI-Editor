@@ -47,6 +47,7 @@ class LockElement {
     this.shortcutEdge = ShortcutEdge.right,
     this.calendarStyle = CalendarStyle.classic,
     this.shortcutApps = 'gallery,camera,music,browser,whatsapp,settings',
+    this.shortcutThemeIcons = false,
     this.borderWidth = 0,
     this.borderColor = const Color(0xFFFFFFFF),
     this.color = const Color(0xFFFFFFFF),
@@ -197,6 +198,9 @@ class LockElement {
 
   /// Comma-separated shortcut app keys, in slot order.
   final String shortcutApps;
+
+  /// Shortcut tiles show the theme's exported app icons instead of glyph art.
+  final bool shortcutThemeIcons;
   UnlockIcon get effectiveUnlockIcon => unlockIcon == UnlockIcon.automatic
       ? (type == ElementType.dragToUnlock
             ? UnlockIcon.plug
@@ -257,6 +261,7 @@ class LockElement {
     ShortcutEdge? shortcutEdge,
     CalendarStyle? calendarStyle,
     String? shortcutApps,
+    bool? shortcutThemeIcons,
     double? borderWidth,
     double? angle,
     double? fontSize,
@@ -326,6 +331,7 @@ class LockElement {
     shortcutEdge: shortcutEdge ?? this.shortcutEdge,
     calendarStyle: calendarStyle ?? this.calendarStyle,
     shortcutApps: shortcutApps ?? this.shortcutApps,
+    shortcutThemeIcons: shortcutThemeIcons ?? this.shortcutThemeIcons,
     borderWidth: borderWidth ?? this.borderWidth,
     angle: angle ?? this.angle,
     fontSize: fontSize ?? this.fontSize,
@@ -396,6 +402,7 @@ class LockElement {
     'shortcutEdge': shortcutEdge.name,
     'calendarStyle': calendarStyle.name,
     'shortcutApps': shortcutApps,
+    'shortcutThemeIcons': shortcutThemeIcons,
     'borderWidth': borderWidth,
     'angle': angle,
     'fontSize': fontSize,
@@ -500,6 +507,7 @@ class LockElement {
     shortcutApps:
         j['shortcutApps'] as String? ??
         'gallery,camera,music,browser,whatsapp,settings',
+    shortcutThemeIcons: j['shortcutThemeIcons'] as bool? ?? false,
     borderWidth: (j['borderWidth'] as num?)?.toDouble() ?? 0,
     angle: (j['angle'] as num?)?.toDouble() ?? 0,
     fontSize: (j['fontSize'] as num?)?.toDouble() ?? 20,

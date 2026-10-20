@@ -9,6 +9,15 @@ const double lockscreenScreenRatio = 2340 / 600;
 const double lockscreenViewWidth = 276.92;
 const double lockscreenViewHeight = 600.0;
 
+/// Canvas pixels a tap-to-unlock control must keep above the bottom edge, so
+/// it clears the gesture bar (about 156px on a 2340px screen).
+const double minUnlockBottomPadding = 40;
+
+/// Canvas pixels between the bottom of [el] and the bottom of the screen.
+double bottomPaddingOf(LockElementSpec el) =>
+    lockscreenViewHeight / 2 -
+    (el.dy + el.height * el.scale / lockscreenScreenRatio / 2);
+
 /// One lockscreen element as stored in presets and theme specs.
 ///
 /// Pure-data twin of the app's `LockElement`: same fields, same defaults and
@@ -44,6 +53,7 @@ class LockElementSpec {
     this.shortcutEdge = ShortcutEdge.right,
     this.calendarStyle = CalendarStyle.classic,
     this.shortcutApps = 'gallery,camera,music,browser,whatsapp,settings',
+    this.shortcutThemeIcons = false,
     this.borderWidth = 0,
     this.borderColor = _white,
     this.color = _white,
@@ -108,6 +118,9 @@ class LockElementSpec {
 
   /// Comma-separated shortcut app keys, in slot order.
   final String shortcutApps;
+
+  /// Shortcut tiles show the theme's exported app icons instead of glyph art.
+  final bool shortcutThemeIcons;
   final double borderWidth, angle, fontSize, blurRadius, strokeWidth;
   final Rgba borderColor,
       color,
@@ -255,6 +268,7 @@ class LockElementSpec {
     'shortcutEdge': shortcutEdge.name,
     'calendarStyle': calendarStyle.name,
     'shortcutApps': shortcutApps,
+    'shortcutThemeIcons': shortcutThemeIcons,
     'borderWidth': borderWidth,
     'angle': angle,
     'fontSize': fontSize,
@@ -360,6 +374,7 @@ class LockElementSpec {
       shortcutApps:
           j['shortcutApps'] as String? ??
           'gallery,camera,music,browser,whatsapp,settings',
+      shortcutThemeIcons: j['shortcutThemeIcons'] as bool? ?? false,
       borderWidth: dbl('borderWidth', 0),
       angle: dbl('angle', 0),
       fontSize: dbl('fontSize', 20),

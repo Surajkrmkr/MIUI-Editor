@@ -6,7 +6,7 @@ import '../spec/theme_spec.dart';
 const baseLayoutGuide = '''
 The lockscreen canvas is 277 wide and 600 tall. 1 unit is 3.9 px of the 1080x2340 screen. The origin is the middle; x grows to the right and y downwards. Visible range: dx -138 to 138, dy -300 to 300. An element's dx and dy move its middle from its align point (the middle of the screen unless align is set).
 Units differ by field. In canvas units: dx, dy, fontSize, and for containerBG elements width, height and radius. In screen pixels (units x 3.9): width and height of unlock controls, icons, images, shapes and calendarGrid. If something looks 4 times too big or small, this is why.
-Zones from the top: clock -200 to -130, date or weekday about -104, one main card -40 to 56, free space 70 to 200 for a second widget, unlock control at 250. Keep 12 units of margin from the left and right edges.
+Zones from the top: clock -200 to -130, date or weekday about -104, one main card -40 to 56, free space 70 to 200 for a second widget, unlock control at 250. A tapToUnlock must end at least 40 units above the bottom edge (dy + height x scale / 7.8 <= 260), so it clears the gesture bar. Keep 12 units of margin from the left and right edges.
 A containerBG needs color and colorSecondary with alpha (for example #33FFFFFF and #11FFFFFF); the default colorSecondary is opaque white and turns a translucent card white.
 Text on a card has its own dx and dy, so when you move a card, move the text on it by the same amount.
 ''';

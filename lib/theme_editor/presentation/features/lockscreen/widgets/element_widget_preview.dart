@@ -55,72 +55,80 @@ class ElementWidgetPreview extends ConsumerWidget {
       height: AppConstants.screenHeight,
       width: AppConstants.screenWidth,
       decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: TickerMode(
-          enabled: !isExporting,
-          child: Stack(
-            children: [
-              // 1. Wallpaper (Current selected or exported bg.png)
-              if (hasBg)
-                RepaintBoundary(
-                  child: Image.file(
-                    File(bgPath),
-                    gaplessPlayback: true,
-                    fit: BoxFit.cover,
-                    width: AppConstants.screenWidth,
-                    height: AppConstants.screenHeight,
-                  ),
-                )
-              else if (hasCurrentWall)
-                RepaintBoundary(
-                  child: Image.file(
-                    File(currentWallPath),
-                    gaplessPlayback: true,
-                    fit: BoxFit.cover,
-                    width: AppConstants.screenWidth,
-                    height: AppConstants.screenHeight,
-                  ),
-                ),
+      // Same text defaults as the CLI preview, not the app's text theme.
+      child: MediaQuery.withNoTextScaling(
+        child: DefaultTextStyle(
+          style: const TextStyle(fontFamily: 'Roboto'),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: TickerMode(
+              enabled: !isExporting,
+              child: Stack(
+                children: [
+                  // 1. Wallpaper (Current selected or exported bg.png)
+                  if (hasBg)
+                    RepaintBoundary(
+                      child: Image.file(
+                        File(bgPath),
+                        gaplessPlayback: true,
+                        fit: BoxFit.cover,
+                        width: AppConstants.screenWidth,
+                        height: AppConstants.screenHeight,
+                      ),
+                    )
+                  else if (hasCurrentWall)
+                    RepaintBoundary(
+                      child: Image.file(
+                        File(currentWallPath),
+                        gaplessPlayback: true,
+                        fit: BoxFit.cover,
+                        width: AppConstants.screenWidth,
+                        height: AppConstants.screenHeight,
+                      ),
+                    ),
 
-              // 2. Video layer
-              if (hasVideo)
-                RepaintBoundary(
-                  child: VideoWallpaperWidget(
-                    key: ValueKey((videoPath, videoRevision)),
-                    path: videoPath,
-                    isPaused: isExporting,
-                  ),
-                ),
+                  // 2. Video layer
+                  if (hasVideo)
+                    RepaintBoundary(
+                      child: VideoWallpaperWidget(
+                        key: ValueKey((videoPath, videoRevision)),
+                        path: videoPath,
+                        isPaused: isExporting,
+                      ),
+                    ),
 
-              // 3. Darken overlay (tap to deselect / exit group mode)
-              GestureDetector(
-                onTap: () {
-                  final n = ref.read(elementProvider.notifier);
-                  n.deselect();
-                  n.exitGroupMode();
-                },
-                child: Container(
-                  width: AppConstants.screenWidth,
-                  height: AppConstants.screenHeight,
-                  color: Colors.black.withAlpha((els.bgAlpha * 255).round()),
-                ),
-              ),
-
-              // 4. Elements
-              ...els.elements
-                  .where((el) => el.isVisible)
-                  .map(
-                    (el) => RepaintBoundary(
-                      child: _DraggableElement(
-                        key: ValueKey(el.name),
-                        el: el,
-                        isGroupMode: els.isGroupMode,
-                        isGroupSelected: els.isSelected(el),
+                  // 3. Darken overlay (tap to deselect / exit group mode)
+                  GestureDetector(
+                    onTap: () {
+                      final n = ref.read(elementProvider.notifier);
+                      n.deselect();
+                      n.exitGroupMode();
+                    },
+                    child: Container(
+                      width: AppConstants.screenWidth,
+                      height: AppConstants.screenHeight,
+                      color: Colors.black.withAlpha(
+                        (els.bgAlpha * 255).round(),
                       ),
                     ),
                   ),
-            ],
+
+                  // 4. Elements
+                  ...els.elements
+                      .where((el) => el.isVisible)
+                      .map(
+                        (el) => RepaintBoundary(
+                          child: _DraggableElement(
+                            key: ValueKey(el.name),
+                            el: el,
+                            isGroupMode: els.isGroupMode,
+                            isGroupSelected: els.isSelected(el),
+                          ),
+                        ),
+                      ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

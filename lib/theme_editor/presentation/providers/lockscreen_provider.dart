@@ -123,12 +123,27 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
   // ── Export manifest XML ───────────────────────────────────────────────────
 
   ValidationFailure? _validateUnlock() {
-    if (ref.read(elementProvider).hasVisibleUnlock) return null;
-    const failure = ValidationFailure(
-      'Add and enable at least one unlock widget: Swipe Up, Tap, Slide, or Drag.',
-    );
-    state = state.copyWith(error: failure.message);
-    return failure;
+    final elements = ref.read(elementProvider);
+    if (!elements.hasVisibleUnlock) {
+      const failure = ValidationFailure(
+        'Add and enable at least one unlock widget: Swipe Up, Tap, Slide, or Drag.',
+      );
+      state = state.copyWith(error: failure.message);
+      return failure;
+    }
+    for (final el in elements.elements) {
+      if (!el.isVisible || el.type != ElementType.tapToUnlock) continue;
+      final gap = bottomPaddingOf(el.toSpec());
+      if (gap >= minUnlockBottomPadding) continue;
+      final failure = ValidationFailure(
+        '${el.label} is too close to the bottom edge '
+        '(${gap.toStringAsFixed(0)}px). Move it up so it keeps at least '
+        '${minUnlockBottomPadding.toStringAsFixed(0)}px above the gesture bar.',
+      );
+      state = state.copyWith(error: failure.message);
+      return failure;
+    }
+    return null;
   }
 
   Future<Failure?> exportWorkspace(BuildContext context) async {

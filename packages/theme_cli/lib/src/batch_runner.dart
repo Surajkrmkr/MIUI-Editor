@@ -331,8 +331,8 @@ class BatchRunner {
         (spec.lockscreen.elements.isEmpty || File(shots.lock).existsSync());
   }
 
-  /// Moves the spec the build left in the theme folder, and the preview
-  /// pictures, into the theme's preset folder.
+  /// Copies the spec the build left in the theme folder into the theme's
+  /// preset folder (both with absolute paths), and moves the previews there.
   static void _saveAsPreset(BatchEntry e, BatchOptions options) {
     final dir = Directory(p.join(options.presetsDir!, p.basename(e.name!)))
       ..createSync(recursive: true);
@@ -340,10 +340,9 @@ class BatchRunner {
     if (built.existsSync()) {
       final json = jsonDecode(built.readAsStringSync()) as Map<String, dynamic>;
       _absolutePaths(json, options.baseDir ?? p.dirname(e.spec));
-      File(p.join(dir.path, 'preset.json')).writeAsStringSync(
-        '${const JsonEncoder.withIndent('  ').convert(json)}\n',
-      );
-      built.deleteSync();
+      final text = '${const JsonEncoder.withIndent('  ').convert(json)}\n';
+      File(p.join(dir.path, 'preset.json')).writeAsStringSync(text);
+      built.writeAsStringSync(text);
     }
     String? move(String? from, String name) {
       if (from == null || !File(from).existsSync()) return from;

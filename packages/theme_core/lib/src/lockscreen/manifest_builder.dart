@@ -437,10 +437,7 @@ class ManifestBuilder {
           XmlName('x'),
           el.type == ElementType.lineShape ? '#sw/2+$dx-$w/2' : '#sw/2+$dx',
         ),
-        XmlAttribute(
-          XmlName('y'),
-          el.type == ElementType.lineShape ? '#sh/2+$dy-$h/2' : '#sh/2+$dy',
-        ),
+        XmlAttribute(XmlName('y'), '#sh/2+$dy'),
         if (el.type == ElementType.rectangleShape) ...[
           XmlAttribute(XmlName('align'), 'center'),
           XmlAttribute(XmlName('alignV'), 'center'),
@@ -461,9 +458,9 @@ class ManifestBuilder {
           XmlAttribute(XmlName('r'), '${el.width * el.scale / 2}'),
         if (el.type == ElementType.lineShape) ...[
           XmlAttribute(XmlName('pivotX'), '${el.width * el.scale / 2}'),
-          XmlAttribute(XmlName('pivotY'), '${el.height * el.scale / 2}'),
+          XmlAttribute(XmlName('pivotY'), '0'),
           XmlAttribute(XmlName('x1'), '#sw/2+$dx+$w/2'),
-          XmlAttribute(XmlName('y1'), '#sh/2+$dy+$h/2'),
+          XmlAttribute(XmlName('y1'), '#sh/2+$dy'),
         ],
         if (el.type == ElementType.arcShape) ...[
           XmlAttribute(XmlName('startAngle'), '${el.startAngle}'),

@@ -236,38 +236,25 @@ class ShortcutSetArt {
     if (el.shortcutStyle == ShortcutStyle.socialCards) {
       return _socialCard(el, app, w, h);
     }
+    if (el.shortcutThemeIcons) {
+      if (_themeIcon(app, w, h, resolveImage) case final icon?) return icon;
+    }
     final s = min(w, h);
     final look = _look(el, app, index, s);
     final glyphSize =
         s * look.glyphScale * el.unlockIconScale.clamp(.2, 1) / .6;
-    final iconType = app == ShortcutApp.flashlight
-        ? ElementType.flashlightIcon
-        : app.iconType;
-    final iconAsset =
-        iconType?.defaultIconAsset ??
-        (app == ShortcutApp.facebook ? 'com.facebook.katana' : null);
-    final themedPng = iconType == null
-        ? null
-        : resolveImage?.call(
-            iconType.defaultPath.replaceAll(r'\', '/').replaceFirst('/', ''),
-          );
-    Widget glyph = themedPng != null && themedPng.existsSync()
-        ? Image.memory(
-            themedPng.readAsBytesSync(),
-            width: glyphSize,
-            height: glyphSize,
-            fit: BoxFit.contain,
-            gaplessPlayback: true,
-          )
-        : iconAsset == null
+    Widget glyph = look.kind == null
         ? Icon(app.icon, size: glyphSize, color: look.ink)
-        : SvgPicture.asset(
-            AssetPaths.iconSvg(IconVariant.u1, iconAsset),
-            width: glyphSize,
-            height: glyphSize,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) =>
-                Icon(app.icon, size: glyphSize, color: look.ink),
+        : CustomPaint(
+            size: Size.square(glyphSize),
+            painter: GlyphPainter(
+              look.kind!,
+              ink: look.ink,
+              gradient: look.inkGradient,
+              detail: look.detail,
+              gloss: look.glyphGloss,
+              colorful: look.colorful,
+            ),
           );
     if (look.glyphShadow && look.kind != null) {
       glyph = Stack(
@@ -1205,6 +1192,44 @@ class ShortcutSetArt {
         ShortcutApp.spotify => GlyphKind.spotify,
         _ => null,
       };
+
+  /// The app's whole icon filling the tile: the theme's exported PNG, else the
+  /// bundled icon pack; null when the app has no icon.
+  static Widget? _themeIcon(
+    ShortcutApp app,
+    double w,
+    double h,
+    File? Function(String relativePath)? resolveImage,
+  ) {
+    final iconType = app == ShortcutApp.flashlight
+        ? ElementType.flashlightIcon
+        : app.iconType;
+    final asset =
+        iconType?.defaultIconAsset ??
+        (app == ShortcutApp.facebook ? 'com.facebook.katana' : null);
+    if (asset == null) return null;
+    final png = iconType == null
+        ? null
+        : resolveImage?.call(
+            iconType.defaultPath.replaceAll(r'\', '/').replaceFirst('/', ''),
+          );
+    return SizedBox(
+      width: w,
+      height: h,
+      child: png != null && png.existsSync()
+          ? Image.memory(
+              png.readAsBytesSync(),
+              fit: BoxFit.contain,
+              gaplessPlayback: true,
+            )
+          : SvgPicture.asset(
+              AssetPaths.iconSvg(IconVariant.u1, asset),
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) =>
+                  Icon(app.icon, size: min(w, h) * .6),
+            ),
+    );
+  }
 
   /// PNG parts written to `shortcut/<name><suffix>.png` on export.
   static Map<String, Widget> exportParts(

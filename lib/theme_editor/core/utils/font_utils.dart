@@ -12,6 +12,13 @@ bool isGoogleFont(String font) => font.startsWith(gfPrefix);
 
 String googleFontName(String font) => font.substring(gfPrefix.length);
 
+// The CLI renderer ships these; the app isn't bundled with them, so it
+// would otherwise fall back to the system font and measure text differently.
+const _bundledFamilies = {
+  'Roboto': 'Roboto',
+  'RobotoCondensed': 'Roboto Condensed',
+};
+
 /// Makes every lockscreen painter resolve fonts through [appFontTextStyle],
 /// which downloads Google and catalog fonts on demand.
 void installAppFontResolver() => raster.fontTextStyle = appFontTextStyle;
@@ -39,10 +46,10 @@ TextStyle appFontTextStyle({
       height: height,
     );
   }
-  if (isGoogleFont(font)) {
+  if (isGoogleFont(font) || _bundledFamilies.containsKey(font)) {
     try {
       return GoogleFonts.getFont(
-        googleFontName(font),
+        _bundledFamilies[font] ?? googleFontName(font),
         fontSize: fontSize,
         color: color,
         fontWeight: fontWeight,

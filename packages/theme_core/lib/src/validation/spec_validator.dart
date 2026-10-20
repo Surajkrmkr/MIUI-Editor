@@ -324,6 +324,20 @@ class _Run {
     }
 
     if (options.checkDesign) _lockscreenDesign(els);
+    for (var i = 0; i < els.length; i++) {
+      final e = els[i];
+      if (!e.isVisible || e.type != ElementType.tapToUnlock) continue;
+      final gap = bottomPaddingOf(e);
+      if (gap < minUnlockBottomPadding) {
+        error(
+          'lockscreen.unlock_bottom',
+          '/lockscreen/elements/$i/dy',
+          '"${e.name}" is ${gap.toStringAsFixed(0)}px from the bottom edge; '
+              'keep at least ${minUnlockBottomPadding.toStringAsFixed(0)}px.',
+          hint: 'Lower dy or shrink it so it clears the gesture bar.',
+        );
+      }
+    }
     _lockscreenAssets(els);
   }
 

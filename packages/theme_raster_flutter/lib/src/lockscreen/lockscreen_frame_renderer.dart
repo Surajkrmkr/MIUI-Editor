@@ -65,7 +65,7 @@ class LockscreenFrameRenderer {
       // so we know the exact total before starting.
       final frames = <_Frame>[];
       for (final el in exportable) {
-        frames.addAll(_framesFor(el, lsAdv));
+        frames.addAll(_framesFor(el, lsAdv, layout.iconsXxhdpi));
       }
 
       // Pre-create all directories (fast — do sequentially before batching)
@@ -106,7 +106,7 @@ class LockscreenFrameRenderer {
 
   // ── Build frame list for a single element ─────────────────────────────────
 
-  List<_Frame> _framesFor(LockElement el, String lsAdv) {
+  List<_Frame> _framesFor(LockElement el, String lsAdv, String iconsDir) {
     String dir(String sub) => '$lsAdv$sub${pth.separator}';
 
     if (el.type.defaultIconAsset case final asset?) {
@@ -316,7 +316,11 @@ class LockscreenFrameRenderer {
               el,
               resolveImage: (relative) {
                 final file = File(pth.normalize('$lsAdv$relative.png'));
-                return file.existsSync() ? file : null;
+                if (file.existsSync()) return file;
+                final icon = exportedIconForLockscreenPath(relative);
+                if (icon == null) return null;
+                final exported = File(pth.join(iconsDir, '$icon.png'));
+                return exported.existsSync() ? exported : null;
               },
             ).entries)
               _Frame(

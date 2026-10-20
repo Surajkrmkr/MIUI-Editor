@@ -177,7 +177,7 @@ void main() {
       expect(dup.message, contains(good));
     });
 
-    test('moves the built spec to the preset folder', () async {
+    test('saves the built spec to the preset and theme folders', () async {
       final s = spec('kept');
       final built = File(p.join(out, 'kept', 'theme.spec.json'))
         ..createSync(recursive: true)
@@ -192,11 +192,11 @@ void main() {
         s,
       ], BatchOptions(outDir: out, contrast: false, presetsDir: presets));
       expect(r.entries.single.status, BatchStatus.built);
-      expect(built.existsSync(), isFalse);
       final saved = jsonDecode(
         File(p.join(presets, 'kept', 'preset.json')).readAsStringSync(),
       );
       expect(saved['wallpaper']['home'], p.join(p.dirname(s), 'wall.png'));
+      expect(jsonDecode(built.readAsStringSync()), saved);
     });
 
     test('a spec given twice is built once', () async {

@@ -719,7 +719,7 @@ class _GeometryPainter extends CustomPainter {
         case ElementType.ellipseShape:
           canvas.drawOval(rect, paint);
         case ElementType.lineShape:
-          canvas.drawLine(rect.topLeft, rect.bottomRight, paint);
+          canvas.drawLine(rect.centerLeft, rect.centerRight, paint);
         case ElementType.arcShape:
           canvas.drawArc(
             rect,

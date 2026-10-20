@@ -246,8 +246,13 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
                                       alignment: Alignment(0, cropY),
                                       heightFactor: .5,
                                       child: IgnorePointer(
-                                        child: LockscreenCanvas(
-                                          elements: preset.elements,
+                                        child: DefaultTextStyle(
+                                          style: const TextStyle(
+                                            fontFamily: 'Roboto',
+                                          ),
+                                          child: LockscreenCanvas(
+                                            elements: preset.elements,
+                                          ),
                                         ),
                                       ),
                                     ),

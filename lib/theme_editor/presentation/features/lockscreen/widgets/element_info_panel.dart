@@ -803,6 +803,15 @@ class ElementInfoPanel extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  _ToggleRow(
+                    label: 'Use icons from icons folder',
+                    value: el.shortcutThemeIcons,
+                    onChanged: (value) => n.update(
+                      el.type,
+                      (element) => element.copyWith(shortcutThemeIcons: value),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   if (supportsShortcutEdge(el.shortcutStyle)) ...[
                     SegmentedButton<ShortcutEdge>(
                       segments: const [
