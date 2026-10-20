@@ -310,7 +310,7 @@ List<McpTool> libraryTools(ThemeToolContext ctx) => [
   McpTool(
     name: 'get_rules',
     description:
-        'The designer\'s rules for themes, from Rules.md in the root folder. '
+        'The designer\'s rules for themes, from Rules.md. '
         'Read them before designing and follow them; validate_spec does not '
         'check most of them.',
     inputSchema: const {
@@ -324,7 +324,7 @@ List<McpTool> libraryTools(ThemeToolContext ctx) => [
     },
     readOnly: true,
     handler: (args, progress) async {
-      final file = File(requireRoot(ctx).rulesFile);
+      final file = File(ctx.rulesFile ?? requireRoot(ctx).rulesFile);
       if (!file.existsSync()) {
         return ToolResult('There are no rules; ${file.path} does not exist.');
       }

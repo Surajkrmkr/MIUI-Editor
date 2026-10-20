@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 import '../root_config.dart';
 import '../sidecar.dart';
 
@@ -28,6 +30,17 @@ class ThemeToolContext {
   /// The designer's folder with Wall/, THEMES/, Sample2/ and Preset/, if the
   /// server was told where it is.
   final ThemeRoot? root;
+
+  /// The designer's rules: `packages/theme_cli/Rules.md` in the project, else
+  /// `Rules.md` in the root folder.
+  String? get rulesFile {
+    final dir = project;
+    if (dir != null) {
+      final inProject = p.join(dir, 'packages', 'theme_cli', 'Rules.md');
+      if (File(inProject).existsSync()) return inProject;
+    }
+    return root?.rulesFile;
+  }
 
   /// Renders share one Flutter project, and two at once collide in its build
   /// folder, so calls that render wait for each other.

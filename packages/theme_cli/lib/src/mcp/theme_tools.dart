@@ -51,7 +51,7 @@ McpServer themeMcpServer(ThemeToolContext ctx, {void Function(String)? log}) =>
     McpServer(
       name: 'theme-cli',
       version: '1.0.0',
-      instructions: ctx.root == null
+      instructions: ctx.rulesFile == null
           ? _instructions
           : _instructions + _rulesNote,
       log: log,
