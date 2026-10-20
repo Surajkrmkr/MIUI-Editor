@@ -37,26 +37,6 @@ final List<LockWidget> kPresetWidgets = [
       ),
     ],
   ),
-  const LockWidget(
-    name: 'Activity',
-    description: 'Steps, distance and energy from Xiaomi Health.',
-    category: 'Health',
-    elements: [
-      LockElement(type: ElementType.stepsCount, dy: -30, fontSize: 32),
-      LockElement(
-        type: ElementType.stepsDistance,
-        dx: -45,
-        dy: 15,
-        fontSize: 16,
-      ),
-      LockElement(
-        type: ElementType.stepsCalories,
-        dx: 45,
-        dy: 15,
-        fontSize: 16,
-      ),
-    ],
-  ),
   // ── Date/Calendar ──────────────────────────────────────────────────────────
   const LockWidget(
     name: 'Glass Calendar',
@@ -295,7 +275,7 @@ final List<LockWidget> kPresetWidgets = [
   // ── Stats Bar ─────────────────────────────────────────────────────────────────
   const LockWidget(
     name: 'Stats Bar',
-    description: 'Battery + steps + weather in a horizontal status bar.',
+    description: 'Battery + weather + humidity in a horizontal status bar.',
     category: 'General',
     elements: [
       LockElement(
@@ -327,7 +307,7 @@ final List<LockWidget> kPresetWidgets = [
         color: Colors.white,
       ),
       LockElement(
-        type: ElementType.stepsCount,
+        type: ElementType.weatherHumidity,
         dx: 110,
         dy: 240,
         fontSize: 18,
@@ -544,12 +524,12 @@ final List<LockWidget> kPresetWidgets = [
         color: Color(0xFFE0E0E0),
       ),
       LockElement(
-        type: ElementType.stepsCount,
+        type: ElementType.batteryText,
         dx: -280,
         dy: 600,
         fontSize: 32,
         fontWeight: FontWeight.bold,
-      ), // Using steps as % placeholder
+      ),
       // ── MUSIC DISC (Bottom Right) ──────────────────────────────────────────
       LockElement(
         type: ElementType.containerBG5,

@@ -24,14 +24,14 @@ class AiRemoteDataSource {
 
   // Defaults mirror LockElement.fromJson fallbacks
   static const Map<String, dynamic> _elementDefaults = {
-    'scale': 1.0,      'height': 200.0,  'width': 200.0,   'radius': 10.0,
-    'borderWidth': 0.0,'angle': 0.0,     'fontSize': 20.0, 'blurRadius': 0.0,
+    'scale': 1.0, 'height': 200.0, 'width': 200.0, 'radius': 10.0,
+    'borderWidth': 0.0, 'angle': 0.0, 'fontSize': 20.0, 'blurRadius': 0.0,
     // Colors intentionally NOT in defaults — always emit so the AI learns color usage
     'gradientType': 'linear',
-    'font': 'Roboto',  'path': '',       'text': 'Text',
+    'font': 'Roboto', 'path': '', 'text': 'Text',
     'fontWeight': 'FontWeight.w400',
-    'isShort': false,  'isWrap': false,  'showGuideLines': false,
-    'isVisible': true, 'isLocked': false,'useSeparateColors': false,
+    'isShort': false, 'isWrap': false, 'showGuideLines': false,
+    'isVisible': true, 'isLocked': false, 'useSeparateColors': false,
   };
 
   static Map<String, dynamic> _compact(LockElement e) {
@@ -46,7 +46,8 @@ class AiRemoteDataSource {
 
   // ── System prompt ────────────────────────────────────────────────────────────
 
-  static String _systemPrompt() => '''
+  static String _systemPrompt() =>
+      '''
 You are a MIUI lockscreen layout designer. Output ONLY a valid JSON array of LockElement objects — no markdown, no code fences, no extra text. Begin with [ and end with ].
 
 ## Canvas
@@ -61,7 +62,7 @@ dx=-138 = left edge | dx=0 = horizontal center | dx=138 = right edge
 - glass/frosted: containerBG + blurRadius 15-25 + color 822083583 (semi-transparent white). Clock inside at same dx,dy.
 - neon/vivid: bright colored clock text (gold=4294951680, blue=4278223103, cyan=4278255615). No or minimal containers.
 - analog: analogClockBg + analogHourHand + analogMinHand all at same dx,dy. Optionally inside a circular container.
-- stats/info: large clock + horizontal pill container (width=360, height=72, radius=36) with battery/weather/steps inside.
+- stats/info: large clock + horizontal pill container (width=360, height=72, radius=36) with battery/weather inside.
 - bento: 3-5 containers at varied dx,dy positions, each paired with content at the same dx,dy.
 - music: music dock container + musicPrev + musicPlay + musicNext at same dy (300 = bottom area).
 
@@ -94,7 +95,7 @@ Optional only: color, colorSecondary, borderColor, colorDigit1, colorDigit2, gra
 [{"type":"containerBG1","dx":0,"dy":-50,"width":360,"height":260,"radius":48,"color":822083583,"blurRadius":20,"borderWidth":1,"borderColor":268435455},{"type":"hourClock","dx":-55,"dy":-80,"fontSize":130,"fontWeight":"FontWeight.w200","color":4294967295},{"type":"minClock","dx":55,"dy":-80,"fontSize":130,"fontWeight":"FontWeight.w200","color":4294967295},{"type":"dateClock","dx":0,"dy":32,"fontSize":24,"fontWeight":"FontWeight.w300","color":3435930624},{"type":"swipeUpUnlock","dx":0,"dy":240}]
 
 [STATS BAR — clock top + stats pill bottom]
-[{"type":"hourClock","dx":-55,"dy":-130,"fontSize":145,"fontWeight":"FontWeight.w100","color":4294967295},{"type":"minClock","dx":55,"dy":-130,"fontSize":145,"fontWeight":"FontWeight.w100","color":4294967295},{"type":"dateClock","dx":0,"dy":30,"fontSize":26,"fontWeight":"FontWeight.w300","color":3435930624},{"type":"containerBG1","dx":0,"dy":160,"width":350,"height":72,"radius":36,"color":671088640,"blurRadius":16,"borderWidth":1,"borderColor":268435455},{"type":"batteryLevel","dx":-100,"dy":160,"fontSize":17,"fontWeight":"FontWeight.w600","color":4294967295},{"type":"weatherTemp","dx":0,"dy":160,"fontSize":17,"fontWeight":"FontWeight.w600","color":4294967295},{"type":"stepsCount","dx":100,"dy":160,"fontSize":17,"fontWeight":"FontWeight.w600","color":4294967295},{"type":"swipeUpUnlock","dx":0,"dy":240}]
+[{"type":"hourClock","dx":-55,"dy":-130,"fontSize":145,"fontWeight":"FontWeight.w100","color":4294967295},{"type":"minClock","dx":55,"dy":-130,"fontSize":145,"fontWeight":"FontWeight.w100","color":4294967295},{"type":"dateClock","dx":0,"dy":30,"fontSize":26,"fontWeight":"FontWeight.w300","color":3435930624},{"type":"containerBG1","dx":0,"dy":160,"width":350,"height":72,"radius":36,"color":671088640,"blurRadius":16,"borderWidth":1,"borderColor":268435455},{"type":"batteryLevel","dx":-100,"dy":160,"fontSize":17,"fontWeight":"FontWeight.w600","color":4294967295},{"type":"weatherTemp","dx":0,"dy":160,"fontSize":17,"fontWeight":"FontWeight.w600","color":4294967295},{"type":"weatherHumidity","dx":100,"dy":160,"fontSize":17,"fontWeight":"FontWeight.w600","color":4294967295},{"type":"swipeUpUnlock","dx":0,"dy":240}]
 
 [ANALOG CLOCK — circular analog face centered]
 [{"type":"containerBG1","dx":0,"dy":-50,"width":300,"height":300,"radius":150,"color":822083583,"blurRadius":20,"borderWidth":1,"borderColor":268435455},{"type":"analogClockBg","dx":0,"dy":-50,"width":260,"height":260},{"type":"analogHourHand","dx":0,"dy":-50,"width":160,"height":160},{"type":"analogMinHand","dx":0,"dy":-50,"width":180,"height":180},{"type":"dateClock","dx":0,"dy":110,"fontSize":22,"fontWeight":"FontWeight.w300","color":3435930624},{"type":"swipeUpUnlock","dx":0,"dy":240}]
@@ -119,7 +120,7 @@ Optional only: color, colorSecondary, borderColor, colorDigit1, colorDigit2, gra
     ),
     (
       'STATS BAR — clock upper half + horizontal info pill lower',
-      '[{"type":"hourClock","dx":-55,"dy":-130,"fontSize":145,"fontWeight":"FontWeight.w100","color":4294967295},{"type":"minClock","dx":55,"dy":-130,"fontSize":145,"fontWeight":"FontWeight.w100","color":4294967295},{"type":"dateClock","dx":0,"dy":30,"fontSize":26,"fontWeight":"FontWeight.w300","color":3435930624},{"type":"containerBG1","dx":0,"dy":160,"width":350,"height":72,"radius":36,"color":671088640,"blurRadius":16,"borderWidth":1,"borderColor":268435455},{"type":"batteryLevel","dx":-100,"dy":160,"fontSize":17,"fontWeight":"FontWeight.w600","color":4294967295},{"type":"weatherTemp","dx":0,"dy":160,"fontSize":17,"fontWeight":"FontWeight.w600","color":4294967295},{"type":"stepsCount","dx":100,"dy":160,"fontSize":17,"fontWeight":"FontWeight.w600","color":4294967295},{"type":"swipeUpUnlock","dx":0,"dy":240}]',
+      '[{"type":"hourClock","dx":-55,"dy":-130,"fontSize":145,"fontWeight":"FontWeight.w100","color":4294967295},{"type":"minClock","dx":55,"dy":-130,"fontSize":145,"fontWeight":"FontWeight.w100","color":4294967295},{"type":"dateClock","dx":0,"dy":30,"fontSize":26,"fontWeight":"FontWeight.w300","color":3435930624},{"type":"containerBG1","dx":0,"dy":160,"width":350,"height":72,"radius":36,"color":671088640,"blurRadius":16,"borderWidth":1,"borderColor":268435455},{"type":"batteryLevel","dx":-100,"dy":160,"fontSize":17,"fontWeight":"FontWeight.w600","color":4294967295},{"type":"weatherTemp","dx":0,"dy":160,"fontSize":17,"fontWeight":"FontWeight.w600","color":4294967295},{"type":"weatherHumidity","dx":100,"dy":160,"fontSize":17,"fontWeight":"FontWeight.w600","color":4294967295},{"type":"swipeUpUnlock","dx":0,"dy":240}]',
     ),
     (
       'ANALOG — circular analog clock as centerpiece',
@@ -142,7 +143,8 @@ Optional only: color, colorSecondary, borderColor, colorDigit1, colorDigit2, gra
   }
 
   static String _variantPrompt(String request, int index) {
-    final (styleName, template) = _variantTemplates[index % _variantTemplates.length];
+    final (styleName, template) =
+        _variantTemplates[index % _variantTemplates.length];
     return 'Design a MIUI lockscreen: $request\n\n'
         'BASE TEMPLATE ($styleName):\n$template\n\n'
         'INSTRUCTIONS: Adapt the template above to match the user request. '
@@ -162,14 +164,14 @@ Optional only: color, colorSecondary, borderColor, colorDigit1, colorDigit2, gra
     final body = jsonEncode({
       'system_instruction': {
         'parts': [
-          {'text': _systemPrompt()}
+          {'text': _systemPrompt()},
         ],
       },
       'contents': [
         {
           'role': 'user',
           'parts': [
-            {'text': userText}
+            {'text': userText},
           ],
         },
       ],
@@ -180,15 +182,21 @@ Optional only: color, colorSecondary, borderColor, colorDigit1, colorDigit2, gra
       },
     });
 
-    final res = await http.post(uri,
-        headers: {'Content-Type': 'application/json'}, body: body);
+    final res = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: body,
+    );
     if (res.statusCode != 200) throw Exception(res.body);
 
     final json = jsonDecode(res.body) as Map<String, dynamic>;
-    final text = (((json['candidates'] as List?)?.first
-            as Map?)?['content'] as Map?)?['parts']
-        ?.first['text'] as String?;
-    if (text == null || text.trim().isEmpty) throw Exception('Empty AI response');
+    final text =
+        (((json['candidates'] as List?)?.first as Map?)?['content']
+                    as Map?)?['parts']
+                ?.first['text']
+            as String?;
+    if (text == null || text.trim().isEmpty)
+      throw Exception('Empty AI response');
     return text;
   }
 
@@ -204,16 +212,22 @@ Optional only: color, colorSecondary, borderColor, colorDigit1, colorDigit2, gra
       'temperature': 1.2,
     });
 
-    final res = await http.post(uri, headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $groqKey',
-    }, body: body);
+    final res = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $groqKey',
+      },
+      body: body,
+    );
     if (res.statusCode != 200) throw Exception(res.body);
 
     final json = jsonDecode(res.body) as Map<String, dynamic>;
-    final text = ((json['choices'] as List?)?.first
-        as Map?)?['message']?['content'] as String?;
-    if (text == null || text.trim().isEmpty) throw Exception('Empty AI response');
+    final text =
+        ((json['choices'] as List?)?.first as Map?)?['message']?['content']
+            as String?;
+    if (text == null || text.trim().isEmpty)
+      throw Exception('Empty AI response');
     return text;
   }
 
@@ -229,32 +243,36 @@ Optional only: color, colorSecondary, borderColor, colorDigit1, colorDigit2, gra
       'stream': false,
     });
 
-    final res = await http.post(uri,
-        headers: {'Content-Type': 'application/json'},
-        body: body,
-        // Ollama can be slow on first run; give it 3 minutes
-        ).timeout(const Duration(minutes: 3));
+    final res = await http
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: body,
+          // Ollama can be slow on first run; give it 3 minutes
+        )
+        .timeout(const Duration(minutes: 3));
     if (res.statusCode != 200) throw Exception(res.body);
 
     final json = jsonDecode(res.body) as Map<String, dynamic>;
     final text = (json['message'] as Map?)?['content'] as String?;
-    if (text == null || text.trim().isEmpty) throw Exception('Empty AI response');
+    if (text == null || text.trim().isEmpty)
+      throw Exception('Empty AI response');
     return text;
   }
 
   // ── Dispatch + retry ─────────────────────────────────────────────────────────
 
   String get _providerLabel => switch (provider) {
-        AiProvider.gemini => 'Gemini(${AppConstants.geminiModel})',
-        AiProvider.groq   => 'Groq(${AppConstants.groqModel})',
-        AiProvider.ollama => 'Ollama($ollamaModel)',
-      };
+    AiProvider.gemini => 'Gemini(${AppConstants.geminiModel})',
+    AiProvider.groq => 'Groq(${AppConstants.groqModel})',
+    AiProvider.ollama => 'Ollama($ollamaModel)',
+  };
 
   Future<String> _dispatch(String userText) => switch (provider) {
-        AiProvider.gemini => _callGemini(userText),
-        AiProvider.groq   => _callGroq(userText),
-        AiProvider.ollama => _callOllama(userText),
-      };
+    AiProvider.gemini => _callGemini(userText),
+    AiProvider.groq => _callGroq(userText),
+    AiProvider.ollama => _callOllama(userText),
+  };
 
   static bool _isRateLimit(Object e) {
     final s = e.toString();
@@ -266,8 +284,9 @@ Optional only: color, colorSecondary, borderColor, colorDigit1, colorDigit2, gra
 
   /// Parses "try again in X.Xs" from Groq errors; falls back to [10, 30, 60].
   static int _retryDelaySecs(Object e, int attempt) {
-    final match =
-        RegExp(r'try again in (\d+(?:\.\d+)?)s').firstMatch(e.toString());
+    final match = RegExp(
+      r'try again in (\d+(?:\.\d+)?)s',
+    ).firstMatch(e.toString());
     if (match != null) {
       final secs = double.tryParse(match.group(1) ?? '');
       if (secs != null) return (secs + 3).ceil(); // +3 s buffer
@@ -311,7 +330,9 @@ Optional only: color, colorSecondary, borderColor, colorDigit1, colorDigit2, gra
       final listVal = map.values.whereType<List>().firstOrNull;
       if (listVal != null) {
         return listVal
-            .map((e) => LockElement.fromJson(_sanitize(e as Map<String, dynamic>)))
+            .map(
+              (e) => LockElement.fromJson(_sanitize(e as Map<String, dynamic>)),
+            )
             .toList();
       }
     }
@@ -340,25 +361,41 @@ Optional only: color, colorSecondary, borderColor, colorDigit1, colorDigit2, gra
   // This coerces them back to the types fromJson expects.
 
   static const _colorKeys = {
-    'borderColor', 'color', 'colorSecondary', 'colorDigit1', 'colorDigit2',
+    'borderColor',
+    'color',
+    'colorSecondary',
+    'colorDigit1',
+    'colorDigit2',
   };
   static const _numKeys = {
-    'dx', 'dy', 'scale', 'height', 'width', 'radius', 'borderWidth',
-    'angle', 'fontSize', 'blurRadius',
+    'dx',
+    'dy',
+    'scale',
+    'height',
+    'width',
+    'radius',
+    'borderWidth',
+    'angle',
+    'fontSize',
+    'blurRadius',
   };
   static const _boolKeys = {
-    'isShort', 'isWrap', 'showGuideLines', 'isVisible', 'isLocked',
+    'isShort',
+    'isWrap',
+    'showGuideLines',
+    'isVisible',
+    'isLocked',
     'useSeparateColors',
   };
 
   static Map<String, dynamic> _sanitize(Map<String, dynamic> j) => {
-        for (final kv in j.entries) kv.key: _coerce(kv.key, kv.value),
-      };
+    for (final kv in j.entries) kv.key: _coerce(kv.key, kv.value),
+  };
 
   static dynamic _coerce(String key, dynamic value) {
-    if (_colorKeys.contains(key))  return _toColorInt(value);
-    if (_numKeys.contains(key))    return _toDouble(value);
-    if (_boolKeys.contains(key))   return _toBool(value);
+    if (_colorKeys.contains(key)) return _toColorInt(value);
+    if (_numKeys.contains(key)) return _toDouble(value);
+    if (_boolKeys.contains(key)) return _toBool(value);
     return value;
   }
 
@@ -372,7 +409,8 @@ Optional only: color, colorSecondary, borderColor, colorDigit1, colorDigit2, gra
       }
       if (s.startsWith('#')) {
         final hex = s.substring(1);
-        if (hex.length == 6) return int.tryParse('FF$hex', radix: 16) ?? 0xFFFFFFFF;
+        if (hex.length == 6)
+          return int.tryParse('FF$hex', radix: 16) ?? 0xFFFFFFFF;
         if (hex.length == 8) return int.tryParse(hex, radix: 16) ?? 0xFFFFFFFF;
       }
       return int.tryParse(s) ?? 0xFFFFFFFF;
@@ -416,19 +454,28 @@ Optional only: color, colorSecondary, borderColor, colorDigit1, colorDigit2, gra
     required String prompt,
     required int count,
   }) async {
-    dev.log('AI[$_providerLabel]: generating $count variants for "$prompt"',
-        name: 'AiDs');
+    dev.log(
+      'AI[$_providerLabel]: generating $count variants for "$prompt"',
+      name: 'AiDs',
+    );
     final variants = <List<LockElement>>[];
 
     for (int i = 0; i < count; i++) {
       try {
         final text = await _callWithRetry(_variantPrompt(prompt, i));
         final elements = _parse(text);
-        dev.log('AI: variant ${i + 1} → ${elements.length} elements',
-            name: 'AiDs');
+        dev.log(
+          'AI: variant ${i + 1} → ${elements.length} elements',
+          name: 'AiDs',
+        );
         variants.add(elements);
       } catch (e, st) {
-        dev.log('AI: variant ${i + 1} failed', name: 'AiDs', error: e, stackTrace: st);
+        dev.log(
+          'AI: variant ${i + 1} failed',
+          name: 'AiDs',
+          error: e,
+          stackTrace: st,
+        );
         rethrow;
       }
     }

@@ -1509,10 +1509,13 @@ class ElementInfoPanel extends ConsumerWidget {
                       ),
                       items: [
                         for (final source in ArcProgressSource.values)
-                          DropdownMenuItem(
-                            value: source,
-                            child: Text(source.label),
-                          ),
+                          // Steps is hidden: Mi Health data doesn't load.
+                          if (source != ArcProgressSource.steps ||
+                              el.effectiveProgressSource == source)
+                            DropdownMenuItem(
+                              value: source,
+                              child: Text(source.label),
+                            ),
                       ],
                       onChanged: (source) {
                         if (source == null) return;

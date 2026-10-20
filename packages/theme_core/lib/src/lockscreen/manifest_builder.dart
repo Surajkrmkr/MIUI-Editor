@@ -49,8 +49,10 @@ class ManifestBuilder {
           XmlName('uri'),
           'content://com.mi.health.provider.main/activity/steps/brief',
         ),
+        // `column`, as Xiaomi's MiSteps sample: the provider is queried with
+        // no projection, which is what it expects.
         XmlAttribute(
-          XmlName('columns'),
+          XmlName('column'),
           'steps,goal,distance,energy,strength_duration,summary',
         ),
         XmlAttribute(XmlName('countName'), 'hasSteps'),
@@ -72,6 +74,27 @@ class ManifestBuilder {
         );
       }
       binders.children.add(binder);
+      // Re-query while the lockscreen is shown: Mi Health often answers
+      // after init, which would otherwise leave the values empty.
+      binders.parent!.children.insert(
+        binders.parent!.children.indexOf(binders) + 1,
+        XmlElement(
+          XmlName('Var'),
+          [
+            XmlAttribute(XmlName('name'), 'MiSteps_poll'),
+            XmlAttribute(XmlName('expression'), '#second'),
+            XmlAttribute(XmlName('threshold'), '10'),
+          ],
+          [
+            XmlElement(XmlName('Trigger'), [], [
+              XmlElement(XmlName('BinderCommand'), [
+                XmlAttribute(XmlName('name'), 'MiSteps'),
+                XmlAttribute(XmlName('command'), 'refresh'),
+              ]),
+            ]),
+          ],
+        ),
+      );
       final external =
           doc.findAllElements('ExternalCommands').firstOrNull ??
           XmlElement(XmlName('ExternalCommands'));
@@ -873,6 +896,7 @@ class ManifestBuilder {
         null when app.package != null => _appLaunchXml(
           null,
           package: app.package,
+          activity: app.activity,
           probe: probeRef,
         ),
         null =>
@@ -1102,14 +1126,26 @@ class ManifestBuilder {
     String? activity,
   }) {
     if (_systemIntentIcons.contains(type)) return null;
-    final meta = _iconMeta[type];
-    final pkg = package ?? meta?[1];
-    final cls = activity ?? (meta != null && meta.length > 2 ? meta[2] : null);
-    if (pkg == null || cls == null) return null;
-    return "<Image name='$name' srcType='ApplicationIcon' srcExp=\"'$pkg,$cls'\" x='0' y='0' w='1' h='1' alpha='0'/>";
+    final pkg = package ?? _iconMeta[type]?[1];
+    if (pkg == null) return null;
+    final cls = activity ?? _activityOf(type);
+    final component = cls == null ? pkg : '$pkg,$cls';
+    return "<Image name='$name' srcType='ApplicationIcon' srcExp=\"'$component'\" x='0' y='0' w='1' h='1' alpha='0'/>";
   }
 
-  String _appLaunchXml(ElementType? type, {String? package, String? probe}) {
+  static String? _activityOf(ElementType? type) {
+    final meta = _iconMeta[type];
+    return meta != null && meta.length > 2 ? meta[2] : null;
+  }
+
+  String _appLaunchXml(
+    ElementType? type, {
+    String? package,
+    String? activity,
+    String? probe,
+  }) {
+    final launchPackage = package ?? _iconMeta[type]?[1];
+    final launchClass = activity ?? _activityOf(type);
     final attributes = switch (type) {
       ElementType.dialerIcon => {'action': 'android.intent.action.DIAL'},
       ElementType.mmsIcon => {
@@ -1127,13 +1163,13 @@ class ManifestBuilder {
       ElementType.settingIcon => {'action': 'android.settings.SETTINGS'},
       _ => {
         'action': 'android.intent.action.MAIN',
-        'category': 'android.intent.category.LAUNCHER',
-        'package': package ?? _iconMeta[type]![1],
+        if (launchClass == null) 'category': 'android.intent.category.LAUNCHER',
+        'package': launchPackage!,
+        if (launchClass != null) 'class': launchClass,
+        // FLAG_ACTIVITY_NEW_TASK: the lockscreen is not an activity context.
+        'flags': '268435456',
       },
     };
-    final launchPackage = attributes['package'];
-    final installCheck = probe != null && launchPackage != null;
-    if (installCheck) attributes['condition'] = '#$probe.bmp_width';
     final command = XmlElement(
       XmlName('IntentCommand'),
       [
@@ -1148,10 +1184,12 @@ class ManifestBuilder {
         ]),
       ],
     );
-    final market = installCheck
-        ? "<IntentCommand action='android.intent.action.VIEW' uri='market://details?id=$launchPackage&amp;ref=mithemelockscreen' condition='not(#$probe.bmp_width)'/>"
+    // The store opens only when the app is missing; the launch always runs so
+    // a misread install check can't block an installed app.
+    final market = probe != null && attributes.containsKey('package')
+        ? "<IntentCommand action='android.intent.action.VIEW' uri='market://details?id=$launchPackage&amp;ref=mithemelockscreen' flags='268435456' condition='not(#$probe.bmp_width)'/>"
         : '';
-    return '$market${command.toXmlString()}<ExternCommand command="unlock" condition="not(#set_lock)"/>';
+    return '<ExternCommand command="unlock"/>$market${command.toXmlString()}';
   }
 
   static const Map<ElementType, List<String>> _iconMeta = {

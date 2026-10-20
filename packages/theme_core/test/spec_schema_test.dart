@@ -44,15 +44,41 @@ void main() {
 
   test('every element type conforms with all of its fields written out', () {
     final elements = [
-      for (final t in ElementType.values) LockElementSpec(type: t).toJson(),
+      for (final t in ElementType.values)
+        if (!t.isHealth) LockElementSpec(type: t).toJson(),
     ];
     final doc = spec(elements: _json({'e': elements})['e']);
     expect(accepts(doc), isTrue, reason: why(doc));
   });
 
+  test('health elements and the steps source are not offered', () {
+    expect(
+      accepts(
+        spec(
+          elements: [
+            {'type': 'stepsCount'},
+          ],
+        ),
+      ),
+      isFalse,
+    );
+    expect(
+      accepts(
+        spec(
+          elements: [
+            {'type': 'arcShape', 'progressSource': 'steps'},
+          ],
+        ),
+      ),
+      isFalse,
+    );
+  });
+
   test('every value of every enum field conforms', () {
     for (final entry in LockscreenSpec.enumKeys.entries) {
       for (final v in entry.value) {
+        if (v == ArcProgressSource.steps) continue;
+        if (v is ElementType && v.isHealth) continue;
         final doc = spec(
           elements: [
             {'type': 'hourClock', entry.key: v.name},

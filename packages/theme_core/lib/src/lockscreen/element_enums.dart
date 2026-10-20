@@ -347,14 +347,6 @@ const Map<String, List<ElementType>> kElementGroups = {
     ElementType.lineShape,
     ElementType.arcShape,
   ],
-  'Health': [
-    ElementType.stepsCount,
-    ElementType.stepsGoal,
-    ElementType.stepsDistance,
-    ElementType.stepsCalories,
-    ElementType.stepsDuration,
-    ElementType.stepsSummary,
-  ],
   'DateTime Text': [
     ElementType.dateTimeText1,
     ElementType.dateTimeText2,

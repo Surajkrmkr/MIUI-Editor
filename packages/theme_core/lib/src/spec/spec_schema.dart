@@ -184,7 +184,11 @@ Map<String, Object?> _elementSchema() {
     final value = entry.value;
     props[key] = switch (key) {
       'type' => {
-        'enum': [for (final t in ElementType.values) t.name],
+        // Health types are left out: Mi Health data doesn't load on devices.
+        'enum': [
+          for (final t in ElementType.values)
+            if (!t.isHealth) t.name,
+        ],
       },
       'fontWeight' => {
         'description': '"FontWeight.w700" or 700.',
@@ -220,7 +224,10 @@ Map<String, Object?> _elementSchema() {
         },
       },
       _ when LockscreenSpec.enumKeys.containsKey(key) => {
-        'enum': [for (final v in LockscreenSpec.enumKeys[key]!) v.name],
+        'enum': [
+          for (final v in LockscreenSpec.enumKeys[key]!)
+            if (v != ArcProgressSource.steps) v.name,
+        ],
       },
       _ when LockscreenSpec.colorKeys.contains(key) => {
         '\$ref': '#/\$defs/color',

@@ -25,30 +25,6 @@ const widgetLibraryJson = r'''
    ]
   },
   {
-   "name": "Activity",
-   "description": "Steps, distance and energy from Xiaomi Health.",
-   "category": "Health",
-   "elements": [
-    {
-     "type": "stepsCount",
-     "dy": -30.0,
-     "fontSize": 32.0
-    },
-    {
-     "type": "stepsDistance",
-     "dx": -45.0,
-     "dy": 15.0,
-     "fontSize": 16.0
-    },
-    {
-     "type": "stepsCalories",
-     "dx": 45.0,
-     "dy": 15.0,
-     "fontSize": 16.0
-    }
-   ]
-  },
-  {
    "name": "Glass Calendar",
    "description": "Frosted glass effect calendar with adaptive background.",
    "category": "Date",
@@ -305,7 +281,7 @@ const widgetLibraryJson = r'''
   },
   {
    "name": "Stats Bar",
-   "description": "Battery + steps + weather in a horizontal status bar.",
+   "description": "Battery + weather + humidity in a horizontal status bar.",
    "category": "General",
    "elements": [
     {
@@ -333,7 +309,7 @@ const widgetLibraryJson = r'''
      "fontWeight": "FontWeight.w600"
     },
     {
-     "type": "stepsCount",
+     "type": "weatherHumidity",
      "dx": 110.0,
      "dy": 240.0,
      "fontSize": 18.0,
@@ -540,7 +516,7 @@ const widgetLibraryJson = r'''
      "color": 4292927712
     },
     {
-     "type": "stepsCount",
+     "type": "batteryText",
      "dx": -280.0,
      "dy": 600.0,
      "fontSize": 32.0,

@@ -326,6 +326,21 @@ class _Run {
     if (options.checkDesign) _lockscreenDesign(els);
     for (var i = 0; i < els.length; i++) {
       final e = els[i];
+      if (!e.isVisible) continue;
+      if (e.type.isHealth ||
+          (e.type == ElementType.arcShape &&
+              e.effectiveProgressSource == ArcProgressSource.steps)) {
+        error(
+          'lockscreen.health_unsupported',
+          '/lockscreen/elements/$i',
+          '"${e.name}" uses Mi Health step data, which does not load on '
+              'devices.',
+          hint: 'Use battery, weather or calendar widgets instead.',
+        );
+      }
+    }
+    for (var i = 0; i < els.length; i++) {
+      final e = els[i];
       if (!e.isVisible || e.type != ElementType.tapToUnlock) continue;
       final gap = bottomPaddingOf(e);
       if (gap < minUnlockBottomPadding) {
@@ -367,7 +382,7 @@ class _Run {
       warn(
         'lockscreen.no_info',
         at,
-        'No widget shows live information such as weather, battery, steps or '
+        'No widget shows live information such as weather, battery or '
             'calendar (music does not count).',
         hint: 'Add a widget from list_widgets other than music.',
       );
