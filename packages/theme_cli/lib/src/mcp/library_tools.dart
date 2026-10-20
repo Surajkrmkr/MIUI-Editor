@@ -12,9 +12,59 @@ import 'tool_context.dart';
 
 const _imageExtensions = {'.jpg', '.jpeg', '.png', '.webp'};
 
-/// Tools that look things up in the designer's folders: wallpapers and the
-/// preset lockscreens that serve as references.
+/// Tools that look things up in the designer's folders: wallpapers, fonts and
+/// the preset lockscreens that serve as references.
 List<McpTool> libraryTools(ThemeToolContext ctx) => [
+  McpTool(
+    name: 'list_fonts',
+    description:
+        'Lists the font families the designer has files for (THEME_FONTS_DIR '
+        'and fonts_dirs). Put a family in an element\'s font exactly as '
+        'listed, e.g. "font": "GoBold"; the build finds its file, so the spec '
+        'needs no fonts entry. used_by_presets counts saved presets that '
+        'already use it: prefer fonts few presets use, and give the clock, '
+        'the date and the other texts a deliberate pairing instead of one '
+        'font everywhere. Roboto and RobotoCondensed are built in.',
+    inputSchema: const {
+      'type': 'object',
+      'properties': {
+        'fonts_dirs': {
+          'type': 'array',
+          'items': {'type': 'string'},
+          'description': 'Extra font folders to list.',
+        },
+      },
+    },
+    readOnly: true,
+    handler: (args, progress) async {
+      final dirs = argFontsDirs(args, ctx);
+      final usage = _presetFontUsage(ctx);
+      final fonts =
+          [
+            for (final f in listFontFamilies(dirs))
+              {
+                'family': f.family,
+                'file': p.basename(f.path),
+                'used_by_presets': usage[_fontKey(f.family)] ?? 0,
+              },
+          ]..sort(
+            (a, b) => (a['used_by_presets']! as int).compareTo(
+              b['used_by_presets']! as int,
+            ),
+          );
+      return ToolResult(
+        jsonEncode({
+          'dirs': dirs,
+          'built_in': const ['Roboto', 'RobotoCondensed'],
+          'fonts': fonts,
+          if (fonts.isEmpty)
+            'hint':
+                'No font files found. Set THEME_FONTS_DIR or pass '
+                'fonts_dirs.',
+        }),
+      );
+    },
+  ),
   McpTool(
     name: 'list_wallpapers',
     description:
@@ -469,6 +519,26 @@ List<Map<String, dynamic>> _presetElements(Directory dir) {
 /// How many of preset [elements] are shown.
 int visibleCount(List<Map<String, dynamic>> elements) =>
     elements.where((e) => e['isVisible'] != false).length;
+
+String _fontKey(String family) =>
+    family.toLowerCase().replaceAll(RegExp('[^a-z0-9]'), '');
+
+/// Font family key -> number of saved presets whose lockscreen uses it.
+Map<String, int> _presetFontUsage(ThemeToolContext ctx) {
+  final dir = Directory(ctx.root?.presetsDir ?? '');
+  if (ctx.root == null || !dir.existsSync()) return const {};
+  final counts = <String, int>{};
+  for (final preset in dir.listSync().whereType<Directory>()) {
+    final families = {
+      for (final e in _presetElements(preset))
+        if (e['font'] is String) _fontKey(FontRef.parse(e['font']).family),
+    };
+    for (final f in families) {
+      counts[f] = (counts[f] ?? 0) + 1;
+    }
+  }
+  return counts;
+}
 
 /// Orders "2" before "10" and "a2" before "a10".
 int _natural(String a, String b) {

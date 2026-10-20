@@ -39,9 +39,12 @@ const _instructions =
     'adjust. Give week (and folder, the wallpaper folder) and the theme goes '
     'to THEMES/Week<week>, with the default lockscreen assets filled in; its '
     'spec and preview pictures go to Preset/<name>. '
-    'Fonts other than Roboto need a .ttf/.otf: list it in the spec\'s fonts '
-    'or pass fonts_dirs. Use build_batch for many specs; it skips themes '
-    'that are already built.';
+    'Pick fonts with list_fonts: use the designer\'s fonts by their listed '
+    'family (no fonts entry needed), favour ones few presets use, and pair '
+    'a display font for the clock with a quieter one for the date and '
+    'texts instead of Roboto everywhere. Other fonts need a .ttf/.otf: list '
+    'it in the spec\'s fonts or pass fonts_dirs. Use build_batch for many '
+    'specs; it skips themes that are already built.';
 
 const _rulesNote =
     ' The designer keeps rules for themes: call get_rules before designing '
