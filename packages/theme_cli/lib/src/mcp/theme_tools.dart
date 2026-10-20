@@ -37,7 +37,8 @@ const _instructions =
     'validate_spec until it reports ok and build_theme with preview on to '
     'get the lockscreen and home screen images back; look at them and '
     'adjust. Give week (and folder, the wallpaper folder) and the theme goes '
-    'to THEMES/Week<week>, with the default lockscreen assets filled in. '
+    'to THEMES/Week<week>, with the default lockscreen assets filled in; its '
+    'spec and preview pictures go to Preset/<name>. '
     'Fonts other than Roboto need a .ttf/.otf: list it in the spec\'s fonts '
     'or pass fonts_dirs. Use build_batch for many specs; it skips themes '
     'that are already built.';
@@ -239,7 +240,8 @@ List<McpTool> themeTools(ThemeToolContext ctx) {
       name: 'build_theme',
       description:
           'Validates and builds one theme into out_dir: <name>.mtz (the '
-          'installable theme) and the <name>/ folder. With preview on, also '
+          'installable theme) and the <name>/ folder; its spec and preview '
+          'pictures are saved to Preset/<name>/. With preview on, also '
           'returns two images, the lockscreen and the home screen, so you '
           'can check the result. Takes 5 to 20 seconds. If the spec is '
           'invalid nothing is built and the issues are returned.',
@@ -280,6 +282,7 @@ List<McpTool> themeTools(ThemeToolContext ctx) {
                 fontsDirs: argFontsDirs(args, ctx),
                 assetsRoot: ctx.project,
                 baseDir: input.baseDir ?? (temp == null ? null : ctx.cwd.path),
+                presetsDir: ctx.root?.presetsDir,
               ),
             ),
           );
@@ -402,6 +405,7 @@ List<McpTool> themeTools(ThemeToolContext ctx) {
               preview: argBool(args, 'preview') ?? false,
               fontsDirs: argFontsDirs(args, ctx),
               assetsRoot: ctx.project,
+              presetsDir: ctx.root?.presetsDir,
             ),
             onEntry: (e) {
               done++;

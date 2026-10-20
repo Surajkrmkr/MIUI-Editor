@@ -9,6 +9,7 @@ import '../../data/models/theme_settings_model.dart';
 import 'service_providers.dart';
 import 'icon_editor_provider.dart';
 import 'directory_provider.dart'; // ← needed for createThemeDirectories
+import 'spec_loader.dart';
 
 class WallpaperState {
   const WallpaperState({
@@ -82,6 +83,18 @@ class WallpaperState {
 }
 
 class WallpaperNotifier extends Notifier<WallpaperState> {
+  bool _activating = false;
+  int _activation = 0;
+
+  void _setActivating(bool value) {
+    _activating = value;
+    ref.read(themeOpeningProvider.notifier).state = value;
+  }
+
+  /// True while a theme is being opened; its design changes then are not
+  /// the designer's edits.
+  bool get isActivating => _activating;
+
   @override
   WallpaperState build() {
     final prefs = ref.read(sharedPrefsProvider);
@@ -122,6 +135,7 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
         .map((f) => f.path)
         .toList();
 
+    if (paths.isNotEmpty) _setActivating(true);
     state = state.copyWith(isLoading: false, paths: paths, index: 0);
 
     if (paths.isNotEmpty) {
@@ -143,6 +157,7 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
     String authorTag = '',
     String uiVersion = '',
   }) async {
+    _setActivating(true);
     state = state.copyWith(
       isLoading: false,
       folderNum: folderNum,
@@ -154,13 +169,14 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
       authorTag: authorTag.isEmpty ? null : authorTag,
       uiVersion: uiVersion.isEmpty ? null : uiVersion,
     );
-    await _onThemeActivated(weekNum, wallpaperPath);
+    await _onThemeActivated(weekNum, wallpaperPath, restoreSaved: false);
   }
 
   // ── Navigate to a different wallpaper / theme ─────────────────────────────
 
   Future<void> setIndex(int i) async {
     if (i < 0 || i >= state.paths.length) return;
+    if (state.weekNum != null) _setActivating(true);
     state = state.copyWith(index: i);
 
     if (state.weekNum != null) {
@@ -170,32 +186,55 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
 
   // ── Core: everything that must happen when the active theme changes ────────
 
-  Future<void> _onThemeActivated(String weekNum, String wallPath) async {
-    final themeName = state.currentThemeName!;
+  Future<void> _onThemeActivated(
+    String weekNum,
+    String wallPath, {
+    bool restoreSaved = true,
+  }) async {
+    _setActivating(true);
+    final activation = ++_activation;
+    try {
+      // Let the loading overlay paint before the heavy work starts.
+      await WidgetsBinding.instance.endOfFrame;
+      if (activation != _activation) return;
+      final themeName = state.currentThemeName!;
 
-    ref.read(exportProvider.notifier).resetExportState();
-    ref.read(lockscreenProvider.notifier).resetExportState();
+      ref.read(exportProvider.notifier).resetExportState();
+      ref.read(lockscreenProvider.notifier).resetExportState();
 
-    await _updatePalette(wallPath);
+      await _updatePalette(wallPath);
 
-    await ref
-        .read(directoryProvider.notifier)
-        .createThemeDirectories(weekNum, themeName);
+      await ref
+          .read(directoryProvider.notifier)
+          .createThemeDirectories(weekNum, themeName);
 
-    await ref
-        .read(directoryProvider.notifier)
-        .loadTagsFromFile(weekNum, themeName);
+      // A theme designed before carries on where it was left.
+      if (restoreSaved) {
+        final saved = await readSavedDesign(weekNum, themeName);
+        if (saved != null && activation == _activation) {
+          applyDesign(ref, saved);
+        }
+      }
 
-    await ref.read(exportProvider.notifier).checkExported();
-    await ref.read(lockscreenProvider.notifier).checkExported();
+      await ref
+          .read(directoryProvider.notifier)
+          .loadTagsFromFile(weekNum, themeName);
+
+      await ref.read(exportProvider.notifier).checkExported();
+      await ref.read(lockscreenProvider.notifier).checkExported();
+    } finally {
+      if (activation == _activation) _setActivating(false);
+    }
   }
 
   // ── Palette extraction ────────────────────────────────────────────────────
 
   Future<void> _updatePalette(String wallPath) async {
     try {
-      final gen =
-          await PaletteGenerator.fromImageProvider(FileImage(File(wallPath)));
+      // A small copy is enough for a palette and far cheaper to quantize.
+      final gen = await PaletteGenerator.fromImageProvider(
+        ResizeImage(FileImage(File(wallPath)), width: 200),
+      );
       final colors = gen.colors.toList();
       state = state.copyWith(
         colorPalette: colors,
@@ -265,3 +304,6 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
 
 final wallpaperProvider =
     NotifierProvider<WallpaperNotifier, WallpaperState>(WallpaperNotifier.new);
+
+/// True while a theme is being opened, for a loading overlay.
+final themeOpeningProvider = StateProvider<bool>((_) => false);

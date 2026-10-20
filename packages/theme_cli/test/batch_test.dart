@@ -177,6 +177,32 @@ void main() {
       expect(dup.message, contains(good));
     });
 
+    test('moves the built spec to the preset folder', () async {
+      final s = spec('kept');
+      final built = File(p.join(out, 'kept', 'theme.spec.json'))
+        ..createSync(recursive: true)
+        ..writeAsStringSync(
+          jsonEncode({
+            'meta': {'title': 'kept'},
+            'wallpaper': {'home': 'wall.png'},
+          }),
+        );
+      final presets = p.join(tmp.path, 'Preset');
+      final r = await BatchRunner(ScriptedSidecar()).run(
+        [s],
+        BatchOptions(outDir: out, contrast: false, presetsDir: presets),
+      );
+      expect(r.entries.single.status, BatchStatus.built);
+      expect(built.existsSync(), isFalse);
+      final saved = jsonDecode(
+        File(p.join(presets, 'kept', 'preset.json')).readAsStringSync(),
+      );
+      expect(
+        saved['wallpaper']['home'],
+        p.join(p.dirname(s), 'wall.png'),
+      );
+    });
+
     test('a spec given twice is built once', () async {
       final s = spec('once');
       final sidecar = ScriptedSidecar();

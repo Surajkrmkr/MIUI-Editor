@@ -39,7 +39,7 @@ class TopCommandBar extends ConsumerWidget {
             tooltip: 'Back to Project Selection',
             visualDensity: VisualDensity.compact,
             mouseCursor: SystemMouseCursors.click,
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(context).maybePop(),
           ),
           const SizedBox(width: 4),
           IconButton(

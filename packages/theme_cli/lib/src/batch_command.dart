@@ -149,6 +149,7 @@ class BatchCommand extends Command<int> {
         fontsDirs: fontsDirsOf(args, _cwd),
         assetsRoot: project,
         prepare: specPreparer(root: root, week: week, folder: folder),
+        presetsDir: root?.presetsDir,
       ),
       onEntry: (e) {
         done++;

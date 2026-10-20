@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:theme_core/theme_core.dart';
 
@@ -48,17 +50,66 @@ final themeSpecProvider = Provider<ThemeSpec?>((ref) {
 
 Future<Failure?> _writeSpec(Ref ref, ThemeSpec spec, String path) async {
   try {
-    await ref
-        .read(fileServiceProvider)
-        .writeString(
-          path,
-          '${const JsonEncoder.withIndent('  ').convert(spec.toJson())}\n',
-        );
+    await ref.read(fileServiceProvider).writeString(path, _encode(spec));
     return null;
   } catch (e) {
     return ExportFailure(e.toString());
   }
 }
+
+String _encode(ThemeSpec spec) =>
+    '${const JsonEncoder.withIndent('  ').convert(spec.toJson())}\n';
+
+String _specPathOf(String week, String themeName) =>
+    '${ThemeLayout(PathConstants.themePath(week, themeName)).root}'
+    '${PathConstants.sep}$themeSpecFileName';
+
+/// Keeps the open theme's spec file up to date: every design change is
+/// written shortly after it happens. Watch it while the editor is open.
+final themeSpecAutoSaveProvider = Provider.autoDispose<void>((ref) {
+  final files = ref.read(fileServiceProvider);
+  Timer? timer;
+  String? pendingPath, pendingText, lastWritten;
+
+  void flush() {
+    timer?.cancel();
+    final path = pendingPath, text = pendingText;
+    pendingPath = pendingText = null;
+    if (path == null || text == null) return;
+    lastWritten = '$path\n$text';
+    unawaited(
+      files
+          .writeString(path, text)
+          .then<void>(
+            (_) {},
+            onError: (Object e) => debugPrint('Theme spec autosave failed: $e'),
+          ),
+    );
+  }
+
+  // Listens to the editing notifiers themselves: they report changes at once,
+  // while the opening of a theme is still flagged.
+  void changed(Object? previous, Object? next) {
+    if (ref.read(wallpaperProvider.notifier).isActivating) return;
+    final spec = ref.read(themeSpecProvider);
+    if (spec == null) return;
+    final ws = ref.read(wallpaperProvider);
+    final path = _specPathOf(ws.weekNum!, ws.currentThemeName!);
+    final text = _encode(spec);
+    if (pendingPath != null && pendingPath != path) flush();
+    if (pendingPath == null && lastWritten == '$path\n$text') return;
+    pendingPath = path;
+    pendingText = text;
+    timer?.cancel();
+    timer = Timer(const Duration(milliseconds: 400), flush);
+  }
+
+  ref.onDispose(flush);
+  ref.listen<Object?>(elementProvider, changed);
+  ref.listen<Object?>(iconEditorProvider, changed);
+  ref.listen<Object?>(userProfileProvider, changed);
+  ref.listen<Object?>(iconStyleOverrideProvider, changed);
+});
 
 /// Writes the current spec next to the theme's other files and returns its
 /// path, or a failure.
@@ -68,10 +119,7 @@ Future<(String?, Failure?)> saveThemeSpec(Ref ref) async {
     return (null, const ValidationFailure('No active theme'));
   }
   final ws = ref.read(wallpaperProvider);
-  final layout = ThemeLayout(
-    PathConstants.themePath(ws.weekNum!, ws.currentThemeName!),
-  );
-  final path = '${layout.root}${PathConstants.sep}$themeSpecFileName';
+  final path = _specPathOf(ws.weekNum!, ws.currentThemeName!);
   final failure = await _writeSpec(ref, spec, path);
   return failure == null ? (path, null) : (null, failure);
 }

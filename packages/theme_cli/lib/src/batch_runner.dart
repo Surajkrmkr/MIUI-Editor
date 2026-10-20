@@ -75,6 +75,7 @@ class BatchOptions {
     this.assetsRoot,
     this.baseDir,
     this.prepare,
+    this.presetsDir,
   });
 
   final String outDir;
@@ -110,6 +111,11 @@ class BatchOptions {
   /// built, changing it in place; [baseDir] is where its relative paths
   /// resolve.
   final void Function(Map<String, dynamic> spec, String baseDir)? prepare;
+
+  /// When set, each built theme's spec and preview pictures go to
+  /// `<presetsDir>/<name>/` (`preset.json`, `preview.png` for the
+  /// lockscreen, `home.png`) instead of the theme folder.
+  final String? presetsDir;
 }
 
 class BatchReport {
@@ -279,12 +285,33 @@ class BatchRunner {
         ..mtz = '$out.mtz'
         ..workspace = out;
       if (options.preview) {
-        e.preview = '$out.preview.png';
+        final shots = _previewFiles(out, spec, options);
+        e.preview = shots.home;
         if (spec.lockscreen.elements.isNotEmpty) {
-          e.lockscreenPreview = '$out.lockscreen.png';
+          e.lockscreenPreview = shots.lock;
         }
       }
     }
+  }
+
+  /// Where the home-screen and lockscreen pictures of a built theme end up.
+  static ({String home, String lock}) _previewFiles(
+    String out,
+    ThemeSpec spec,
+    BatchOptions options,
+  ) {
+    final presets = options.presetsDir;
+    if (presets == null) {
+      return (home: '$out.preview.png', lock: '$out.lockscreen.png');
+    }
+    final dir = p.join(presets, p.basename(spec.outputName));
+    return (
+      home: p.join(
+        dir,
+        spec.lockscreen.elements.isEmpty ? 'preview.png' : 'home.png',
+      ),
+      lock: p.join(dir, 'preview.png'),
+    );
   }
 
   static bool _upToDate(
@@ -299,9 +326,60 @@ class BatchRunner {
       return false;
     }
     if (!options.preview) return true;
-    return File('$out.preview.png').existsSync() &&
-        (spec.lockscreen.elements.isEmpty ||
-            File('$out.lockscreen.png').existsSync());
+    final shots = _previewFiles(out, spec, options);
+    return File(shots.home).existsSync() &&
+        (spec.lockscreen.elements.isEmpty || File(shots.lock).existsSync());
+  }
+
+  /// Moves the spec the build left in the theme folder, and the preview
+  /// pictures, into the theme's preset folder.
+  static void _saveAsPreset(BatchEntry e, BatchOptions options) {
+    final dir = Directory(p.join(options.presetsDir!, p.basename(e.name!)))
+      ..createSync(recursive: true);
+    final built = File(p.join(e.workspace!, 'theme.spec.json'));
+    if (built.existsSync()) {
+      final json = jsonDecode(built.readAsStringSync()) as Map<String, dynamic>;
+      _absolutePaths(json, options.baseDir ?? p.dirname(e.spec));
+      File(p.join(dir.path, 'preset.json')).writeAsStringSync(
+        '${const JsonEncoder.withIndent('  ').convert(json)}\n',
+      );
+      built.deleteSync();
+    }
+    String? move(String? from, String name) {
+      if (from == null || !File(from).existsSync()) return from;
+      final to = p.join(dir.path, name);
+      File(from).copySync(to);
+      File(from).deleteSync();
+      return to;
+    }
+
+    e.lockscreenPreview = move(e.lockscreenPreview, 'preview.png');
+    e.preview = move(
+      e.preview,
+      e.lockscreenPreview == null ? 'preview.png' : 'home.png',
+    );
+  }
+
+  /// Makes the file paths of a spec absolute, so it still works away from
+  /// [baseDir].
+  static void _absolutePaths(Map<String, dynamic> spec, String baseDir) {
+    void fix(Object? map, String key) {
+      if (map is! Map) return;
+      final v = map[key];
+      if (v is String && v.isNotEmpty && !p.isAbsolute(v)) {
+        map[key] = p.normalize(p.join(baseDir, v));
+      }
+    }
+
+    fix(spec['wallpaper'], 'home');
+    fix(spec['wallpaper'], 'lock');
+    fix(spec['lockscreen'], 'assetsDir');
+    final fonts = spec['fonts'];
+    if (fonts is List) {
+      for (final f in fonts) {
+        fix(f, 'path');
+      }
+    }
   }
 
   /// Renders [pending] chunk by chunk; returns why it stopped early, if it did.
@@ -343,6 +421,18 @@ class BatchRunner {
             ..status = BatchStatus.failed
             ..errorCode = 'preview.failed'
             ..message = previewError;
+        }
+        if (options.presetsDir != null &&
+            options.mode == BuildMode.build &&
+            e.workspace != null) {
+          try {
+            _saveAsPreset(e, options);
+          } on FileSystemException catch (ex) {
+            e
+              ..status = BatchStatus.failed
+              ..errorCode = 'preset.write'
+              ..message = 'Cannot save to the preset folder: ${ex.message}';
+          }
         }
       }
       onEntry?.call(e);
