@@ -117,7 +117,7 @@ class _LockElementViewState extends State<LockElementView> {
       );
     }
     if (el.type == ElementType.shortcutSet) {
-      return ShortcutSetPreview(element: el);
+      return ShortcutSetPreview(element: el, resolveImage: widget.resolveImage);
     }
     if (el.type.isAnalog) return AnalogClockPreview(element: el);
     if (el.type.isClock) return _clock(el);
@@ -145,10 +145,20 @@ class _LockElementViewState extends State<LockElementView> {
     }
 
     if (el.type.defaultIconAsset case final asset?) {
+      final w = el.width / lockscreenScreenRatio;
+      final h = el.height / lockscreenScreenRatio;
       return SvgPicture.asset(
         AssetPaths.iconSvg(IconVariant.u1, asset),
-        width: el.width / lockscreenScreenRatio,
-        height: el.height / lockscreenScreenRatio,
+        width: w,
+        height: h,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => Icon(
+          el.type == ElementType.flashlightIcon
+              ? Icons.flashlight_on_rounded
+              : Icons.apps_rounded,
+          size: min(w, h),
+          color: el.color,
+        ),
       );
     }
 

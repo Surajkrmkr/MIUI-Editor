@@ -95,6 +95,7 @@ enum ElementType {
   radioIcon,
   recorderIcon,
   downloadsIcon,
+  flashlightIcon,
   dragToUnlock,
 }
 
@@ -172,6 +173,7 @@ extension ElementTypeX on ElementType {
     ElementType.radioIcon: 'com.miui.fmradio',
     ElementType.recorderIcon: 'com.android.soundrecorder',
     ElementType.downloadsIcon: 'com.android.providers.downloads.ui',
+    ElementType.flashlightIcon: 'flashlight',
   }[this];
   bool get isIcon => const {
     ElementType.cameraIcon,
@@ -199,6 +201,7 @@ extension ElementTypeX on ElementType {
     ElementType.radioIcon,
     ElementType.recorderIcon,
     ElementType.downloadsIcon,
+    ElementType.flashlightIcon,
   }.contains(this);
   bool get isMusic => const {
     ElementType.musicBg,
@@ -282,6 +285,7 @@ extension ElementTypeX on ElementType {
         ElementType.radioIcon: r'\icon\radio',
         ElementType.recorderIcon: r'\icon\recorder',
         ElementType.downloadsIcon: r'\icon\downloads',
+        ElementType.flashlightIcon: r'\icon\flashlight',
         ElementType.musicBg: r'\music\bg',
         ElementType.musicNext: r'\music\next',
         ElementType.musicPrev: r'\music\prev',
@@ -297,6 +301,20 @@ extension ElementTypeX on ElementType {
 
 // ── Groups for UI panel ───────────────────────────────────────────────────────
 
+/// Exported theme icon name (e.g. `com.android.camera`) for a lockscreen image
+/// path such as `icon/camera`, or null if no icon element uses that path.
+String? exportedIconForLockscreenPath(String relativePath) {
+  final wanted = relativePath
+      .replaceAll(r'\', '/')
+      .replaceFirst(RegExp('^/'), '');
+  for (final type in ElementType.values) {
+    if (!type.isIcon) continue;
+    final path = type.defaultPath.replaceAll(r'\', '/').replaceFirst('/', '');
+    if (path == wanted) return type.defaultIconAsset;
+  }
+  return null;
+}
+
 const Map<String, List<ElementType>> kElementGroups = {
   'Clock': [
     ElementType.hourClock,
@@ -309,7 +327,7 @@ const Map<String, List<ElementType>> kElementGroups = {
   ],
   'Date': [ElementType.monthClock, ElementType.dateClock],
   'Analog Clock': [ElementType.analogClock],
-  'Shortcut Sets': [ElementType.shortcutSet],
+  'Custom Widgets': [ElementType.shortcutSet],
   'Weather': [
     ElementType.weatherIconClock,
     ElementType.weatherTemp,
@@ -399,6 +417,7 @@ const Map<String, List<ElementType>> kElementGroups = {
     ElementType.radioIcon,
     ElementType.recorderIcon,
     ElementType.downloadsIcon,
+    ElementType.flashlightIcon,
   ],
   'Other': [
     ElementType.swipeUpUnlock,

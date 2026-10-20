@@ -101,19 +101,9 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       }
 
       final homeScreenIcons = <ElementType, String>{
-        ElementType.cameraIcon: 'com.android.camera',
-        ElementType.themeIcon: 'com.android.thememanager',
-        ElementType.settingIcon: 'com.android.settings',
-        ElementType.galleryIcon: 'com.miui.gallery',
-        ElementType.musicIcon: 'com.miui.player',
-        ElementType.dialerIcon:
-            'com.android.contacts.activities.TwelveKeyDialer',
-        ElementType.mmsIcon: 'com.android.mms',
-        ElementType.contactIcon: 'com.android.contacts',
-        ElementType.whatsAppIcon: 'com.whatsapp',
-        ElementType.telegramIcon: 'org.telegram.messenger',
-        ElementType.instagramIcon: 'com.instagram.android',
-        ElementType.spotifyIcon: 'com.spotify.music',
+        for (final type in ElementType.values)
+          if (type.isIcon && type.defaultIconAsset != null)
+            type: type.defaultIconAsset!,
       };
       final homeIconsDir = PathConstants.iconsXxhdpi(tp);
       for (final entry in homeScreenIcons.entries) {
@@ -396,7 +386,13 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
       dimming: elements.bgAlpha,
       resolveImage: (relative) {
         final file = File(PathConstants.p('$lockscreenPath$relative.png'));
-        return file.existsSync() ? file : null;
+        if (file.existsSync()) return file;
+        final icon = exportedIconForLockscreenPath(relative);
+        if (icon == null) return null;
+        final exported = File(
+          PathConstants.p('${PathConstants.iconsXxhdpi(themePath)}$icon.png'),
+        );
+        return exported.existsSync() ? exported : null;
       },
     );
     return ScreenshotController().captureFromWidget(

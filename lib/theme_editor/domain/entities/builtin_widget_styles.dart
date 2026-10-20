@@ -2,6 +2,218 @@ import 'package:flutter/material.dart';
 import 'element_widget.dart';
 import 'widget_style.dart';
 
+class ClockSetPreset {
+  const ClockSetPreset({
+    required this.id,
+    required this.name,
+    required this.background,
+    required this.elements,
+  });
+
+  final String id;
+  final String name;
+
+  /// Picker card backdrop, so light and dark sets both read well.
+  final Color background;
+  final List<LockElement> elements;
+}
+
+const clockSetElementTypes = <ElementType>{
+  ElementType.hourClock,
+  ElementType.minClock,
+  ElementType.secClock,
+  ElementType.dotClock,
+  ElementType.dotClock2,
+  ElementType.amPmClock,
+  ElementType.weekClock,
+  ElementType.monthClock,
+  ElementType.dateClock,
+  ElementType.dateTimeText1,
+  ElementType.dateTimeText2,
+  ElementType.dateTimeText3,
+};
+
+// Clock digits always draw at 35px and are sized with `scale`; dx/dy are
+// offsets from the centre of the 276.92 x 600 canvas.
+const _sage = Color(0xFFB9CB92);
+const _teal = Color(0xFF7FD1C2);
+
+const builtinClockSets = <ClockSetPreset>[
+  ClockSetPreset(
+    id: 'clock-set-sage',
+    name: 'Soft sage',
+    background: Color(0xFFFBFCF4),
+    elements: [
+      LockElement(
+        type: ElementType.dateTimeText1,
+        dy: -206,
+        text: 'MM-dd   EEEE',
+        fontSize: 12,
+        fontWeight: FontWeight.w800,
+        color: Color(0xFFC4C4C4),
+      ),
+      LockElement(
+        type: ElementType.hourClock,
+        dx: -67,
+        dy: -150,
+        scale: 2.6,
+        font: 'gf:Nunito',
+        fontWeight: FontWeight.w900,
+        color: _sage,
+        colorSecondary: _sage,
+      ),
+      LockElement(
+        type: ElementType.dotClock,
+        dy: -153,
+        scale: 2.6,
+        font: 'gf:Nunito',
+        fontWeight: FontWeight.w900,
+        color: _sage,
+        colorSecondary: _sage,
+      ),
+      LockElement(
+        type: ElementType.minClock,
+        dx: 67,
+        dy: -150,
+        scale: 2.6,
+        font: 'gf:Nunito',
+        fontWeight: FontWeight.w900,
+        color: _sage,
+        colorSecondary: _sage,
+      ),
+    ],
+  ),
+  ClockSetPreset(
+    id: 'clock-set-outline',
+    name: 'Outline glass',
+    background: Color(0xFF0E1220),
+    elements: [
+      LockElement(
+        type: ElementType.dateTimeText1,
+        dy: -218,
+        text: 'MM/dd  EEEE',
+        fontSize: 10,
+        fontWeight: FontWeight.w500,
+        color: Colors.white,
+      ),
+      LockElement(
+        type: ElementType.hourClock,
+        dx: -62,
+        dy: -140,
+        scale: 3.6,
+        font: 'gf:Oswald',
+        fontWeight: FontWeight.w200,
+        color: Color(0x55FFFFFF),
+        colorSecondary: Color(0x10FFFFFF),
+        gradStartAlign: Alignment.topCenter,
+        gradEndAlign: Alignment.bottomCenter,
+        strokeWidth: .8,
+        strokeColor: Color(0xCCFFFFFF),
+      ),
+      LockElement(
+        type: ElementType.minClock,
+        dx: 62,
+        dy: -140,
+        scale: 3.6,
+        font: 'gf:Oswald',
+        fontWeight: FontWeight.w200,
+        color: Color(0x55FFFFFF),
+        colorSecondary: Color(0x10FFFFFF),
+        gradStartAlign: Alignment.topCenter,
+        gradEndAlign: Alignment.bottomCenter,
+        strokeWidth: .8,
+        strokeColor: Color(0xCCFFFFFF),
+      ),
+    ],
+  ),
+  ClockSetPreset(
+    id: 'clock-set-blossom',
+    name: 'Frosted stack',
+    background: Color(0xFF6F7F66),
+    elements: [
+      LockElement(
+        type: ElementType.hourClock,
+        dy: -170,
+        scale: 4.6,
+        font: 'gf:Oswald',
+        fontWeight: FontWeight.w300,
+        color: Color(0xF2FFFFFF),
+        colorSecondary: Color(0xCCF4DCE2),
+        gradStartAlign: Alignment.topCenter,
+        gradEndAlign: Alignment.bottomCenter,
+        strokeWidth: .4,
+        strokeColor: Color(0x66FFFFFF),
+      ),
+      LockElement(
+        type: ElementType.minClock,
+        dy: -30,
+        scale: 4.6,
+        font: 'gf:Oswald',
+        fontWeight: FontWeight.w300,
+        color: Color(0xF2FFFFFF),
+        colorSecondary: Color(0xCCF4DCE2),
+        gradStartAlign: Alignment.topCenter,
+        gradEndAlign: Alignment.bottomCenter,
+        strokeWidth: .4,
+        strokeColor: Color(0x66FFFFFF),
+      ),
+      LockElement(
+        type: ElementType.dateTimeText1,
+        dy: 62,
+        text: 'EEEE · MMM d',
+        fontSize: 9,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+      ),
+    ],
+  ),
+  ClockSetPreset(
+    id: 'clock-set-neon-teal',
+    name: 'Neon teal',
+    background: Color(0xFF07131A),
+    elements: [
+      LockElement(
+        type: ElementType.hourClock,
+        dx: -60,
+        dy: -165,
+        scale: 3.8,
+        font: 'gf:Bebas Neue',
+        useSeparateColors: true,
+        colorDigit1: Colors.white,
+        colorDigit2: _teal,
+      ),
+      LockElement(
+        type: ElementType.minClock,
+        dx: -60,
+        dy: -65,
+        scale: 3.8,
+        font: 'gf:Bebas Neue',
+        useSeparateColors: true,
+        colorDigit1: _teal,
+        colorDigit2: Colors.white,
+      ),
+      LockElement(
+        type: ElementType.dateTimeText1,
+        dx: -60,
+        dy: 2,
+        text: 'yyyy.MM.dd',
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        color: Colors.white,
+      ),
+      LockElement(
+        type: ElementType.dateTimeText2,
+        dx: -60,
+        dy: 20,
+        text: 'EEEE',
+        fontSize: 10,
+        fontWeight: FontWeight.w700,
+        color: Colors.white,
+      ),
+    ],
+  ),
+];
+
 final builtinUnlockStyles = WidgetStyleSet(
   id: 'builtin-unlock',
   name: 'Unlock Essentials',

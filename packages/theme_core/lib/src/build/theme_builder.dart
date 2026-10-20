@@ -49,20 +49,11 @@ class BuildResult {
   final String workspacePath;
 }
 
-/// App icons that the lockscreen shortcuts reuse, by element type.
-const _homeScreenIcons = <ElementType, String>{
-  ElementType.cameraIcon: 'com.android.camera',
-  ElementType.themeIcon: 'com.android.thememanager',
-  ElementType.settingIcon: 'com.android.settings',
-  ElementType.galleryIcon: 'com.miui.gallery',
-  ElementType.musicIcon: 'com.miui.player',
-  ElementType.dialerIcon: 'com.android.contacts.activities.TwelveKeyDialer',
-  ElementType.mmsIcon: 'com.android.mms',
-  ElementType.contactIcon: 'com.android.contacts',
-  ElementType.whatsAppIcon: 'com.whatsapp',
-  ElementType.telegramIcon: 'org.telegram.messenger',
-  ElementType.instagramIcon: 'com.instagram.android',
-  ElementType.spotifyIcon: 'com.spotify.music',
+/// App and system icons that lockscreen icons and shortcuts reuse.
+final _homeScreenIcons = <ElementType, String>{
+  for (final type in ElementType.values)
+    if (type.isIcon && type.defaultIconAsset != null)
+      type: type.defaultIconAsset!,
 };
 
 /// Marks a workspace folder as builder-owned, so a rebuild may replace it.

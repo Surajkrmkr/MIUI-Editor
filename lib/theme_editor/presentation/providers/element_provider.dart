@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/element_widget.dart';
+import '../../domain/entities/builtin_widget_styles.dart';
 import '../../domain/entities/widget_style.dart';
 
 final animationReplayProvider = StateProvider<int>((ref) => 0);
@@ -453,6 +454,54 @@ class ElementNotifier extends Notifier<ElementState> {
     state = state.copyWith(
       elements: state.elements
           .map((item) => item.name == element.name ? replacement : item)
+          .toList(),
+      undoCount: _history.length,
+      redoCount: 0,
+    );
+  }
+
+  void applyClockSet(List<LockElement> clockElements) {
+    if (clockElements.isEmpty) return;
+    _record();
+    final elements = [
+      ...state.elements.where(
+        (element) => !clockSetElementTypes.contains(element.type),
+      ),
+      ...clockElements,
+    ];
+    state = state.copyWith(
+      elements: elements,
+      activeType: elements.last.type,
+      activeId: elements.last.name,
+      selectedIds: const {},
+      selectedTypes: const {},
+      undoCount: _history.length,
+      redoCount: 0,
+    );
+  }
+
+  void applyClockSetColors({
+    required Color color,
+    required Color colorSecondary,
+    required Color accent,
+    required Color borderColor,
+  }) {
+    _record();
+    state = state.copyWith(
+      elements: state.elements
+          .map(
+            (element) =>
+                clockSetElementTypes.contains(element.type) && !element.isLocked
+                ? element.copyWith(
+                    color: color,
+                    colorSecondary: colorSecondary,
+                    colorDigit1: color,
+                    colorDigit2: accent,
+                    unlockAccent: accent,
+                    borderColor: borderColor,
+                  )
+                : element,
+          )
           .toList(),
       undoCount: _history.length,
       redoCount: 0,

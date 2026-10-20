@@ -8,6 +8,7 @@ import '../../lockscreen/preset/inline_preset_panel.dart';
 import '../../font_picker/font_list_panel.dart';
 import '../../icon_editor/icon_editor_panel.dart';
 import '../../home/widgets/icon_export_card.dart';
+import '../../home/widgets/home_wallpaper_panel.dart';
 
 class SidebarContent extends ConsumerWidget {
   const SidebarContent({super.key});
@@ -30,15 +31,19 @@ class SidebarContent extends ConsumerWidget {
         color: colors.surface,
         border: Border(right: BorderSide(color: colors.border)),
       ),
-      child: _buildContent(workspaceState.page, colors),
+      child: Material(
+        color: Colors.transparent,
+        child: _buildContent(workspaceState.page, colors),
+      ),
     );
   }
 
   Widget _buildContent(WorkspacePage page, AppColorScheme colors) {
     switch (page) {
       case WorkspacePage.dashboard:
-      case WorkspacePage.home:
         return const SizedBox.shrink();
+      case WorkspacePage.home:
+        return const HomeWallpaperPanel();
       case WorkspacePage.svgEditor:
       case WorkspacePage.icons:
         return SingleChildScrollView(

@@ -11,6 +11,7 @@ import '../entities/user_profile.dart';
 ThemeSpec buildThemeSpec({
   required String themeName,
   required String wallpaperPath,
+  String? homeWallpaperPath,
   required String designer,
   required String authorTag,
   required String uiVersion,
@@ -39,7 +40,10 @@ ThemeSpec buildThemeSpec({
     workspace: week == null && folder == null
         ? null
         : WorkspaceSpec(week: week, folder: folder),
-    wallpaper: WallpaperSpec(home: wallpaperPath),
+    wallpaper: WallpaperSpec(
+      home: homeWallpaperPath ?? wallpaperPath,
+      lock: homeWallpaperPath == null ? null : wallpaperPath,
+    ),
     icons: IconsSpec.fromStyle(style, pack: profile.iconFolder),
     systemUi: SystemUiSpec(
       accent: style.accent,

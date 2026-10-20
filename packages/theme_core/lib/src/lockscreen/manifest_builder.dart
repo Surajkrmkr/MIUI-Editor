@@ -375,6 +375,16 @@ class ManifestBuilder {
   String? _dynamicXml(LockElementSpec el) {
     const ratio = 3.9;
     if (el.type == ElementType.shortcutSet) return _shortcutSetXml(el, ratio);
+    if (el.type == ElementType.flashlightIcon) {
+      return _flashlightXml(
+        el,
+        (el.width * el.scale).toStringAsFixed(2),
+        (el.height * el.scale).toStringAsFixed(2),
+        (el.dx * ratio).toStringAsFixed(2),
+        (el.dy * ratio).toStringAsFixed(2),
+        (360 - el.angle).toStringAsFixed(2),
+      );
+    }
     if (el.type.isAnalog) {
       final s = el.width * el.scale;
       final x = '#sw/2+${(el.dx * ratio).toStringAsFixed(2)}-${s / 2}';
@@ -701,6 +711,23 @@ class ManifestBuilder {
     return null;
   }
 
+  String _flashlightXml(
+    LockElementSpec el,
+    String w,
+    String h,
+    String dx,
+    String dy,
+    String ang,
+  ) =>
+      "<Group angle='$ang' x='#sw/2+$dx' y='#sh/2+$dy' align='center' alignV='center'>"
+      "<Image src='icon/flashlight.png' align='center' alignV='center' w='$w' h='$h'/>"
+      "<Button name='${el.name}_torch' align='center' alignV='center' w='$w' h='$h'>"
+      "<Triggers><Trigger action='up'>"
+      "<VariableCommand name='lightSwitch' expression='!(#lightSwitch)'/>"
+      "<IntentCommand action='miui.intent.action.TOGGLE_TORCH' broadcast='true'>"
+      "<Extra name='miui.intent.extra.IS_ENABLE' type='boolean' expression='ifelse(int(@__miui_version_code)=8,#lightSwitch,1)'/>"
+      "</IntentCommand></Trigger></Triggers></Button></Group>";
+
   /// Live digits and orbiting minute/second bubbles of the Orbit digital face.
   String _orbitDigitalXml(LockElementSpec el, double s, double ratio) {
     final cx = '#sw/2+${(el.dx * ratio).toStringAsFixed(2)}';
@@ -835,11 +862,21 @@ class ManifestBuilder {
       final t = l.tiles[i];
       final inset = shortcutTileExportInset(t);
       final app = apps[i];
+      final probeName = '${el.name}_${i}_app';
+      final probe = _appProbeXml(
+        probeName,
+        app.iconType,
+        package: app.iconType == null ? app.package : null,
+        activity: app.iconType == null ? app.activity : null,
+      );
+      final probeRef = probe == null ? null : probeName;
+      if (probe != null) buffer.write(probe);
       final action = switch (app.iconType) {
-        final type? => _appLaunchXml(type),
+        final type? => _appLaunchXml(type, probe: probeRef),
         null when app.package != null => _appLaunchXml(
           null,
           package: app.package,
+          probe: probeRef,
         ),
         null =>
           "<IntentCommand action='miui.intent.action.TOGGLE_TORCH' broadcast='true'>"
@@ -1041,15 +1078,41 @@ class ManifestBuilder {
       XmlAttribute(XmlName('w'), w),
       XmlAttribute(XmlName('h'), h),
     ]).toXmlString();
+    final probeName = '${el.name}_app';
+    final probe = _appProbeXml(probeName, el.type);
     return "<Group angle='$ang' x='#sw/2+$dx' y='#sh/2+$dy' align='center' alignV='center'>"
+        '${probe ?? ''}'
         "<Button align='center' alignV='center' w='$w' h='$h'>"
         "<Normal>$image</Normal>"
         "<Triggers><Trigger action='up'>"
-        '${_appLaunchXml(el.type)}'
+        '${_appLaunchXml(el.type, probe: probe == null ? null : probeName)}'
         "</Trigger></Triggers></Button></Group>";
   }
 
-  String _appLaunchXml(ElementType? type, {String? package}) {
+  static const _systemIntentIcons = {
+    ElementType.dialerIcon,
+    ElementType.mmsIcon,
+    ElementType.contactIcon,
+    ElementType.calendarIcon,
+    ElementType.settingIcon,
+  };
+
+  /// Invisible app icon; its `bmp_width` is 0 when the app isn't installed.
+  String? _appProbeXml(
+    String name,
+    ElementType? type, {
+    String? package,
+    String? activity,
+  }) {
+    if (_systemIntentIcons.contains(type)) return null;
+    final meta = _iconMeta[type];
+    final pkg = package ?? meta?[1];
+    final cls = activity ?? (meta != null && meta.length > 2 ? meta[2] : null);
+    if (pkg == null || cls == null) return null;
+    return "<Image name='$name' srcType='ApplicationIcon' srcExp=\"'$pkg,$cls'\" x='0' y='0' w='1' h='1' alpha='0'/>";
+  }
+
+  String _appLaunchXml(ElementType? type, {String? package, String? probe}) {
     final attributes = switch (type) {
       ElementType.dialerIcon => {'action': 'android.intent.action.DIAL'},
       ElementType.mmsIcon => {
@@ -1071,6 +1134,9 @@ class ManifestBuilder {
         'package': package ?? _iconMeta[type]![1],
       },
     };
+    final launchPackage = attributes['package'];
+    final installCheck = probe != null && launchPackage != null;
+    if (installCheck) attributes['condition'] = '#$probe.bmp_width';
     final command = XmlElement(
       XmlName('IntentCommand'),
       [
@@ -1085,7 +1151,10 @@ class ManifestBuilder {
         ]),
       ],
     );
-    return '${command.toXmlString()}<ExternCommand command="unlock" condition="not(#set_lock)"/>';
+    final market = installCheck
+        ? "<IntentCommand action='android.intent.action.VIEW' uri='market://details?id=$launchPackage&amp;ref=mithemelockscreen' condition='not(#$probe.bmp_width)'/>"
+        : '';
+    return '$market${command.toXmlString()}<ExternCommand command="unlock" condition="not(#set_lock)"/>';
   }
 
   static const Map<ElementType, List<String>> _iconMeta = {

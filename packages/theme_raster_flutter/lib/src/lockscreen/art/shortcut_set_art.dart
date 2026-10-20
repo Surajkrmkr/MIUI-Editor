@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'dart:math';
 import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:theme_core/theme_core.dart';
 import 'package:theme_core/lockscreen_layout.dart' as core;
 import 'package:theme_core/lockscreen_layout.dart' show ShortcutApp;
@@ -221,7 +223,12 @@ class ShortcutSetArt {
     );
   }
 
-  static Widget tile(LockElement el, int index, double k) {
+  static Widget tile(
+    LockElement el,
+    int index,
+    double k, {
+    File? Function(String relativePath)? resolveImage,
+  }) {
     final l = ShortcutSetLayout.of(el);
     final app = ShortcutApp.parse(el.shortcutApps)[index];
     final rect = l.tiles[index];
@@ -233,18 +240,34 @@ class ShortcutSetArt {
     final look = _look(el, app, index, s);
     final glyphSize =
         s * look.glyphScale * el.unlockIconScale.clamp(.2, 1) / .6;
-    Widget glyph = look.kind == null
+    final iconType = app == ShortcutApp.flashlight
+        ? ElementType.flashlightIcon
+        : app.iconType;
+    final iconAsset =
+        iconType?.defaultIconAsset ??
+        (app == ShortcutApp.facebook ? 'com.facebook.katana' : null);
+    final themedPng = iconType == null
+        ? null
+        : resolveImage?.call(
+            iconType.defaultPath.replaceAll(r'\', '/').replaceFirst('/', ''),
+          );
+    Widget glyph = themedPng != null && themedPng.existsSync()
+        ? Image.memory(
+            themedPng.readAsBytesSync(),
+            width: glyphSize,
+            height: glyphSize,
+            fit: BoxFit.contain,
+            gaplessPlayback: true,
+          )
+        : iconAsset == null
         ? Icon(app.icon, size: glyphSize, color: look.ink)
-        : CustomPaint(
-            size: Size.square(glyphSize),
-            painter: GlyphPainter(
-              look.kind!,
-              ink: look.ink,
-              gradient: look.inkGradient,
-              detail: look.detail,
-              gloss: look.glyphGloss,
-              colorful: look.colorful,
-            ),
+        : SvgPicture.asset(
+            AssetPaths.iconSvg(IconVariant.u1, iconAsset),
+            width: glyphSize,
+            height: glyphSize,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) =>
+                Icon(app.icon, size: glyphSize, color: look.ink),
           );
     if (look.glyphShadow && look.kind != null) {
       glyph = Stack(
@@ -1184,7 +1207,10 @@ class ShortcutSetArt {
       };
 
   /// PNG parts written to `shortcut/<name><suffix>.png` on export.
-  static Map<String, Widget> exportParts(LockElement el) {
+  static Map<String, Widget> exportParts(
+    LockElement el, {
+    File? Function(String relativePath)? resolveImage,
+  }) {
     const k = 1 / 3;
     final l = ShortcutSetLayout.of(el);
     return {
@@ -1196,7 +1222,7 @@ class ShortcutSetArt {
       for (var i = 0; i < l.tiles.length; i++)
         '_$i': Padding(
           padding: EdgeInsets.all(l.tiles[i].width * k * _shadowPad),
-          child: tile(el, i, k),
+          child: tile(el, i, k, resolveImage: resolveImage),
         ),
     };
   }
@@ -1209,8 +1235,13 @@ class ShortcutSetArt {
 
 /// Editor preview of a shortcut set.
 class ShortcutSetPreview extends StatelessWidget {
-  const ShortcutSetPreview({super.key, required this.element});
+  const ShortcutSetPreview({
+    super.key,
+    required this.element,
+    this.resolveImage,
+  });
   final LockElement element;
+  final File? Function(String relativePath)? resolveImage;
 
   @override
   Widget build(BuildContext context) {
@@ -1227,7 +1258,12 @@ class ShortcutSetPreview extends StatelessWidget {
             Positioned(
               left: l.tiles[i].left * k,
               top: l.tiles[i].top * k,
-              child: ShortcutSetArt.tile(element, i, k),
+              child: ShortcutSetArt.tile(
+                element,
+                i,
+                k,
+                resolveImage: resolveImage,
+              ),
             ),
         ],
       ),

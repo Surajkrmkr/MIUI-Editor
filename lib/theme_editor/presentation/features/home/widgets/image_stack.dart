@@ -8,8 +8,9 @@ import '../../icon_editor/widgets/icon_preview_on_phone.dart';
 import '../../lockscreen/widgets/element_widget_preview.dart';
 
 class ImageStack extends ConsumerStatefulWidget {
-  const ImageStack({super.key, required this.isLockscreen});
+  const ImageStack({super.key, required this.isLockscreen, this.isHomeScreen = false});
   final bool isLockscreen;
+  final bool isHomeScreen;
 
   @override
   ConsumerState<ImageStack> createState() => _ImageStackState();
@@ -20,13 +21,16 @@ class _ImageStackState extends ConsumerState<ImageStack> {
   Widget build(BuildContext context) {
     final wallState = ref.watch(wallpaperProvider);
     if (wallState.paths.isEmpty) return const SizedBox.shrink();
+    final backgroundPath = widget.isHomeScreen && wallState.homeWallpaperEnabled
+      ? wallState.homeWallpaperPath ?? wallState.currentPath!
+      : wallState.currentPath!;
 
     final screenContent = Container(
       height: AppConstants.screenHeight,
       width: AppConstants.screenWidth,
       decoration: BoxDecoration(
         image: DecorationImage(
-          image: FileImage(File(wallState.paths[wallState.index])),
+          image: FileImage(File(backgroundPath)),
           fit: BoxFit.cover,
         ),
       ),

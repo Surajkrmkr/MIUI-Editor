@@ -45,6 +45,22 @@ class LockscreenFrameRenderer {
 
       if (exportable.isEmpty) return null;
 
+      // Reuse the theme's exported app icons for icon widgets not yet copied.
+      for (final el in exportable.where(
+        (e) => e.type.isIcon && e.path.isEmpty,
+      )) {
+        final relative = el.type.defaultPath
+            .replaceAll(r'\', '/')
+            .replaceFirst('/', '');
+        final target = File(pth.normalize('$lsAdv$relative.png'));
+        final asset = el.type.defaultIconAsset;
+        if (target.existsSync() || asset == null) continue;
+        final source = File(pth.join(layout.iconsXxhdpi, '$asset.png'));
+        if (!source.existsSync()) continue;
+        await target.parent.create(recursive: true);
+        await source.copy(target.path);
+      }
+
       // Build the full flat list of (widget, destPath) pairs up front
       // so we know the exact total before starting.
       final frames = <_Frame>[];
@@ -296,7 +312,13 @@ class LockscreenFrameRenderer {
         }
         if (el.type == ElementType.shortcutSet) {
           return [
-            for (final part in ShortcutSetArt.exportParts(el).entries)
+            for (final part in ShortcutSetArt.exportParts(
+              el,
+              resolveImage: (relative) {
+                final file = File(pth.normalize('$lsAdv$relative.png'));
+                return file.existsSync() ? file : null;
+              },
+            ).entries)
               _Frame(
                 widget: Directionality(
                   textDirection: TextDirection.ltr,

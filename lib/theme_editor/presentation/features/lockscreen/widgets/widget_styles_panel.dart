@@ -2,6 +2,8 @@ import 'dart:math';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:theme_raster_flutter/theme_raster_flutter.dart'
+    show LockscreenCanvas;
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../../core/theme/app_radius.dart';
@@ -170,8 +172,118 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
     }
   }
 
+  Widget _clockSetPicker() {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Custom Widgets',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Clock Sets',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            color: scheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 10),
+        LayoutBuilder(
+          builder: (context, constraints) => GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: builtinClockSets.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: constraints.maxWidth >= 320 ? 2 : 1,
+              mainAxisExtent: 170,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+            ),
+            itemBuilder: (context, index) {
+              final preset = builtinClockSets[index];
+              final ys = preset.elements.map((e) => e.dy);
+              // Align so the 300px window is centred on the set's middle.
+              final cropY = ((ys.reduce(min) + ys.reduce(max)) / 2 / 150).clamp(
+                -1.0,
+                1.0,
+              );
+              return Material(
+                color: colors.surfaceOverlay,
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: widget.element.isLocked
+                      ? null
+                      : () => ref
+                            .read(elementProvider.notifier)
+                            .applyClockSet(preset.elements),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: colors.border),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: ColoredBox(
+                              color: preset.background,
+                              child: SizedBox.expand(
+                                child: FittedBox(
+                                  child: ClipRect(
+                                    child: Align(
+                                      alignment: Alignment(0, cropY),
+                                      heightFactor: .5,
+                                      child: IgnorePointer(
+                                        child: LockscreenCanvas(
+                                          elements: preset.elements,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          preset.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (clockSetElementTypes.contains(widget.element.type)) {
+      return _clockSetPicker();
+    }
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
     final library = ref.watch(widgetStyleSetsProvider);
@@ -214,7 +326,9 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
               horizontal: 10,
               vertical: 8,
             ),
-            labelText: 'Style Set',
+            labelText: widget.element.type == ElementType.shortcutSet
+                ? 'Custom Widgets'
+                : 'Style Set',
             labelStyle: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
             prefixIcon: Icon(
               Icons.style_outlined,
@@ -713,6 +827,29 @@ class _StylePreview extends StatelessWidget {
               child: const Center(child: Icon(Icons.calendar_month_rounded)),
             )
           : CalendarStylePreview(element: element);
+    }
+    if (element.type.isClock && element.type != ElementType.analogClock) {
+      final sample = switch (element.type) {
+        ElementType.hourClock => '02',
+        ElementType.minClock => '36',
+        ElementType.secClock => '08',
+        ElementType.dotClock || ElementType.dotClock2 => ':',
+        ElementType.weekClock => 'Thursday',
+        ElementType.monthClock => 'July',
+        ElementType.dateClock => '23',
+        ElementType.dateTimeText1 => '07-23 Thursday',
+        ElementType.dateTimeText2 => 'July 23',
+        ElementType.dateTimeText3 => 'Thursday',
+        _ => '12',
+      };
+      return Text(
+        sample,
+        style: TextStyle(
+          color: element.color,
+          fontSize: 48,
+          fontWeight: element.fontWeight,
+        ),
+      );
     }
     final angle = element.angle * pi / 180;
     final width = element.width / AppConstants.screenRatio;

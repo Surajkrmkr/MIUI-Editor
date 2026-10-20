@@ -89,6 +89,19 @@ class WidgetStyle {
       type == ElementType.slideToUnlock ||
       type == ElementType.dragToUnlock ||
       type == ElementType.analogClock ||
+      const {
+        ElementType.hourClock,
+        ElementType.minClock,
+        ElementType.secClock,
+        ElementType.dotClock,
+        ElementType.dotClock2,
+        ElementType.weekClock,
+        ElementType.monthClock,
+        ElementType.dateClock,
+        ElementType.dateTimeText1,
+        ElementType.dateTimeText2,
+        ElementType.dateTimeText3,
+      }.contains(type) ||
       type == ElementType.shortcutSet ||
       type == ElementType.calendarGrid;
 

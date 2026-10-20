@@ -85,9 +85,15 @@ Future<Failure?> applyThemeSpec(
       'The spec has no workspace week; give one to open it.',
     );
   }
-  final wallpaper = p.normalize(p.absolute(baseDir, spec.wallpaper.home));
+  final wallpaper = p.normalize(
+    p.absolute(baseDir, spec.wallpaper.lockOrHome),
+  );
+  final homeWallpaper = p.normalize(p.absolute(baseDir, spec.wallpaper.home));
   if (!File(wallpaper).existsSync()) {
     return ValidationFailure('Wallpaper not found: $wallpaper');
+  }
+  if (!File(homeWallpaper).existsSync()) {
+    return ValidationFailure('Wallpaper not found: $homeWallpaper');
   }
 
   // Opening the theme extracts a palette that recolors the icons, so the
@@ -103,6 +109,9 @@ Future<Failure?> applyThemeSpec(
         authorTag: spec.meta.authorTag,
         uiVersion: '${spec.meta.uiVersion}',
       );
+  if (spec.wallpaper.lock != null && homeWallpaper != wallpaper) {
+    ref.read(wallpaperProvider.notifier).setHomeWallpaper(homeWallpaper);
+  }
   applyDesign(ref, spec);
   return null;
 }

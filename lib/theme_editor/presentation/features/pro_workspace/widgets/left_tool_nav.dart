@@ -27,8 +27,9 @@ class LeftToolNav extends ConsumerWidget {
     // Index of the active main nav item (-1 = none / settings).
     final activeIndex = switch (page) {
       WorkspacePage.svgEditor || WorkspacePage.icons => 0,
-      WorkspacePage.lockscreen => 1,
-      WorkspacePage.lockscreenPresets => 2,
+      WorkspacePage.home => 1,
+      WorkspacePage.lockscreen => 2,
+      WorkspacePage.lockscreenPresets => 3,
       _ => -1,
     };
 
@@ -53,17 +54,24 @@ class LeftToolNav extends ConsumerWidget {
                   onTap: () => n.setPage(WorkspacePage.svgEditor),
                 ),
                 _NavIcon(
+                  icon: Icons.phone_android_outlined,
+                  activeIcon: Icons.phone_android_rounded,
+                  label: 'Homescreen',
+                  isActive: activeIndex == 1,
+                  onTap: () => n.setPage(WorkspacePage.home),
+                ),
+                _NavIcon(
                   icon: Icons.lock_outline_rounded,
                   activeIcon: Icons.lock_rounded,
                   label: 'Lockscreen',
-                  isActive: activeIndex == 1,
+                  isActive: activeIndex == 2,
                   onTap: () => n.setPage(WorkspacePage.lockscreen),
                 ),
                 _NavIcon(
                   icon: Icons.style_outlined,
                   activeIcon: Icons.style_rounded,
                   label: 'Presets',
-                  isActive: activeIndex == 2,
+                  isActive: activeIndex == 3,
                   onTap: () => n.setPage(
                     page == WorkspacePage.lockscreenPresets
                         ? WorkspacePage.lockscreen

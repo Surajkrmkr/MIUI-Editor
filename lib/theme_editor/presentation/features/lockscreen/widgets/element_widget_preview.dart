@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:theme_raster_flutter/theme_raster_flutter.dart'
     show LockElementFrame, LockElementView;
+import 'package:theme_core/theme_core.dart' show exportedIconForLockscreenPath;
 import '../../../../core/extensions/maml_ease_ext.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/path_constants.dart';
@@ -446,6 +447,13 @@ class _DraggableElementState extends ConsumerState<_DraggableElement>
     if (themeName.isEmpty) return null;
     final tp = PathConstants.themePath(wallState.weekNum ?? '1', themeName);
     final lsAdv = PathConstants.lockscreenAdvance(tp);
-    return File(PathConstants.p('$lsAdv$relativePath.png'));
+    final file = File(PathConstants.p('$lsAdv$relativePath.png'));
+    if (file.existsSync()) return file;
+    final icon = exportedIconForLockscreenPath(relativePath);
+    if (icon == null) return file;
+    final exported = File(
+      PathConstants.p('${PathConstants.iconsXxhdpi(tp)}$icon.png'),
+    );
+    return exported.existsSync() ? exported : file;
   }
 }

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/core/theme/app_radius.dart';
 import '../../../../../core/theme/theme_extensions.dart';
+import '../../../../domain/entities/builtin_widget_styles.dart';
 import '../../../../domain/entities/element_widget.dart';
 import '../../../providers/element_provider.dart';
 import '../../../common/widgets/drop_zone.dart';
@@ -324,10 +325,7 @@ class ElementInfoPanel extends ConsumerWidget {
                         ),
                       ],
                     ],
-                    if (isUnlock ||
-                        el.type == ElementType.analogClock ||
-                        el.type == ElementType.shortcutSet ||
-                        el.type == ElementType.calendarGrid) ...[
+                    if (WidgetStyle.supports(el.type)) ...[
                       const SizedBox(height: 10),
                       SizedBox(
                         width: double.infinity,
@@ -1556,17 +1554,25 @@ class ElementInfoPanel extends ConsumerWidget {
     }
     final palette = await ExportSystemModulesUseCase.wallpaperPalette(path);
     if (!context.mounted) return;
-    ref
-        .read(elementProvider.notifier)
-        .update(
-          element.type,
-          (current) => current.copyWith(
-            color: palette.light,
-            colorSecondary: palette.dark,
-            unlockAccent: palette.primary,
-            borderColor: palette.secondary,
-          ),
-        );
+    final notifier = ref.read(elementProvider.notifier);
+    if (clockSetElementTypes.contains(element.type)) {
+      notifier.applyClockSetColors(
+        color: palette.light,
+        colorSecondary: palette.dark,
+        accent: palette.primary,
+        borderColor: palette.secondary,
+      );
+    } else {
+      notifier.update(
+        element.type,
+        (current) => current.copyWith(
+          color: palette.light,
+          colorSecondary: palette.dark,
+          unlockAccent: palette.primary,
+          borderColor: palette.secondary,
+        ),
+      );
+    }
   }
 
   Future<void> _importUnlockPng(

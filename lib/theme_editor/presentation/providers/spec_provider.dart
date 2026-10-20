@@ -32,6 +32,7 @@ final themeSpecProvider = Provider<ThemeSpec?>((ref) {
   return buildThemeSpec(
     themeName: name,
     wallpaperPath: wallpaper,
+    homeWallpaperPath: ws.homeWallpaperEnabled ? ws.homeWallpaperPath : null,
     designer: ws.designerName.isNotEmpty
         ? ws.designerName
         : profile.displayName,
@@ -109,6 +110,7 @@ final themeSpecAutoSaveProvider = Provider.autoDispose<void>((ref) {
   ref.listen<Object?>(iconEditorProvider, changed);
   ref.listen<Object?>(userProfileProvider, changed);
   ref.listen<Object?>(iconStyleOverrideProvider, changed);
+  ref.listen<Object?>(wallpaperProvider, changed);
 });
 
 /// Writes the current spec next to the theme's other files and returns its

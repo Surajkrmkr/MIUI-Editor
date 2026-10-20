@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/theme_editor/presentation/providers/export_provider.dart';
 import 'package:miui_icon_generator/theme_editor/presentation/providers/lockscreen_provider.dart';
 import 'package:palette_generator/palette_generator.dart';
+import 'package:path/path.dart' as p;
 import '../../core/constants/path_constants.dart';
 import '../../data/models/theme_settings_model.dart';
 import 'service_providers.dart';
@@ -25,6 +26,8 @@ class WallpaperState {
     this.authorTag = '',
     this.uiVersion = '',
     this.namedTheme,
+    this.homeWallpaperEnabled = false,
+    this.homeWallpaperPath,
   });
 
   final String folderNum;
@@ -42,6 +45,8 @@ class WallpaperState {
   /// A name for the wallpaper at `path` that replaces its file name, e.g. a
   /// spec's title; ignored once another wallpaper is selected.
   final ({String path, String name})? namedTheme;
+  final bool homeWallpaperEnabled;
+  final String? homeWallpaperPath;
 
   WallpaperState copyWith({
     String? folderNum,
@@ -56,6 +61,9 @@ class WallpaperState {
     String? authorTag,
     String? uiVersion,
     ({String path, String name})? namedTheme,
+    bool? homeWallpaperEnabled,
+    String? homeWallpaperPath,
+    bool clearHomeWallpaper = false,
   }) => WallpaperState(
     folderNum: folderNum ?? this.folderNum,
     weekNum: weekNum ?? this.weekNum,
@@ -69,6 +77,10 @@ class WallpaperState {
     authorTag: authorTag ?? this.authorTag,
     uiVersion: uiVersion ?? this.uiVersion,
     namedTheme: namedTheme ?? this.namedTheme,
+    homeWallpaperEnabled: homeWallpaperEnabled ?? this.homeWallpaperEnabled,
+    homeWallpaperPath: clearHomeWallpaper
+      ? null
+      : homeWallpaperPath ?? this.homeWallpaperPath,
   );
 
   String? get currentPath => paths.isNotEmpty ? paths[index] : null;
@@ -113,6 +125,24 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
     );
   }
 
+  void setHomeWallpaperEnabled(bool enabled) {
+    state = state.copyWith(homeWallpaperEnabled: enabled);
+  }
+
+  void setHomeWallpaper(String path) {
+    state = state.copyWith(
+      homeWallpaperEnabled: true,
+      homeWallpaperPath: path,
+    );
+  }
+
+  void clearHomeWallpaper() {
+    state = state.copyWith(
+      homeWallpaperEnabled: false,
+      clearHomeWallpaper: true,
+    );
+  }
+
   // ── Load a folder (called once from HomeScreen init) ──────────────────────
 
   Future<void> loadFolder(String folderNum, String weekNum) async {
@@ -120,6 +150,8 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
       isLoading: true,
       folderNum: folderNum,
       weekNum: weekNum,
+      homeWallpaperEnabled: false,
+      clearHomeWallpaper: true,
     );
 
     final dir = Directory(
@@ -168,6 +200,8 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
       paths: [wallpaperPath],
       index: 0,
       namedTheme: (path: wallpaperPath, name: themeName),
+      homeWallpaperEnabled: false,
+      clearHomeWallpaper: true,
       designerName: designerName.isEmpty ? null : designerName,
       authorTag: authorTag.isEmpty ? null : authorTag,
       uiVersion: uiVersion.isEmpty ? null : uiVersion,
@@ -180,7 +214,11 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
   Future<void> setIndex(int i) async {
     if (i < 0 || i >= state.paths.length) return;
     if (state.weekNum != null) _setActivating(true);
-    state = state.copyWith(index: i);
+    state = state.copyWith(
+      index: i,
+      homeWallpaperEnabled: false,
+      clearHomeWallpaper: true,
+    );
 
     if (state.weekNum != null) {
       await _onThemeActivated(state.weekNum!, state.paths[i]);
@@ -215,6 +253,19 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
       if (restoreSaved) {
         final saved = await readSavedDesign(weekNum, themeName);
         if (saved != null && activation == _activation) {
+          if (saved.wallpaper.lock != null) {
+            final homePath = p.isAbsolute(saved.wallpaper.home)
+                ? p.normalize(saved.wallpaper.home)
+                : p.normalize(
+                    p.join(
+                      PathConstants.themePath(weekNum, themeName),
+                      saved.wallpaper.home,
+                    ),
+                  );
+            if (File(homePath).existsSync() && homePath != wallPath) {
+              setHomeWallpaper(homePath);
+            }
+          }
           applyDesign(ref, saved);
         }
       }

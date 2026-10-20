@@ -9,7 +9,7 @@ enum WorkspacePage {
   lockscreenPresets, // Preset browser while staying on the lockscreen canvas
   icons, // Retaining for compatibility with existing logic
   export,
-  home, // Alias for dashboard or retained for compatibility
+  home,
 }
 
 enum UiMode {

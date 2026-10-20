@@ -124,117 +124,170 @@ class ElementListPanel extends ConsumerWidget {
                   ),
                   collapsedBackgroundColor: colors.surfaceOverlay,
                   backgroundColor: colors.surfaceOverlay,
-                  children: entry.value.map((type) {
-                    final added = state.contains(type);
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      child: Material(
-                        color: added ? colors.primary : Colors.transparent,
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
-                        clipBehavior: Clip.antiAlias,
-                        child: ListTile(
-                          dense: true,
-                          selected: added,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppRadius.sm),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                          ),
-                          leading: Icon(
-                            type.isShape
-                                ? Icons.add_rounded
-                                : added
-                                ? Icons.check_circle_rounded
-                                : Icons.radio_button_unchecked_rounded,
-                            size: 16,
-                            color: added
-                                ? colors.onPrimary
-                                : scheme.onSurfaceVariant,
-                          ),
-                          title: Text(
-                            type.label,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: added
-                                  ? FontWeight.w700
-                                  : FontWeight.normal,
+                  children: [
+                    if (entry.key == 'Custom Widgets')
+                      _ClockSetsTile(state: state, notifier: notifier),
+                    ...entry.value.map((type) {
+                      final added = state.contains(type);
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        child: Material(
+                          color: added ? colors.primary : Colors.transparent,
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
+                          clipBehavior: Clip.antiAlias,
+                          child: ListTile(
+                            dense: true,
+                            selected: added,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(AppRadius.sm),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                            ),
+                            leading: Icon(
+                              type.isShape
+                                  ? Icons.add_rounded
+                                  : added
+                                  ? Icons.check_circle_rounded
+                                  : Icons.radio_button_unchecked_rounded,
+                              size: 16,
                               color: added
                                   ? colors.onPrimary
-                                  : scheme.onSurface,
+                                  : scheme.onSurfaceVariant,
                             ),
+                            title: Text(
+                              type == ElementType.shortcutSet
+                                  ? 'Shortcut Sets'
+                                  : type.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: added
+                                    ? FontWeight.w700
+                                    : FontWeight.normal,
+                                color: added
+                                    ? colors.onPrimary
+                                    : scheme.onSurface,
+                              ),
+                            ),
+                            onTap: () {
+                              if (!added && type == ElementType.shortcutSet) {
+                                notifier.add(
+                                  builtinShortcutStyles.styles.first.applyTo(
+                                    const LockElement(
+                                      type: ElementType.shortcutSet,
+                                    ),
+                                  ),
+                                );
+                              } else if (!added &&
+                                  type == ElementType.analogClock) {
+                                notifier.add(
+                                  builtinAnalogStyles.styles.first.applyTo(
+                                    const LockElement(
+                                      type: ElementType.analogClock,
+                                    ),
+                                  ),
+                                );
+                              } else if (!added || type.isShape) {
+                                notifier.add(
+                                  LockElement(
+                                    type: type,
+                                    sweepAngle: type == ElementType.arcShape
+                                        ? 360
+                                        : 270,
+                                    width: type == ElementType.calendarGrid
+                                        ? 560
+                                        : type == ElementType.slideToUnlock ||
+                                              type == ElementType.dragToUnlock
+                                        ? 640
+                                        : 200,
+                                    height: type == ElementType.calendarGrid
+                                        ? 640
+                                        : type == ElementType.slideToUnlock ||
+                                              type == ElementType.dragToUnlock
+                                        ? 128
+                                        : 200,
+                                    fontSize: type == ElementType.calendarGrid
+                                        ? 8
+                                        : 20,
+                                    unlockBackgroundOpacity:
+                                        type == ElementType.dragToUnlock
+                                        ? 0
+                                        : 48 / 255,
+                                    colorSecondary:
+                                        type == ElementType.notification
+                                        ? colors.primary.withAlpha(60)
+                                        : type == ElementType.calendarGrid
+                                        ? colors.primary
+                                        : Colors.white,
+                                  ),
+                                );
+                              } else {
+                                notifier.remove(type);
+                              }
+                            },
                           ),
-                          onTap: () {
-                            if (!added && type == ElementType.shortcutSet) {
-                              notifier.add(
-                                builtinShortcutStyles.styles.first.applyTo(
-                                  const LockElement(
-                                    type: ElementType.shortcutSet,
-                                  ),
-                                ),
-                              );
-                            } else if (!added &&
-                                type == ElementType.analogClock) {
-                              notifier.add(
-                                builtinAnalogStyles.styles.first.applyTo(
-                                  const LockElement(
-                                    type: ElementType.analogClock,
-                                  ),
-                                ),
-                              );
-                            } else if (!added || type.isShape) {
-                              notifier.add(
-                                LockElement(
-                                  type: type,
-                                  sweepAngle: type == ElementType.arcShape
-                                      ? 360
-                                      : 270,
-                                  width: type == ElementType.calendarGrid
-                                      ? 560
-                                      : type == ElementType.slideToUnlock ||
-                                            type == ElementType.dragToUnlock
-                                      ? 640
-                                      : 200,
-                                  height: type == ElementType.calendarGrid
-                                      ? 640
-                                      : type == ElementType.slideToUnlock ||
-                                            type == ElementType.dragToUnlock
-                                      ? 128
-                                      : 200,
-                                  fontSize: type == ElementType.calendarGrid
-                                      ? 8
-                                      : 20,
-                                  unlockBackgroundOpacity:
-                                      type == ElementType.dragToUnlock
-                                      ? 0
-                                      : 48 / 255,
-                                  colorSecondary:
-                                      type == ElementType.notification
-                                      ? colors.primary.withAlpha(60)
-                                      : type == ElementType.calendarGrid
-                                      ? colors.primary
-                                      : Colors.white,
-                                ),
-                              );
-                            } else {
-                              notifier.remove(type);
-                            }
-                          },
                         ),
-                      ),
-                    );
-                  }).toList(),
+                      );
+                    }),
+                  ],
                 ),
               ),
             );
           }).toList(),
         ),
       ],
+    );
+  }
+}
+
+class _ClockSetsTile extends StatelessWidget {
+  const _ClockSetsTile({required this.state, required this.notifier});
+  final ElementState state;
+  final ElementNotifier notifier;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+    final first = state.elements
+        .where((element) => clockSetElementTypes.contains(element.type))
+        .firstOrNull;
+    final added = first != null;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      child: Material(
+        color: added ? colors.primary : Colors.transparent,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          dense: true,
+          selected: added,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+          leading: Icon(
+            added
+                ? Icons.check_circle_rounded
+                : Icons.radio_button_unchecked_rounded,
+            size: 16,
+            color: added ? colors.onPrimary : scheme.onSurfaceVariant,
+          ),
+          title: Text(
+            'Clock Sets',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: added ? FontWeight.w700 : FontWeight.normal,
+              color: added ? colors.onPrimary : scheme.onSurface,
+            ),
+          ),
+          onTap: () => added
+              ? notifier.setActive(first.type, id: first.name)
+              : notifier.applyClockSet(builtinClockSets.first.elements),
+        ),
+      ),
     );
   }
 }

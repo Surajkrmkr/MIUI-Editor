@@ -84,11 +84,13 @@ void main() {
     List<LockElement>? elements,
     String themeName = 'Neon',
     String? wallpaperPath,
+    String? homeWallpaperPath,
   }) {
     final themeLayout = layout(themeName);
     return buildThemeSpec(
       themeName: themeName,
       wallpaperPath: wallpaperPath ?? wallpaper,
+      homeWallpaperPath: homeWallpaperPath,
       designer: 'Designer',
       authorTag: 'Dg',
       uiVersion: '17',
@@ -129,6 +131,30 @@ void main() {
       expect(ws.currentPath, wallpaper);
       expect((ws.weekNum, ws.folderNum), (week, folder));
       expect(Directory(layout().root).existsSync(), isTrue);
+    });
+  });
+
+  testWidgets('opening a custom home wallpaper keeps lockscreen wallpaper active', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      final homeWallpaper = p.join(tmp.path, 'walls', 'home.png');
+      File(homeWallpaper)
+        ..createSync(recursive: true)
+        ..writeAsBytesSync(File(wallpaper).readAsBytesSync());
+
+      final spec = editorSpec(homeWallpaperPath: homeWallpaper);
+      final failure = await open(spec);
+
+      expect(failure, isNull, reason: failure?.message);
+      final state = container.read(wallpaperProvider);
+      expect(state.currentPath, wallpaper);
+      expect(state.homeWallpaperEnabled, isTrue);
+      expect(state.homeWallpaperPath, homeWallpaper);
+      expect(container.read(themeSpecProvider)!.wallpaper.toJson(), {
+        'home': homeWallpaper,
+        'lock': wallpaper,
+      });
     });
   });
 

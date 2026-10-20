@@ -53,6 +53,7 @@ class _ProCanvasState extends ConsumerState<ProCanvas> {
                 child: ImageStack(
                   isLockscreen: page == WorkspacePage.lockscreen ||
                       page == WorkspacePage.lockscreenPresets,
+                  isHomeScreen: page == WorkspacePage.home,
                 ),
               ),
             ),
