@@ -188,19 +188,15 @@ void main() {
           }),
         );
       final presets = p.join(tmp.path, 'Preset');
-      final r = await BatchRunner(ScriptedSidecar()).run(
-        [s],
-        BatchOptions(outDir: out, contrast: false, presetsDir: presets),
-      );
+      final r = await BatchRunner(ScriptedSidecar()).run([
+        s,
+      ], BatchOptions(outDir: out, contrast: false, presetsDir: presets));
       expect(r.entries.single.status, BatchStatus.built);
       expect(built.existsSync(), isFalse);
       final saved = jsonDecode(
         File(p.join(presets, 'kept', 'preset.json')).readAsStringSync(),
       );
-      expect(
-        saved['wallpaper']['home'],
-        p.join(p.dirname(s), 'wall.png'),
-      );
+      expect(saved['wallpaper']['home'], p.join(p.dirname(s), 'wall.png'));
     });
 
     test('a spec given twice is built once', () async {

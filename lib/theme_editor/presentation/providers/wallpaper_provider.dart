@@ -56,21 +56,20 @@ class WallpaperState {
     String? authorTag,
     String? uiVersion,
     ({String path, String name})? namedTheme,
-  }) =>
-      WallpaperState(
-        folderNum: folderNum ?? this.folderNum,
-        weekNum: weekNum ?? this.weekNum,
-        paths: paths ?? this.paths,
-        index: index ?? this.index,
-        colorPalette: colorPalette ?? this.colorPalette,
-        accentColor: accentColor ?? this.accentColor,
-        themeCount: themeCount ?? this.themeCount,
-        isLoading: isLoading ?? this.isLoading,
-        designerName: designerName ?? this.designerName,
-        authorTag: authorTag ?? this.authorTag,
-        uiVersion: uiVersion ?? this.uiVersion,
-        namedTheme: namedTheme ?? this.namedTheme,
-      );
+  }) => WallpaperState(
+    folderNum: folderNum ?? this.folderNum,
+    weekNum: weekNum ?? this.weekNum,
+    paths: paths ?? this.paths,
+    index: index ?? this.index,
+    colorPalette: colorPalette ?? this.colorPalette,
+    accentColor: accentColor ?? this.accentColor,
+    themeCount: themeCount ?? this.themeCount,
+    isLoading: isLoading ?? this.isLoading,
+    designerName: designerName ?? this.designerName,
+    authorTag: authorTag ?? this.authorTag,
+    uiVersion: uiVersion ?? this.uiVersion,
+    namedTheme: namedTheme ?? this.namedTheme,
+  );
 
   String? get currentPath => paths.isNotEmpty ? paths[index] : null;
 
@@ -117,11 +116,15 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
   // ── Load a folder (called once from HomeScreen init) ──────────────────────
 
   Future<void> loadFolder(String folderNum, String weekNum) async {
-    state =
-        state.copyWith(isLoading: true, folderNum: folderNum, weekNum: weekNum);
+    state = state.copyWith(
+      isLoading: true,
+      folderNum: folderNum,
+      weekNum: weekNum,
+    );
 
-    final dir =
-        Directory(PathConstants.p('${PathConstants.wallBasePath}$folderNum'));
+    final dir = Directory(
+      PathConstants.p('${PathConstants.wallBasePath}$folderNum'),
+    );
 
     if (!await dir.exists()) {
       state = state.copyWith(isLoading: false, paths: []);
@@ -244,8 +247,9 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
       final icon = ref.read(iconEditorProvider.notifier);
       if (ref.read(iconEditorProvider).randomColors) {
         final dark = colors
-            .where((c) =>
-                ThemeData.estimateBrightnessForColor(c) == Brightness.dark)
+            .where(
+              (c) => ThemeData.estimateBrightnessForColor(c) == Brightness.dark,
+            )
             .toList();
         if (dark.isNotEmpty) icon.setBgColors(dark);
       } else {
@@ -263,7 +267,10 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
   void updateThemeCount(int count) {
     final prefs = ref.read(sharedPrefsProvider);
     final current = _currentSettings();
-    prefs.setString('themeSettings', current.copyWith(themeCount: count).encode());
+    prefs.setString(
+      'themeSettings',
+      current.copyWith(themeCount: count).encode(),
+    );
     state = state.copyWith(themeCount: count);
   }
 
@@ -302,8 +309,9 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
   }
 }
 
-final wallpaperProvider =
-    NotifierProvider<WallpaperNotifier, WallpaperState>(WallpaperNotifier.new);
+final wallpaperProvider = NotifierProvider<WallpaperNotifier, WallpaperState>(
+  WallpaperNotifier.new,
+);
 
 /// True while a theme is being opened, for a loading overlay.
 final themeOpeningProvider = StateProvider<bool>((_) => false);
