@@ -3,17 +3,24 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 
 import '../../core/errors/failures.dart';
+import '../../core/network/trusted_roots.dart';
 import '../../domain/entities/update_info.dart';
 import '../../domain/repositories/update_repository.dart';
 import '../datasources/remote/github_release_datasource.dart';
 
 class UpdateRepositoryImpl implements UpdateRepository {
   UpdateRepositoryImpl(this._source, {Dio? dio, Directory? stagingDir})
-    : _dio = dio ?? Dio(),
+    : _dio =
+          dio ??
+          (Dio()
+            ..httpClientAdapter = IOHttpClientAdapter(
+              createHttpClient: TrustedRoots.newHttpClient,
+            )),
       _stagingDir =
           stagingDir ??
           Directory(p.join(Directory.systemTemp.path, stagingName));
@@ -23,6 +30,9 @@ class UpdateRepositoryImpl implements UpdateRepository {
     r'^Miui-Editor-[A-Za-z0-9._-]+-(macos|windows)\.zip$',
   );
   static final _sha256 = RegExp(r'^[0-9a-fA-F]{64}$');
+  static const _tlsMessage =
+      'Secure connection to GitHub failed. Check antivirus/proxy HTTPS '
+      'scanning or update Windows root certificates.';
 
   final GitHubReleaseDatasource _source;
   final Dio _dio;
@@ -82,6 +92,8 @@ class UpdateRepositoryImpl implements UpdateRepository {
       return (null, const NetworkFailure('Update check timed out'));
     } on SocketException catch (e) {
       return (null, NetworkFailure('Update check failed: ${e.message}'));
+    } on TlsException {
+      return (null, const NetworkFailure(_tlsMessage));
     } catch (e) {
       return (null, NetworkFailure('Update check failed: $e'));
     }
@@ -125,6 +137,9 @@ class UpdateRepositoryImpl implements UpdateRepository {
       }
       return (zipPath, null);
     } on DioException catch (e) {
+      if (e.error is TlsException) {
+        return (null, const NetworkFailure(_tlsMessage));
+      }
       return (null, NetworkFailure('Download failed: ${e.message}'));
     } on FileSystemException catch (e) {
       return (null, FileFailure('Could not save update: ${e.message}'));

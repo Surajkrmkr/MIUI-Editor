@@ -156,6 +156,7 @@ flutter:
     - assets/modules/hyperos3/com.android.mms/
     - assets/modules/hyperos3/com.android.settings/
     - assets/tags/
+    - assets/certs/
     - assets/lockscreen/weatherIcon/
     - assets/users/
     - assets/images/

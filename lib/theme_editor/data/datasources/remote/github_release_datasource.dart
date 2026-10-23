@@ -1,8 +1,10 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/network/trusted_roots.dart';
 import '../../../core/errors/app_exception.dart';
 
 class GitHubReleaseDatasource {
@@ -10,7 +12,7 @@ class GitHubReleaseDatasource {
     http.Client? client,
     this.owner = AppConstants.updateRepoOwner,
     this.repo = AppConstants.updateRepoName,
-  }) : _client = client ?? http.Client();
+  }) : _client = client ?? IOClient(TrustedRoots.newHttpClient());
 
   static const _timeout = Duration(seconds: 15);
   static const _maxChecksumBytes = 1024;
