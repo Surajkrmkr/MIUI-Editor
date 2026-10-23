@@ -396,8 +396,7 @@ class ElementNotifier extends Notifier<ElementState> {
     for (final t in state.selectedTypes) {
       els = els
           .map(
-            (e) =>
-                e.type == t && state.isSelected(e) ? _withPrimary(e, c) : e,
+            (e) => e.type == t && state.isSelected(e) ? _withPrimary(e, c) : e,
           )
           .toList();
     }

@@ -36,18 +36,17 @@ class DirectoryState {
     bool? isCreatingDirs,
     String? status,
     String? selectedFolder,
-  }) =>
-      DirectoryState(
-        preLockFolders: preLockFolders ?? this.preLockFolders,
-        previewWallPaths: previewWallPaths ?? this.previewWallPaths,
-        presetPaths: presetPaths ?? this.presetPaths,
-        isLoadingFolders: isLoadingFolders ?? this.isLoadingFolders,
-        isLoadingWalls: isLoadingWalls ?? this.isLoadingWalls,
-        isLoadingPresets: isLoadingPresets ?? this.isLoadingPresets,
-        isCreatingDirs: isCreatingDirs ?? this.isCreatingDirs,
-        status: status ?? this.status,
-        selectedFolder: selectedFolder ?? this.selectedFolder,
-      );
+  }) => DirectoryState(
+    preLockFolders: preLockFolders ?? this.preLockFolders,
+    previewWallPaths: previewWallPaths ?? this.previewWallPaths,
+    presetPaths: presetPaths ?? this.presetPaths,
+    isLoadingFolders: isLoadingFolders ?? this.isLoadingFolders,
+    isLoadingWalls: isLoadingWalls ?? this.isLoadingWalls,
+    isLoadingPresets: isLoadingPresets ?? this.isLoadingPresets,
+    isCreatingDirs: isCreatingDirs ?? this.isCreatingDirs,
+    status: status ?? this.status,
+    selectedFolder: selectedFolder ?? this.selectedFolder,
+  );
 }
 
 class DirectoryNotifier extends Notifier<DirectoryState> {
@@ -75,11 +74,15 @@ class DirectoryNotifier extends Notifier<DirectoryState> {
   Future<void> loadPreviewWalls(String folderNum) async {
     state = state.copyWith(isLoadingWalls: true, status: 'Analysing...🤨');
     try {
-      final dir =
-          Directory(PathConstants.p('${PathConstants.wallBasePath}$folderNum'));
+      final dir = Directory(
+        PathConstants.p('${PathConstants.wallBasePath}$folderNum'),
+      );
       if (!await dir.exists()) {
         state = state.copyWith(
-            isLoadingWalls: false, previewWallPaths: [], status: '');
+          isLoadingWalls: false,
+          previewWallPaths: [],
+          status: '',
+        );
         return;
       }
       final entities = await dir.list().toList();
@@ -99,7 +102,10 @@ class DirectoryNotifier extends Notifier<DirectoryState> {
         status = 'Superb All Looks Fine...😍';
       }
       state = state.copyWith(
-          isLoadingWalls: false, previewWallPaths: walls, status: status);
+        isLoadingWalls: false,
+        previewWallPaths: walls,
+        status: status,
+      );
     } catch (_) {
       state = state.copyWith(isLoadingWalls: false);
     }
@@ -111,11 +117,13 @@ class DirectoryNotifier extends Notifier<DirectoryState> {
       final dir = Directory(PathConstants.presetPath);
       if (!await dir.exists()) await dir.create(recursive: true);
       final entities = await dir.list().toList();
-      
+
       // Sort by last modified time (most recent first)
       final dirs = entities.whereType<Directory>().toList();
-      dirs.sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
-      
+      dirs.sort(
+        (a, b) => b.statSync().modified.compareTo(a.statSync().modified),
+      );
+
       final paths = dirs.map((d) => d.path).toList();
       state = state.copyWith(presetPaths: paths, isLoadingPresets: false);
     } catch (_) {
@@ -158,15 +166,18 @@ class DirectoryNotifier extends Notifier<DirectoryState> {
   }
 
   Future<void> saveTagFile(
-          String weekNum, String themeName, List<String> tags) =>
-      ref
-          .read(saveTagFileUseCaseProvider)
-          .call(weekNum, themeName, tags)
-          .then((_) {}); // swallow Failure — UI doesn't need it here
+    String weekNum,
+    String themeName,
+    List<String> tags,
+  ) => ref
+      .read(saveTagFileUseCaseProvider)
+      .call(weekNum, themeName, tags)
+      .then((_) {}); // swallow Failure — UI doesn't need it here
 
   Future<void> loadTagsFromFile(String weekNum, String themeName) =>
       ref.read(tagProvider.notifier).loadFromFile(weekNum, themeName);
 }
 
-final directoryProvider =
-    NotifierProvider<DirectoryNotifier, DirectoryState>(DirectoryNotifier.new);
+final directoryProvider = NotifierProvider<DirectoryNotifier, DirectoryState>(
+  DirectoryNotifier.new,
+);
