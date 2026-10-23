@@ -12,6 +12,7 @@ class ExportModuleUseCase {
     required ThemeLayout layout,
     required String themeName,
     required String wallpaperSourcePath,
+    String? lockWallpaperSourcePath,
     String? designerName,
     String? authorTag,
     String uiVersion = '17',
@@ -27,6 +28,7 @@ class ExportModuleUseCase {
             ? authorTag!
             : profile.authorTag,
         wallpaperSourcePath: wallpaperSourcePath,
+        lockWallpaperSourcePath: lockWallpaperSourcePath,
         uiVersion: uiVersion,
       );
       return null;

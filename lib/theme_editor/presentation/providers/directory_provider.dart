@@ -85,10 +85,10 @@ class DirectoryNotifier extends Notifier<DirectoryState> {
       final entities = await dir.list().toList();
       final walls = entities
           .whereType<File>()
-          .where((f) => f.path.endsWith('.jpg') || f.path.endsWith('.png'))
+          .where((f) => _isWall(f.path))
           .map((f) => f.path)
           .toList();
-      final allJpg = walls.every((p) => p.endsWith('.jpg'));
+      final allJpg = walls.every(_isJpg);
       final themeCount = ref.read(wallpaperProvider).themeCount;
       String status;
       if (!allJpg) {
@@ -124,6 +124,14 @@ class DirectoryNotifier extends Notifier<DirectoryState> {
   }
 
   void selectFolder(String f) => state = state.copyWith(selectedFolder: f);
+
+  static bool _isJpg(String path) {
+    final lower = path.toLowerCase();
+    return lower.endsWith('.jpg') || lower.endsWith('.jpeg');
+  }
+
+  static bool _isWall(String path) =>
+      _isJpg(path) || path.toLowerCase().endsWith('.png');
 
   // ── Directory creation ─────────────────────────────────────────────────────
 

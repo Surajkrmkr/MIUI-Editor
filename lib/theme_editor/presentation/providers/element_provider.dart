@@ -13,6 +13,25 @@ const clockFontTypes = {
   ElementType.secClock,
 };
 
+// Clock text paints a color -> colorSecondary gradient, so a primary pick
+// also sets the secondary to keep the glyphs one solid color.
+const _gradientTextTypes = {
+  ElementType.hourClock,
+  ElementType.minClock,
+  ElementType.secClock,
+  ElementType.dotClock,
+  ElementType.dotClock2,
+  ElementType.amPmClock,
+  ElementType.weekClock,
+  ElementType.monthClock,
+  ElementType.dateClock,
+};
+
+LockElement _withPrimary(LockElement e, Color c) =>
+    _gradientTextTypes.contains(e.type)
+    ? e.copyWith(color: c, colorSecondary: c)
+    : e.copyWith(color: c);
+
 class ElementState {
   const ElementState({
     this.elements = const [],
@@ -378,7 +397,7 @@ class ElementNotifier extends Notifier<ElementState> {
       els = els
           .map(
             (e) =>
-                e.type == t && state.isSelected(e) ? e.copyWith(color: c) : e,
+                e.type == t && state.isSelected(e) ? _withPrimary(e, c) : e,
           )
           .toList();
     }
@@ -494,7 +513,9 @@ class ElementNotifier extends Notifier<ElementState> {
                 clockSetElementTypes.contains(element.type) && !element.isLocked
                 ? element.copyWith(
                     color: color,
-                    colorSecondary: colorSecondary,
+                    colorSecondary: _gradientTextTypes.contains(element.type)
+                        ? color
+                        : colorSecondary,
                     colorDigit1: color,
                     colorDigit2: accent,
                     unlockAccent: accent,
@@ -546,7 +567,7 @@ class ElementNotifier extends Notifier<ElementState> {
   // ── Discrete property mutations (push history) ────────────────────────────
 
   void setColor(ElementType t, Color c) =>
-      _change(t, (e) => e.copyWith(color: c));
+      _change(t, (e) => _withPrimary(e, c));
   void setColorSecondary(ElementType t, Color c) =>
       _change(t, (e) => e.copyWith(colorSecondary: c));
   void setColorDigit1(ElementType t, Color c) =>

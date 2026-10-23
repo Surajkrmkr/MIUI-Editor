@@ -1579,7 +1579,9 @@ class ElementInfoPanel extends ConsumerWidget {
         element.type,
         (current) => current.copyWith(
           color: palette.light,
-          colorSecondary: palette.dark,
+          colorSecondary: current.type.isClock && !current.type.isAnalog
+              ? palette.light
+              : palette.dark,
           unlockAccent: palette.primary,
           borderColor: palette.secondary,
         ),

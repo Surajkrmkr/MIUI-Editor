@@ -142,6 +142,8 @@ class ExportNotifier extends Notifier<ExportState> {
       ws.currentThemeName!,
     );
     final iconNames = iconAssets;
+    final homePath = ws.homeWallpaperEnabled ? ws.homeWallpaperPath : null;
+    final hasHome = homePath != null && File(homePath).existsSync();
 
     state = state.copyWith(
       phase: ExportPhase.icons,
@@ -156,7 +158,8 @@ class ExportNotifier extends Notifier<ExportState> {
       profile: profile,
       layout: ThemeLayout(themePath),
       themeName: ws.currentThemeName!,
-      wallpaperSourcePath: ws.currentPath!,
+      wallpaperSourcePath: hasHome ? homePath : ws.currentPath!,
+      lockWallpaperSourcePath: hasHome ? ws.currentPath : null,
       iconNames: iconNames,
       designerName: ws.designerName.isNotEmpty ? ws.designerName : null,
       authorTag: ws.authorTag.isNotEmpty ? ws.authorTag : null,

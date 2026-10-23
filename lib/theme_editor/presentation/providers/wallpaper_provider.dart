@@ -163,7 +163,12 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
     final entities = await dir.list().toList();
     final paths = entities
         .whereType<File>()
-        .where((f) => f.path.endsWith('.jpg') || f.path.endsWith('.png'))
+        .where((f) {
+          final lower = f.path.toLowerCase();
+          return lower.endsWith('.jpg') ||
+              lower.endsWith('.jpeg') ||
+              lower.endsWith('.png');
+        })
         .map((f) => f.path)
         .toList();
 

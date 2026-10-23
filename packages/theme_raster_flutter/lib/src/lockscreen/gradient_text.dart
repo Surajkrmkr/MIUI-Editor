@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 class GradientText extends StatelessWidget {
   const GradientText(
@@ -34,9 +35,8 @@ class GradientText extends StatelessWidget {
       PaintingStyle paintingStyle = PaintingStyle.fill,
       double layerStrokeWidth = 0,
     }) {
-      return ShaderMask(
-        blendMode: BlendMode.srcIn,
-        shaderCallback: layerGradient.createShader,
+      return _GlyphShaderMask(
+        gradient: layerGradient,
         child: Text(
           text,
           style: baseStyle.copyWith(
@@ -138,5 +138,56 @@ class GradientText extends StatelessWidget {
           ),
       ],
     );
+  }
+}
+
+/// A srcIn [ShaderMask] whose mask reaches past the child's box, so glyphs
+/// that overflow the line box (display fonts at height 1) are tinted too.
+class _GlyphShaderMask extends SingleChildRenderObjectWidget {
+  const _GlyphShaderMask({required this.gradient, super.child});
+
+  final Gradient gradient;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderGlyphShaderMask(gradient);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderGlyphShaderMask renderObject,
+  ) => renderObject.gradient = gradient;
+}
+
+class _RenderGlyphShaderMask extends RenderProxyBox {
+  _RenderGlyphShaderMask(this._gradient);
+
+  Gradient _gradient;
+  set gradient(Gradient value) {
+    if (value == _gradient) return;
+    _gradient = value;
+    markNeedsPaint();
+  }
+
+  @override
+  ShaderMaskLayer? get layer => super.layer as ShaderMaskLayer?;
+
+  @override
+  bool get alwaysNeedsCompositing => child != null;
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    if (child == null) {
+      layer = null;
+      return;
+    }
+    final pad = size.longestSide;
+    // The shader is in mask-rect space; keep the gradient on the text box.
+    layer ??= ShaderMaskLayer();
+    layer!
+      ..shader = _gradient.createShader(Offset(pad, pad) & size)
+      ..maskRect = (offset & size).inflate(pad)
+      ..blendMode = BlendMode.srcIn;
+    context.pushLayer(layer!, super.paint, offset);
   }
 }

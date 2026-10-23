@@ -1,9 +1,12 @@
 import 'dart:io';
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../presentation/common/widgets/drop_zone.dart';
 import '../../../providers/wallpaper_provider.dart';
+
+const _imageExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
 
 class HomeWallpaperPanel extends ConsumerWidget {
   const HomeWallpaperPanel({super.key});
@@ -39,20 +42,30 @@ class HomeWallpaperPanel extends ConsumerWidget {
           if (state.homeWallpaperEnabled) ...[
             const SizedBox(height: 8),
             if (hasCustomImage)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(
-                  File(customPath),
-                  width: double.infinity,
-                  height: 180,
-                  fit: BoxFit.cover,
+              DropTarget(
+                onDragDone: (d) {
+                  if (d.files.isEmpty) return;
+                  final path = d.files.first.path;
+                  if (_imageExtensions.any(path.toLowerCase().endsWith)) {
+                    notifier.setHomeWallpaper(path);
+                  }
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    File(customPath),
+                    key: ValueKey(customPath),
+                    width: double.infinity,
+                    height: 180,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               )
             else
               AppDropZone(
                 label: 'Drop a wallpaper image here',
                 size: const Size(double.infinity, 180),
-                allowedExtensions: const ['.jpg', '.jpeg', '.png', '.webp'],
+                allowedExtensions: _imageExtensions,
                 onDropped: notifier.setHomeWallpaper,
               ),
             const SizedBox(height: 10),
