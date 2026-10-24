@@ -21,6 +21,7 @@ class Rgba {
   final int argb;
 
   int get a => (argb >> 24) & 0xFF;
+  int get alpha => a;
   int get r => (argb >> 16) & 0xFF;
   int get g => (argb >> 8) & 0xFF;
   int get b => argb & 0xFF;

@@ -42,6 +42,8 @@ class ElementInfoPanel extends ConsumerWidget {
     final isUnlock = el.type.isUnlockControl;
     final supportsOutlineWidth =
         (isUnlock && el.unlockSkin != UnlockSkin.classic) ||
+        (el.type == ElementType.calendarGrid &&
+            el.calendarStyle != CalendarStyle.classic) ||
         (el.type == ElementType.analogClock &&
             const {
               AnalogStyle.classic,
@@ -249,6 +251,8 @@ class ElementInfoPanel extends ConsumerWidget {
                                 ? 'Icon'
                                 : el.type == ElementType.arcShape
                                 ? 'Progress'
+                                : el.type == ElementType.calendarGrid
+                                ? 'Dates & Text'
                                 : 'Primary',
                             onChanged: (c) => n.setColor(el.type, c),
                           ),
@@ -262,6 +266,8 @@ class ElementInfoPanel extends ConsumerWidget {
                                 ? 'Background'
                                 : el.type == ElementType.arcShape
                                 ? 'Track'
+                                : el.type == ElementType.calendarGrid
+                                ? 'Today Highlight'
                                 : 'Secondary',
                             onChanged: (c) => n.setColorSecondary(el.type, c),
                           ),
@@ -284,7 +290,7 @@ class ElementInfoPanel extends ConsumerWidget {
                                   : el.type == ElementType.shortcutSet
                                   ? 'Tile'
                                   : el.type == ElementType.calendarGrid
-                                  ? 'Panel'
+                                  ? 'Panel Fill'
                                   : 'Accent',
                               onChanged: (c) => n.update(
                                 el.type,
@@ -301,7 +307,7 @@ class ElementInfoPanel extends ConsumerWidget {
                                   : el.type == ElementType.shortcutSet
                                   ? 'Tile 2 / Outline'
                                   : el.type == ElementType.calendarGrid
-                                  ? 'Strip / Circles'
+                                  ? 'Border / Frame'
                                   : 'Outline',
                               onChanged: (c) => n.update(
                                 el.type,
@@ -311,6 +317,24 @@ class ElementInfoPanel extends ConsumerWidget {
                           ),
                         ],
                       ),
+                      if (el.type == ElementType.calendarGrid &&
+                          el.calendarStyle != CalendarStyle.classic) ...[
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _ColorBtn(
+                                color: el.strokeColor,
+                                label: 'Accent / Details',
+                                onChanged: (c) => n.update(
+                                  el.type,
+                                  (e) => e.copyWith(strokeColor: c),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       if (supportsOutlineWidth) ...[
                         const SizedBox(height: 6),
                         _SliderRow(
@@ -654,12 +678,187 @@ class ElementInfoPanel extends ConsumerWidget {
               ),
             ),
 
+          if (el.type == ElementType.analogClock)
+            _Section(
+              title: 'ANALOG CLOCK',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text(
+                      'Style',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    height: 36,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: scheme.outlineVariant.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<AnalogStyle>(
+                        value: el.analogStyle,
+                        isExpanded: true,
+                        icon: const Icon(Icons.keyboard_arrow_down, size: 18),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: scheme.onSurface,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        dropdownColor: scheme.surfaceContainerHigh,
+                        items: AnalogStyle.values.map((style) {
+                          final name = switch (style) {
+                            AnalogStyle.indigo => 'Indigo',
+                            AnalogStyle.minimal => 'Minimal',
+                            AnalogStyle.classic => 'Classic',
+                            AnalogStyle.numerals => 'Numerals',
+                            AnalogStyle.dots => 'Dots',
+                            AnalogStyle.ring => 'Ring',
+                            AnalogStyle.sport => 'Sport',
+                            AnalogStyle.woodPanel => 'Wood Panel',
+                            AnalogStyle.crimsonGlass => 'Crimson Glass',
+                            AnalogStyle.romanWall => 'Roman Wall',
+                            AnalogStyle.neonGlow => 'Neon Glow',
+                            AnalogStyle.auroraRing => 'Aurora Ring',
+                            AnalogStyle.luxuryGold => 'Luxury Gold',
+                            AnalogStyle.frostedGlass => 'Frosted Glass',
+                            AnalogStyle.orbit => 'Orbit',
+                            AnalogStyle.orbitDigital => 'Orbit Digital',
+                            AnalogStyle.flowerCard => 'Flower Card',
+                            AnalogStyle.bauhausPop => 'Bauhaus Pop',
+                            AnalogStyle.ripple => 'Ripple',
+                            AnalogStyle.solarEclipse => 'Solar Eclipse',
+                            AnalogStyle.memphis => 'Memphis',
+                            AnalogStyle.prism => 'Prism',
+                            AnalogStyle.ribbon => 'Ribbon',
+                            AnalogStyle.terrazzo => 'Terrazzo',
+                            AnalogStyle.contour => 'Contour',
+                            AnalogStyle.pixelSun => 'Pixel Sun',
+                            AnalogStyle.kineticTiles => 'Kinetic Tiles',
+                            AnalogStyle.fanFold => 'Fan Fold',
+                            AnalogStyle.liquidLoops => 'Liquid Loops',
+                            AnalogStyle.checkerWave => 'Checker Wave',
+                            AnalogStyle.cyberReticle => 'Cyber Reticle',
+                            AnalogStyle.sunsetGrid => 'Sunset Grid',
+                            AnalogStyle.zenGarden => 'Zen Garden',
+                            AnalogStyle.vortex => 'Vortex',
+                            AnalogStyle.circuitTrace => 'Circuit Trace',
+                            AnalogStyle.artDeco => 'Art Deco',
+                            AnalogStyle.squirclePebble => 'Squircle Pebble',
+                            AnalogStyle.moireRings => 'Moiré Rings',
+                            AnalogStyle.brutalistPop => 'Brutalist Pop',
+                            AnalogStyle.holoWarp => 'Holo Warp',
+                          };
+                          return DropdownMenuItem(
+                            value: style,
+                            child: Text(name),
+                          );
+                        }).toList(),
+                        onChanged: (style) {
+                          if (style != null) {
+                            n.update(
+                              el.type,
+                              (element) => element.copyWith(analogStyle: style),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           if (el.type == ElementType.calendarGrid)
             _Section(
               title: 'CALENDAR',
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text(
+                      'Style',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    height: 36,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: scheme.outlineVariant.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<CalendarStyle>(
+                        value: el.calendarStyle,
+                        isExpanded: true,
+                        icon: const Icon(Icons.keyboard_arrow_down, size: 18),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: scheme.onSurface,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        dropdownColor: scheme.surfaceContainerHigh,
+                        items: CalendarStyle.values.map((style) {
+                          final name = switch (style) {
+                            CalendarStyle.classic => 'Classic',
+                            CalendarStyle.pillColumn => 'Pill Column',
+                            CalendarStyle.plusCircles => 'Plus Circles',
+                            CalendarStyle.stripHeader => 'Strip Header',
+                            CalendarStyle.glassCard => 'Glass Card',
+                            CalendarStyle.neonCyber => 'Neon Cyber',
+                            CalendarStyle.neoBrutalism => 'Neo-Brutalism',
+                            CalendarStyle.bentoGrid => 'Bento Grid',
+                            CalendarStyle.gradientAura => 'Gradient Aura',
+                            CalendarStyle.minimalDots => 'Minimal Dots',
+                            CalendarStyle.splitFlap => 'Split Flap',
+                            CalendarStyle.capsuleRow => 'Capsule Row',
+                            CalendarStyle.floatingBadges => 'Floating Badges',
+                            CalendarStyle.abstractGeometric => 'Abstract Geometric',
+                            CalendarStyle.outlineRings => 'Outline Rings',
+                            CalendarStyle.monolith => 'Monolith',
+                            CalendarStyle.bracketModern => 'Bracket Modern',
+                            CalendarStyle.softNeumorphism => 'Soft Neumorphism',
+                            CalendarStyle.lunarPhase => 'Lunar Phase',
+                            CalendarStyle.polarArc => 'Polar Arc',
+                            CalendarStyle.cyberMatrix => 'Cyber Matrix',
+                            CalendarStyle.ticketStub => 'Ticket Stub',
+                          };
+                          return DropdownMenuItem(
+                            value: style,
+                            child: Text(name),
+                          );
+                        }).toList(),
+                        onChanged: (style) {
+                          if (style != null) {
+                            n.update(
+                              el.type,
+                              (element) => element.copyWith(calendarStyle: style),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 6),
                     child: Text(

@@ -613,7 +613,30 @@ enum ShortcutStyle {
 enum ShortcutEdge { right, left, floating }
 
 /// Look of the calendar grid; [classic] is the original plain grid.
-enum CalendarStyle { classic, pillColumn, plusCircles, stripHeader }
+enum CalendarStyle {
+  classic,
+  pillColumn,
+  plusCircles,
+  stripHeader,
+  glassCard,
+  neonCyber,
+  neoBrutalism,
+  bentoGrid,
+  gradientAura,
+  minimalDots,
+  splitFlap,
+  capsuleRow,
+  floatingBadges,
+  abstractGeometric,
+  outlineRings,
+  monolith,
+  bracketModern,
+  softNeumorphism,
+  lunarPhase,
+  polarArc,
+  cyberMatrix,
+  ticketStub,
+}
 
 enum AnalogStyle {
   indigo,
@@ -633,6 +656,29 @@ enum AnalogStyle {
   orbit,
   orbitDigital,
   flowerCard,
+  bauhausPop,
+  ripple,
+  solarEclipse,
+  memphis,
+  prism,
+  ribbon,
+  terrazzo,
+  contour,
+  pixelSun,
+  kineticTiles,
+  fanFold,
+  liquidLoops,
+  checkerWave,
+  cyberReticle,
+  sunsetGrid,
+  zenGarden,
+  vortex,
+  circuitTrace,
+  artDeco,
+  squirclePebble,
+  moireRings,
+  brutalistPop,
+  holoWarp,
 }
 
 /// Visual skin of tap/slide/drag unlock controls; [classic] is the original look.

@@ -250,6 +250,30 @@ class _DialPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     switch (style) {
+      case AnalogStyle.bauhausPop:
+      case AnalogStyle.ripple:
+      case AnalogStyle.solarEclipse:
+      case AnalogStyle.memphis:
+      case AnalogStyle.prism:
+      case AnalogStyle.ribbon:
+      case AnalogStyle.terrazzo:
+      case AnalogStyle.contour:
+      case AnalogStyle.pixelSun:
+      case AnalogStyle.fanFold:
+      case AnalogStyle.liquidLoops:
+      case AnalogStyle.checkerWave:
+      case AnalogStyle.kineticTiles:
+      case AnalogStyle.cyberReticle:
+      case AnalogStyle.sunsetGrid:
+      case AnalogStyle.zenGarden:
+      case AnalogStyle.vortex:
+      case AnalogStyle.circuitTrace:
+      case AnalogStyle.artDeco:
+      case AnalogStyle.squirclePebble:
+      case AnalogStyle.moireRings:
+      case AnalogStyle.brutalistPop:
+      case AnalogStyle.holoWarp:
+        _paintAbstract(canvas, size);
       case AnalogStyle.indigo:
         canvas.drawCircle(
           c + Offset(r * .06, r * .1),
@@ -667,6 +691,528 @@ class _DialPainter extends CustomPainter {
           );
         }
     }
+  }
+
+  /// Geometric faces share the same centered, independently exported hands.
+  void _paintAbstract(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.translate(size.width / 2, size.height / 2);
+    canvas.scale(size.width * .44);
+    final paint = Paint()..isAntiAlias = true;
+    void disc(Offset center, double radius, Color color) => canvas.drawCircle(
+      center,
+      radius,
+      paint
+        ..style = PaintingStyle.fill
+        ..color = color,
+    );
+    void arc(
+      double radius,
+      double start,
+      double sweep,
+      double width,
+      Color color,
+    ) => canvas.drawArc(
+      Rect.fromCircle(center: Offset.zero, radius: radius),
+      start,
+      sweep,
+      false,
+      paint
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = width
+        ..strokeCap = StrokeCap.round
+        ..color = color,
+    );
+    void box(Rect rect, Color color) => canvas.drawRect(
+      rect,
+      paint
+        ..style = PaintingStyle.fill
+        ..color = color,
+    );
+    Color soft(Color color, double alpha) =>
+        color.withValues(alpha: color.a * alpha);
+    disc(Offset.zero, 1, face);
+    canvas.save();
+    canvas.clipPath(Path()..addOval(const Rect.fromLTWH(-1, -1, 2, 2)));
+    switch (style) {
+      case AnalogStyle.bauhausPop:
+        box(const Rect.fromLTWH(-1, 0, 1, 1), accent);
+        disc(const Offset(.43, -.43), .34, ticks);
+        box(const Rect.fromLTWH(-.67, -.72, .24, .52), soft(accent, .55));
+      case AnalogStyle.ripple:
+        for (var i = 0; i < 7; i++) {
+          arc(
+            .24 + i * .105,
+            -.7 + i * .17,
+            4.9,
+            .025,
+            soft(ticks, .2 + i * .11),
+          );
+        }
+      case AnalogStyle.solarEclipse:
+        disc(const Offset(.08, -.05), .78, ticks);
+        disc(const Offset(-.13, -.23), .76, face);
+        arc(.9, .15, 2.8, .012, soft(accent, .6));
+      case AnalogStyle.memphis:
+        for (var i = 0; i < 12; i++) {
+          final a = i * pi / 6;
+          final p = Offset(sin(a), -cos(a)) * .74;
+          if (i.isEven) {
+            disc(p, .065, ticks);
+          } else {
+            canvas.save();
+            canvas.translate(p.dx, p.dy);
+            canvas.rotate(a);
+            box(const Rect.fromLTWH(-.055, -.055, .11, .11), accent);
+            canvas.restore();
+          }
+        }
+        arc(.5, .3, 1.1, .03, soft(accent, .6));
+      case AnalogStyle.prism:
+        for (var i = 0; i < 6; i++) {
+          final a = i * pi / 3;
+          final path = Path()
+            ..moveTo(-.15, .1)
+            ..lineTo(cos(a), sin(a))
+            ..lineTo(cos(a + pi / 3), sin(a + pi / 3))
+            ..close();
+          canvas.drawPath(
+            path,
+            paint
+              ..style = PaintingStyle.fill
+              ..color = soft(i.isEven ? ticks : accent, .12 + i * .1),
+          );
+        }
+      case AnalogStyle.ribbon:
+        for (var i = 0; i < 3; i++) {
+          final path = Path()
+            ..moveTo(-1.1, -.55 + i * .4)
+            ..cubicTo(-.2, -1.2 + i * .4, .1, .8 - i * .2, 1.1, -.3 + i * .3);
+          canvas.drawPath(
+            path,
+            paint
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = .15
+              ..color = soft(i == 1 ? accent : ticks, .4 + i * .25),
+          );
+        }
+      case AnalogStyle.terrazzo:
+        // Fixed coordinates keep exported assets identical to their previews.
+        for (var i = 0; i < 32; i++) {
+          final a = i * 2.39996;
+          final p = Offset(cos(a), sin(a)) * (.35 + (i % 5) * .13);
+          canvas.save();
+          canvas.translate(p.dx, p.dy);
+          canvas.rotate(a);
+          final color = soft(i % 3 == 0 ? accent : ticks, i.isEven ? .8 : .35);
+          if (i % 3 == 0) {
+            final chip = Path()
+              ..moveTo(-.06, .04)
+              ..lineTo(-.02, -.07)
+              ..lineTo(.07, .02)
+              ..close();
+            canvas.drawPath(
+              chip,
+              paint
+                ..style = PaintingStyle.fill
+                ..color = color,
+            );
+          } else {
+            canvas.drawOval(
+              const Rect.fromLTWH(-.055, -.03, .11, .06),
+              paint
+                ..style = PaintingStyle.fill
+                ..color = color,
+            );
+          }
+          canvas.restore();
+        }
+      case AnalogStyle.contour:
+        for (var ring = 0; ring < 7; ring++) {
+          final path = Path();
+          for (var i = 0; i <= 120; i++) {
+            final a = i * 2 * pi / 120;
+            final radius = .24 + ring * .105 + .045 * sin(3 * a + ring * .35);
+            final p = Offset(cos(a), sin(a)) * radius;
+            if (i == 0) {
+              path.moveTo(p.dx, p.dy);
+            } else {
+              path.lineTo(p.dx, p.dy);
+            }
+          }
+          canvas.drawPath(
+            path,
+            paint
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = .012
+              ..color = soft(ticks, .3 + ring * .09),
+          );
+        }
+      case AnalogStyle.pixelSun:
+        for (var x = -7; x <= 7; x++) {
+          for (var y = -7; y <= 7; y++) {
+            if (x * x + y * y > 45 || x * x + y * y < 13) continue;
+            box(
+              Rect.fromLTWH(x * .12 - .05, y * .12 - .05, .1, .1),
+              soft(y < 0 ? ticks : accent, .4 + (7 - y.abs()) * .07),
+            );
+          }
+        }
+      case AnalogStyle.kineticTiles:
+        for (var x = 0; x < 4; x++) {
+          for (var y = 0; y < 4; y++) {
+            canvas.save();
+            canvas.translate(-.75 + x * .5, -.75 + y * .5);
+            canvas.rotate((x + y) * pi / 2);
+            canvas.drawArc(
+              const Rect.fromLTWH(-.22, -.22, .44, .44),
+              0,
+              pi,
+              true,
+              paint
+                ..style = PaintingStyle.fill
+                ..color = soft((x + y).isEven ? ticks : accent, .65),
+            );
+            canvas.restore();
+          }
+        }
+      case AnalogStyle.fanFold:
+        for (var i = 0; i < 24; i++) {
+          final a = i * pi / 12;
+          final inner = Offset(cos(a), sin(a)) * .27;
+          final outer = Offset(cos(a), sin(a)) * .84;
+          final next = Offset(cos(a + pi / 12), sin(a + pi / 12)) * .84;
+          final fold = Path()
+            ..moveTo(inner.dx, inner.dy)
+            ..lineTo(outer.dx, outer.dy)
+            ..lineTo(next.dx, next.dy)
+            ..close();
+          canvas.drawPath(
+            fold,
+            paint
+              ..style = PaintingStyle.fill
+              ..color = soft(i < 12 ? ticks : accent, i.isEven ? .8 : .25),
+          );
+        }
+      case AnalogStyle.liquidLoops:
+        for (var i = 0; i < 3; i++) {
+          canvas.save();
+          canvas.rotate(i * pi / 3 + .2);
+          final loop = Path()
+            ..moveTo(0, -.82)
+            ..cubicTo(.85, -.82, .6, -.1, .24, .14)
+            ..cubicTo(-.2, .46, -.25, .85, -.55, .62)
+            ..cubicTo(-.95, .26, -.62, -.8, 0, -.82)
+            ..close();
+          canvas.drawPath(
+            loop,
+            paint
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = .055
+              ..color = soft(i == 1 ? accent : ticks, .65 + i * .15),
+          );
+          canvas.restore();
+        }
+      case AnalogStyle.checkerWave:
+        Offset wave(double x, double y) =>
+            Offset(x + .09 * sin(y * 5), y + .06 * cos(x * 5));
+        for (var row = 0; row < 10; row++) {
+          for (var col = 0; col < 10; col++) {
+            if ((row + col).isOdd) continue;
+            final path = Path();
+            final x = -1.2 + col * .24;
+            final y = -1.2 + row * .24;
+            for (final (edge, point) in [
+              wave(x, y),
+              wave(x + .24, y),
+              wave(x + .24, y + .24),
+              wave(x, y + .24),
+            ].indexed) {
+              if (edge == 0) {
+                path.moveTo(point.dx, point.dy);
+              } else {
+                path.lineTo(point.dx, point.dy);
+              }
+            }
+            path.close();
+            canvas.drawPath(
+              path,
+              paint
+                ..style = PaintingStyle.fill
+                ..color = soft(ticks, .65),
+            );
+          }
+        }
+        disc(Offset.zero, .42, face);
+        arc(.44, -.5, 2.5, .02, accent);
+      case AnalogStyle.cyberReticle:
+        arc(.84, 0, pi * 1.8, .02, ticks);
+        arc(.62, pi * .5, pi * 1.25, .014, soft(accent, .75));
+        arc(.36, -pi * .2, pi * .85, .018, ticks);
+        canvas.drawLine(
+          const Offset(-.9, 0),
+          const Offset(-.42, 0),
+          paint
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = .014
+            ..color = ticks,
+        );
+        canvas.drawLine(const Offset(.42, 0), const Offset(.9, 0), paint);
+        canvas.drawLine(const Offset(0, -.9), const Offset(0, -.42), paint);
+        canvas.drawLine(const Offset(0, .42), const Offset(0, .9), paint);
+        for (var i = 0; i < 24; i++) {
+          final a = i * pi / 12;
+          final p1 = Offset(cos(a), sin(a)) * .84;
+          final p2 = Offset(cos(a), sin(a)) * (i % 6 == 0 ? .76 : .80);
+          canvas.drawLine(
+            p1,
+            p2,
+            paint
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = .012
+              ..color = soft(accent, .8),
+          );
+        }
+        disc(Offset.zero, .04, accent);
+      case AnalogStyle.sunsetGrid:
+        disc(const Offset(0, -.12), .48, accent);
+        final sunMask = Paint()
+          ..style = PaintingStyle.fill
+          ..color = face;
+        for (var y = -.04; y <= .36; y += .08) {
+          canvas.drawRect(Rect.fromLTWH(-.6, y, 1.2, .035), sunMask);
+        }
+        final gridLine = Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = .014
+          ..color = soft(ticks, .75);
+        canvas.drawLine(const Offset(-1, .28), const Offset(1, .28), gridLine);
+        for (var i = 1; i <= 4; i++) {
+          final y = .28 + i * .16;
+          canvas.drawLine(
+            Offset(-1, y),
+            Offset(1, y),
+            Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = .012
+              ..color = soft(ticks, .3 + i * .15),
+          );
+        }
+        for (var x = -1.2; x <= 1.2; x += .3) {
+          canvas.drawLine(
+            const Offset(0, .28),
+            Offset(x * 1.4, 1.05),
+            gridLine,
+          );
+        }
+      case AnalogStyle.zenGarden:
+        for (var i = 1; i <= 8; i++) {
+          arc(.12 + i * .105, 0, 2 * pi, .012, soft(ticks, .2 + i * .09));
+        }
+        canvas.drawOval(
+          const Rect.fromLTWH(.02, -.3, .34, .26),
+          Paint()
+            ..style = PaintingStyle.fill
+            ..color = accent,
+        );
+        canvas.drawOval(
+          const Rect.fromLTWH(-.36, .14, .26, .2),
+          Paint()
+            ..style = PaintingStyle.fill
+            ..color = soft(ticks, .85),
+        );
+      case AnalogStyle.vortex:
+        for (var arm = 0; arm < 8; arm++) {
+          final baseAngle = arm * pi / 4;
+          final path = Path();
+          for (var t = 0; t <= 40; t++) {
+            final theta = t * 0.1;
+            final r = .08 * exp(0.55 * theta);
+            final a = baseAngle + theta;
+            final pt = Offset(cos(a), sin(a)) * r;
+            if (t == 0) {
+              path.moveTo(pt.dx, pt.dy);
+            } else {
+              path.lineTo(pt.dx, pt.dy);
+            }
+          }
+          canvas.drawPath(
+            path,
+            Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = .022
+              ..strokeCap = StrokeCap.round
+              ..color = soft(arm.isEven ? accent : ticks, .5 + (arm % 4) * .12),
+          );
+        }
+        disc(Offset.zero, .1, accent);
+      case AnalogStyle.circuitTrace:
+        final trace = Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = .018
+          ..color = soft(ticks, .75);
+        void wire(List<Offset> pts) {
+          final p = Path()..moveTo(pts[0].dx, pts[0].dy);
+          for (var i = 1; i < pts.length; i++) {
+            p.lineTo(pts[i].dx, pts[i].dy);
+          }
+          canvas.drawPath(p, trace);
+          disc(pts.first, .035, accent);
+          disc(pts.first, .015, face);
+          disc(pts.last, .035, accent);
+          disc(pts.last, .015, face);
+        }
+        wire([
+          const Offset(-.7, -.4),
+          const Offset(-.3, -.4),
+          const Offset(-.1, -.2),
+          const Offset(-.1, .3),
+        ]);
+        wire([
+          const Offset(.6, -.6),
+          const Offset(.2, -.2),
+          const Offset(.2, .4),
+          const Offset(.5, .7),
+        ]);
+        wire([
+          const Offset(-.6, .5),
+          const Offset(-.2, .5),
+          const Offset(.1, .2),
+          const Offset(.6, .2),
+        ]);
+        wire([
+          const Offset(-.4, -.7),
+          const Offset(-.4, -.3),
+          const Offset(.3, .4),
+          const Offset(.3, .8),
+        ]);
+      case AnalogStyle.artDeco:
+        for (var i = 1; i <= 6; i++) {
+          final rad = i * .15;
+          canvas.drawArc(
+            Rect.fromCircle(center: const Offset(0, .9), radius: rad),
+            pi,
+            pi,
+            false,
+            Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = .018
+              ..color = soft(i.isEven ? accent : ticks, .35 + i * .1),
+          );
+        }
+        for (var i = -5; i <= 5; i++) {
+          final a = -pi / 2 + i * pi / 14;
+          canvas.drawLine(
+            const Offset(0, .9),
+            const Offset(0, .9) + Offset(cos(a), sin(a)) * 1.8,
+            Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = .01
+              ..color = soft(ticks, .4),
+          );
+        }
+        void diamond(Offset center, double s, Color col) {
+          final path = Path()
+            ..moveTo(center.dx, center.dy - s)
+            ..lineTo(center.dx + s * .7, center.dy)
+            ..lineTo(center.dx, center.dy + s)
+            ..lineTo(center.dx - s * .7, center.dy)
+            ..close();
+          canvas.drawPath(path, Paint()..style = PaintingStyle.fill..color = col);
+        }
+        diamond(const Offset(0, -.72), .08, accent);
+        diamond(const Offset(-.72, 0), .08, accent);
+        diamond(const Offset(.72, 0), .08, accent);
+      case AnalogStyle.squirclePebble:
+        for (var i = 6; i >= 1; i--) {
+          final s = i * .145;
+          canvas.save();
+          canvas.rotate(i * pi / 16);
+          final rrect = RRect.fromRectAndRadius(
+            Rect.fromCenter(center: Offset.zero, width: s * 2, height: s * 1.8),
+            Radius.circular(s * .55),
+          );
+          canvas.drawRRect(
+            rrect,
+            Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = .02
+              ..color = soft(i.isEven ? ticks : accent, .25 + i * .12),
+          );
+          canvas.restore();
+        }
+        disc(Offset.zero, .06, accent);
+      case AnalogStyle.moireRings:
+        final ringPaint = Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = .01
+          ..color = soft(ticks, .6);
+        for (var i = 1; i <= 14; i++) {
+          canvas.drawCircle(const Offset(-.18, 0), i * .065, ringPaint);
+          canvas.drawCircle(
+            const Offset(.18, 0),
+            i * .065,
+            Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = .01
+              ..color = soft(accent, .6),
+          );
+        }
+        disc(const Offset(-.18, 0), .03, ticks);
+        disc(const Offset(.18, 0), .03, accent);
+      case AnalogStyle.brutalistPop:
+        box(const Rect.fromLTWH(-.88, -.88, .6, .6), soft(accent, .35));
+        for (var i = 0; i < 4; i++) {
+          box(
+            Rect.fromLTWH(-.8 + i * .18, .2 - i * .18, .24, .24),
+            soft(ticks, .8),
+          );
+        }
+        disc(const Offset(.44, -.4), .36, accent);
+        canvas.drawRect(
+          const Rect.fromLTWH(-.95, -.08, 1.9, .16),
+          Paint()
+            ..style = PaintingStyle.fill
+            ..color = soft(face, .9),
+        );
+        canvas.drawRect(
+          const Rect.fromLTWH(-.95, -.08, 1.9, .16),
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = .02
+            ..color = ticks,
+        );
+      case AnalogStyle.holoWarp:
+        for (var i = 0; i < 7; i++) {
+          final yOffset = -.6 + i * .2;
+          final path = Path()
+            ..moveTo(-1.1, yOffset - .15)
+            ..cubicTo(
+              -.5,
+              yOffset + .35,
+              .2,
+              yOffset - .35,
+              1.1,
+              yOffset + .15,
+            );
+          canvas.drawPath(
+            path,
+            Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = .035
+              ..color = soft(i % 2 == 0 ? ticks : accent, .4 + i * .09),
+          );
+        }
+        disc(const Offset(.15, -.1), .14, accent);
+      default:
+        break;
+    }
+    canvas.restore();
+    for (var i = 0; i < 12; i++) {
+      final a = i * pi / 6;
+      disc(Offset(sin(a), -cos(a)) * .93, i % 3 == 0 ? .024 : .009, ticks);
+    }
+    canvas.restore();
   }
 
   /// Square board hung on a wall: soft drop shadow, bevelled edge, light falloff.
