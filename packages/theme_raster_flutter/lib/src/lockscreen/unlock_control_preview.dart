@@ -74,6 +74,12 @@ class UnlockControlPreview extends StatelessWidget {
         borderRadius: BorderRadius.circular(
           element.effectiveUnlockCornerRadius / lockscreenScreenRatio,
         ),
+        border: element.borderWidth > 0
+            ? Border.all(
+                color: element.borderColor,
+                width: max(1.0, element.borderWidth / lockscreenScreenRatio),
+              )
+            : null,
       ),
       child: tap
           ? inline

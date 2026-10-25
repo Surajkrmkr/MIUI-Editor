@@ -28,6 +28,7 @@
     "shortcutEdge": "floating",
     "calendarStyle": "plusCircles",
     "shortcutApps": "camera,music",
+    "shortcutThemeIcons": false,
     "borderWidth": 3.0,
     "angle": 45.0,
     "fontSize": 64.0,
@@ -118,6 +119,7 @@
     "shortcutEdge": "right",
     "calendarStyle": "classic",
     "shortcutApps": "gallery,camera,music,browser,whatsapp,settings",
+    "shortcutThemeIcons": false,
     "borderWidth": 0.0,
     "angle": 0.0,
     "fontSize": 20.0,
@@ -251,6 +253,7 @@
     "radioIcon",
     "recorderIcon",
     "downloadsIcon",
+    "flashlightIcon",
     "dragToUnlock"
   ]
 }
