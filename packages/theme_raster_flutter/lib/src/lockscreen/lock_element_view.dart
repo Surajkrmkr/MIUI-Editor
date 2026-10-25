@@ -83,6 +83,17 @@ class _LockElementViewState extends State<LockElementView> {
         el.type == ElementType.batteryLevel) {
       return _weatherText(el, '75%');
     }
+    if (el.type == ElementType.depthLayer) {
+      final file = widget.resolveImage('depth/${el.name}');
+      if (file == null || !file.existsSync()) return const SizedBox.shrink();
+      return Image.file(
+        file,
+        width: lockscreenViewWidth,
+        height: lockscreenViewHeight,
+        fit: BoxFit.cover,
+        gaplessPlayback: true,
+      );
+    }
     if (el.type.isHealth) {
       return _weatherText(
         el,
@@ -307,6 +318,7 @@ class _LockElementViewState extends State<LockElementView> {
                 : el.strokeColor,
             blurRadius: el.blurRadius,
             isLiquidGlass: el.isLiquidGlass,
+            isFrostedGlass: el.isFrostedGlass,
           ),
           GradientText(
             txt[1],
@@ -329,6 +341,7 @@ class _LockElementViewState extends State<LockElementView> {
                 : el.strokeColor,
             blurRadius: el.blurRadius,
             isLiquidGlass: el.isLiquidGlass,
+            isFrostedGlass: el.isFrostedGlass,
           ),
         ],
       );
@@ -353,6 +366,7 @@ class _LockElementViewState extends State<LockElementView> {
       strokeColor: el.strokeColor,
       blurRadius: el.blurRadius,
       isLiquidGlass: el.isLiquidGlass,
+      isFrostedGlass: el.isFrostedGlass,
     );
   }
 
@@ -704,6 +718,22 @@ class _GeometryPainter extends CustomPainter {
       ..strokeWidth = element.shapeStrokeWidth / lockscreenScreenRatio
       ..strokeCap = StrokeCap.round;
     final fill = Paint()..color = element.colorSecondary;
+    if (element.type == ElementType.rectangleShape &&
+        element.effectiveProgressSource != ArcProgressSource.none) {
+      final radius = Radius.circular(element.radius / lockscreenScreenRatio);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, radius),
+        Paint()..color = element.arcTrackColor,
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Offset.zero & Size(size.width * progress, size.height),
+          radius,
+        ),
+        Paint()..color = element.color,
+      );
+      return;
+    }
     void draw(Paint paint) {
       switch (element.type) {
         case ElementType.rectangleShape:

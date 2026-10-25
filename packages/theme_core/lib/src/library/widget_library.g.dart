@@ -240,6 +240,104 @@ const widgetLibraryJson = r'''
    ]
   },
   {
+   "name": "Glass Train",
+   "description": "Tall frosted-glass digits, weekday/date/weather, battery bar and a quote.",
+   "category": "Clock",
+   "elements": [
+    {
+     "type": "dateTimeText1",
+     "dx": 22.0,
+     "dy": -205.0,
+     "fontSize": 11.0,
+     "align": "Alignment.centerLeft",
+     "text": "EEEE",
+     "fontWeight": "FontWeight.w500"
+    },
+    {
+     "type": "dateTimeText2",
+     "dx": 22.0,
+     "dy": -189.0,
+     "fontSize": 10.0,
+     "align": "Alignment.centerLeft",
+     "text": "MM-dd",
+     "fontWeight": "FontWeight.w500"
+    },
+    {
+     "type": "weatherTemp",
+     "dx": 34.0,
+     "dy": -173.0,
+     "fontSize": 10.0,
+     "align": "Alignment.centerLeft"
+    },
+    {
+     "type": "weatherDesc",
+     "dx": 70.0,
+     "dy": -173.0,
+     "fontSize": 10.0,
+     "align": "Alignment.centerLeft"
+    },
+    {
+     "type": "hourClock",
+     "dx": -62.0,
+     "dy": -50.0,
+     "scale": 4.2,
+     "gradStartAlign": "Alignment.topCenter",
+     "gradEndAlign": "Alignment.bottomCenter",
+     "font": "gf:Bebas Neue",
+     "isFrostedGlass": true,
+     "perspectiveTilt": 22.0
+    },
+    {
+     "type": "dotClock",
+     "dy": -50.0,
+     "scale": 4.2,
+     "gradStartAlign": "Alignment.topCenter",
+     "gradEndAlign": "Alignment.bottomCenter",
+     "font": "gf:Bebas Neue",
+     "isFrostedGlass": true,
+     "perspectiveTilt": 22.0
+    },
+    {
+     "type": "minClock",
+     "dx": 62.0,
+     "dy": -50.0,
+     "scale": 4.2,
+     "gradStartAlign": "Alignment.topCenter",
+     "gradEndAlign": "Alignment.bottomCenter",
+     "font": "gf:Bebas Neue",
+     "isFrostedGlass": true,
+     "perspectiveTilt": 22.0
+    },
+    {
+     "type": "batteryText",
+     "dx": 28.0,
+     "dy": 172.0,
+     "fontSize": 10.0,
+     "align": "Alignment.centerLeft",
+     "fontWeight": "FontWeight.w600"
+    },
+    {
+     "type": "normalText1",
+     "dx": 28.0,
+     "dy": 187.0,
+     "fontSize": 8.0,
+     "align": "Alignment.centerLeft",
+     "text": "Less worry, more sleep, stay happy"
+    },
+    {
+     "type": "rectangleShape",
+     "dx": -61.8,
+     "dy": 201.0,
+     "height": 14.0,
+     "width": 380.0,
+     "progressSource": "battery",
+     "radius": 7.0,
+     "colorSecondary": 1090519039,
+     "shapeStrokeWidth": 0.0
+    }
+   ]
+  },
+  {
    "name": "Minimal Digital",
    "description": "Clean large digital clock with date underneath — no containers.",
    "category": "Clock",

@@ -264,6 +264,7 @@ class _StaticElement extends StatelessWidget {
             strokeColor: sc1,
             blurRadius: el.blurRadius,
             isLiquidGlass: el.isLiquidGlass,
+            isFrostedGlass: el.isFrostedGlass,
           ),
           GradientText(
             txt[1],
@@ -282,6 +283,7 @@ class _StaticElement extends StatelessWidget {
             strokeColor: sc2,
             blurRadius: el.blurRadius,
             isLiquidGlass: el.isLiquidGlass,
+            isFrostedGlass: el.isFrostedGlass,
           ),
         ],
       );
@@ -302,6 +304,7 @@ class _StaticElement extends StatelessWidget {
       strokeColor: sc,
       blurRadius: el.blurRadius,
       isLiquidGlass: el.isLiquidGlass,
+      isFrostedGlass: el.isFrostedGlass,
     );
   }
 

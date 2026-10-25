@@ -487,16 +487,13 @@ class ManifestBuilder {
         ],
         if (el.type == ElementType.arcShape) ...[
           XmlAttribute(XmlName('startAngle'), '${el.startAngle}'),
-          XmlAttribute(XmlName('sweep'), switch (el.effectiveProgressSource) {
-            ArcProgressSource.none => '${el.sweepAngle}',
-            ArcProgressSource.battery =>
-              '${el.sweepAngle}*min(1,max(0,#battery_level/100))',
-            ArcProgressSource.hour => '${el.sweepAngle}*#hour24/24',
-            ArcProgressSource.minute => '${el.sweepAngle}*#minute/60',
-            ArcProgressSource.second => '${el.sweepAngle}*#second/60',
-            ArcProgressSource.steps =>
-              '${el.sweepAngle}*ifelse(gt(int(@MiSteps_goal),0),min(1,max(0,int(@MiSteps_steps)/max(1,int(@MiSteps_goal)))),0)',
-          }),
+          XmlAttribute(
+            XmlName('sweep'),
+            switch (el.effectiveProgressSource.mamlFraction) {
+              null => '${el.sweepAngle}',
+              final fraction => '${el.sweepAngle}*$fraction',
+            },
+          ),
           XmlAttribute(XmlName('close'), 'false'),
         ],
       ]);
@@ -515,7 +512,44 @@ class ManifestBuilder {
         track.setAttribute('sweep', '${el.sweepAngle}');
         return XmlElement(XmlName('Group'), [], [track, shape]).toXmlString();
       }
+      if (el.type == ElementType.rectangleShape &&
+          el.effectiveProgressSource.mamlFraction != null) {
+        shape
+          ..setAttribute('name', '${el.name}_track')
+          ..setAttribute('fillColor', el.arcTrackColor.toHex(withAlpha: true))
+          ..setAttribute('weight', '0');
+        final progress = XmlElement(XmlName('Rectangle'), [
+          XmlAttribute(XmlName('name'), '${el.name}_progress'),
+          XmlAttribute(XmlName('x'), '#sw/2+$dx-$w/2'),
+          XmlAttribute(XmlName('y'), '#sh/2+$dy'),
+          XmlAttribute(XmlName('alignV'), 'center'),
+          XmlAttribute(
+            XmlName('w'),
+            '$w*${el.effectiveProgressSource.mamlFraction}',
+          ),
+          XmlAttribute(XmlName('h'), h),
+          XmlAttribute(XmlName('fillColor'), c),
+          XmlAttribute(XmlName('cornerRadius'), '${el.radius * el.scale}'),
+        ]);
+        return XmlElement(XmlName('Group'), [], [
+          shape,
+          progress,
+        ]).toXmlString();
+      }
       return shape.toXmlString();
+    }
+    if (el.type == ElementType.depthLayer) {
+      final src = 'depth/${el.name}.png';
+      // Cut from bg.png: stretched to the screen like the bgLock image.
+      if (el.path == 'bg.png') {
+        return "<Image name='${el.name}' src='$src' x='0' y='0' w='#sw' h='#sh'/>";
+      }
+      // Cut from the wallpaper: cover-fit like it; width/height are its pixels.
+      final bw = el.width.toStringAsFixed(0);
+      final bh = el.height.toStringAsFixed(0);
+      final s = 'max(#sw/$bw,#sh/$bh)';
+      return "<Image name='${el.name}' src='$src'"
+          " x='(#sw-$bw*$s)/2' y='(#sh-$bh*$s)/2' w='$bw*$s' h='$bh*$s'/>";
     }
     if (el.type == ElementType.batteryText ||
         el.type == ElementType.batteryLevel ||

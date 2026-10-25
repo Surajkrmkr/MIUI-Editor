@@ -180,7 +180,8 @@ class _DraggableElementState extends ConsumerState<_DraggableElement>
     }
     _progressTimer?.cancel();
     _progressTimer = null;
-    if (widget.el.type == ElementType.arcShape &&
+    if ((widget.el.type == ElementType.arcShape ||
+            widget.el.type == ElementType.rectangleShape) &&
         const {
           ArcProgressSource.hour,
           ArcProgressSource.minute,
@@ -248,6 +249,27 @@ class _DraggableElementState extends ConsumerState<_DraggableElement>
     final n = ref.read(elementProvider.notifier);
     const hw = AppConstants.screenHeight;
     const ww = AppConstants.screenWidth;
+
+    // Full-screen cutout: picked from the layers list, never by canvas taps.
+    if (el.type == ElementType.depthLayer) {
+      return Stack(
+        children: [
+          Positioned(
+            left: el.dx,
+            top: el.dy,
+            child: IgnorePointer(
+              child: LockElementFrame(
+                element: el,
+                child: LockElementView(
+                  element: el,
+                  resolveImage: _resolveImage,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
 
     return Stack(
       children: [

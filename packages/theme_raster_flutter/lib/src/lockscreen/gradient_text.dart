@@ -11,6 +11,7 @@ class GradientText extends StatelessWidget {
     this.strokeColor = Colors.transparent,
     this.blurRadius = 0,
     this.isLiquidGlass = false,
+    this.isFrostedGlass = false,
   });
 
   final String text;
@@ -20,6 +21,10 @@ class GradientText extends StatelessWidget {
   final Color strokeColor;
   final double blurRadius;
   final bool isLiquidGlass;
+
+  /// Translucent glyphs fading downwards with a soft halo and a light rim;
+  /// baked into the fill so exported clock PNGs look the same on device.
+  final bool isFrostedGlass;
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +58,51 @@ class GradientText extends StatelessWidget {
       );
     }
 
+    if (isFrostedGlass) {
+      final top = gradient.colors.first;
+      final bottom = gradient.colors.last;
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          // Shadow, not MaskFilter BlurStyle.outer: that crashes Impeller on text.
+          Text(
+            text,
+            style: baseStyle.copyWith(
+              color: Colors.transparent,
+              shadows: [
+                Shadow(
+                  color: top.withValues(alpha: top.a * .35),
+                  blurRadius: 6,
+                ),
+              ],
+            ),
+          ),
+          gradientLayer(
+            LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                top.withValues(alpha: top.a * .8),
+                Color.lerp(top, bottom, .5)!.withValues(alpha: top.a * .42),
+                bottom.withValues(alpha: bottom.a * .14),
+              ],
+              stops: const [0, .55, 1],
+            ),
+          ),
+          gradientLayer(
+            const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xD9FFFFFF), Color(0x40FFFFFF), Color(0x14FFFFFF)],
+              stops: [0, .5, 1],
+            ),
+            paintingStyle: PaintingStyle.stroke,
+            layerStrokeWidth: .8,
+          ),
+        ],
+      );
+    }
+
     if (!hasStroke && !hasBlur && !isLiquidGlass) {
       return gradientLayer(gradient);
     }
@@ -79,10 +129,13 @@ class GradientText extends StatelessWidget {
           Text(
             text,
             style: baseStyle.copyWith(
-              foreground: Paint()
-                ..style = PaintingStyle.fill
-                ..color = Colors.black.withValues(alpha: 0.45)
-                ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 12.0),
+              color: Colors.transparent,
+              shadows: [
+                Shadow(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  blurRadius: 12,
+                ),
+              ],
             ),
           ),
 

@@ -57,6 +57,8 @@
     "useSeparateColors": true,
     "blurRadius": 6.0,
     "isLiquidGlass": true,
+    "isFrostedGlass": false,
+    "perspectiveTilt": 0.0,
     "shapeStrokeWidth": 5.0,
     "startAngle": -45.0,
     "sweepAngle": 180.0,
@@ -148,6 +150,8 @@
     "useSeparateColors": false,
     "blurRadius": 0.0,
     "isLiquidGlass": false,
+    "isFrostedGlass": false,
+    "perspectiveTilt": 0.0,
     "shapeStrokeWidth": 8.0,
     "startAngle": -90.0,
     "sweepAngle": 270.0,
@@ -254,6 +258,7 @@
     "recorderIcon",
     "downloadsIcon",
     "flashlightIcon",
-    "dragToUnlock"
+    "dragToUnlock",
+    "depthLayer"
   ]
 }

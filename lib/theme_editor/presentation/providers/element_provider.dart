@@ -276,6 +276,25 @@ class ElementNotifier extends Notifier<ElementState> {
     );
   }
 
+  /// Replaces any depth layer with [el], drawn right above the topmost clock
+  /// element so the subject covers the clock but not the other widgets.
+  void setDepthLayer(LockElement el) {
+    final items = state.elements
+        .where((e) => e.type != ElementType.depthLayer)
+        .toList();
+    final lastClock = items.lastIndexWhere((e) => e.type.isClock);
+    items.insert(lastClock < 0 ? items.length : lastClock + 1, el);
+    _record();
+    state = state.copyWith(
+      elements: items,
+      activeType: el.type,
+      activeId: el.name,
+      hasSelection: true,
+      undoCount: _history.length,
+      redoCount: 0,
+    );
+  }
+
   void reorder(int oldIndex, int newIndex) {
     if (newIndex > oldIndex) newIndex -= 1;
     final items = [...state.elements];
@@ -609,6 +628,23 @@ class ElementNotifier extends Notifier<ElementState> {
       _change(t, (e) => e.copyWith(useSeparateColors: v));
   void setIsLiquidGlass(ElementType t, bool v) =>
       _change(t, (e) => e.copyWith(isLiquidGlass: v));
+  void setIsFrostedGlass(ElementType t, bool v) =>
+      _change(t, (e) => e.copyWith(isFrostedGlass: v));
+
+  /// Tilts every clock text element alike, so they read as one surface.
+  void setPerspectiveTilt(double v) {
+    _record();
+    state = state.copyWith(
+      elements: [
+        for (final e in state.elements)
+          _gradientTextTypes.contains(e.type)
+              ? e.copyWith(perspectiveTilt: v)
+              : e,
+      ],
+      undoCount: _history.length,
+      redoCount: 0,
+    );
+  }
   void resetPosition(ElementType t) =>
       _change(t, (e) => e.copyWith(dx: 0, dy: 0));
   void centerHorizontal(ElementType t) => _change(t, (e) => e.copyWith(dx: 0));

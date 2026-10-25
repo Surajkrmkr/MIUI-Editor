@@ -3,11 +3,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/services/archive_service.dart';
 import '../../core/services/file_service.dart';
+import '../../core/services/subject_segmentation_service.dart';
 
 enum AiProvider { gemini, groq, ollama }
 
 final fileServiceProvider    = Provider<FileService>((_)    => FileService());
 final archiveServiceProvider = Provider<ArchiveService>((_) => ArchiveService());
+final subjectSegmentationProvider = Provider<SubjectSegmentationService>((ref) {
+  final service = SubjectSegmentationService();
+  ref.onDispose(service.dispose);
+  return service;
+});
 
 final sharedPrefsProvider = Provider<SharedPreferences>(
   (_) => throw UnimplementedError('Override sharedPrefsProvider in ProviderScope'),

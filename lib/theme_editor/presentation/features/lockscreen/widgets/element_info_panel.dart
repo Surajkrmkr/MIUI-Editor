@@ -397,6 +397,25 @@ class ElementInfoPanel extends ConsumerWidget {
                       ),
                     ],
                   ],
+                  if (el.type.isClock &&
+                      !el.type.isAnalog &&
+                      el.type != ElementType.weatherIconClock) ...[
+                    const SizedBox(height: 6),
+                    _ToggleRow(
+                      label: 'Frosted Glass Text',
+                      value: el.isFrostedGlass,
+                      onChanged: (v) => n.setIsFrostedGlass(el.type, v),
+                    ),
+                    _SliderRow(
+                      label: 'Perspective Tilt',
+                      value: el.perspectiveTilt,
+                      min: -60,
+                      max: 60,
+                      decimals: 0,
+                      unit: '°',
+                      onChanged: (v) => n.setPerspectiveTilt(v.roundToDouble()),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -1698,6 +1717,9 @@ class ElementInfoPanel extends ConsumerWidget {
                         ),
                       ),
                     ),
+                  ],
+                  if (el.type == ElementType.arcShape ||
+                      el.type == ElementType.rectangleShape) ...[
                     DropdownButtonFormField<ArcProgressSource>(
                       initialValue: el.effectiveProgressSource,
                       key: ValueKey(
@@ -3276,7 +3298,11 @@ class _EditableValueState extends State<_EditableValue> {
     final textColor = scheme.primary;
 
     return Container(
-      constraints: BoxConstraints(minWidth: widget.unit != null ? 52 : 42),
+      // A TextField inside the Row needs a finite width while editing.
+      constraints: BoxConstraints(
+        minWidth: widget.unit != null ? 52 : 42,
+        maxWidth: 90,
+      ),
       height: 22,
       child: _isEditing
           ? TextField(

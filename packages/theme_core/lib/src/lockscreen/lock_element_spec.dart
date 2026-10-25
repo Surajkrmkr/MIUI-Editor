@@ -82,6 +82,8 @@ class LockElementSpec {
     this.strokeColorDigit1 = _clear,
     this.strokeColorDigit2 = _clear,
     this.isLiquidGlass = false,
+    this.isFrostedGlass = false,
+    this.perspectiveTilt = 0,
     this.shapeStrokeWidth = 8,
     this.startAngle = -90,
     this.sweepAngle = 270,
@@ -142,7 +144,12 @@ class LockElementSpec {
       isVisible,
       isLocked,
       useSeparateColors,
-      isLiquidGlass;
+      isLiquidGlass,
+      isFrostedGlass;
+
+  /// Degrees the clock text turns about the screen's vertical centre line,
+  /// so the digits grow linearly across the screen; baked into the PNGs.
+  final double perspectiveTilt;
   final double shapeStrokeWidth, startAngle, sweepAngle;
   final bool batteryArc;
   final ElementAnimation animation;
@@ -297,6 +304,8 @@ class LockElementSpec {
     'useSeparateColors': useSeparateColors,
     'blurRadius': blurRadius,
     'isLiquidGlass': isLiquidGlass,
+    'isFrostedGlass': isFrostedGlass,
+    'perspectiveTilt': perspectiveTilt,
     'shapeStrokeWidth': shapeStrokeWidth,
     'startAngle': startAngle,
     'sweepAngle': sweepAngle,
@@ -407,6 +416,8 @@ class LockElementSpec {
       useSeparateColors: j['useSeparateColors'] as bool? ?? false,
       blurRadius: dbl('blurRadius', 0),
       isLiquidGlass: j['isLiquidGlass'] as bool? ?? false,
+      isFrostedGlass: j['isFrostedGlass'] as bool? ?? false,
+      perspectiveTilt: dbl('perspectiveTilt', 0).clamp(-60, 60).toDouble(),
       shapeStrokeWidth: dbl('shapeStrokeWidth', 8),
       startAngle: dbl('startAngle', -90),
       sweepAngle: dbl('sweepAngle', 270),

@@ -76,6 +76,8 @@ class LockElement {
     this.strokeColorDigit1 = const Color(0x00000000),
     this.strokeColorDigit2 = const Color(0x00000000),
     this.isLiquidGlass = false,
+    this.isFrostedGlass = false,
+    this.perspectiveTilt = 0,
     this.shapeStrokeWidth = 8,
     this.startAngle = -90,
     this.sweepAngle = 270,
@@ -226,7 +228,18 @@ class LockElement {
       isVisible,
       isLocked,
       useSeparateColors,
-      isLiquidGlass;
+      isLiquidGlass,
+      isFrostedGlass;
+
+  /// See [LockElementSpec.perspectiveTilt].
+  final double perspectiveTilt;
+
+  /// Turn about the screen centre for [perspectiveTilt], or null when flat.
+  Matrix4? get perspectiveMatrix => perspectiveTilt == 0
+      ? null
+      : (Matrix4.identity()
+          ..setEntry(3, 2, .0025)
+          ..rotateY(perspectiveTilt * 3.141592653589793 / 180));
 
   String get name =>
       instanceId.isEmpty ? type.name : '${type.name}_$instanceId';
@@ -290,6 +303,8 @@ class LockElement {
     bool? useSeparateColors,
     double? blurRadius,
     bool? isLiquidGlass,
+    bool? isFrostedGlass,
+    double? perspectiveTilt,
     double? shapeStrokeWidth,
     double? startAngle,
     double? sweepAngle,
@@ -360,6 +375,8 @@ class LockElement {
     useSeparateColors: useSeparateColors ?? this.useSeparateColors,
     blurRadius: blurRadius ?? this.blurRadius,
     isLiquidGlass: isLiquidGlass ?? this.isLiquidGlass,
+    isFrostedGlass: isFrostedGlass ?? this.isFrostedGlass,
+    perspectiveTilt: perspectiveTilt ?? this.perspectiveTilt,
     shapeStrokeWidth: shapeStrokeWidth ?? this.shapeStrokeWidth,
     startAngle: startAngle ?? this.startAngle,
     sweepAngle: sweepAngle ?? this.sweepAngle,
@@ -431,6 +448,8 @@ class LockElement {
     'useSeparateColors': useSeparateColors,
     'blurRadius': blurRadius,
     'isLiquidGlass': isLiquidGlass,
+    'isFrostedGlass': isFrostedGlass,
+    'perspectiveTilt': perspectiveTilt,
     'shapeStrokeWidth': shapeStrokeWidth,
     'startAngle': startAngle,
     'sweepAngle': sweepAngle,
@@ -539,6 +558,11 @@ class LockElement {
     useSeparateColors: j['useSeparateColors'] as bool? ?? false,
     blurRadius: (j['blurRadius'] as num?)?.toDouble() ?? 0,
     isLiquidGlass: j['isLiquidGlass'] as bool? ?? false,
+    isFrostedGlass: j['isFrostedGlass'] as bool? ?? false,
+    perspectiveTilt: ((j['perspectiveTilt'] as num?)?.toDouble() ?? 0).clamp(
+      -60,
+      60,
+    ),
     shapeStrokeWidth: (j['shapeStrokeWidth'] as num?)?.toDouble() ?? 8,
     startAngle: (j['startAngle'] as num?)?.toDouble() ?? -90,
     sweepAngle: (j['sweepAngle'] as num?)?.toDouble() ?? 270,

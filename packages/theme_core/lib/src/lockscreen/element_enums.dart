@@ -97,6 +97,7 @@ enum ElementType {
   downloadsIcon,
   flashlightIcon,
   dragToUnlock,
+  depthLayer,
 }
 
 extension ElementTypeX on ElementType {
@@ -573,6 +574,17 @@ enum ArcProgressSource {
     };
     return value.clamp(0.0, 1.0).toDouble();
   }
+
+  /// MAML expression for [fraction], 0 to 1; null for [none].
+  String? get mamlFraction => switch (this) {
+    none => null,
+    battery => 'min(1,max(0,#battery_level/100))',
+    hour => '#hour24/24',
+    minute => '#minute/60',
+    second => '#second/60',
+    steps =>
+      'ifelse(gt(int(@MiSteps_goal),0),min(1,max(0,int(@MiSteps_steps)/max(1,int(@MiSteps_goal)))),0)',
+  };
 }
 
 /// Icon drawn on tap/slide/drag unlock controls. The Material glyph for each

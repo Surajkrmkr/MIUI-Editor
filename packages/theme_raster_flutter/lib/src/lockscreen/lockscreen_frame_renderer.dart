@@ -371,7 +371,10 @@ class LockscreenFrameRenderer {
         height: lockscreenViewHeight,
         width: lockscreenViewWidth,
         // Transparent background — MIUI composites layers itself
-        child: Stack(
+        child: Transform(
+          transform: el.perspectiveMatrix ?? Matrix4.identity(),
+          alignment: Alignment.center,
+          child: Stack(
           children: [
             Positioned(
               left: el.dx,
@@ -391,6 +394,7 @@ class LockscreenFrameRenderer {
               ),
             ),
           ],
+          ),
         ),
       ),
     );
@@ -427,6 +431,7 @@ class LockscreenFrameRenderer {
                 : el.strokeColor,
             blurRadius: el.blurRadius,
             isLiquidGlass: el.isLiquidGlass,
+            isFrostedGlass: el.isFrostedGlass,
           ),
           GradientText(
             text[1],
@@ -448,6 +453,7 @@ class LockscreenFrameRenderer {
                 : el.strokeColor,
             blurRadius: el.blurRadius,
             isLiquidGlass: el.isLiquidGlass,
+            isFrostedGlass: el.isFrostedGlass,
           ),
         ],
       );
@@ -471,6 +477,7 @@ class LockscreenFrameRenderer {
       strokeColor: el.strokeColor,
       blurRadius: el.blurRadius,
       isLiquidGlass: el.isLiquidGlass,
+      isFrostedGlass: el.isFrostedGlass,
     );
   }
 

@@ -199,6 +199,146 @@
    2
   ]
  },
+ "calendar/calendarGrid_abstractGeometric_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   218,
+   214,
+   215,
+   223
+  ]
+ },
+ "calendar/calendarGrid_bentoGrid_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   218,
+   211,
+   212,
+   222
+  ]
+ },
+ "calendar/calendarGrid_bracketModern_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   223,
+   222,
+   222,
+   222
+  ]
+ },
+ "calendar/calendarGrid_capsuleRow_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   215,
+   202,
+   202,
+   223
+  ]
+ },
+ "calendar/calendarGrid_cyberMatrix_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   219,
+   219,
+   220,
+   223
+  ]
+ },
+ "calendar/calendarGrid_floatingBadges_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   220,
+   219,
+   219,
+   223
+  ]
+ },
+ "calendar/calendarGrid_glassCard_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   217,
+   208,
+   208,
+   222
+  ]
+ },
+ "calendar/calendarGrid_gradientAura_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   187,
+   171,
+   174,
+   222
+  ]
+ },
+ "calendar/calendarGrid_lunarPhase_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   220,
+   220,
+   220,
+   222
+  ]
+ },
+ "calendar/calendarGrid_minimalDots_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   220,
+   220,
+   220,
+   222
+  ]
+ },
+ "calendar/calendarGrid_monolith_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   219,
+   218,
+   218,
+   223
+  ]
+ },
+ "calendar/calendarGrid_neoBrutalism_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   213,
+   214,
+   214,
+   222
+  ]
+ },
+ "calendar/calendarGrid_neonCyber_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   220,
+   220,
+   220,
+   223
+  ]
+ },
+ "calendar/calendarGrid_outlineRings_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   219,
+   218,
+   219,
+   223
+  ]
+ },
  "calendar/calendarGrid_pillColumn_panel.png": {
   "w": 446,
   "h": 356,
@@ -219,6 +359,36 @@
    221
   ]
  },
+ "calendar/calendarGrid_polarArc_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   219,
+   219,
+   219,
+   223
+  ]
+ },
+ "calendar/calendarGrid_softNeumorphism_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   223,
+   221,
+   221,
+   224
+  ]
+ },
+ "calendar/calendarGrid_splitFlap_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   219,
+   218,
+   218,
+   223
+  ]
+ },
  "calendar/calendarGrid_stripHeader_panel.png": {
   "w": 446,
   "h": 356,
@@ -227,6 +397,16 @@
    207,
    208,
    221
+  ]
+ },
+ "calendar/calendarGrid_ticketStub_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   220,
+   220,
+   220,
+   223
   ]
  },
  "container/containerBG1.png": {
@@ -1375,7 +1555,7 @@
   "mean": [
    4,
    4,
-   4,
+   3,
    5
   ]
  },
@@ -1385,7 +1565,7 @@
   "mean": [
    3,
    3,
-   3,
+   2,
    4
   ]
  },
@@ -1425,7 +1605,7 @@
   "mean": [
    10,
    10,
-   8,
+   7,
    12
   ]
  },

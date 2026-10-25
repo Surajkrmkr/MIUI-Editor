@@ -414,7 +414,6 @@
             "calendarGrid",
             "toggleSwitch",
             "missedCalls",
-            "stepsCount",
             "batteryLevel",
             "progressBar",
             "batteryText",
@@ -423,11 +422,6 @@
             "ellipseShape",
             "lineShape",
             "arcShape",
-            "stepsGoal",
-            "stepsDistance",
-            "stepsCalories",
-            "stepsDuration",
-            "stepsSummary",
             "weatherCity",
             "weatherTemperatureRange",
             "weatherAqi",
@@ -445,7 +439,9 @@
             "radioIcon",
             "recorderIcon",
             "downloadsIcon",
-            "dragToUnlock"
+            "flashlightIcon",
+            "dragToUnlock",
+            "depthLayer"
           ]
         },
         "dx": {
@@ -472,8 +468,7 @@
             "battery",
             "hour",
             "minute",
-            "second",
-            "steps"
+            "second"
           ]
         },
         "radius": {
@@ -650,6 +645,9 @@
         "shortcutApps": {
           "type": "string"
         },
+        "shortcutThemeIcons": {
+          "type": "boolean"
+        },
         "borderWidth": {
           "type": "number"
         },
@@ -748,6 +746,12 @@
         },
         "isLiquidGlass": {
           "type": "boolean"
+        },
+        "isFrostedGlass": {
+          "type": "boolean"
+        },
+        "perspectiveTilt": {
+          "type": "number"
         },
         "shapeStrokeWidth": {
           "type": "number"

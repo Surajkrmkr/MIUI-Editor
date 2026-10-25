@@ -20,17 +20,29 @@ class LockElementFrame extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => Transform.scale(
-    scale: element.scale,
-    child: Transform.rotate(
-      angle: -element.angle * pi / 180,
-      child: SizedBox(
-        height: lockscreenViewHeight,
-        width: lockscreenViewWidth,
-        child: Align(alignment: element.align, child: child),
+  Widget build(BuildContext context) {
+    final frame = Transform.scale(
+      scale: element.scale,
+      child: Transform.rotate(
+        angle: -element.angle * pi / 180,
+        child: SizedBox(
+          height: lockscreenViewHeight,
+          width: lockscreenViewWidth,
+          child: Align(alignment: element.align, child: child),
+        ),
       ),
-    ),
-  );
+    );
+    final perspective = element.perspectiveMatrix;
+    if (perspective == null) return frame;
+    // The caller offsets this box by dx/dy; pivot on the screen centre so
+    // every tilted clock element shares one surface.
+    return Transform(
+      transform: perspective,
+      alignment: Alignment.center,
+      origin: Offset(-element.dx, -element.dy),
+      child: frame,
+    );
+  }
 }
 
 /// The lockscreen as a still picture: wallpaper, dimming and every visible

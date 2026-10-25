@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/theme_extensions.dart';
 import 'package:miui_icon_generator/theme_editor/presentation/providers/wallpaper_provider.dart';
@@ -14,6 +16,9 @@ import 'ai_generate_dialog.dart';
 import 'apply_to_device_dialog.dart';
 import '../preset_dialog.dart';
 import 'manifest_editor_dialog.dart';
+
+const _depthModelPrefsKey = 'depth_segmentation_model_path';
+final _depthBusyProvider = StateProvider<bool>((_) => false);
 
 class LockscreenFunctionsPanel extends ConsumerWidget {
   const LockscreenFunctionsPanel({
@@ -72,6 +77,22 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 8),
+                Consumer(
+                  builder: (context, ref, _) {
+                    final depthBusy = ref.watch(_depthBusyProvider);
+                    return _ActionButton(
+                      icon: Icons.filter_hdr_rounded,
+                      label: depthBusy
+                          ? 'Cutting out subject…'
+                          : 'Depth Effect',
+                      isOutlined: true,
+                      onPressed: depthBusy || busy
+                          ? null
+                          : () => _createDepthLayer(context, ref),
+                    );
+                  },
                 ),
                 const SizedBox(height: 12),
                 Consumer(
@@ -293,6 +314,74 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
     ref
         .read(elementProvider.notifier)
         .setGuideLines(ref.read(elementProvider).activeType, false);
+  }
+
+  Future<void> _createDepthLayer(BuildContext context, WidgetRef ref) async {
+    void say(String message) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    }
+
+    final ws = ref.read(wallpaperProvider);
+    if (ws.weekNum == null || ws.currentThemeName == null) {
+      say('Load a wallpaper first');
+      return;
+    }
+    final lsAdv = PathConstants.lockscreenAdvance(
+      PathConstants.themePath(ws.weekNum!, ws.currentThemeName!),
+    );
+    // Same background the canvas shows: bg.png first, else the wallpaper.
+    final bg = File(PathConstants.p('${lsAdv}bg.png'));
+    final fromBg = bg.existsSync();
+    final source = fromBg ? bg.path : ws.currentPath;
+    if (source == null || !File(source).existsSync()) {
+      say('Load a wallpaper first');
+      return;
+    }
+
+    final prefs = ref.read(sharedPrefsProvider);
+    var model = prefs.getString(_depthModelPrefsKey);
+    if (model == null || !File(model).existsSync()) {
+      final picked = await FilePicker.platform.pickFiles(
+        dialogTitle: 'Choose a segmentation model (isnet / u2net / birefnet .onnx)',
+        type: FileType.custom,
+        allowedExtensions: const ['onnx'],
+      );
+      model = picked?.files.singleOrNull?.path;
+      if (model == null) return;
+      await prefs.setString(_depthModelPrefsKey, model);
+    }
+
+    ref.read(_depthBusyProvider.notifier).state = true;
+    try {
+      final cutout = await ref
+          .read(subjectSegmentationProvider)
+          .cutout(imagePath: source, modelPath: model);
+      final file = File(
+        PathConstants.p('${lsAdv}depth${PathConstants.sep}depthLayer.png'),
+      );
+      await file.parent.create(recursive: true);
+      await file.writeAsBytes(cutout.png);
+      await FileImage(file).evict();
+      ref
+          .read(elementProvider.notifier)
+          .setDepthLayer(
+            LockElement(
+              type: ElementType.depthLayer,
+              width: cutout.width.toDouble(),
+              height: cutout.height.toDouble(),
+              path: fromBg ? 'bg.png' : '',
+              isLocked: true,
+            ),
+          );
+      say('Depth layer added above the clock');
+    } catch (error) {
+      say('Depth effect failed: $error');
+    } finally {
+      ref.read(_depthBusyProvider.notifier).state = false;
+    }
   }
 
   Future<void> _dropVideo(WidgetRef ref, String path) async {
