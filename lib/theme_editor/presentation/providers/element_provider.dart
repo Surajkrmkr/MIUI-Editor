@@ -645,6 +645,7 @@ class ElementNotifier extends Notifier<ElementState> {
       redoCount: 0,
     );
   }
+
   void resetPosition(ElementType t) =>
       _change(t, (e) => e.copyWith(dx: 0, dy: 0));
   void centerHorizontal(ElementType t) => _change(t, (e) => e.copyWith(dx: 0));

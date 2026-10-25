@@ -7,8 +7,10 @@ import '../../core/services/subject_segmentation_service.dart';
 
 enum AiProvider { gemini, groq, ollama }
 
-final fileServiceProvider    = Provider<FileService>((_)    => FileService());
-final archiveServiceProvider = Provider<ArchiveService>((_) => ArchiveService());
+final fileServiceProvider = Provider<FileService>((_) => FileService());
+final archiveServiceProvider = Provider<ArchiveService>(
+  (_) => ArchiveService(),
+);
 final subjectSegmentationProvider = Provider<SubjectSegmentationService>((ref) {
   final service = SubjectSegmentationService();
   ref.onDispose(service.dispose);
@@ -16,28 +18,42 @@ final subjectSegmentationProvider = Provider<SubjectSegmentationService>((ref) {
 });
 
 final sharedPrefsProvider = Provider<SharedPreferences>(
-  (_) => throw UnimplementedError('Override sharedPrefsProvider in ProviderScope'),
+  (_) =>
+      throw UnimplementedError('Override sharedPrefsProvider in ProviderScope'),
 );
 
 final aiProviderProvider = StateProvider<AiProvider>((ref) {
-  final raw = ref.watch(sharedPrefsProvider).getString(AppConstants.prefsAiProvider);
-  return AiProvider.values.firstWhere((e) => e.name == raw, orElse: () => AiProvider.groq);
+  final raw = ref
+      .watch(sharedPrefsProvider)
+      .getString(AppConstants.prefsAiProvider);
+  return AiProvider.values.firstWhere(
+    (e) => e.name == raw,
+    orElse: () => AiProvider.groq,
+  );
 });
 
 final geminiApiKeyProvider = StateProvider<String>((ref) {
-  return ref.watch(sharedPrefsProvider).getString(AppConstants.prefsGeminiKey) ?? '';
+  return ref
+          .watch(sharedPrefsProvider)
+          .getString(AppConstants.prefsGeminiKey) ??
+      '';
 });
 
 final groqApiKeyProvider = StateProvider<String>((ref) {
-  return ref.watch(sharedPrefsProvider).getString(AppConstants.prefsGroqKey) ?? '';
+  return ref.watch(sharedPrefsProvider).getString(AppConstants.prefsGroqKey) ??
+      '';
 });
 
 final ollamaHostProvider = StateProvider<String>((ref) {
-  return ref.watch(sharedPrefsProvider).getString(AppConstants.prefsOllamaHost)
-      ?? AppConstants.ollamaDefaultHost;
+  return ref
+          .watch(sharedPrefsProvider)
+          .getString(AppConstants.prefsOllamaHost) ??
+      AppConstants.ollamaDefaultHost;
 });
 
 final ollamaModelProvider = StateProvider<String>((ref) {
-  return ref.watch(sharedPrefsProvider).getString(AppConstants.prefsOllamaModel)
-      ?? AppConstants.ollamaDefaultModel;
+  return ref
+          .watch(sharedPrefsProvider)
+          .getString(AppConstants.prefsOllamaModel) ??
+      AppConstants.ollamaDefaultModel;
 });

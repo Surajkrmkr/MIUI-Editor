@@ -375,25 +375,25 @@ class LockscreenFrameRenderer {
           transform: el.perspectiveMatrix ?? Matrix4.identity(),
           alignment: Alignment.center,
           child: Stack(
-          children: [
-            Positioned(
-              left: el.dx,
-              top: el.dy,
-              child: Transform.scale(
-                scale: el.scale,
-                // No alignment override — default Alignment.center matches the
-                // live preview's Transform.scale behaviour exactly.
-                child: Transform.rotate(
-                  angle: -el.angle * pi / 180,
-                  child: SizedBox(
-                    height: lockscreenViewHeight,
-                    width: lockscreenViewWidth,
-                    child: Align(alignment: el.align, child: child),
+            children: [
+              Positioned(
+                left: el.dx,
+                top: el.dy,
+                child: Transform.scale(
+                  scale: el.scale,
+                  // No alignment override — default Alignment.center matches the
+                  // live preview's Transform.scale behaviour exactly.
+                  child: Transform.rotate(
+                    angle: -el.angle * pi / 180,
+                    child: SizedBox(
+                      height: lockscreenViewHeight,
+                      width: lockscreenViewWidth,
+                      child: Align(alignment: el.align, child: child),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
           ),
         ),
       ),

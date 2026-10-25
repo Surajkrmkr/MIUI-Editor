@@ -718,7 +718,9 @@ class ElementInfoPanel extends ConsumerWidget {
                     height: 36,
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     decoration: BoxDecoration(
-                      color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      color: scheme.surfaceContainerHighest.withValues(
+                        alpha: 0.5,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: scheme.outlineVariant.withValues(alpha: 0.5),
@@ -819,7 +821,9 @@ class ElementInfoPanel extends ConsumerWidget {
                     height: 36,
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     decoration: BoxDecoration(
-                      color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      color: scheme.surfaceContainerHighest.withValues(
+                        alpha: 0.5,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: scheme.outlineVariant.withValues(alpha: 0.5),
@@ -851,7 +855,8 @@ class ElementInfoPanel extends ConsumerWidget {
                             CalendarStyle.splitFlap => 'Split Flap',
                             CalendarStyle.capsuleRow => 'Capsule Row',
                             CalendarStyle.floatingBadges => 'Floating Badges',
-                            CalendarStyle.abstractGeometric => 'Abstract Geometric',
+                            CalendarStyle.abstractGeometric =>
+                              'Abstract Geometric',
                             CalendarStyle.outlineRings => 'Outline Rings',
                             CalendarStyle.monolith => 'Monolith',
                             CalendarStyle.bracketModern => 'Bracket Modern',
@@ -870,7 +875,8 @@ class ElementInfoPanel extends ConsumerWidget {
                           if (style != null) {
                             n.update(
                               el.type,
-                              (element) => element.copyWith(calendarStyle: style),
+                              (element) =>
+                                  element.copyWith(calendarStyle: style),
                             );
                           }
                         },

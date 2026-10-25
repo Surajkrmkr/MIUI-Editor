@@ -345,7 +345,8 @@ class LockscreenFunctionsPanel extends ConsumerWidget {
     var model = prefs.getString(_depthModelPrefsKey);
     if (model == null || !File(model).existsSync()) {
       final picked = await FilePicker.platform.pickFiles(
-        dialogTitle: 'Choose a segmentation model (isnet / u2net / birefnet .onnx)',
+        dialogTitle:
+            'Choose a segmentation model (isnet / u2net / birefnet .onnx)',
         type: FileType.custom,
         allowedExtensions: const ['onnx'],
       );

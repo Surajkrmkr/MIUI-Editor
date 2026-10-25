@@ -13,7 +13,12 @@ enum SegmentationModel {
   u2net(320, [.485, .456, .406], [.229, .224, .225]),
   birefnet(1024, [.485, .456, .406], [.229, .224, .225], logits: true);
 
-  const SegmentationModel(this.size, this.mean, this.std, {this.logits = false});
+  const SegmentationModel(
+    this.size,
+    this.mean,
+    this.std, {
+    this.logits = false,
+  });
 
   final int size;
   final List<double> mean, std;
