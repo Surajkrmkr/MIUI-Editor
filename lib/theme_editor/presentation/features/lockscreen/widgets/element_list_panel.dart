@@ -133,30 +133,35 @@ class ElementListPanel extends ConsumerWidget {
                       _SetsTile(
                         title: 'Clock Sets',
                         all: clockSetsFor(user),
-                        fallback: builtinClockSets,
+                        user: user,
                         owns: (e) => clockSetElementTypes.contains(e.type),
                         state: state,
                         notifier: notifier,
                       ),
-                      if (user == null || user == 'suraj') ...[
-                        _SetsTile(
-                          title: 'Weather Sets',
-                          all: builtinWeatherSets,
-                          owns: isWeatherSetElement,
-                          state: state,
-                          notifier: notifier,
-                        ),
-                        _SetsTile(
-                          title: 'Battery Sets',
-                          all: builtinBatterySets,
-                          owns: isBatterySetElement,
-                          state: state,
-                          notifier: notifier,
-                        ),
-                      ],
+                      _SetsTile(
+                        title: 'Weather Sets',
+                        all: _forUser(builtinWeatherSets, user),
+                        user: user,
+                        owns: isWeatherSetElement,
+                        state: state,
+                        notifier: notifier,
+                      ),
+                      _SetsTile(
+                        title: 'Battery Sets',
+                        all: _forUser(builtinBatterySets, user),
+                        user: user,
+                        owns: isBatterySetElement,
+                        state: state,
+                        notifier: notifier,
+                      ),
                     ],
                     ...entry.value.map((type) {
                       final added = state.contains(type);
+                      final styled =
+                          type == ElementType.shortcutSet ||
+                          type == ElementType.analogClock;
+                      final style = styled ? _firstStyleFor(type, user) : null;
+                      final noStyles = styled && !added && style == null;
                       return Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -186,40 +191,38 @@ class ElementListPanel extends ConsumerWidget {
                                   ? colors.onPrimary
                                   : scheme.onSurfaceVariant,
                             ),
-                            title: Text(
-                              type == ElementType.shortcutSet
-                                  ? 'Shortcut Sets'
-                                  : type.label,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: added
-                                    ? FontWeight.w700
-                                    : FontWeight.normal,
-                                color: added
-                                    ? colors.onPrimary
-                                    : scheme.onSurface,
+                            title: Tooltip(
+                              message: noStyles ? 'No styles for $user' : '',
+                              child: Text(
+                                type == ElementType.shortcutSet
+                                    ? 'Shortcut Sets'
+                                    : type.label,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: added
+                                      ? FontWeight.w700
+                                      : FontWeight.normal,
+                                  color: noStyles
+                                      ? scheme.onSurface.withAlpha(110)
+                                      : added
+                                      ? colors.onPrimary
+                                      : scheme.onSurface,
+                                ),
                               ),
                             ),
                             onTap: () {
-                              if (!added && type == ElementType.shortcutSet) {
-                                notifier.add(
-                                  builtinShortcutStyles.styles.first.applyTo(
-                                    const LockElement(
-                                      type: ElementType.shortcutSet,
+                              if (noStyles) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'No ${type == ElementType.shortcutSet ? 'shortcut' : 'analog clock'} styles for $user.',
                                     ),
                                   ),
                                 );
-                              } else if (!added &&
-                                  type == ElementType.analogClock) {
-                                notifier.add(
-                                  builtinAnalogStyles.styles.first.applyTo(
-                                    const LockElement(
-                                      type: ElementType.analogClock,
-                                    ),
-                                  ),
-                                );
+                              } else if (!added && style != null) {
+                                notifier.add(style);
                               } else if (!added || type.isShape) {
                                 notifier.add(
                                   LockElement(
@@ -277,16 +280,14 @@ class _SetsTile extends StatelessWidget {
   const _SetsTile({
     required this.title,
     required this.all,
+    required this.user,
     required this.owns,
     required this.state,
     required this.notifier,
-    this.fallback,
   });
   final String title;
   final List<ClockSetPreset> all;
-
-  /// Used when [all] is empty, so a tap always adds something.
-  final List<ClockSetPreset>? fallback;
+  final String? user;
   final bool Function(LockElement element) owns;
   final ElementState state;
   final ElementNotifier notifier;
@@ -296,6 +297,7 @@ class _SetsTile extends StatelessWidget {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
     final added = state.elements.any(owns);
+    final empty = all.isEmpty && !added;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       child: Material(
@@ -313,22 +315,50 @@ class _SetsTile extends StatelessWidget {
             size: 16,
             color: added ? colors.onPrimary : scheme.onSurfaceVariant,
           ),
-          title: Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: added ? FontWeight.w700 : FontWeight.normal,
-              color: added ? colors.onPrimary : scheme.onSurface,
+          title: Tooltip(
+            message: empty ? 'No $title for $user' : '',
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: added ? FontWeight.w700 : FontWeight.normal,
+                color: empty
+                    ? scheme.onSurface.withAlpha(110)
+                    : added
+                    ? colors.onPrimary
+                    : scheme.onSurface,
+              ),
             ),
           ),
-          onTap: () => added
-              ? notifier.removeElements(owns)
-              : notifier.applyElementSet(
-                  (all.firstOrNull ?? fallback!.first).elements,
-                  owns,
-                ),
+          onTap: () {
+            if (added) {
+              notifier.removeElements(owns);
+            } else if (empty) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('No $title for $user.')));
+            } else {
+              notifier.applyElementSet(all.first.elements, owns);
+            }
+          },
         ),
       ),
     );
   }
+}
+
+List<ClockSetPreset> _forUser(List<ClockSetPreset> sets, String? user) => [
+  for (final set in sets)
+    if (user == null || set.user == null || set.user == user) set,
+];
+
+/// The first style of [type] in the sets [user] may use; null if none.
+LockElement? _firstStyleFor(ElementType type, String? user) {
+  for (final set in builtinStyleSets) {
+    if (set.user != null && user != null && set.user != user) continue;
+    for (final style in set.styles) {
+      if (style.type == type) return style.applyTo(LockElement(type: type));
+    }
+  }
+  return null;
 }
