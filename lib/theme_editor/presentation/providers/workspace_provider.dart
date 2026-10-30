@@ -7,6 +7,7 @@ enum WorkspacePage {
   svgEditor,
   lockscreen,
   lockscreenPresets, // Preset browser while staying on the lockscreen canvas
+  bulkEdit, // Lockscreen previews of every theme in the week, to pick one
   icons, // Retaining for compatibility with existing logic
   export,
   home,

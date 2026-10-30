@@ -124,7 +124,26 @@ class LockscreenScreen extends ConsumerWidget {
             ),
           ),
           Positioned.fill(child: FloatingLayersPanel()),
+          Positioned.fill(child: _OpeningOverlay()),
         ],
+      ),
+    );
+  }
+}
+
+// ── Opening overlay ──────────────────────────────────────────────────────────
+
+/// Blocks edits while another theme loads, so none are lost to the switch.
+class _OpeningOverlay extends ConsumerWidget {
+  const _OpeningOverlay();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(themeOpeningProvider)) return const SizedBox.shrink();
+    return const AbsorbPointer(
+      child: ColoredBox(
+        color: Colors.black38,
+        child: Center(child: CircularProgressIndicator()),
       ),
     );
   }

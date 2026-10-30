@@ -12,6 +12,7 @@ class ManageWidgetStylesUseCase {
     required String name,
     WidgetStyleSet? set,
     String setName = 'Personal',
+    String? user,
   }) async {
     try {
       final timestamp = DateTime.now().microsecondsSinceEpoch;
@@ -24,9 +25,12 @@ class ManageWidgetStylesUseCase {
       final target = WidgetStyleSet(
         id:
             set?.id ??
-            (targetName == 'Personal' ? 'personal' : 'set-$timestamp'),
+            (targetName == 'Personal'
+                ? (user == null ? 'personal' : 'personal-$user')
+                : 'set-$timestamp'),
         name: targetName,
         styles: [...?set?.styles, style],
+        user: set == null ? user : set.user,
       );
       final failure = await repository.save(target);
       return failure == null ? (target, null) : (null, failure);
@@ -36,6 +40,10 @@ class ManageWidgetStylesUseCase {
   }
 
   Future<(List<WidgetStyleSet>, Failure?)> load() => repository.load();
+
+  /// Makes [set] [user]'s own, so the AI offers it only for that user.
+  Future<Failure?> assignUser(WidgetStyleSet set, String user) =>
+      repository.save(set.copyWith(user: user));
   Future<(WidgetStyleSet?, Failure?)> importSet(String path) =>
       repository.importSet(path);
   Future<Failure?> exportSet(WidgetStyleSet set, String path) =>

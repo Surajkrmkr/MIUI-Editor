@@ -90,15 +90,64 @@ void main() {
   });
 
   group('list_widget_styles / get_widget_style', () {
-    test('list the built-in sets', () async {
-      final r = await call('list_widget_styles', {}, withRoot: false);
+    test('list the built-in sets of the user', () async {
+      final r = await call('list_widget_styles', {
+        'user': 'suraj',
+      }, withRoot: false);
       final sets = body(r)['sets'] as List;
-      expect(sets.map((s) => s['id']), contains('builtin-analog'));
+      expect(sets.map((s) => s['id']), contains('builtin-analog-suraj'));
       expect(sets.every((s) => s['builtin'] == true), isTrue);
+      expect(sets.every((s) => s['user'] == 'suraj'), isTrue);
+      expect(body(r)['scope'], 'user');
+    });
+
+    test('the built-in styles are shared out, none twice', () async {
+      final ids = <String>[];
+      for (final user in ['suraj', 'subhangi', 'annapurna']) {
+        final r = await call('list_widget_styles', {
+          'user': user,
+        }, withRoot: false);
+        ids.addAll([
+          for (final s in body(r)['sets'] as List)
+            for (final st in s['styles'] as List) st['id'] as String,
+        ]);
+      }
+      expect(ids.toSet(), hasLength(ids.length));
+      final all = WidgetLibrary.builtin.styleSets.expand((s) => s.styles);
+      expect(ids, hasLength(all.length));
+    });
+
+    test('a user without sets gets every built-in one', () async {
+      final r = await call('list_widget_styles', {
+        'user': 'rajat',
+      }, withRoot: false);
+      expect(body(r)['scope'], 'builtin_fallback');
+      final sets = body(r)['sets'] as List;
+      expect(sets.map((s) => s['user']), containsAll(['suraj', 'subhangi']));
+    });
+
+    test('need to know the user', () async {
+      final r = await call('list_widget_styles', {});
+      expect(r['isError'], isTrue);
+      expect(r['content'][0]['text'], contains('Ask the designer'));
+      final bad = await call('list_widget_styles', {'user': 'nobody'});
+      expect(bad['isError'], isTrue);
+    });
+
+    test('list_users names every user with their set count', () async {
+      final r = await call('list_users', {}, withRoot: false);
+      final users = body(r)['users'] as List;
+      expect(users.map((u) => u['user']), themeUsers);
+      final counts = {for (final u in users) u['user']: u['style_sets']};
+      expect(counts['suraj'], 4);
+      expect(counts['rajat'], 0);
     });
 
     test('filter by element type', () async {
-      final r = await call('list_widget_styles', {'type': 'analogClock'});
+      final r = await call('list_widget_styles', {
+        'user': 'suraj',
+        'type': 'analogClock',
+      });
       final styles = [
         for (final s in body(r)['sets'] as List) ...s['styles'] as List,
       ];
@@ -107,7 +156,10 @@ void main() {
     });
 
     test('get_widget_style applies a style to an element', () async {
-      final list = await call('list_widget_styles', {'type': 'analogClock'});
+      final list = await call('list_widget_styles', {
+        'user': 'suraj',
+        'type': 'analogClock',
+      });
       final id = (body(list)['sets'] as List)
           .expand((s) => s['styles'] as List)
           .first['id'];
@@ -121,7 +173,10 @@ void main() {
     });
 
     test('a style for another element type is refused', () async {
-      final list = await call('list_widget_styles', {'type': 'analogClock'});
+      final list = await call('list_widget_styles', {
+        'user': 'suraj',
+        'type': 'analogClock',
+      });
       final id = (body(list)['sets'] as List)
           .expand((s) => s['styles'] as List)
           .first['id'];
@@ -143,12 +198,13 @@ void main() {
             ..createSync(recursive: true)
             ..writeAsStringSync(jsonEncode(json));
 
-      test('are listed after the built-in ones and can be applied', () async {
+      test('are listed for their user only and can be applied', () async {
         save('mine.json', {
           'format': 'miui-editor.widget-style-set',
           'version': 1,
           'id': 'mine',
           'name': 'Mine',
+          'user': 'suraj',
           'styles': [
             {
               'id': 'mine-1',
@@ -165,25 +221,107 @@ void main() {
             },
           ],
         });
+        save('theirs.json', {
+          'format': 'miui-editor.widget-style-set',
+          'version': 1,
+          'id': 'theirs',
+          'name': 'Theirs',
+          'user': 'rajat',
+          'styles': [
+            {
+              'id': 'theirs-1',
+              'name': 'Red',
+              'type': 'tapToUnlock',
+              'appearance': {'color': '#FF0000'},
+            },
+          ],
+        });
         save('broken.json', {'format': 'x'});
-        final r = await call('list_widget_styles', {});
+        final r = await call('list_widget_styles', {'user': 'Suraj'});
         final sets = body(r)['sets'] as List;
-        final mine = sets.firstWhere((s) => s['id'] == 'mine');
+        expect(body(r)['scope'], 'user');
+        final own = sets.where((s) => s['builtin'] == false).toList();
+        expect(sets.map((s) => s['id']), contains('mine'));
+        expect(sets.map((s) => s['id']), isNot(contains('theirs')));
+        expect(sets.every((s) => s['user'] == 'suraj'), isTrue);
+        final mine = own.single;
         expect(mine['builtin'], isFalse);
+        expect(mine['user'], 'suraj');
         expect((mine['styles'] as List).map((s) => s['id']), ['mine-1']);
         expect(mine['left_out'], contains('1 styles'));
         expect(body(r)['unreadable'], [contains('broken.json')]);
 
         final got = await call('get_widget_style', {
           'id': 'mine-1',
+          'user': 'suraj',
           'element': {'type': 'tapToUnlock'},
         });
         expect(body(got)['element']['color'], '#FFD700');
+
+        final other = await call('get_widget_style', {
+          'id': 'theirs-1',
+          'user': 'suraj',
+        });
+        expect(other['isError'], isTrue);
+        expect(other['content'][0]['text'], contains('belongs to rajat'));
+
+        final users = body(await call('list_users', {}))['users'] as List;
+        expect(users.firstWhere((u) => u['user'] == 'suraj')['style_sets'], 5);
+      });
+
+      test('a user without sets of the type gets the built-in ones', () async {
+        save('mine.json', {
+          'format': 'miui-editor.widget-style-set',
+          'version': 1,
+          'id': 'mine',
+          'name': 'Mine',
+          'user': 'suraj',
+          'styles': [
+            {
+              'id': 'mine-1',
+              'name': 'Gold',
+              'type': 'tapToUnlock',
+              'appearance': {'color': '#FFD700'},
+            },
+          ],
+        });
+        final r = await call('list_widget_styles', {
+          'user': 'rajat',
+          'type': 'analogClock',
+        });
+        expect(body(r)['scope'], 'builtin_fallback');
+        expect(body(r)['note'], contains('analogClock'));
+        final sets = body(r)['sets'] as List;
+        expect(sets.every((s) => s['builtin'] == true), isTrue);
+      });
+
+      test('a set nobody has claimed is not offered to a user', () async {
+        save('old.json', {
+          'format': 'miui-editor.widget-style-set',
+          'version': 1,
+          'id': 'old',
+          'name': 'Old',
+          'styles': [
+            {
+              'id': 'old-1',
+              'name': 'Plain',
+              'type': 'tapToUnlock',
+              'appearance': {'color': '#FFFFFF'},
+            },
+          ],
+        });
+        final r = await call('list_widget_styles', {'user': 'suraj'});
+        expect(
+          (body(r)['sets'] as List).map((s) => s['id']),
+          isNot(contains('old')),
+        );
       });
 
       test('are only read when a root is set', () async {
         save('mine.json', {'format': 'miui-editor.widget-style-set'});
-        final r = await call('list_widget_styles', {}, withRoot: false);
+        final r = await call('list_widget_styles', {
+          'user': 'suraj',
+        }, withRoot: false);
         expect(body(r).containsKey('unreadable'), isFalse);
       });
     });

@@ -142,6 +142,7 @@ void main() {
       'list_presets',
       'get_preset',
       'get_rules',
+      'list_users',
       'list_widgets',
       'get_widget',
       'list_widget_styles',

@@ -43,6 +43,35 @@ import 'tool_context.dart';
   return (sets: sets, problems: problems);
 }
 
+/// The user a call is for, as a profile name. Throws when it is missing or
+/// unknown, so the agent has to ask the designer instead of guessing.
+String requireUser(Map<String, dynamic> args) {
+  final given = args['user'];
+  if (given == null || (given is String && given.trim().isEmpty)) {
+    throw ToolException(
+      'user is required. Ask the designer which user this theme is for '
+      'unless the request already names one; do not guess. '
+      'Users: ${themeUsers.join(', ')}.',
+    );
+  }
+  final user = themeUserOf(given);
+  if (user == null) {
+    throw ToolException(
+      'Unknown user "$given". Users: ${themeUsers.join(', ')}. Ask the '
+      'designer if it is unclear.',
+    );
+  }
+  return user;
+}
+
+const userProp = {
+  'type': 'string',
+  'enum': themeUsers,
+  'description':
+      'The user the theme is built for. Use the one the designer named; if '
+      'the request names none, ask the designer before calling this.',
+};
+
 bool _offScreen(Map<String, dynamic> e) =>
     ((e['dx'] as num?) ?? 0).abs() > 138 ||
     ((e['dy'] as num?) ?? 0).abs() > 300;
@@ -68,6 +97,40 @@ Map<String, dynamic> _elementArg(Object? v) {
 
 /// Tools that tell the agent what the desktop editor's Widget Center offers.
 List<McpTool> widgetTools(ThemeToolContext ctx) => [
+  McpTool(
+    name: 'list_users',
+    description:
+        'Lists the users themes are built for, with how many saved style '
+        'sets each has. Every design starts by knowing the user: when the '
+        'designer\'s request does not name one, show this list and ask which '
+        'user the theme is for before designing.',
+    inputSchema: const {
+      'type': 'object',
+      'properties': {
+        'user': {
+          'type': 'string',
+          'description': 'Only this user, to see how many sets they have.',
+        },
+      },
+    },
+    readOnly: true,
+    handler: (args, progress) async {
+      final only = args['user'] == null ? null : requireUser(args);
+      final sets = _styleSets(ctx).sets;
+      return ToolResult(
+        jsonEncode({
+          'users': [
+            for (final u in themeUsers)
+              if (only == null || u == only)
+                {
+                  'user': u,
+                  'style_sets': sets.where((s) => s.$1.user == u).length,
+                },
+          ],
+        }),
+      );
+    },
+  ),
   McpTool(
     name: 'list_widgets',
     description:
@@ -167,12 +230,15 @@ List<McpTool> widgetTools(ThemeToolContext ctx) => [
     description:
         'Lists the saved looks for unlock controls (tapToUnlock, '
         'slideToUnlock, dragToUnlock), analog clocks, shortcut sets and '
-        'calendar grids: the editor\'s built-in sets and, when a root folder '
-        'is set, the designer\'s own from WidgetStyles/. Apply one with '
+        'calendar grids, for one user: only the style sets that user made '
+        'in the desktop editor (WidgetStyles/). Pick styles from these '
+        'only. When the user has none for the type, the editor\'s built-in '
+        'sets are listed instead and scope says so. Apply one with '
         'get_widget_style.',
     inputSchema: const {
       'type': 'object',
       'properties': {
+        'user': userProp,
         'type': {
           'type': 'string',
           'description': 'Only styles for this element type, e.g. analogClock.',
@@ -182,21 +248,44 @@ List<McpTool> widgetTools(ThemeToolContext ctx) => [
           'description': 'Only this style set (its id from an earlier call).',
         },
       },
+      'required': ['user'],
     },
     readOnly: true,
     handler: (args, progress) async {
+      final user = requireUser(args);
       final type = args['type'] as String?;
       final only = args['set'] as String?;
       final loaded = _styleSets(ctx);
+      bool offers(WidgetStyleSet s) =>
+          s.styles.any((st) => type == null || st.type.name == type);
+      final own = [
+        for (final e in loaded.sets)
+          if (e.$1.user == user) e,
+      ];
+      final useOwn = own.any((e) => offers(e.$1));
+      final shown = useOwn
+          ? own
+          : [
+              for (final e in loaded.sets)
+                if (e.$2) e,
+            ];
+      final forType = type == null ? '' : ' with $type styles';
       return ToolResult(
         jsonEncode({
+          'user': user,
+          'scope': useOwn ? 'user' : 'builtin_fallback',
+          if (!useOwn)
+            'note':
+                '$user has no style sets$forType; these are every built-in '
+                'set.',
           'sets': [
-            for (final (set, builtin) in loaded.sets)
+            for (final (set, builtin) in shown)
               if (only == null || set.id == only)
                 {
                   'id': set.id,
                   'name': set.name,
                   'builtin': builtin,
+                  if (set.user != null) 'user': set.user,
                   if (set.skipped > 0)
                     'left_out': '${set.skipped} styles that need an icon image',
                   'styles': [
@@ -232,6 +321,7 @@ List<McpTool> widgetTools(ThemeToolContext ctx) => [
               'An element of the style\'s type as JSON text, e.g. '
               '{"type":"analogClock","dx":120}.',
         },
+        'user': userProp,
       },
       'required': ['id'],
     },
@@ -241,6 +331,7 @@ List<McpTool> widgetTools(ThemeToolContext ctx) => [
       if (id is! String || id.isEmpty) {
         throw const ToolException('id is required.');
       }
+      final user = args['user'] == null ? null : requireUser(args);
       final only = args['set'] as String?;
       final found = [
         for (final (set, _) in _styleSets(ctx).sets)
@@ -258,6 +349,16 @@ List<McpTool> widgetTools(ThemeToolContext ctx) => [
         );
       }
       final (set, style) = found.single;
+      final ownOffers = _styleSets(ctx).sets.any(
+        (e) =>
+            e.$1.user == user && e.$1.styles.any((s) => s.type == style.type),
+      );
+      if (user != null && set.user != null && set.user != user && ownOffers) {
+        throw ToolException(
+          'The style "$id" belongs to ${set.user}, not $user. Pick one from '
+          'list_widget_styles for $user.',
+        );
+      }
       final Map<String, dynamic>? applied;
       if (args['element'] == null) {
         applied = null;

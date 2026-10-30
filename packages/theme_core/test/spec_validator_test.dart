@@ -649,6 +649,24 @@ void main() {
       expect(codes(run(j, design: true)), ['date.spread']);
     });
 
+    test('content too close to the top or bottom edge is warned about', () {
+      final j = rich();
+      elementsOf(j)
+        ..add({'type': 'normalText2', 'fontSize': 18, 'dy': -290})
+        ..add({'type': 'normalText3', 'fontSize': 18, 'dy': 285})
+        // Backgrounds may bleed to the edges.
+        ..add({'type': 'containerBG2', 'dy': -290});
+      final r = run(j, design: true);
+      expect(codes(r), ['lockscreen.top_edge', 'lockscreen.bottom_edge']);
+      expect(issue(r, 'lockscreen.top_edge').severity, IssueSeverity.warning);
+
+      for (final e in elementsOf(j)) {
+        if (e['type'] == 'normalText2') e['dy'] = -230;
+        if (e['type'] == 'normalText3') e['dy'] = 230;
+      }
+      expect(run(j, design: true).issues, isEmpty);
+    });
+
     NamedDesign earlier(String title, List<Map<String, dynamic>> elements) {
       final j = good();
       (j['lockscreen'] as Map)['elements'] = elements;

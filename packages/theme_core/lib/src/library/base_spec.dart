@@ -19,6 +19,7 @@ Map<String, Object?> baseSpec({
   String? wallpaper,
   String? week,
   String? folder,
+  String? user,
 }) => {
   'specVersion': 1,
   'meta': {
@@ -27,6 +28,7 @@ Map<String, Object?> baseSpec({
     'authorTag': 'MIUIEditor',
     'version': '1.0',
     'uiVersion': 17,
+    'profile': ?user,
   },
   if (week != null || folder != null)
     'workspace': {'week': ?week, 'folder': ?folder},

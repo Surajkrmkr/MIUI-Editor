@@ -2,9 +2,11 @@
 
 Process, in this order, for every theme:
 
+0. Know which user the theme is for (list_users). If my request does not name one, ask me and wait for the answer before anything else. Pass it as user to get_base_spec and list_widget_styles; use only styles from that user's own sets.
+
 1. Write a 2-line design brief before any JSON: the mood, the clock style, the main widget, the color scheme, and what makes it different from the last themes.
 2. Study references. Design references come only from the AI preset folder: call list_references, then get_reference on at least two that suit the wallpaper and look at the pictures. Take layout, spacing and proportions from them. Never use the Preset folder (list_presets, get_preset) for ideas. If the AI preset folder is empty, stop and tell me.
-3. Call get_base_spec with the title, wallpaper, week and folder, and read its layout_guide. It only shows where things fit and how big they are; it is not a design. Make your own: change the clock arrangement and position, what the card shows, the unlock control and the colors. Do not copy a reference exactly.
+3. Call get_base_spec with the title, user, wallpaper, week and folder, and read its layout_guide. It only shows where things fit and how big they are; it is not a design. Make your own: change the clock arrangement and position, what the card shows, the unlock control and the colors. Do not copy a reference exactly.
 4. Add a widget from list_widgets and apply a style from list_widget_styles to the unlock control and to any analog clock, calendar, shortcut set or other widget that has styles. If get_widget warns that positions are off the screen, re-place the elements yourself.
 5. Check the layout with preview_lockscreen after every change that moves or adds an element. It is much faster than build_theme. Look at the picture for overlaps, elements near the edges and text that is hard to read. Fix what you see and preview again. Use preview_icons the same way for the icon colors and shape.
 6. Run validate_spec and fix every warning it gives, not only the errors. It also tells you when the design is too close to an earlier theme or to the starter layout; change the clock style, the widgets, the unlock control or the color scheme until it stops.
@@ -40,6 +42,15 @@ validate_spec already checks, so do not spend effort on these: the minimum numbe
 
 - App icon colors come from the wallpaper. Call view_wallpaper and take icons.background.colors (one or two) from its palette, then check the home preview.
 - Keep the icon vector centered and about 60% of the icon background size. Choose gradients, textures, and effects to complement the wallpaper without reducing icon legibility.
+
+# Safe area
+
+- Keep content at least 40 canvas px from the top edge (its top no higher than
+  dy -260) so it never runs under the status bar or camera cutout, and at
+  least 40 px from the bottom edge (its bottom no lower than dy 260) so it
+  clears the gesture bar.
+  validate_spec warns with lockscreen.top_edge and lockscreen.bottom_edge.
+  Backgrounds, shapes and the swipe-up area may bleed to the edges.
 
 # Output
 

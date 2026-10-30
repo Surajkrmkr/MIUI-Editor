@@ -13,15 +13,15 @@ SpecParseResult _parseWith(List<Map<String, dynamic>> elements) =>
 void main() {
   final lib = WidgetLibrary.builtin;
 
-  test('ships the editor widget templates and four style sets', () {
+  test('ships the editor widget templates and style sets per user', () {
     expect(lib.widgets.length, greaterThan(10));
     expect(lib.widgets.map((w) => w.name), contains('Battery Ring'));
     expect(lib.styleSets.map((s) => s.id), [
-      'builtin-unlock',
-      'builtin-analog',
-      'builtin-shortcuts',
-      'builtin-calendar',
+      for (final kind in ['unlock', 'analog', 'shortcuts', 'calendar'])
+        for (final user in ['suraj', 'subhangi', 'annapurna'])
+          'builtin-$kind-$user',
     ]);
+    expect(lib.styleSets.every((s) => s.user != null), isTrue);
     for (final set in lib.styleSets) {
       expect(set.styles, isNotEmpty);
       expect({for (final s in set.styles) s.id}.length, set.styles.length);

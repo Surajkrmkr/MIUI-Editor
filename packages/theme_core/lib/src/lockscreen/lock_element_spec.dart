@@ -1,5 +1,6 @@
 import '../values/alignment2.dart';
 import '../values/rgba.dart';
+import 'analog.dart';
 import 'element_enums.dart';
 
 /// Reference screen height/width the editor lays elements out against.
@@ -13,10 +14,30 @@ const double lockscreenViewHeight = 600.0;
 /// it clears the gesture bar (about 156px on a 2340px screen).
 const double minUnlockBottomPadding = 40;
 
+/// Canvas pixels content must keep below the top edge, so it clears the
+/// status bar and camera cutout (about 156px on a 2340px screen).
+const double minTopPadding = 40;
+
+/// Canvas pixels content must keep above the bottom edge.
+const double minBottomPadding = 40;
+
+/// Estimated height of [el] in canvas pixels. Texts and digital clocks have
+/// no stored height, so it is derived from their font size or scale.
+double visualHeightOf(LockElementSpec el) {
+  final t = el.type;
+  if (t.isAnalog) return el.width * el.scale / lockscreenScreenRatio;
+  if (t.isText) return el.fontSize * 1.2;
+  if (t.isClock && t != ElementType.weatherIconClock) return 17 * el.scale;
+  return el.height * el.scale / lockscreenScreenRatio;
+}
+
+/// Canvas pixels between the top of [el] and the top of the screen.
+double topPaddingOf(LockElementSpec el) =>
+    lockscreenViewHeight / 2 + el.dy - visualHeightOf(el) / 2;
+
 /// Canvas pixels between the bottom of [el] and the bottom of the screen.
 double bottomPaddingOf(LockElementSpec el) =>
-    lockscreenViewHeight / 2 -
-    (el.dy + el.height * el.scale / lockscreenScreenRatio / 2);
+    lockscreenViewHeight / 2 - (el.dy + visualHeightOf(el) / 2);
 
 /// One lockscreen element as stored in presets and theme specs.
 ///

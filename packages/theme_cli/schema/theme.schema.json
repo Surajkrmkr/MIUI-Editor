@@ -750,6 +750,15 @@
         "isFrostedGlass": {
           "type": "boolean"
         },
+        "surfaceTexture": {
+          "type": "string"
+        },
+        "textureScale": {
+          "type": "number"
+        },
+        "textureOpacity": {
+          "type": "number"
+        },
         "perspectiveTilt": {
           "type": "number"
         },

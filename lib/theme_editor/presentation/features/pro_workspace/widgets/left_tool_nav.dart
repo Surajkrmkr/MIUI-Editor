@@ -30,6 +30,7 @@ class LeftToolNav extends ConsumerWidget {
       WorkspacePage.home => 1,
       WorkspacePage.lockscreen => 2,
       WorkspacePage.lockscreenPresets => 3,
+      WorkspacePage.bulkEdit => 4,
       _ => -1,
     };
 
@@ -76,6 +77,17 @@ class LeftToolNav extends ConsumerWidget {
                     page == WorkspacePage.lockscreenPresets
                         ? WorkspacePage.lockscreen
                         : WorkspacePage.lockscreenPresets,
+                  ),
+                ),
+                _NavIcon(
+                  icon: Icons.dashboard_customize_outlined,
+                  activeIcon: Icons.dashboard_customize_rounded,
+                  label: 'Bulk Edit',
+                  isActive: activeIndex == 4,
+                  onTap: () => n.setPage(
+                    page == WorkspacePage.bulkEdit
+                        ? WorkspacePage.lockscreen
+                        : WorkspacePage.bulkEdit,
                   ),
                 ),
                 const Spacer(),

@@ -18,6 +18,7 @@ export 'src/icons/icon_style.dart';
 export 'src/icons/icon_texture.dart';
 export 'src/layout/theme_layout.dart';
 export 'src/library/base_spec.dart';
+export 'src/library/theme_users.dart';
 export 'src/library/widget_library.dart';
 export 'src/lockscreen/element_enums.dart';
 export 'src/lockscreen/design_profile.dart';

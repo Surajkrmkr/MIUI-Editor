@@ -20,14 +20,35 @@ class LayerManager extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'LAYERS',
-          style: TextStyle(
-            color: colors.textDisabled,
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'LAYERS',
+                style: TextStyle(
+                  color: colors.textDisabled,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ),
+            if (state.isGroupMode) ...[
+              Text(
+                '${state.elements.where(state.isSelected).length} selected',
+                style: TextStyle(color: colors.primary, fontSize: 10),
+              ),
+              TextButton(
+                onPressed: notifier.exitGroupMode,
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(0, 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: const Text('Clear', style: TextStyle(fontSize: 10)),
+              ),
+            ],
+          ],
         ),
         const SizedBox(height: 12),
         if (state.elements.isEmpty)
@@ -54,14 +75,23 @@ class LayerManager extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final element = layers[index];
                 final isActive = state.active?.name == element.name;
+                final isChecked =
+                    state.isGroupMode && state.isSelected(element);
+
+                void toggleChecked() => state.isGroupMode
+                    ? notifier.toggleGroupSelect(element.type, id: element.name)
+                    : notifier.enterGroupMode(element.type, id: element.name);
 
                 return _LayerTile(
                   key: ValueKey(element.name),
                   index: index,
                   element: element,
                   isActive: isActive,
-                  onTap: () =>
-                      notifier.setActive(element.type, id: element.name),
+                  isChecked: isChecked,
+                  onToggleChecked: toggleChecked,
+                  onTap: () => state.isGroupMode
+                      ? toggleChecked()
+                      : notifier.setActive(element.type, id: element.name),
                   onToggleVisibility: () =>
                       notifier.toggleVisibility(element.type, id: element.name),
                   onToggleLock: () =>
@@ -83,6 +113,8 @@ class _LayerTile extends StatelessWidget {
     required this.element,
     required this.index,
     required this.isActive,
+    required this.isChecked,
+    required this.onToggleChecked,
     required this.onTap,
     required this.onToggleVisibility,
     required this.onToggleLock,
@@ -92,6 +124,8 @@ class _LayerTile extends StatelessWidget {
   final LockElement element;
   final int index;
   final bool isActive;
+  final bool isChecked;
+  final VoidCallback onToggleChecked;
   final VoidCallback onTap;
   final VoidCallback onToggleVisibility;
   final VoidCallback onToggleLock;
@@ -101,7 +135,9 @@ class _LayerTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Material(
-      color: isActive ? colors.primary.withAlpha(20) : Colors.transparent,
+      color: isActive || isChecked
+          ? colors.primary.withAlpha(20)
+          : Colors.transparent,
       child: InkWell(
         onTap: onTap,
         child: Container(
@@ -117,6 +153,17 @@ class _LayerTile extends StatelessWidget {
           ),
           child: Row(
             children: [
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: Checkbox(
+                  key: ValueKey('select-${element.name}'),
+                  value: isChecked,
+                  onChanged: (_) => onToggleChecked(),
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
               ReorderableDragStartListener(
                 index: index,
                 key: ValueKey('reorder-${element.name}'),

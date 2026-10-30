@@ -52,9 +52,10 @@ class _ImageStackState extends ConsumerState<ImageStack> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              if (!widget.isLockscreen && wallState.index > 0)
+              if (wallState.index > 0)
                 _NavArrow(
                   icon: Icons.chevron_left_rounded,
+                  tooltip: 'Previous theme',
                   onTap: () => ref
                       .read(wallpaperProvider.notifier)
                       .setIndex(wallState.index - 1),
@@ -64,10 +65,10 @@ class _ImageStackState extends ConsumerState<ImageStack> {
               const SizedBox(width: 20),
               IPhoneFrame(child: screenContent),
               const SizedBox(width: 20),
-              if (!widget.isLockscreen &&
-                  wallState.index < wallState.paths.length - 1)
+              if (wallState.index < wallState.paths.length - 1)
                 _NavArrow(
                   icon: Icons.chevron_right_rounded,
+                  tooltip: 'Next theme',
                   onTap: () => ref
                       .read(wallpaperProvider.notifier)
                       .setIndex(wallState.index + 1),
@@ -83,31 +84,39 @@ class _ImageStackState extends ConsumerState<ImageStack> {
 }
 
 class _NavArrow extends StatelessWidget {
-  const _NavArrow({required this.icon, required this.onTap});
+  const _NavArrow({
+    required this.icon,
+    required this.onTap,
+    required this.tooltip,
+  });
   final IconData icon;
   final VoidCallback onTap;
+  final String tooltip;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: scheme.surfaceContainerHigh,
-          shape: BoxShape.circle,
-          border: Border.all(color: scheme.outlineVariant, width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(20),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerHigh,
+            shape: BoxShape.circle,
+            border: Border.all(color: scheme.outlineVariant, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(20),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Icon(icon, size: 22, color: scheme.onSurface),
         ),
-        child: Icon(icon, size: 22, color: scheme.onSurface),
       ),
     );
   }

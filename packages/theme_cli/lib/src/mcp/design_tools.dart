@@ -8,6 +8,7 @@ import 'library_tools.dart';
 import 'mcp_server.dart';
 import 'tool_args.dart';
 import 'tool_context.dart';
+import 'widget_tools.dart' show requireUser, userProp;
 
 const _imageExtensions = {'.png', '.jpg', '.jpeg', '.webp'};
 
@@ -159,11 +160,13 @@ List<McpTool> designTools(ThemeToolContext ctx) => [
           'type': 'string',
           'description': 'Wallpaper folder, e.g. 2 for Wall/2.',
         },
+        'user': userProp,
       },
-      'required': ['title'],
+      'required': ['title', 'user'],
     },
     readOnly: true,
     handler: (args, progress) async {
+      final user = requireUser(args);
       final title = args['title'];
       if (title is! String || title.trim().isEmpty) {
         throw const ToolException('title is required.');
@@ -179,6 +182,7 @@ List<McpTool> designTools(ThemeToolContext ctx) => [
             wallpaper: wallpaper as String?,
             week: argId(args, 'week'),
             folder: argId(args, 'folder'),
+            user: user,
           ),
           'layout_guide': baseLayoutGuide.trim(),
           'next':

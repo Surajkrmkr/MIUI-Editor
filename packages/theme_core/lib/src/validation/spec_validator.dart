@@ -440,6 +440,7 @@ class _Run {
         );
       }
     }
+    _safeArea(els);
     _spread(
       design,
       const {ElementType.hourClock, ElementType.minClock},
@@ -461,6 +462,48 @@ class _Run {
       (_) => 90,
     );
     _similar(design);
+  }
+
+  /// Warns about content under the status bar or over the gesture bar.
+  /// Backgrounds, shapes and the swipe-up area may bleed to the edges.
+  void _safeArea(List<LockElementSpec> els) {
+    for (var i = 0; i < els.length; i++) {
+      final e = els[i];
+      final t = e.type;
+      if (!e.isVisible ||
+          t.isDecoration ||
+          t.swipeUpUnlock ||
+          t.isVideo ||
+          t == ElementType.depthLayer) {
+        continue;
+      }
+      final at = '/lockscreen/elements/$i/dy';
+      final top = topPaddingOf(e);
+      if (top < minTopPadding) {
+        warn(
+          'lockscreen.top_edge',
+          at,
+          '"${e.name}" is ${top.toStringAsFixed(0)}px from the top edge and '
+              'can run under the status bar; keep at least '
+              '${minTopPadding.toStringAsFixed(0)}px.',
+          hint: 'Increase dy to move it down so it clears the status bar.',
+        );
+      }
+      // Tap unlock has its own, stricter bottom error.
+      if (t != ElementType.tapToUnlock) {
+        final bottom = bottomPaddingOf(e);
+        if (bottom < minBottomPadding) {
+          warn(
+            'lockscreen.bottom_edge',
+            at,
+            '"${e.name}" is ${bottom.toStringAsFixed(0)}px from the bottom '
+                'edge and can touch the gesture bar; keep at least '
+                '${minBottomPadding.toStringAsFixed(0)}px.',
+            hint: 'Decrease dy to move it up, or shrink it.',
+          );
+        }
+      }
+    }
   }
 
   /// Warns when visible elements of [types] sit further apart than the

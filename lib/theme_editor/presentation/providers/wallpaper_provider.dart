@@ -170,7 +170,8 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
               lower.endsWith('.png');
         })
         .map((f) => f.path)
-        .toList();
+        .toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
 
     if (paths.isNotEmpty) _setActivating(true);
     state = state.copyWith(isLoading: false, paths: paths, index: 0);

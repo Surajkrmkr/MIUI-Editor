@@ -3077,9 +3077,38 @@ final builtinCalendarStyles = WidgetStyleSet(
   ],
 );
 
+/// The users the built-in styles are shared out to; more can be added later.
+const styleSetUsers = ['suraj', 'subhangi', 'annapurna'];
+
+/// Deals each style type out to [styleSetUsers] in turn, so everyone gets a
+/// mix of looks for every widget.
+List<WidgetStyleSet> _splitAmongUsers(WidgetStyleSet set) {
+  final byType = <ElementType, List<WidgetStyle>>{};
+  for (final style in set.styles) {
+    byType.putIfAbsent(style.type, () => []).add(style);
+  }
+  final users = styleSetUsers.length;
+  return [
+    for (var u = 0; u < users; u++)
+      if (byType.values.any((styles) => styles.length > u))
+        WidgetStyleSet(
+          id: '${set.id}-${styleSetUsers[u]}',
+          name: set.name,
+          user: styleSetUsers[u],
+          styles: [
+            for (final styles in byType.values)
+              for (var i = u; i < styles.length; i += users) styles[i],
+          ],
+        ),
+  ];
+}
+
 final builtinStyleSets = [
-  builtinUnlockStyles,
-  builtinAnalogStyles,
-  builtinShortcutStyles,
-  builtinCalendarStyles,
+  for (final set in [
+    builtinUnlockStyles,
+    builtinAnalogStyles,
+    builtinShortcutStyles,
+    builtinCalendarStyles,
+  ])
+    ..._splitAmongUsers(set),
 ];

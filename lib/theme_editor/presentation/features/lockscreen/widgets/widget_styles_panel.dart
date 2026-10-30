@@ -10,8 +10,10 @@ import '../../../../../core/theme/app_radius.dart';
 import '../../../../../core/theme/theme_extensions.dart';
 import '../../../../domain/entities/builtin_widget_styles.dart';
 import '../../../../domain/entities/element_widget.dart';
+import '../../../../domain/entities/user_profile.dart';
 import '../../../../domain/entities/widget_style.dart';
 import '../../../providers/element_provider.dart';
+import '../../../providers/user_profile_provider.dart';
 import '../../../providers/widget_style_provider.dart';
 import 'unlock_control_preview.dart';
 import 'analog_clock_art.dart';
@@ -28,6 +30,7 @@ class WidgetStylesPanel extends ConsumerStatefulWidget {
 class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
   String? _setId;
   bool _busy = false;
+  bool _allUsers = false;
 
   Future<void> _run(
     Future<Failure?> Function() action, {
@@ -52,7 +55,7 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
     }
   }
 
-  Future<void> _save(List<WidgetStyleSet> sets) async {
+  Future<void> _save(List<WidgetStyleSet> sets, String? user) async {
     final element = widget.element;
     var styleName = 'My ${element.type.label}';
     var setName =
@@ -106,10 +109,12 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
             element: element,
             name: name,
             setName: setName,
+            user: user,
             set: sets
                 .where(
                   (set) =>
-                      set.name.toLowerCase() == setName.trim().toLowerCase(),
+                      set.name.toLowerCase() == setName.trim().toLowerCase() &&
+                      (user == null || set.user == user),
                 )
                 .firstOrNull,
           );
@@ -117,6 +122,11 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
       return failure;
     }, reload: true);
   }
+
+  Future<void> _assign(WidgetStyleSet set, String user) => _run(
+    () => ref.read(manageWidgetStylesProvider).assignUser(set, user),
+    reload: true,
+  );
 
   Future<void> _import() => _run(() async {
     final result = await FilePicker.platform.pickFiles(
@@ -175,6 +185,14 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
   Widget _clockSetPicker() {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
+    final current = ref.watch(elementProvider).elements;
+    ClockSetPreset? active;
+    for (final preset in builtinClockSets) {
+      if (_clockSetActive(preset, current)) {
+        active = preset;
+        break;
+      }
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -209,6 +227,7 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
             ),
             itemBuilder: (context, index) {
               final preset = builtinClockSets[index];
+              final selected = identical(preset, active);
               final ys = preset.elements.map((e) => e.dy);
               // Align so the 300px window is centred on the set's middle.
               final cropY = ((ys.reduce(min) + ys.reduce(max)) / 2 / 150).clamp(
@@ -228,7 +247,10 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
                   child: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      border: Border.all(color: colors.border),
+                      border: Border.all(
+                        color: selected ? colors.primary : colors.border,
+                        width: selected ? 1.8 : 1,
+                      ),
                       borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Column(
@@ -263,14 +285,29 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        Text(
-                          preset.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                preset.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: selected
+                                      ? FontWeight.w800
+                                      : FontWeight.w700,
+                                  color: selected ? colors.primary : null,
+                                ),
+                              ),
+                            ),
+                            if (selected)
+                              Icon(
+                                Icons.check_circle_rounded,
+                                size: 13,
+                                color: colors.primary,
+                              ),
+                          ],
                         ),
                       ],
                     ),
@@ -293,11 +330,33 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
     final scheme = Theme.of(context).colorScheme;
     final library = ref.watch(widgetStyleSetsProvider);
     final saved = library.asData?.value;
-    final sets = [...builtinStyleSets, ...?saved]
-        .where((item) => item.styles.any((s) => s.type == widget.element.type))
+    final profile = ref.watch(userProfileProvider);
+    final user = profile == UserProfileType.defaultUser ? null : profile.name;
+    // Another user's sets stay out of the list; unclaimed ones are shared.
+    final visibleSaved = saved
+        ?.where((s) => s.user == null || user == null || s.user == user)
         .toList();
+    bool offers(WidgetStyleSet s) =>
+        s.styles.any((style) => style.type == widget.element.type);
+    final mine = [
+      ...builtinStyleSets.where(
+        (s) => s.user == null || user == null || s.user == user,
+      ),
+      ...?visibleSaved,
+    ].where(offers).toList();
+    // A user with no sets for this widget gets every set instead of none.
+    final sets = mine.isNotEmpty && !_allUsers
+        ? mine
+        : [...builtinStyleSets, ...?saved].where(offers).toList();
     final set =
         sets.where((item) => item.id == _setId).firstOrNull ??
+        sets
+            .where(
+              (item) => item.styles.any(
+                (style) => _styleActive(style, widget.element),
+              ),
+            )
+            .firstOrNull ??
         sets.firstOrNull ??
         builtinStyleSets.first;
     final styles = set.styles
@@ -367,7 +426,8 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 12),
                     ),
-                    if (builtinStyleSets.any((b) => b.id == item.id)) ...[
+                    if (builtinStyleSets.any((b) => b.id == item.id) ||
+                        item.user != null) ...[
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -379,7 +439,7 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          'BUILT-IN',
+                          item.user?.toUpperCase() ?? 'BUILT-IN',
                           style: TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.w700,
@@ -407,11 +467,25 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
               ),
             ),
             const Spacer(),
+            if (user != null) ...[
+              _ToolbarButton(
+                icon: Icons.groups_outlined,
+                active: _allUsers,
+                tooltip: _allUsers
+                    ? 'Showing every user\'s styles · click to show only '
+                          '${profile.name}\'s'
+                    : 'Show other users\' styles too',
+                onPressed: () => setState(() => _allUsers = !_allUsers),
+              ),
+              const SizedBox(width: 4),
+            ],
             _ToolbarButton(
               icon: Icons.bookmark_add_outlined,
               label: 'Save',
               tooltip: 'Save current style preset',
-              onPressed: _busy || saved == null ? null : () => _save(saved),
+              onPressed: _busy || visibleSaved == null
+                  ? null
+                  : () => _save(visibleSaved, user),
             ),
             const SizedBox(width: 4),
             _ToolbarButton(
@@ -428,6 +502,16 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
               onPressed: _busy ? null : () => _export(set),
             ),
             if (!builtinStyleSets.any((b) => b.id == set.id)) ...[
+              if (user != null && set.user == null) ...[
+                const SizedBox(width: 4),
+                _ToolbarButton(
+                  icon: Icons.person_add_alt_1_outlined,
+                  tooltip:
+                      'Make this set ${profile.name}\'s own: the AI offers it '
+                      'only for ${profile.name}',
+                  onPressed: _busy ? null : () => _assign(set, user),
+                ),
+              ],
               const SizedBox(width: 4),
               _ToolbarButton(
                 icon: Icons.delete_outline_rounded,
@@ -545,10 +629,7 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
               itemBuilder: (context, index) {
                 final style = styles[index];
                 final element = style.applyTo(LockElement(type: style.type));
-                final json = widget.element.toJson();
-                final selected = style.appearance.entries.every(
-                  (entry) => json[entry.key] == entry.value,
-                );
+                final selected = _styleActive(style, widget.element);
                 return _StyleCard(
                   key: ValueKey('style-${style.id}'),
                   style: style,
@@ -569,6 +650,37 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
 }
 
 // ── Style Card ────────────────────────────────────────────────────────────────
+
+/// Whether [element] still wears every property [style] sets.
+bool _styleActive(WidgetStyle style, LockElement element) {
+  if (style.type != element.type) return false;
+  final json = element.toJson()
+    ..['unlockCornerRadius'] = element.effectiveUnlockCornerRadius;
+  return style.appearance.entries.every((entry) {
+    final want = entry.value, have = json[entry.key];
+    return want is num && have is num
+        ? (want - have).abs() < .01
+        : want == have;
+  });
+}
+
+/// Whether the clock elements in [current] are [preset]'s clock set, ignoring
+/// the colors and positions the user may have changed since.
+bool _clockSetActive(ClockSetPreset preset, List<LockElement> current) {
+  final clocks = current
+      .where((e) => clockSetElementTypes.contains(e.type))
+      .toList();
+  if (clocks.length != preset.elements.length) return false;
+  return preset.elements.every((want) {
+    final have = clocks.where((e) => e.type == want.type).firstOrNull;
+    return have != null &&
+        have.font == want.font &&
+        have.fontWeight == want.fontWeight &&
+        have.text == want.text &&
+        (have.scale - want.scale).abs() < .01 &&
+        (have.fontSize - want.fontSize).abs() < .01;
+  });
+}
 
 class _StyleCard extends StatefulWidget {
   const _StyleCard({
@@ -735,6 +847,7 @@ class _ToolbarButton extends StatelessWidget {
     required this.tooltip,
     required this.onPressed,
     this.isDestructive = false,
+    this.active = false,
   });
 
   final IconData icon;
@@ -742,6 +855,7 @@ class _ToolbarButton extends StatelessWidget {
   final String tooltip;
   final VoidCallback? onPressed;
   final bool isDestructive;
+  final bool active;
 
   @override
   Widget build(BuildContext context) {
@@ -762,9 +876,9 @@ class _ToolbarButton extends StatelessWidget {
               vertical: 4,
             ),
             decoration: BoxDecoration(
-              color: color.withAlpha(20),
+              color: color.withAlpha(active ? 70 : 20),
               borderRadius: BorderRadius.circular(AppRadius.xs),
-              border: Border.all(color: color.withAlpha(70)),
+              border: Border.all(color: color.withAlpha(active ? 200 : 70)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,

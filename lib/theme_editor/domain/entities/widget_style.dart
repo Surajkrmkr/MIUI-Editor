@@ -1,3 +1,5 @@
+import 'package:theme_core/theme_core.dart' show themeUsers;
+
 import 'element_widget.dart';
 
 class WidgetStyle {
@@ -180,11 +182,15 @@ class WidgetStyleSet {
     required this.id,
     required this.name,
     required List<WidgetStyle> styles,
+    this.user,
   }) : styles = List.unmodifiable(styles) {
     if (!RegExp(r'^[a-zA-Z0-9][a-zA-Z0-9._-]{0,79}$').hasMatch(id) ||
         name.trim().isEmpty ||
         name.length > 120) {
       throw const FormatException('Invalid style set ID or name');
+    }
+    if (user != null && !themeUsers.contains(user)) {
+      throw const FormatException('Unknown style set user');
     }
     if (styles.isEmpty ||
         styles.length > 256 ||
@@ -196,4 +202,15 @@ class WidgetStyleSet {
   }
   final String id, name;
   final List<WidgetStyle> styles;
+
+  /// The profile name this set belongs to; null means shared by everyone.
+  final String? user;
+
+  WidgetStyleSet copyWith({String? user, List<WidgetStyle>? styles}) =>
+      WidgetStyleSet(
+        id: id,
+        name: name,
+        styles: styles ?? this.styles,
+        user: user ?? this.user,
+      );
 }

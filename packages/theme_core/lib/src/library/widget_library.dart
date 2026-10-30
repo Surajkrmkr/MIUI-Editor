@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../lockscreen/element_enums.dart';
+import 'theme_users.dart';
 import 'widget_library.g.dart';
 
 /// A named group of lockscreen elements from the editor's Widget Center, e.g.
@@ -91,11 +92,13 @@ class WidgetStyleSet {
     required this.name,
     required this.styles,
     this.skipped = 0,
+    this.user,
   });
 
   factory WidgetStyleSet.fromJson(Map<String, dynamic> j) => WidgetStyleSet(
     id: j['id'] as String,
     name: j['name'] as String,
+    user: themeUserOf(j['user']),
     styles: [
       for (final s in j['styles'] as List)
         WidgetStyle(
@@ -147,12 +150,17 @@ class WidgetStyleSet {
       name: json['name'] as String,
       styles: styles,
       skipped: skipped,
+      user: themeUserOf(json['user']),
     );
   }
 
   final String id, name;
   final List<WidgetStyle> styles;
   final int skipped;
+
+  /// The profile (one of [themeUsers]) this set was made for; null for the
+  /// built-in sets and for saved sets nobody has claimed yet.
+  final String? user;
 }
 
 /// The widget templates and style sets that ship with the editor.

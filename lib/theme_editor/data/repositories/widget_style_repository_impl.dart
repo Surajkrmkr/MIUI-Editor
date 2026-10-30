@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:theme_core/theme_core.dart' show themeUserOf;
 import '../../core/errors/failures.dart';
 import '../../domain/entities/widget_style.dart';
 import '../../domain/entities/element_widget.dart';
@@ -57,6 +58,7 @@ class WidgetStyleRepositoryImpl implements WidgetStyleRepository {
       id: json['id'] as String,
       name: json['name'] as String,
       styles: styles,
+      user: themeUserOf(json['user']),
     );
   }
 
@@ -124,6 +126,7 @@ class WidgetStyleRepositoryImpl implements WidgetStyleRepository {
       'version': version,
       'id': set.id,
       'name': set.name,
+      if (set.user != null) 'user': set.user,
       'styles': styles,
     };
   }
@@ -153,7 +156,12 @@ class WidgetStyleRepositoryImpl implements WidgetStyleRepository {
         ),
       );
     }
-    return WidgetStyleSet(id: set.id, name: set.name, styles: styles);
+    return WidgetStyleSet(
+      id: set.id,
+      name: set.name,
+      styles: styles,
+      user: set.user,
+    );
   }
 
   @override
@@ -223,6 +231,7 @@ class WidgetStyleRepositoryImpl implements WidgetStyleRepository {
           id: 'imported-${DateTime.now().microsecondsSinceEpoch}',
           name: set.name,
           styles: set.styles,
+          user: set.user,
         );
       }
       set = await _materialize(path, set);

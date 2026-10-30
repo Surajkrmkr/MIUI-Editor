@@ -252,7 +252,9 @@ void main() {
     );
 
     test('the starter layout is flagged by validate_spec', () async {
-      final base = body(await call('get_base_spec', {'title': 'S'}))['spec'];
+      final base = body(
+        await call('get_base_spec', {'title': 'S', 'user': 'suraj'}),
+      )['spec'];
       final r = body(
         await call('validate_spec', {
           'spec': jsonEncode(base),
@@ -279,6 +281,7 @@ void main() {
       final r = body(
         await call('get_base_spec', {
           'title': 'Neon',
+          'user': 'Rajat',
           'wallpaper': 'Neon.jpg',
           'week': '4',
           'folder': '2',
@@ -286,6 +289,7 @@ void main() {
       );
       final spec = r['spec'] as Map;
       expect(spec['meta']['title'], 'Neon');
+      expect(spec['meta']['profile'], 'rajat');
       expect(spec['wallpaper']['home'], 'Neon.jpg');
       expect(spec['workspace'], {'week': '4', 'folder': '2'});
       expect((spec['lockscreen']['elements'] as List), isNotEmpty);
@@ -293,16 +297,34 @@ void main() {
     });
 
     test('works without a wallpaper, week or folder', () async {
-      final r = body(await call('get_base_spec', {'title': 'X'}));
+      final r = body(
+        await call('get_base_spec', {'title': 'X', 'user': 'suraj'}),
+      );
       expect((r['spec'] as Map).containsKey('workspace'), isFalse);
       expect(r['spec']['wallpaper']['home'], isNotEmpty);
     });
 
+    test('asks for the user instead of guessing', () async {
+      final missing = await call('get_base_spec', {'title': 'X'});
+      expect(missing['isError'], isTrue);
+      expect(missing['content'][0]['text'], contains('Ask the designer'));
+      final unknown = await call('get_base_spec', {
+        'title': 'X',
+        'user': 'nobody',
+      });
+      expect(unknown['isError'], isTrue);
+      expect(unknown['content'][0]['text'], contains('suraj'));
+    });
+
     test('needs a title and a safe week', () async {
-      expect((await call('get_base_spec', {}))['isError'], isTrue);
+      expect(
+        (await call('get_base_spec', {'user': 'suraj'}))['isError'],
+        isTrue,
+      );
       expect(
         (await call('get_base_spec', {
           'title': 'X',
+          'user': 'suraj',
           'week': '../x',
         }))['isError'],
         isTrue,

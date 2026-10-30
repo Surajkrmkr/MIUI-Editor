@@ -16,7 +16,12 @@ import '../root_config.dart';
 export 'tool_context.dart';
 
 const _instructions =
-    'Builds MIUI/HyperOS 3 themes from a JSON spec. Call get_spec_schema for '
+    'Builds MIUI/HyperOS 3 themes from a JSON spec. Every theme is for one '
+    'user (list_users): if the designer\'s request does not name the user, '
+    'ask which one before doing anything else, and wait for the answer; '
+    'never guess. Pass it as user to get_base_spec and list_widget_styles, '
+    'which then offer only that user\'s own style sets. '
+    'Call get_spec_schema for '
     'the format. Pick a wallpaper with list_wallpapers and look at it with '
     'view_wallpaper (it also gives its dominant colors). Take design '
     'references only from the designer\'s AI preset folder, through '

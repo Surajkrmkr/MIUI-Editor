@@ -17,7 +17,10 @@ class SidebarContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.appColors;
     final workspaceState = ref.watch(workspaceProvider);
-    if (!workspaceState.isSidebarExpanded) return const SizedBox.shrink();
+    if (!workspaceState.isSidebarExpanded ||
+        workspaceState.page == WorkspacePage.bulkEdit) {
+      return const SizedBox.shrink();
+    }
 
     final isLockscreen = workspaceState.page == WorkspacePage.lockscreen;
     final isPresets = workspaceState.page == WorkspacePage.lockscreenPresets;

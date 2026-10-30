@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/theme_extensions.dart';
+import '../bulk_edit/bulk_edit_panel.dart';
 import 'widgets/top_command_bar.dart';
 import 'widgets/left_tool_nav.dart';
 import 'widgets/right_inspector.dart';
@@ -35,16 +36,22 @@ class ProfessionalWorkspaceShell extends ConsumerWidget {
             body: Stack(
               fit: StackFit.expand,
               children: [
-                const Column(
+                Column(
                   children: [
-                    TopCommandBar(),
+                    const TopCommandBar(),
                     Expanded(
                       child: Row(
                         children: [
-                          LeftToolNav(),
-                          SidebarContent(),
-                          Expanded(child: ProCanvas()),
-                          RightInspector(),
+                          const LeftToolNav(),
+                          const SidebarContent(),
+                          Expanded(
+                            child:
+                                ref.watch(workspaceProvider).page ==
+                                    WorkspacePage.bulkEdit
+                                ? const BulkEditPanel()
+                                : const ProCanvas(),
+                          ),
+                          const RightInspector(),
                         ],
                       ),
                     ),
