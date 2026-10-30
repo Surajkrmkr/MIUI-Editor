@@ -937,6 +937,16 @@ class ElementInfoPanel extends ConsumerWidget {
                             CalendarStyle.editorial => 'Editorial',
                             CalendarStyle.ledger => 'Ledger',
                             CalendarStyle.postageStamp => 'Postage Stamp',
+                            CalendarStyle.blueprintGrid => 'Blueprint Grid',
+                            CalendarStyle.sunsetBands => 'Sunset Bands',
+                            CalendarStyle.pixelArcade => 'Pixel Arcade',
+                            CalendarStyle.leatherStitch => 'Leather Stitch',
+                            CalendarStyle.paperLayers => 'Paper Layers',
+                            CalendarStyle.starryNight => 'Starry Night',
+                            CalendarStyle.terrazzoChips => 'Terrazzo',
+                            CalendarStyle.ribbonHeader => 'Ribbon Header',
+                            CalendarStyle.plannerTab => 'Planner Tab',
+                            CalendarStyle.holoGlass => 'Holo Glass',
                           };
                           return DropdownMenuItem(
                             value: style,
@@ -1085,7 +1095,9 @@ class ElementInfoPanel extends ConsumerWidget {
                 ],
               ),
             ),
-          if (WidgetStyle.supports(el.type))
+          if (WidgetStyle.supports(el.type) ||
+              weatherSetElementTypes.contains(el.type) ||
+              batterySetElementTypes.contains(el.type))
             _Section(
               title: 'WIDGET STYLES',
               child: WidgetStylesPanel(

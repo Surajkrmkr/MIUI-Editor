@@ -276,6 +276,22 @@ class ElementNotifier extends Notifier<ElementState> {
     );
   }
 
+  /// Removes every element [owns] claims, e.g. a whole clock or battery set.
+  void removeElements(bool Function(LockElement element) owns) {
+    final updated = state.elements.where((e) => !owns(e)).toList();
+    if (updated.length == state.elements.length) return;
+    _record();
+    state = state.copyWith(
+      elements: updated,
+      activeId: updated.isNotEmpty ? updated.last.name : '',
+      activeType: updated.isNotEmpty
+          ? updated.last.type
+          : ElementType.swipeUpUnlock,
+      undoCount: _history.length,
+      redoCount: 0,
+    );
+  }
+
   /// Replaces any depth layer with [el], drawn right above the topmost clock
   /// element so the subject covers the clock but not the other widgets.
   void setDepthLayer(LockElement el) {
@@ -497,14 +513,21 @@ class ElementNotifier extends Notifier<ElementState> {
     );
   }
 
-  void applyClockSet(List<LockElement> clockElements) {
-    if (clockElements.isEmpty) return;
+  void applyClockSet(List<LockElement> clockElements) => applyElementSet(
+    clockElements,
+    (element) => clockSetElementTypes.contains(element.type),
+  );
+
+  /// Swaps the elements [owns] claims (the previous set) for [setElements].
+  void applyElementSet(
+    List<LockElement> setElements,
+    bool Function(LockElement element) owns,
+  ) {
+    if (setElements.isEmpty) return;
     _record();
     final elements = [
-      ...state.elements.where(
-        (element) => !clockSetElementTypes.contains(element.type),
-      ),
-      ...clockElements,
+      ...state.elements.where((element) => !owns(element)),
+      ...setElements,
     ];
     state = state.copyWith(
       elements: elements,

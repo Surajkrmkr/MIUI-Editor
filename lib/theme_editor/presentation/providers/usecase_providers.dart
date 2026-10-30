@@ -35,51 +35,58 @@ final tagRepositoryProvider = Provider<TagRepository>(
 
 final wallpaperDownloadRepositoryProvider =
     Provider<WallpaperDownloadRepository>(
-  (_) => WallpaperDownloadRepositoryImpl(),
-);
+      (_) => WallpaperDownloadRepositoryImpl(),
+    );
 
 final aiRepositoryProvider = Provider<AiRepository>((ref) {
-  return AiRepositoryImpl(AiRemoteDataSource(
-    provider:     ref.watch(aiProviderProvider),
-    geminiKey:    ref.watch(geminiApiKeyProvider),
-    groqKey:      ref.watch(groqApiKeyProvider),
-    ollamaHost:   ref.watch(ollamaHostProvider),
-    ollamaModel:  ref.watch(ollamaModelProvider),
-  ));
+  return AiRepositoryImpl(
+    AiRemoteDataSource(
+      provider: ref.watch(aiProviderProvider),
+      geminiKey: ref.watch(geminiApiKeyProvider),
+      groqKey: ref.watch(groqApiKeyProvider),
+      ollamaHost: ref.watch(ollamaHostProvider),
+      ollamaModel: ref.watch(ollamaModelProvider),
+    ),
+  );
 });
 
 // ── Use cases ─────────────────────────────────────────────────────────────────
 
 final exportLockscreenPngsUseCaseProvider =
     Provider<ExportLockscreenPngsUseCase>(
-  (_) => const ExportLockscreenPngsUseCase(),
-);
+      (_) => const ExportLockscreenPngsUseCase(),
+    );
 
 final exportMtzUseCaseProvider = Provider<ExportMtzUseCase>(
   (_) => const ExportMtzUseCase(),
 );
 
-final downloadWallpaperUseCaseProvider =
-    Provider<DownloadWallpaperUseCase>((ref) => DownloadWallpaperUseCase(
-          ref.read(wallpaperDownloadRepositoryProvider),
-        ));
+final downloadWallpaperUseCaseProvider = Provider<DownloadWallpaperUseCase>(
+  (ref) =>
+      DownloadWallpaperUseCase(ref.read(wallpaperDownloadRepositoryProvider)),
+);
 
 final generateAiLockscreenUseCaseProvider =
     Provider<GenerateAiLockscreenUseCase>(
-        (ref) => GenerateAiLockscreenUseCase(ref.watch(aiRepositoryProvider)));
+      (ref) => GenerateAiLockscreenUseCase(ref.watch(aiRepositoryProvider)),
+    );
 
-final generateAiVariantsUseCaseProvider =
-    Provider<GenerateAiVariantsUseCase>(
-        (ref) => GenerateAiVariantsUseCase(ref.watch(aiRepositoryProvider)));
+final generateAiVariantsUseCaseProvider = Provider<GenerateAiVariantsUseCase>(
+  (ref) => GenerateAiVariantsUseCase(ref.watch(aiRepositoryProvider)),
+);
 
 final savePresetUseCaseProvider = Provider<SavePresetUseCase>(
-    (ref) => SavePresetUseCase(ref.read(presetRepositoryProvider)));
+  (ref) => SavePresetUseCase(ref.read(presetRepositoryProvider)),
+);
 
 final loadPresetUseCaseProvider = Provider<LoadPresetUseCase>(
-    (ref) => LoadPresetUseCase(ref.read(presetRepositoryProvider)));
+  (ref) => LoadPresetUseCase(ref.read(presetRepositoryProvider)),
+);
 
 final saveTagFileUseCaseProvider = Provider<SaveTagFileUseCase>(
-    (ref) => SaveTagFileUseCase(ref.read(tagRepositoryProvider)));
+  (ref) => SaveTagFileUseCase(ref.read(tagRepositoryProvider)),
+);
 
 final loadTagFileUseCaseProvider = Provider<LoadTagFileUseCase>(
-    (ref) => LoadTagFileUseCase(ref.read(tagRepositoryProvider)));
+  (ref) => LoadTagFileUseCase(ref.read(tagRepositoryProvider)),
+);

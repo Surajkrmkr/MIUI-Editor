@@ -60,6 +60,24 @@ String _generate() {
           'elements': [for (final e in c.elements) _compact(e)],
         },
     ],
+    'weatherSets': [
+      for (final c in builtinWeatherSets)
+        {
+          'id': c.id,
+          'name': c.name,
+          if (c.user != null) 'user': c.user,
+          'elements': [for (final e in c.elements) _compact(e)],
+        },
+    ],
+    'batterySets': [
+      for (final c in builtinBatterySets)
+        {
+          'id': c.id,
+          'name': c.name,
+          if (c.user != null) 'user': c.user,
+          'elements': [for (final e in c.elements) _compact(e)],
+        },
+    ],
   };
   final json = const JsonEncoder.withIndent(' ').convert(library);
   expect(json.contains("'''"), isFalse);

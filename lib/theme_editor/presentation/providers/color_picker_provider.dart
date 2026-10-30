@@ -11,10 +11,10 @@ class ColorPickerState {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-  
+
     return other is ColorPickerState &&
-      other.type == type &&
-      other.target == target;
+        other.type == type &&
+        other.target == target;
   }
 
   @override

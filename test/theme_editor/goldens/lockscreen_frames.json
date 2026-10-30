@@ -219,6 +219,16 @@
    222
   ]
  },
+ "calendar/calendarGrid_blueprintGrid_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   218,
+   218,
+   218,
+   221
+  ]
+ },
  "calendar/calendarGrid_bracketModern_panel.png": {
   "w": 446,
   "h": 356,
@@ -239,12 +249,32 @@
    223
   ]
  },
+ "calendar/calendarGrid_chalkboard_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   208,
+   208,
+   209,
+   223
+  ]
+ },
  "calendar/calendarGrid_cyberMatrix_panel.png": {
   "w": 446,
   "h": 356,
   "mean": [
    219,
    219,
+   220,
+   223
+  ]
+ },
+ "calendar/calendarGrid_editorial_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   220,
+   220,
    220,
    223
   ]
@@ -277,6 +307,46 @@
    171,
    174,
    222
+  ]
+ },
+ "calendar/calendarGrid_graphPaper_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   222,
+   218,
+   218,
+   223
+  ]
+ },
+ "calendar/calendarGrid_holoGlass_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   175,
+   153,
+   167,
+   221
+  ]
+ },
+ "calendar/calendarGrid_leatherStitch_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   205,
+   204,
+   206,
+   222
+  ]
+ },
+ "calendar/calendarGrid_ledger_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   222,
+   220,
+   220,
+   223
   ]
  },
  "calendar/calendarGrid_lunarPhase_panel.png": {
@@ -329,6 +399,16 @@
    223
   ]
  },
+ "calendar/calendarGrid_notebookSpiral_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   222,
+   220,
+   220,
+   222
+  ]
+ },
  "calendar/calendarGrid_outlineRings_panel.png": {
   "w": 446,
   "h": 356,
@@ -339,6 +419,16 @@
    223
   ]
  },
+ "calendar/calendarGrid_paperLayers_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   212,
+   213,
+   214,
+   222
+  ]
+ },
  "calendar/calendarGrid_pillColumn_panel.png": {
   "w": 446,
   "h": 356,
@@ -347,6 +437,26 @@
    222,
    222,
    221
+  ]
+ },
+ "calendar/calendarGrid_pixelArcade_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   203,
+   202,
+   203,
+   223
+  ]
+ },
+ "calendar/calendarGrid_plannerTab_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   213,
+   213,
+   214,
+   222
   ]
  },
  "calendar/calendarGrid_plusCircles_panel.png": {
@@ -369,6 +479,36 @@
    223
   ]
  },
+ "calendar/calendarGrid_postageStamp_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   218,
+   218,
+   218,
+   219
+  ]
+ },
+ "calendar/calendarGrid_retroLcd_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   205,
+   206,
+   207,
+   222
+  ]
+ },
+ "calendar/calendarGrid_ribbonHeader_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   203,
+   203,
+   205,
+   222
+  ]
+ },
  "calendar/calendarGrid_softNeumorphism_panel.png": {
   "w": 446,
   "h": 356,
@@ -389,6 +529,16 @@
    223
   ]
  },
+ "calendar/calendarGrid_starryNight_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   140,
+   144,
+   150,
+   221
+  ]
+ },
  "calendar/calendarGrid_stripHeader_panel.png": {
   "w": 446,
   "h": 356,
@@ -399,6 +549,36 @@
    221
   ]
  },
+ "calendar/calendarGrid_sunsetBands_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   136,
+   117,
+   123,
+   221
+  ]
+ },
+ "calendar/calendarGrid_tearOff_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   203,
+   205,
+   206,
+   222
+  ]
+ },
+ "calendar/calendarGrid_terrazzoChips_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   219,
+   218,
+   219,
+   221
+  ]
+ },
  "calendar/calendarGrid_ticketStub_panel.png": {
   "w": 446,
   "h": 356,
@@ -406,6 +586,26 @@
    220,
    220,
    220,
+   223
+  ]
+ },
+ "calendar/calendarGrid_washiTape_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   222,
+   222,
+   222,
+   223
+  ]
+ },
+ "calendar/calendarGrid_windowChrome_panel.png": {
+  "w": 446,
+  "h": 356,
+  "mean": [
+   218,
+   214,
+   214,
    223
   ]
  },

@@ -11,7 +11,12 @@ class WindowService {
       Platform.isMacOS ? AppConstants.winHeightMac : AppConstants.winHeight,
     );
     await windowManager.waitUntilReadyToShow(
-      WindowOptions(title: AppConstants.appName, size: size, minimumSize: size, center: true),
+      WindowOptions(
+        title: AppConstants.appName,
+        size: size,
+        minimumSize: size,
+        center: true,
+      ),
       () async {
         await windowManager.show();
         await windowManager.focus();

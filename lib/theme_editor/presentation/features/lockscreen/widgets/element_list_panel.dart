@@ -129,12 +129,32 @@ class ElementListPanel extends ConsumerWidget {
                   collapsedBackgroundColor: colors.surfaceOverlay,
                   backgroundColor: colors.surfaceOverlay,
                   children: [
-                    if (entry.key == 'Custom Widgets')
-                      _ClockSetsTile(
+                    if (entry.key == 'Custom Widgets') ...[
+                      _SetsTile(
+                        title: 'Clock Sets',
+                        all: clockSetsFor(user),
+                        fallback: builtinClockSets,
+                        owns: (e) => clockSetElementTypes.contains(e.type),
                         state: state,
                         notifier: notifier,
-                        user: user,
                       ),
+                      if (user == null || user == 'suraj') ...[
+                        _SetsTile(
+                          title: 'Weather Sets',
+                          all: builtinWeatherSets,
+                          owns: isWeatherSetElement,
+                          state: state,
+                          notifier: notifier,
+                        ),
+                        _SetsTile(
+                          title: 'Battery Sets',
+                          all: builtinBatterySets,
+                          owns: isBatterySetElement,
+                          state: state,
+                          notifier: notifier,
+                        ),
+                      ],
+                    ],
                     ...entry.value.map((type) {
                       final added = state.contains(type);
                       return Padding(
@@ -253,24 +273,29 @@ class ElementListPanel extends ConsumerWidget {
   }
 }
 
-class _ClockSetsTile extends StatelessWidget {
-  const _ClockSetsTile({
+class _SetsTile extends StatelessWidget {
+  const _SetsTile({
+    required this.title,
+    required this.all,
+    required this.owns,
     required this.state,
     required this.notifier,
-    required this.user,
+    this.fallback,
   });
+  final String title;
+  final List<ClockSetPreset> all;
+
+  /// Used when [all] is empty, so a tap always adds something.
+  final List<ClockSetPreset>? fallback;
+  final bool Function(LockElement element) owns;
   final ElementState state;
   final ElementNotifier notifier;
-  final String? user;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
-    final first = state.elements
-        .where((element) => clockSetElementTypes.contains(element.type))
-        .firstOrNull;
-    final added = first != null;
+    final added = state.elements.any(owns);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       child: Material(
@@ -289,7 +314,7 @@ class _ClockSetsTile extends StatelessWidget {
             color: added ? colors.onPrimary : scheme.onSurfaceVariant,
           ),
           title: Text(
-            'Clock Sets',
+            title,
             style: TextStyle(
               fontSize: 12,
               fontWeight: added ? FontWeight.w700 : FontWeight.normal,
@@ -297,10 +322,10 @@ class _ClockSetsTile extends StatelessWidget {
             ),
           ),
           onTap: () => added
-              ? notifier.setActive(first.type, id: first.name)
-              : notifier.applyClockSet(
-                  (clockSetsFor(user).firstOrNull ?? builtinClockSets.first)
-                      .elements,
+              ? notifier.removeElements(owns)
+              : notifier.applyElementSet(
+                  (all.firstOrNull ?? fallback!.first).elements,
+                  owns,
                 ),
         ),
       ),

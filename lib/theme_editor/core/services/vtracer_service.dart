@@ -23,18 +23,30 @@ class VTracerOptions {
 }
 
 class VTracerService {
-  Future<String?> traceImage(String inputPath, String outputPath, [VTracerOptions? options]) async {
+  Future<String?> traceImage(
+    String inputPath,
+    String outputPath, [
+    VTracerOptions? options,
+  ]) async {
     final opts = options ?? VTracerOptions();
-    
+
     final args = [
-      '--input', inputPath,
-      '--output', outputPath,
-      '--mode', opts.mode,
-      '--colormode', opts.colorMode,
-      '--color_precision', opts.colorPrecision.toString(),
-      '--filter_speckle', opts.filterSpeckle.toString(),
-      '--segment_length', opts.segmentLength.toString(),
-      '--corner_threshold', opts.cornerThreshold.toString(),
+      '--input',
+      inputPath,
+      '--output',
+      outputPath,
+      '--mode',
+      opts.mode,
+      '--colormode',
+      opts.colorMode,
+      '--color_precision',
+      opts.colorPrecision.toString(),
+      '--filter_speckle',
+      opts.filterSpeckle.toString(),
+      '--segment_length',
+      opts.segmentLength.toString(),
+      '--corner_threshold',
+      opts.cornerThreshold.toString(),
     ];
 
     try {
@@ -46,7 +58,7 @@ class VTracerService {
         // Try fallback to PATH
         final resultFallback = await Process.run('vtracer.exe', args);
         if (resultFallback.exitCode == 0) return outputPath;
-        
+
         debugPrint('VTracer failed: ${result.stderr}');
         return null;
       }

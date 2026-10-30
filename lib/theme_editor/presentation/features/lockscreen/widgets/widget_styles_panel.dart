@@ -185,27 +185,33 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
     }
   }
 
-  Widget _clockSetPicker() {
+  /// Same layout as the style sets: a dropdown, a count and a card grid, for
+  /// a family of sets ([all]) whose elements [owns] claims.
+  Widget _setPicker({
+    required String title,
+    required List<ClockSetPreset> all,
+    required bool Function(LockElement element) owns,
+  }) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
     final current = ref.watch(elementProvider).elements;
     final profile = ref.watch(userProfileProvider);
     final user = profile == UserProfileType.defaultUser ? null : profile.name;
     final owners = {
-      for (final p in builtinClockSets)
+      for (final p in all)
         if (p.user != null) p.user!,
     }.toList();
     final owner =
         _clockOwner ?? (user != null && owners.contains(user) ? user : 'all');
     final presets = owner == 'all'
-        ? builtinClockSets
+        ? all
         : [
-            for (final p in builtinClockSets)
+            for (final p in all)
               if (p.user == owner || p.user == null) p,
           ];
     ClockSetPreset? active;
-    for (final preset in builtinClockSets) {
-      if (_clockSetActive(preset, current)) {
+    for (final preset in all) {
+      if (_setActive(preset, current, owns)) {
         active = preset;
         break;
       }
@@ -213,26 +219,8 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Custom Widgets',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: scheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Clock Sets',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: scheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: 10),
         DropdownButtonFormField<String>(
-          key: ValueKey('clock-owner-$owner'),
+          key: ValueKey('$title-owner-$owner'),
           initialValue: owner,
           isExpanded: true,
           dropdownColor: colors.surfaceElevated,
@@ -247,7 +235,7 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
               horizontal: 10,
               vertical: 8,
             ),
-            labelText: 'Style Set',
+            labelText: title,
             labelStyle: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
             prefixIcon: Icon(
               Icons.style_outlined,
@@ -264,6 +252,10 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
               borderRadius: BorderRadius.circular(AppRadius.sm),
               borderSide: BorderSide(color: colors.border.withAlpha(120)),
             ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              borderSide: BorderSide(color: colors.primary, width: 1.5),
+            ),
           ),
           items: [
             for (final name in owners)
@@ -271,19 +263,28 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
                 value: name,
                 child: Text(
                   '${name[0].toUpperCase()}${name.substring(1)} · '
-                  '${builtinClockSets.where((p) => p.user == name).length} sets',
+                  '${all.where((p) => p.user == name).length} sets',
                   style: const TextStyle(fontSize: 12),
                 ),
               ),
             DropdownMenuItem(
               value: 'all',
               child: Text(
-                'All users · ${builtinClockSets.length} sets',
+                'All users · ${all.length} sets',
                 style: const TextStyle(fontSize: 12),
               ),
             ),
           ],
           onChanged: (value) => setState(() => _clockOwner = value),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '${presets.length} ${presets.length == 1 ? "style" : "styles"}',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: scheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 10),
         LayoutBuilder(
@@ -292,98 +293,49 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: presets.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: constraints.maxWidth >= 320 ? 2 : 1,
-              mainAxisExtent: 170,
+              crossAxisCount: constraints.maxWidth >= 360
+                  ? 3
+                  : constraints.maxWidth >= 220
+                  ? 2
+                  : 1,
+              mainAxisExtent: 114,
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
             ),
             itemBuilder: (context, index) {
               final preset = presets[index];
-              final selected = identical(preset, active);
               final ys = preset.elements.map((e) => e.dy);
               // Align so the 300px window is centred on the set's middle.
               final cropY = ((ys.reduce(min) + ys.reduce(max)) / 2 / 150).clamp(
                 -1.0,
                 1.0,
               );
-              return Material(
-                color: colors.surfaceOverlay,
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: widget.element.isLocked
-                      ? null
-                      : () => ref
-                            .read(elementProvider.notifier)
-                            .applyClockSet(preset.elements),
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: selected ? colors.primary : colors.border,
-                        width: selected ? 1.8 : 1,
-                      ),
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(6),
-                            child: ColoredBox(
-                              color: preset.background,
-                              child: SizedBox.expand(
-                                child: FittedBox(
-                                  child: ClipRect(
-                                    child: Align(
-                                      alignment: Alignment(0, cropY),
-                                      heightFactor: .5,
-                                      child: IgnorePointer(
-                                        child: DefaultTextStyle(
-                                          style: const TextStyle(
-                                            fontFamily: 'Roboto',
-                                          ),
-                                          child: LockscreenCanvas(
-                                            elements: preset.elements,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
+              return _StyleCard(
+                key: ValueKey('set-${preset.id}'),
+                name: owner == 'all' && preset.user != null
+                    ? '${preset.name} · ${preset.user}'
+                    : preset.name,
+                selected: identical(preset, active),
+                onTap: widget.element.isLocked
+                    ? null
+                    : () => ref
+                          .read(elementProvider.notifier)
+                          .applyElementSet(preset.elements, owns),
+                preview: ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: ColoredBox(
+                    color: preset.background,
+                    child: ClipRect(
+                      child: Align(
+                        alignment: Alignment(0, cropY),
+                        heightFactor: .5,
+                        child: IgnorePointer(
+                          child: DefaultTextStyle(
+                            style: const TextStyle(fontFamily: 'Roboto'),
+                            child: LockscreenCanvas(elements: preset.elements),
                           ),
                         ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                owner == 'all' && preset.user != null
-                                    ? '${preset.name} · ${preset.user}'
-                                    : preset.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: selected
-                                      ? FontWeight.w800
-                                      : FontWeight.w700,
-                                  color: selected ? colors.primary : null,
-                                ),
-                              ),
-                            ),
-                            if (selected)
-                              Icon(
-                                Icons.check_circle_rounded,
-                                size: 13,
-                                color: colors.primary,
-                              ),
-                          ],
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -406,7 +358,25 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
       });
     });
     if (clockSetElementTypes.contains(widget.element.type)) {
-      return _clockSetPicker();
+      return _setPicker(
+        title: 'Clock Sets',
+        all: builtinClockSets,
+        owns: (e) => clockSetElementTypes.contains(e.type),
+      );
+    }
+    if (weatherSetElementTypes.contains(widget.element.type)) {
+      return _setPicker(
+        title: 'Weather Sets',
+        all: builtinWeatherSets,
+        owns: isWeatherSetElement,
+      );
+    }
+    if (batterySetElementTypes.contains(widget.element.type)) {
+      return _setPicker(
+        title: 'Battery Sets',
+        all: builtinBatterySets,
+        owns: isBatterySetElement,
+      );
     }
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
@@ -714,8 +684,8 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
                 final selected = _styleActive(style, widget.element);
                 return _StyleCard(
                   key: ValueKey('style-${style.id}'),
-                  style: style,
-                  element: element,
+                  name: style.name,
+                  preview: _StylePreview(element: element),
                   selected: selected,
                   onTap: _busy || widget.element.isLocked
                       ? null
@@ -746,15 +716,17 @@ bool _styleActive(WidgetStyle style, LockElement element) {
   });
 }
 
-/// Whether the clock elements in [current] are [preset]'s clock set, ignoring
+/// Whether the elements of [current] that [owns] claims are [preset], ignoring
 /// the colors and positions the user may have changed since.
-bool _clockSetActive(ClockSetPreset preset, List<LockElement> current) {
-  final clocks = current
-      .where((e) => clockSetElementTypes.contains(e.type))
-      .toList();
+bool _setActive(
+  ClockSetPreset preset,
+  List<LockElement> current,
+  bool Function(LockElement element) owns,
+) {
+  final clocks = current.where(owns).toList();
   if (clocks.length != preset.elements.length) return false;
   return preset.elements.every((want) {
-    final have = clocks.where((e) => e.type == want.type).firstOrNull;
+    final have = clocks.where((e) => e.name == want.name).firstOrNull;
     return have != null &&
         have.font == want.font &&
         have.fontWeight == want.fontWeight &&
@@ -767,14 +739,14 @@ bool _clockSetActive(ClockSetPreset preset, List<LockElement> current) {
 class _StyleCard extends StatefulWidget {
   const _StyleCard({
     super.key,
-    required this.style,
-    required this.element,
+    required this.name,
+    required this.preview,
     required this.selected,
     required this.onTap,
   });
 
-  final WidgetStyle style;
-  final LockElement element;
+  final String name;
+  final Widget preview;
   final bool selected;
   final VoidCallback? onTap;
 
@@ -797,7 +769,7 @@ class _StyleCardState extends State<_StyleCard> {
         : colors.border.withAlpha(90);
 
     return Tooltip(
-      message: widget.style.name,
+      message: widget.name,
       child: MouseRegion(
         cursor: widget.onTap != null
             ? SystemMouseCursors.click
@@ -857,7 +829,7 @@ class _StyleCardState extends State<_StyleCard> {
                             ),
                             child: FittedBox(
                               fit: BoxFit.contain,
-                              child: _StylePreview(element: widget.element),
+                              child: widget.preview,
                             ),
                           ),
                         ),
@@ -886,7 +858,7 @@ class _StyleCardState extends State<_StyleCard> {
                     children: [
                       Expanded(
                         child: Text(
-                          widget.style.name,
+                          widget.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(

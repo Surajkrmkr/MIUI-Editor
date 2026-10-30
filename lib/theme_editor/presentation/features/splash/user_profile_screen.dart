@@ -21,13 +21,17 @@ class _State extends ConsumerState<UserProfileScreen>
   void initState() {
     super.initState();
     _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 600));
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
     _fade = Tween(begin: 1.0, end: 0.0).animate(_ctrl);
     _scale = Tween(begin: 1.0, end: 2.0).animate(_ctrl)
       ..addStatusListener((s) {
         if (s == AnimationStatus.completed && mounted) {
-          Navigator.pushReplacement(context,
-              MaterialPageRoute(builder: (_) => const LandingScreen()));
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const LandingScreen()),
+          );
         }
       });
   }
@@ -46,65 +50,67 @@ class _State extends ConsumerState<UserProfileScreen>
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: const Text('MIUI Editor'),
-          leading: AppBackButton(
-            onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-          ),
-        ),
-        body: Center(
-          child: AnimatedBuilder(
-            animation: _ctrl,
-            builder: (_, __) => Opacity(
-              opacity: _fade.value,
-              child: FractionallySizedBox(
-                widthFactor: 0.7,
-                heightFactor: 0.6,
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(40),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4,
-                      crossAxisSpacing: 20,
-                      mainAxisSpacing: 20),
-                  itemCount: kUserProfiles.length,
-                  itemBuilder: (_, i) {
-                    final type = kUserProfiles.keys.elementAt(i);
-                    final profile = kUserProfiles[type]!;
-                    return Transform.scale(
-                      scale: _selected == type ? _scale.value : 1.0,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          InkWell(
-                            borderRadius: BorderRadius.circular(25),
-                            onTap: () => _onSelect(type),
-                            child: Container(
-                              height: 100,
-                              width: 100,
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                    image: AssetImage(profile.avatarAsset),
-                                    fit: BoxFit.cover),
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(profile.displayName.toUpperCase(),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16)),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+    appBar: AppBar(
+      title: const Text('MIUI Editor'),
+      leading: AppBackButton(
+        onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+      ),
+    ),
+    body: Center(
+      child: AnimatedBuilder(
+        animation: _ctrl,
+        builder: (_, __) => Opacity(
+          opacity: _fade.value,
+          child: FractionallySizedBox(
+            widthFactor: 0.7,
+            heightFactor: 0.6,
+            child: GridView.builder(
+              padding: const EdgeInsets.all(40),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                crossAxisSpacing: 20,
+                mainAxisSpacing: 20,
               ),
+              itemCount: kUserProfiles.length,
+              itemBuilder: (_, i) {
+                final type = kUserProfiles.keys.elementAt(i);
+                final profile = kUserProfiles[type]!;
+                return Transform.scale(
+                  scale: _selected == type ? _scale.value : 1.0,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      InkWell(
+                        borderRadius: BorderRadius.circular(25),
+                        onTap: () => _onSelect(type),
+                        child: Container(
+                          height: 100,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage(profile.avatarAsset),
+                              fit: BoxFit.cover,
+                            ),
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        profile.displayName.toUpperCase(),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         ),
-      );
+      ),
+    ),
+  );
 }

@@ -74,6 +74,28 @@ class CalendarLayout {
       'Sa',
     ],
     CalendarStyle.retroLcd => const ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'],
+    CalendarStyle.pixelArcade => const [
+      'SU',
+      'MO',
+      'TU',
+      'WE',
+      'TH',
+      'FR',
+      'SA',
+    ],
+    CalendarStyle.starryNight ||
+    CalendarStyle.terrazzoChips => const ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+    CalendarStyle.ribbonHeader ||
+    CalendarStyle.plannerTab ||
+    CalendarStyle.leatherStitch => const [
+      'Su',
+      'Mo',
+      'Tu',
+      'We',
+      'Th',
+      'Fr',
+      'Sa',
+    ],
     _ => const ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'],
   };
 
@@ -133,10 +155,22 @@ class CalendarLayout {
         el.calendarStyle == CalendarStyle.ticketStub ? 6.0 : 10.0,
       );
     }
+    if (el.calendarStyle == CalendarStyle.pixelArcade) {
+      final r = Rect2.fromCenter(
+        center: c.center,
+        width: colW * .86,
+        height: rowH * .86,
+      );
+      return RRect2(r, 0.0);
+    }
     if (el.calendarStyle == CalendarStyle.minimalDots ||
         el.calendarStyle == CalendarStyle.outlineRings ||
         el.calendarStyle == CalendarStyle.lunarPhase ||
-        el.calendarStyle == CalendarStyle.polarArc) {
+        el.calendarStyle == CalendarStyle.polarArc ||
+        el.calendarStyle == CalendarStyle.blueprintGrid ||
+        el.calendarStyle == CalendarStyle.paperLayers ||
+        el.calendarStyle == CalendarStyle.starryNight ||
+        el.calendarStyle == CalendarStyle.terrazzoChips) {
       final side = min(colW * .78, rowH * .82);
       final r = Rect2.fromCenter(center: c.center, width: side, height: side);
       return RRect2(r, side / 2);
@@ -168,6 +202,13 @@ class CalendarLayout {
           CalendarStyle.chalkboard ||
           CalendarStyle.washiTape => .05,
           CalendarStyle.tearOff || CalendarStyle.windowChrome => .06,
+          CalendarStyle.pixelArcade => .02,
+          CalendarStyle.leatherStitch ||
+          CalendarStyle.plannerTab ||
+          CalendarStyle.ribbonHeader => .08,
+          CalendarStyle.paperLayers ||
+          CalendarStyle.holoGlass ||
+          CalendarStyle.sunsetBands => .14,
           CalendarStyle.retroLcd => .08,
           CalendarStyle.graphPaper ||
           CalendarStyle.editorial ||
@@ -210,6 +251,9 @@ class CalendarLayout {
     CalendarStyle.ledger ||
     CalendarStyle.retroLcd ||
     CalendarStyle.chalkboard ||
+    CalendarStyle.blueprintGrid ||
+    CalendarStyle.starryNight ||
+    CalendarStyle.pixelArcade ||
     CalendarStyle.editorial => el.unlockAccent,
     _ => el.color,
   };

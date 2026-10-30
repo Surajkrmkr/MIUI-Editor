@@ -17,20 +17,20 @@ class ThemeSettings {
   final String uiVersion;
 
   factory ThemeSettings.fromJson(Map<String, dynamic> j) => ThemeSettings(
-        themeCount: j['themeCount'] as int? ?? AppConstants.defaultThemeCount,
-        basePath: j['basePath'] as String?,
-        designerName: j['designerName'] as String? ?? '',
-        authorTag: j['authorTag'] as String? ?? '',
-        uiVersion: j['uiVersion'] as String? ?? '',
-      );
+    themeCount: j['themeCount'] as int? ?? AppConstants.defaultThemeCount,
+    basePath: j['basePath'] as String?,
+    designerName: j['designerName'] as String? ?? '',
+    authorTag: j['authorTag'] as String? ?? '',
+    uiVersion: j['uiVersion'] as String? ?? '',
+  );
 
   Map<String, dynamic> toJson() => {
-        'themeCount': themeCount,
-        if (basePath != null && basePath!.isNotEmpty) 'basePath': basePath,
-        'designerName': designerName,
-        'authorTag': authorTag,
-        'uiVersion': uiVersion,
-      };
+    'themeCount': themeCount,
+    if (basePath != null && basePath!.isNotEmpty) 'basePath': basePath,
+    'designerName': designerName,
+    'authorTag': authorTag,
+    'uiVersion': uiVersion,
+  };
 
   String encode() => jsonEncode(toJson());
 
@@ -48,12 +48,11 @@ class ThemeSettings {
     String? designerName,
     String? authorTag,
     String? uiVersion,
-  }) =>
-      ThemeSettings(
-        themeCount: themeCount ?? this.themeCount,
-        basePath: basePath ?? this.basePath,
-        designerName: designerName ?? this.designerName,
-        authorTag: authorTag ?? this.authorTag,
-        uiVersion: uiVersion ?? this.uiVersion,
-      );
+  }) => ThemeSettings(
+    themeCount: themeCount ?? this.themeCount,
+    basePath: basePath ?? this.basePath,
+    designerName: designerName ?? this.designerName,
+    authorTag: authorTag ?? this.authorTag,
+    uiVersion: uiVersion ?? this.uiVersion,
+  );
 }

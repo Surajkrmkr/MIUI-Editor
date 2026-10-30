@@ -12,23 +12,23 @@ class ShimmerGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Shimmer.fromColors(
-        baseColor: colors.surface,
-        highlightColor: colors.surfaceElevated,
-        child: GridView.builder(
-          padding: const EdgeInsets.all(ThemeDefaults.paddingMd),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 5,
-            mainAxisSpacing: ThemeDefaults.paddingSm,
-            crossAxisSpacing: ThemeDefaults.paddingSm,
-          ),
-          itemCount: count,
-          itemBuilder: (_, __) => Container(
-            decoration: BoxDecoration(
-              color: colors.surface,
-              borderRadius: BorderRadius.circular(ThemeDefaults.radiusSm),
-            ),
+      baseColor: colors.surface,
+      highlightColor: colors.surfaceElevated,
+      child: GridView.builder(
+        padding: const EdgeInsets.all(ThemeDefaults.paddingMd),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 5,
+          mainAxisSpacing: ThemeDefaults.paddingSm,
+          crossAxisSpacing: ThemeDefaults.paddingSm,
+        ),
+        itemCount: count,
+        itemBuilder: (_, __) => Container(
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(ThemeDefaults.radiusSm),
           ),
         ),
-      );
+      ),
+    );
   }
 }

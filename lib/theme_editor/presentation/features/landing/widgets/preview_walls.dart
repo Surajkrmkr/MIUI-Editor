@@ -35,20 +35,21 @@ class _PreviewWallsPanelState extends ConsumerState<PreviewWallsPanel> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Previews',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      )),
+              Text(
+                'Previews',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
               if (paths.isNotEmpty) ...[
                 const SizedBox(width: 8),
                 Text(
                   '${_currentIndex + 1} / ${paths.length}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withAlpha(100),
-                      ),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withAlpha(100),
+                  ),
                 ),
               ],
             ],
@@ -58,22 +59,21 @@ class _PreviewWallsPanelState extends ConsumerState<PreviewWallsPanel> {
             child: dirState.isLoadingWalls
                 ? const Center(child: CircularProgressIndicator())
                 : paths.isEmpty
-                    ? const Center(child: Text('No walls found'))
-                    : PageView.builder(
-                        controller: _pageController,
-                        itemCount: paths.length,
-                        onPageChanged: (i) => setState(() => _currentIndex = i),
-                        itemBuilder: (_, i) {
-                          final isActive = i == _currentIndex;
-                          return AnimatedScale(
-                            scale: isActive ? 1.0 : 0.88,
-                            duration: const Duration(milliseconds: 250),
-                            curve: Curves.easeOut,
-                            child:
-                                IPhoneFrame(child: _WallCard(path: paths[i])),
-                          );
-                        },
-                      ),
+                ? const Center(child: Text('No walls found'))
+                : PageView.builder(
+                    controller: _pageController,
+                    itemCount: paths.length,
+                    onPageChanged: (i) => setState(() => _currentIndex = i),
+                    itemBuilder: (_, i) {
+                      final isActive = i == _currentIndex;
+                      return AnimatedScale(
+                        scale: isActive ? 1.0 : 0.88,
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeOut,
+                        child: IPhoneFrame(child: _WallCard(path: paths[i])),
+                      );
+                    },
+                  ),
           ),
           const SizedBox(height: 14),
           // Dot indicator
@@ -119,18 +119,16 @@ class _WallCard extends StatelessWidget {
             offset: const Offset(0, 8),
           ),
         ],
-        image: DecorationImage(
-          fit: BoxFit.cover,
-          image: FileImage(File(path)),
-        ),
+        image: DecorationImage(fit: BoxFit.cover, image: FileImage(File(path))),
       ),
       alignment: Alignment.bottomCenter,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(12, 40, 12, 24),
         decoration: BoxDecoration(
-          borderRadius:
-              const BorderRadius.vertical(bottom: Radius.circular(24)),
+          borderRadius: const BorderRadius.vertical(
+            bottom: Radius.circular(24),
+          ),
           gradient: LinearGradient(
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
@@ -143,7 +141,10 @@ class _WallCard extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
-              color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500),
+            color: Colors.white,
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
     );

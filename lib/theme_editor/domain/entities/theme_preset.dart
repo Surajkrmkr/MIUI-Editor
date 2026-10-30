@@ -36,7 +36,11 @@ final List<ThemePreset> kThemePresets = [
     name: 'iOS Style',
     description: 'The classic glassmorphism feel.',
     primaryColor: Color(0xFF007AFF),
-    effect: IconEffectModel(type: IconEffect.liquidGlass, blur: 20, intensity: 0.8),
+    effect: IconEffectModel(
+      type: IconEffect.liquidGlass,
+      blur: 20,
+      intensity: 0.8,
+    ),
     texture: IconTextureModel(type: IconTexture.none),
   ),
   const ThemePreset(

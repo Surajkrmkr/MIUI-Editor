@@ -95,7 +95,7 @@ void main() {
         'user': 'suraj',
       }, withRoot: false);
       final sets = body(r)['sets'] as List;
-      expect(sets.map((s) => s['id']), contains('builtin-analog-suraj-studio'));
+      expect(sets.map((s) => s['id']), contains('builtin-studio-suraj'));
       expect(sets.every((s) => s['builtin'] == true), isTrue);
       expect(sets.every((s) => s['user'] == 'suraj'), isTrue);
     });
@@ -119,7 +119,7 @@ void main() {
     test('a user without that kind of set gets none, not others\'', () async {
       final r = await call('list_widget_styles', {
         'user': 'suraj',
-        'type': 'shortcutSet',
+        'type': 'dragToUnlock',
       }, withRoot: false);
       expect(body(r)['sets'], isEmpty);
       expect(body(r)['note'], contains('another user'));
@@ -150,7 +150,7 @@ void main() {
       final users = body(r)['users'] as List;
       expect(users.map((u) => u['user']), themeUsers);
       final counts = {for (final u in users) u['user']: u['style_sets']};
-      expect(counts['suraj'], 3);
+      expect(counts['suraj'], 1);
       expect(counts['rajat'], greaterThan(0));
     });
 
@@ -269,6 +269,33 @@ void main() {
         final r = await call('list_clock_sets', {}, withRoot: false);
         expect(r['isError'], isTrue);
       });
+    });
+
+    group('weather and battery sets', () {
+      for (final kind in ['weather', 'battery']) {
+        test('$kind sets are Suraj\'s alone', () async {
+          final list = await call('list_${kind}_sets', {
+            'user': 'suraj',
+          }, withRoot: false);
+          final sets = body(list)['${kind}_sets'] as List;
+          expect(sets, hasLength(12));
+          final id = sets.first['id'] as String;
+          final got = await call('get_${kind}_set', {
+            'id': id,
+            'user': 'suraj',
+          }, withRoot: false);
+          expect(body(got)['elements'], isNotEmpty);
+          final other = await call('get_${kind}_set', {
+            'id': id,
+            'user': 'rajat',
+          }, withRoot: false);
+          expect(other['isError'], isTrue);
+          final empty = await call('list_${kind}_sets', {
+            'user': 'rajat',
+          }, withRoot: false);
+          expect(body(empty)['${kind}_sets'], isEmpty);
+        });
+      }
     });
 
     group('validate_spec and the user\'s styles', () {
@@ -393,7 +420,7 @@ void main() {
         expect(other['content'][0]['text'], contains('belongs to rajat'));
 
         final users = body(await call('list_users', {}))['users'] as List;
-        expect(users.firstWhere((u) => u['user'] == 'suraj')['style_sets'], 4);
+        expect(users.firstWhere((u) => u['user'] == 'suraj')['style_sets'], 2);
       });
 
       test('a user without sets of the type gets none', () async {
@@ -414,10 +441,10 @@ void main() {
         });
         final r = await call('list_widget_styles', {
           'user': 'suraj',
-          'type': 'shortcutSet',
+          'type': 'dragToUnlock',
         });
         expect(body(r)['sets'], isEmpty);
-        expect(body(r)['note'], contains('shortcutSet'));
+        expect(body(r)['note'], contains('dragToUnlock'));
       });
 
       test('a set nobody has claimed is not offered to a user', () async {

@@ -67,86 +67,91 @@ class _PresetPreviewDialogState extends ConsumerState<PresetPreviewDialog> {
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: 640, maxHeight: dialogH),
         child: SizedBox(
-        height: dialogH,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ── LEFT: phone preview ──────────────────────────────────────────
-            Expanded(
-              child: Container(
-                color: cs.surfaceContainerHighest.withAlpha(80),
-                child: LayoutBuilder(builder: (_, box) {
-                  final scale = min(
-                    (box.maxWidth - 32) / _frameW,
-                    (box.maxHeight - 32) / _frameH,
-                  ).clamp(0.3, 1.0);
-                  final sw = _frameW * scale;
-                  final sh = _frameH * scale;
-                  return Center(
-                    child: SizedBox(
-                      width: sw,
-                      height: sh,
-                      child: OverflowBox(
-                        alignment: Alignment.topLeft,
-                        maxWidth: _frameW,
-                        maxHeight: _frameH,
-                        child: Transform.scale(
-                          scale: scale,
-                          alignment: Alignment.topLeft,
-                          child: IPhoneFrame(
-                            child: PresetThumbnail(
-                              elements: widget.elements,
-                              thumbnailWidth: AppConstants.screenWidth,
-                              colorMap:
-                                  _colorMap.isEmpty ? null : Map.of(_colorMap),
+          height: dialogH,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // ── LEFT: phone preview ──────────────────────────────────────────
+              Expanded(
+                child: Container(
+                  color: cs.surfaceContainerHighest.withAlpha(80),
+                  child: LayoutBuilder(
+                    builder: (_, box) {
+                      final scale = min(
+                        (box.maxWidth - 32) / _frameW,
+                        (box.maxHeight - 32) / _frameH,
+                      ).clamp(0.3, 1.0);
+                      final sw = _frameW * scale;
+                      final sh = _frameH * scale;
+                      return Center(
+                        child: SizedBox(
+                          width: sw,
+                          height: sh,
+                          child: OverflowBox(
+                            alignment: Alignment.topLeft,
+                            maxWidth: _frameW,
+                            maxHeight: _frameH,
+                            child: Transform.scale(
+                              scale: scale,
+                              alignment: Alignment.topLeft,
+                              child: IPhoneFrame(
+                                child: PresetThumbnail(
+                                  elements: widget.elements,
+                                  thumbnailWidth: AppConstants.screenWidth,
+                                  colorMap: _colorMap.isEmpty
+                                      ? null
+                                      : Map.of(_colorMap),
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                  );
-                }),
-              ),
-            ),
-
-            // ── RIGHT: controls ──────────────────────────────────────────────
-            SizedBox(
-              width: controlsW,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Header
-                  _Header(
-                    presetName: widget.presetName,
-                    hasChanges: _colorMap.isNotEmpty,
-                    onReset: () => setState(() {
-                      _colorMap.clear();
-                      _expandedSlot = null;
-                    }),
+                      );
+                    },
                   ),
+                ),
+              ),
 
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(14, 8, 14, 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // ── Preset colour slots ────────────────────────────
-                          if (_presetColors.isNotEmpty) ...[
-                            _SectionLabel(
-                              icon: Icons.color_lens_rounded,
-                              label: 'Preset Colours',
-                              badge: '${_presetColors.length}',
-                            ),
-                            const SizedBox(height: 6),
-                            ..._presetColors.map((orig) => _ColorSlot(
+              // ── RIGHT: controls ──────────────────────────────────────────────
+              SizedBox(
+                width: controlsW,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Header
+                    _Header(
+                      presetName: widget.presetName,
+                      hasChanges: _colorMap.isNotEmpty,
+                      onReset: () => setState(() {
+                        _colorMap.clear();
+                        _expandedSlot = null;
+                      }),
+                    ),
+
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(14, 8, 14, 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // ── Preset colour slots ────────────────────────────
+                            if (_presetColors.isNotEmpty) ...[
+                              _SectionLabel(
+                                icon: Icons.color_lens_rounded,
+                                label: 'Preset Colours',
+                                badge: '${_presetColors.length}',
+                              ),
+                              const SizedBox(height: 6),
+                              ..._presetColors.map(
+                                (orig) => _ColorSlot(
                                   originalColor: orig,
                                   mappedColor: _colorMap[orig],
                                   palette: palette,
                                   isExpanded: _expandedSlot == orig,
                                   onToggle: () => setState(() {
-                                    _expandedSlot =
-                                        _expandedSlot == orig ? null : orig;
+                                    _expandedSlot = _expandedSlot == orig
+                                        ? null
+                                        : orig;
                                   }),
                                   onPickColor: (picked) => setState(() {
                                     _colorMap[orig] = picked;
@@ -158,65 +163,72 @@ class _PresetPreviewDialogState extends ConsumerState<PresetPreviewDialog> {
                                       _expandedSlot = null;
                                     }
                                   }),
-                                )),
-                            const SizedBox(height: 14),
-                          ],
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                            ],
 
-                          // ── Wallpaper palette quick-pick ───────────────────
-                          if (palette.isNotEmpty) ...[
-                            const _SectionLabel(
-                              icon: Icons.wallpaper_rounded,
-                              label: 'Wallpaper Palette',
-                            ),
-                            const SizedBox(height: 8),
-                            _PaletteGrid(
-                              palette: palette,
-                              colorMap: _colorMap,
-                              presetColors: _presetColors,
-                              onApplyToAll: (picked) => setState(() {
-                                for (final c in _presetColors) {
-                                  _colorMap[c] = picked;
-                                }
-                                _expandedSlot = null;
-                              }),
-                            ),
+                            // ── Wallpaper palette quick-pick ───────────────────
+                            if (palette.isNotEmpty) ...[
+                              const _SectionLabel(
+                                icon: Icons.wallpaper_rounded,
+                                label: 'Wallpaper Palette',
+                              ),
+                              const SizedBox(height: 8),
+                              _PaletteGrid(
+                                palette: palette,
+                                colorMap: _colorMap,
+                                presetColors: _presetColors,
+                                onApplyToAll: (picked) => setState(() {
+                                  for (final c in _presetColors) {
+                                    _colorMap[c] = picked;
+                                  }
+                                  _expandedSlot = null;
+                                }),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
-                  ),
 
-                  // Footer actions
-                  const Divider(height: 1),
-                  _Footer(
-                    onCancel: () => Navigator.pop(context),
-                    onApply: () {
-                      widget.onApply(_applyColorMap(widget.elements, _colorMap));
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
+                    // Footer actions
+                    const Divider(height: 1),
+                    _Footer(
+                      onCancel: () => Navigator.pop(context),
+                      onApply: () {
+                        widget.onApply(
+                          _applyColorMap(widget.elements, _colorMap),
+                        );
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
 
   List<LockElement> _applyColorMap(
-      List<LockElement> elements, Map<Color, Color> colorMap) {
+    List<LockElement> elements,
+    Map<Color, Color> colorMap,
+  ) {
     if (colorMap.isEmpty) return elements;
     Color remap(Color c) => colorMap[c] ?? c;
     return elements
-        .map((el) => el.copyWith(
-              color: remap(el.color),
-              colorSecondary: remap(el.colorSecondary),
-              colorDigit1: remap(el.colorDigit1),
-              colorDigit2: remap(el.colorDigit2),
-              borderColor: remap(el.borderColor),
-            ))
+        .map(
+          (el) => el.copyWith(
+            color: remap(el.color),
+            colorSecondary: remap(el.colorSecondary),
+            colorDigit1: remap(el.colorDigit1),
+            colorDigit2: remap(el.colorDigit2),
+            borderColor: remap(el.borderColor),
+          ),
+        )
         .toList();
   }
 }
@@ -249,8 +261,9 @@ class _Header extends StatelessWidget {
           Expanded(
             child: Text(
               presetName,
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(fontWeight: FontWeight.w700),
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -259,10 +272,12 @@ class _Header extends StatelessWidget {
               message: 'Reset colours',
               child: IconButton(
                 onPressed: onReset,
-                icon: Icon(Icons.restart_alt_rounded,
-                    size: 16, color: cs.onSurfaceVariant),
-                style: IconButton.styleFrom(
-                    minimumSize: const Size(28, 28)),
+                icon: Icon(
+                  Icons.restart_alt_rounded,
+                  size: 16,
+                  color: cs.onSurfaceVariant,
+                ),
+                style: IconButton.styleFrom(minimumSize: const Size(28, 28)),
               ),
             ),
           IconButton(
@@ -342,12 +357,14 @@ class _SectionLabel extends StatelessWidget {
               color: cs.primaryContainer,
               borderRadius: BorderRadius.circular(6),
             ),
-            child: Text(badge!,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: cs.onPrimaryContainer,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                )),
+            child: Text(
+              badge!,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: cs.onPrimaryContainer,
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
         ],
       ],
@@ -430,14 +447,16 @@ class _ColorSlotState extends State<_ColorSlot> {
             onTap: widget.onToggle,
             borderRadius: BorderRadius.circular(AppRadius.md),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               child: Row(
                 children: [
                   _Swatch(color: widget.originalColor, size: 22),
                   const SizedBox(width: 6),
-                  Icon(Icons.arrow_forward_rounded,
-                      size: 12, color: cs.onSurfaceVariant),
+                  Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 12,
+                    color: cs.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 6),
                   _Swatch(
                     color: displayColor,
@@ -459,8 +478,11 @@ class _ColorSlotState extends State<_ColorSlot> {
                   if (isMapped)
                     GestureDetector(
                       onTap: widget.onClear,
-                      child: Icon(Icons.close_rounded,
-                          size: 14, color: cs.error),
+                      child: Icon(
+                        Icons.close_rounded,
+                        size: 14,
+                        color: cs.error,
+                      ),
                     ),
                   const SizedBox(width: 4),
                   Icon(
@@ -492,15 +514,20 @@ class _ColorSlotState extends State<_ColorSlot> {
 
                   if (!_showCustom) ...[
                     // ── Palette quick-pick ─────────────────────────────────
-                    Text('Pick from palette',
-                        style: theme.textTheme.labelSmall
-                            ?.copyWith(color: cs.onSurfaceVariant)),
+                    Text(
+                      'Pick from palette',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     Wrap(
                       spacing: 6,
                       runSpacing: 6,
                       children: [
-                        ...widget.palette.take(10).map(
+                        ...widget.palette
+                            .take(10)
+                            .map(
                               (c) => GestureDetector(
                                 onTap: () => widget.onPickColor(c),
                                 child: _Swatch(
@@ -514,41 +541,48 @@ class _ColorSlotState extends State<_ColorSlot> {
                             ),
                         // Custom colour button
                         GestureDetector(
-                          onTap: () =>
-                              setState(() => _showCustom = true),
+                          onTap: () => setState(() => _showCustom = true),
                           child: Container(
                             width: 26,
                             height: 26,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                  color: cs.outline.withAlpha(120)),
-                              gradient: const SweepGradient(colors: [
-                                Colors.red,
-                                Colors.yellow,
-                                Colors.green,
-                                Colors.cyan,
-                                Colors.blue,
-                                Colors.purple,
-                                Colors.red,
-                              ]),
+                                color: cs.outline.withAlpha(120),
+                              ),
+                              gradient: const SweepGradient(
+                                colors: [
+                                  Colors.red,
+                                  Colors.yellow,
+                                  Colors.green,
+                                  Colors.cyan,
+                                  Colors.blue,
+                                  Colors.purple,
+                                  Colors.red,
+                                ],
+                              ),
                             ),
-                            child: const Icon(Icons.add_rounded,
-                                size: 12, color: Colors.white),
+                            child: const Icon(
+                              Icons.add_rounded,
+                              size: 12,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ] else ...[
                     // ── Inline custom colour picker ────────────────────────
-                    Text('Custom colour',
-                        style: theme.textTheme.labelSmall
-                            ?.copyWith(color: cs.onSurfaceVariant)),
+                    Text(
+                      'Custom colour',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     ColorPicker(
                       color: _customColor,
-                      onColorChanged: (c) =>
-                          setState(() => _customColor = c),
+                      onColorChanged: (c) => setState(() => _customColor = c),
                       wheelDiameter: 160,
                       wheelHasBorder: false,
                       pickersEnabled: const {
@@ -567,8 +601,7 @@ class _ColorSlotState extends State<_ColorSlot> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
-                          onPressed: () =>
-                              setState(() => _showCustom = false),
+                          onPressed: () => setState(() => _showCustom = false),
                           child: const Text('Back'),
                         ),
                         const SizedBox(width: 6),
@@ -619,7 +652,8 @@ class _PaletteGrid extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: palette.take(12).map((c) {
-        final isActive = presetColors.isNotEmpty &&
+        final isActive =
+            presetColors.isNotEmpty &&
             presetColors.every((pc) => colorMap[pc] == c);
         return Tooltip(
           message: 'Apply to all',
@@ -661,9 +695,10 @@ class _Swatch extends StatelessWidget {
         boxShadow: ring != null
             ? [
                 BoxShadow(
-                    color: ring!.withAlpha(80),
-                    blurRadius: 6,
-                    spreadRadius: 1)
+                  color: ring!.withAlpha(80),
+                  blurRadius: 6,
+                  spreadRadius: 1,
+                ),
               ]
             : null,
       ),

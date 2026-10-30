@@ -35,12 +35,13 @@ class _SvgInspectorState extends ConsumerState<SvgInspector> {
             child: Column(
               children: [
                 CircularProgressIndicator(
-                    strokeWidth: 2, color: colors.primary),
+                  strokeWidth: 2,
+                  color: colors.primary,
+                ),
                 const SizedBox(height: 12),
                 Text(
                   'Tracing image...',
-                  style:
-                      TextStyle(color: colors.textSecondary, fontSize: 11),
+                  style: TextStyle(color: colors.textSecondary, fontSize: 11),
                 ),
               ],
             ),
@@ -82,8 +83,10 @@ class _SvgInspectorState extends ConsumerState<SvgInspector> {
       width: double.infinity,
       child: FilledButton.icon(
         icon: const Icon(Icons.architecture_rounded, size: 16),
-        label: const Text('Trace Selected Layer',
-            style: TextStyle(fontSize: 11)),
+        label: const Text(
+          'Trace Selected Layer',
+          style: TextStyle(fontSize: 11),
+        ),
         onPressed: () => _startTrace(),
         style: FilledButton.styleFrom(
           backgroundColor: colors.primary,
@@ -106,9 +109,10 @@ class _SvgInspectorState extends ConsumerState<SvgInspector> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label,
-                style:
-                    TextStyle(color: colors.textSecondary, fontSize: 11)),
+            Text(
+              label,
+              style: TextStyle(color: colors.textSecondary, fontSize: 11),
+            ),
             Text(
               value.toInt().toString(),
               style: TextStyle(

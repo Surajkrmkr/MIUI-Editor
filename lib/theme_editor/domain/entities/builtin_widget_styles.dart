@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import 'element_widget.dart';
+import 'suraj_info_sets.dart';
 import 'suraj_widget_styles.dart';
+
+export 'suraj_info_sets.dart'
+    show
+        batterySetElementTypes,
+        isBatterySetElement,
+        isWeatherSetElement,
+        weatherSetElementTypes;
 import 'widget_style.dart';
 
 class ClockSetPreset {
@@ -757,6 +765,10 @@ final builtinClockSets = <ClockSetPreset>[
     set.forUser(styleSetUsers[i % styleSetUsers.length]),
   ...surajClockSets,
 ];
+
+/// Weather and battery sets; Suraj's alone for now.
+final builtinWeatherSets = <ClockSetPreset>[...surajWeatherSets];
+final builtinBatterySets = <ClockSetPreset>[...surajBatterySets];
 
 /// Clock sets [user] may use; everything for the default user (null).
 List<ClockSetPreset> clockSetsFor(String? user) => [
@@ -3146,7 +3158,5 @@ final builtinStyleSets = [
     builtinCalendarStyles,
   ])
     ..._splitAmongUsers(set),
-  surajAnalogStyles,
-  surajCalendarStyles,
-  surajUnlockStyles,
+  surajStudioStyles,
 ];

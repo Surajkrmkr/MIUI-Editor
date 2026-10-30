@@ -190,7 +190,13 @@ class ClockSetTemplate {
 
 /// The widget templates, style sets and clock sets that ship with the editor.
 class WidgetLibrary {
-  const WidgetLibrary._(this.widgets, this.styleSets, this.clockSets);
+  const WidgetLibrary._(
+    this.widgets,
+    this.styleSets,
+    this.clockSets,
+    this.weatherSets,
+    this.batterySets,
+  );
 
   static final WidgetLibrary builtin = () {
     final json = jsonDecode(widgetLibraryJson) as Map<String, dynamic>;
@@ -207,10 +213,24 @@ class WidgetLibrary {
         for (final c in json['clockSets'] as List? ?? const [])
           ClockSetTemplate.fromJson(Map<String, dynamic>.from(c as Map)),
       ],
+      [
+        for (final c in json['weatherSets'] as List? ?? const [])
+          ClockSetTemplate.fromJson(Map<String, dynamic>.from(c as Map)),
+      ],
+      [
+        for (final c in json['batterySets'] as List? ?? const [])
+          ClockSetTemplate.fromJson(Map<String, dynamic>.from(c as Map)),
+      ],
     );
   }();
 
   final List<WidgetTemplate> widgets;
   final List<WidgetStyleSet> styleSets;
   final List<ClockSetTemplate> clockSets;
+
+  /// Weather layouts (temperature, icon, city lines inside shapes).
+  final List<ClockSetTemplate> weatherSets;
+
+  /// Battery layouts (rings, bars, percentage text).
+  final List<ClockSetTemplate> batterySets;
 }

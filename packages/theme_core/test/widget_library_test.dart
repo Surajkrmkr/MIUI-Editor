@@ -20,9 +20,7 @@ void main() {
       for (final kind in ['unlock', 'analog', 'shortcuts', 'calendar'])
         for (final user in ['rajat', 'abhishek', 'subhangi', 'annapurna'])
           'builtin-$kind-$user',
-      'builtin-analog-suraj-studio',
-      'builtin-calendar-suraj-studio',
-      'builtin-unlock-suraj-studio',
+      'builtin-studio-suraj',
     ]);
     expect(lib.styleSets.every((s) => s.user != null), isTrue);
     for (final set in lib.styleSets) {

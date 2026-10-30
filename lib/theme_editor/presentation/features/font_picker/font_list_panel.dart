@@ -156,12 +156,13 @@ class _FontListPanelState extends ConsumerState<FontListPanel> {
                                 : () {
                                     WidgetsBinding.instance
                                         .addPostFrameCallback((_) {
-                                      ref
-                                          .read(
-                                            fontUserSelectionProvider.notifier,
-                                          )
-                                          .select(e.key);
-                                    });
+                                          ref
+                                              .read(
+                                                fontUserSelectionProvider
+                                                    .notifier,
+                                              )
+                                              .select(e.key);
+                                        });
                                   },
                             child: Padding(
                               padding: const EdgeInsets.all(2),

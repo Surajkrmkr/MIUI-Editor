@@ -64,8 +64,11 @@ class BottomStatusBar extends ConsumerWidget {
             style: TextStyle(color: colors.textDisabled, fontSize: 10),
           ),
           const SizedBox(width: 12),
-          Icon(Icons.notifications_none_rounded,
-              size: 14, color: colors.textDisabled),
+          Icon(
+            Icons.notifications_none_rounded,
+            size: 14,
+            color: colors.textDisabled,
+          ),
         ],
       ),
     );

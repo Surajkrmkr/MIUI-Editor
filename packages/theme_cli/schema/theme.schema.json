@@ -560,7 +560,27 @@
             "ropeBead",
             "slotPlate",
             "waveTrack",
-            "pixelRun"
+            "pixelRun",
+            "petalFlower",
+            "cloudPuff",
+            "roundTriangle",
+            "capsuleSplit",
+            "viewfinder",
+            "droplet",
+            "homePlate",
+            "nightSky",
+            "layeredDiscs",
+            "ribbonBanner",
+            "batteryCharge",
+            "gradientRail",
+            "arrowTrack",
+            "filmStrip",
+            "dualPill",
+            "stubTicket",
+            "starPath",
+            "keyhole",
+            "glassTube",
+            "heartbeat"
           ]
         },
         "unlockAccent": {
@@ -636,7 +656,19 @@
             "socialCards",
             "candyCapsule",
             "softRow",
-            "glossOrbs"
+            "glossOrbs",
+            "circleBadge",
+            "squircleGlass",
+            "bevelBlock",
+            "starBurst",
+            "neoOutline",
+            "pillBar",
+            "glassBar",
+            "ledBar",
+            "glassStrip",
+            "tabRail",
+            "honeyOutline",
+            "pebbleStagger"
           ]
         },
         "shortcutEdge": {
@@ -679,7 +711,17 @@
             "windowChrome",
             "editorial",
             "ledger",
-            "postageStamp"
+            "postageStamp",
+            "blueprintGrid",
+            "sunsetBands",
+            "pixelArcade",
+            "leatherStitch",
+            "paperLayers",
+            "starryNight",
+            "terrazzoChips",
+            "ribbonHeader",
+            "plannerTab",
+            "holoGlass"
           ]
         },
         "shortcutApps": {

@@ -14,14 +14,21 @@ class _TagsPanelState extends ConsumerState<TagsPanel> {
   final _searchCtrl = TextEditingController();
 
   @override
-  void dispose() { _searchCtrl.dispose(); super.dispose(); }
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final state    = ref.watch(tagProvider);
+    final state = ref.watch(tagProvider);
     final notifier = ref.read(tagProvider.notifier);
 
-    if (!state.isLoaded) return const SizedBox(width: 220, child: Center(child: CircularProgressIndicator()));
+    if (!state.isLoaded)
+      return const SizedBox(
+        width: 220,
+        child: Center(child: CircularProgressIndicator()),
+      );
 
     return SizedBox(
       width: 220,
@@ -37,7 +44,9 @@ class _TagsPanelState extends ConsumerState<TagsPanel> {
               border: const OutlineInputBorder(),
               labelText: 'Search tags...',
               suffixIcon: IconButton(
-                icon: Icon(state.searchQuery.isEmpty ? Icons.search : Icons.close),
+                icon: Icon(
+                  state.searchQuery.isEmpty ? Icons.search : Icons.close,
+                ),
                 onPressed: () {
                   if (state.searchQuery.isNotEmpty) {
                     _searchCtrl.clear();
@@ -61,16 +70,26 @@ class _TagsPanelState extends ConsumerState<TagsPanel> {
                 : ListView(
                     children: state.data!.categories.map((cat) {
                       return ExpansionTile(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        title: Text(cat.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                        children: cat.subTags.map((tag) => ListTile(
-                          dense: true,
-                          selected: state.appliedTags.contains(tag),
-                          title: Text(tag),
-                          onTap: () => state.appliedTags.contains(tag)
-                              ? notifier.removeTag(tag)
-                              : notifier.addTag(tag),
-                        )).toList(),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        title: Text(
+                          cat.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        children: cat.subTags
+                            .map(
+                              (tag) => ListTile(
+                                dense: true,
+                                selected: state.appliedTags.contains(tag),
+                                title: Text(tag),
+                                onTap: () => state.appliedTags.contains(tag)
+                                    ? notifier.removeTag(tag)
+                                    : notifier.addTag(tag),
+                              ),
+                            )
+                            .toList(),
                       );
                     }).toList(),
                   ),
@@ -78,19 +97,38 @@ class _TagsPanelState extends ConsumerState<TagsPanel> {
           // Applied chips
           const SizedBox(height: 8),
           Wrap(
-            spacing: 6, runSpacing: 6,
-            children: state.appliedTags.map((tag) => ActionChip(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              label: Text(tag, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
-              avatar: Icon(Icons.close, color: Theme.of(context).colorScheme.onPrimary, size: 14),
-              onPressed: () => notifier.removeTag(tag),
-            )).toList(),
+            spacing: 6,
+            runSpacing: 6,
+            children: state.appliedTags
+                .map(
+                  (tag) => ActionChip(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    label: Text(
+                      tag,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                    ),
+                    avatar: Icon(
+                      Icons.close,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      size: 14,
+                    ),
+                    onPressed: () => notifier.removeTag(tag),
+                  ),
+                )
+                .toList(),
           ),
           if (!state.canAddMore)
             Padding(
               padding: const EdgeInsets.only(top: 4),
-              child: Text('Max 6 tags',
-                  style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 11)),
+              child: Text(
+                'Max 6 tags',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                  fontSize: 11,
+                ),
+              ),
             ),
         ],
       ),
@@ -99,7 +137,11 @@ class _TagsPanelState extends ConsumerState<TagsPanel> {
 }
 
 class _TagList extends StatelessWidget {
-  const _TagList({required this.items, required this.isSelected, required this.onTap});
+  const _TagList({
+    required this.items,
+    required this.isSelected,
+    required this.onTap,
+  });
   final List<String> items;
   final bool Function(String) isSelected;
   final void Function(String) onTap;

@@ -106,7 +106,9 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -138,23 +140,24 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            child: Builder(builder: (_) {
-              if (dirState.isLoadingFolders) {
-                return const CircularProgressIndicator();
-              }
-              if (dirState.preLockFolders.isEmpty) {
-                return Text('NO FOLDER AVAILABLE',
-                    style: Theme.of(context).textTheme.bodyLarge);
-              }
-              return const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  FolderWeekOptions(),
-                  PreviewWallsPanel(),
-                ],
-              );
-            }),
+            child: Builder(
+              builder: (_) {
+                if (dirState.isLoadingFolders) {
+                  return const CircularProgressIndicator();
+                }
+                if (dirState.preLockFolders.isEmpty) {
+                  return Text(
+                    'NO FOLDER AVAILABLE',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  );
+                }
+                return const Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [FolderWeekOptions(), PreviewWallsPanel()],
+                );
+              },
+            ),
           ),
         ),
       ),

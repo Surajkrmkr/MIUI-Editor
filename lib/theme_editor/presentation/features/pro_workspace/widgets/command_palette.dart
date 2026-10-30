@@ -76,17 +76,24 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
                       color: Colors.transparent,
                       child: ListTile(
                         dense: true,
-                        leading: Icon(Icons.bolt_rounded,
-                            size: 16, color: colors.textDisabled),
+                        leading: Icon(
+                          Icons.bolt_rounded,
+                          size: 16,
+                          color: colors.textDisabled,
+                        ),
                         title: Text(
                           _commands[index],
                           style: TextStyle(
-                              color: colors.textSecondary, fontSize: 12),
+                            color: colors.textSecondary,
+                            fontSize: 12,
+                          ),
                         ),
                         trailing: Text(
                           'Ctrl+Enter',
                           style: TextStyle(
-                              color: colors.textDisabled, fontSize: 9),
+                            color: colors.textDisabled,
+                            fontSize: 9,
+                          ),
                         ),
                         onTap: () => Navigator.pop(context),
                       ),
@@ -108,17 +115,20 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
                 ),
                 child: Row(
                   children: [
-                    Text('↑↓ to navigate',
-                        style: TextStyle(
-                            color: colors.textDisabled, fontSize: 9)),
+                    Text(
+                      '↑↓ to navigate',
+                      style: TextStyle(color: colors.textDisabled, fontSize: 9),
+                    ),
                     const SizedBox(width: 12),
-                    Text('↵ to execute',
-                        style: TextStyle(
-                            color: colors.textDisabled, fontSize: 9)),
+                    Text(
+                      '↵ to execute',
+                      style: TextStyle(color: colors.textDisabled, fontSize: 9),
+                    ),
                     const SizedBox(width: 12),
-                    Text('esc to close',
-                        style: TextStyle(
-                            color: colors.textDisabled, fontSize: 9)),
+                    Text(
+                      'esc to close',
+                      style: TextStyle(color: colors.textDisabled, fontSize: 9),
+                    ),
                   ],
                 ),
               ),

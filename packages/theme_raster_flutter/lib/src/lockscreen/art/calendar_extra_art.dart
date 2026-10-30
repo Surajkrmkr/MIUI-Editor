@@ -5,10 +5,12 @@ import 'package:theme_core/theme_core.dart';
 
 import '../lock_element.dart';
 import 'calendar_style_art.dart';
+import 'calendar_studio_art.dart';
 
 /// Calendar panels added after the first set. Colours: `unlockAccent` is the
 /// page, `borderColor` and `strokeColor` the two inks, `color` the text.
 const extraCalendarStyles = {
+  ...studioCalendarStyles,
   CalendarStyle.notebookSpiral,
   CalendarStyle.tearOff,
   CalendarStyle.chalkboard,
@@ -486,6 +488,6 @@ void paintExtraCalendarPanel(
         line(soft(ink2, .55), 1.3 * k),
       );
     default:
-      break;
+      paintStudioCalendarPanel(canvas, size, el, l, k, panel);
   }
 }

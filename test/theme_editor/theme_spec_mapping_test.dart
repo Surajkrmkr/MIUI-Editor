@@ -84,7 +84,7 @@ void main() {
     'built-in clock presets are complete and flashlight is a system icon',
     () {
       expect(editor_style.WidgetStyle.supports(ElementType.hourClock), isTrue);
-      expect(builtinClockSets, hasLength(4));
+      expect(builtinClockSets, hasLength(25));
       expect(builtinClockSets.every((set) => set.elements.length > 1), isTrue);
       expect(ElementType.flashlightIcon.isIcon, isTrue);
       expect(

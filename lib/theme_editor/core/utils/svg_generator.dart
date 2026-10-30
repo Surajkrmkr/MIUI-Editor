@@ -31,7 +31,10 @@ class SVGGenerator {
     // 1. Background Layer
     final bgContent = elements
         .where((e) => e.type == ElementType.swipeUpUnlock) // Or actual bg
-        .map((e) => generateElement(e, width, height, imgPath: imagePaths?[e.type]))
+        .map(
+          (e) =>
+              generateElement(e, width, height, imgPath: imagePaths?[e.type]),
+        )
         .join();
     buffer.write(wrapInLayer(bgContent, 'Background'));
 
@@ -50,8 +53,13 @@ class SVGGenerator {
 
     // 5. Icon/Content Layer
     final iconContent = elements
-        .where((e) => !e.type.isContainer && e.type != ElementType.swipeUpUnlock)
-        .map((e) => generateElement(e, width, height, imgPath: imagePaths?[e.type]))
+        .where(
+          (e) => !e.type.isContainer && e.type != ElementType.swipeUpUnlock,
+        )
+        .map(
+          (e) =>
+              generateElement(e, width, height, imgPath: imagePaths?[e.type]),
+        )
         .join();
     buffer.write(wrapInLayer(iconContent, 'Icon'));
 
@@ -62,9 +70,12 @@ class SVGGenerator {
     return buffer.toString();
   }
 
-
-  static String generateElement(LockElement el, double width, double height,
-      {String? imgPath}) {
+  static String generateElement(
+    LockElement el,
+    double width,
+    double height, {
+    String? imgPath,
+  }) {
     if (el.type == ElementType.swipeUpUnlock) return '';
 
     final buffer = StringBuffer();
@@ -74,7 +85,8 @@ class SVGGenerator {
     final scale = el.scale;
 
     buffer.writeln(
-        '    <g id="element_${el.type.name}" transform="translate($dx, $dy) rotate($angle, ${width / 2}, ${height / 2}) scale($scale)">');
+      '    <g id="element_${el.type.name}" transform="translate($dx, $dy) rotate($angle, ${width / 2}, ${height / 2}) scale($scale)">',
+    );
 
     if (el.type.isClock || el.type.isText) {
       _addText(buffer, el, width, height);
@@ -89,7 +101,11 @@ class SVGGenerator {
   }
 
   static void _addText(
-      StringBuffer buffer, LockElement el, double canvasW, double canvasH) {
+    StringBuffer buffer,
+    LockElement el,
+    double canvasW,
+    double canvasH,
+  ) {
     final color = _toHex(el.color);
     final fontSize = el.fontSize * ratio;
     final fontWeight = _toFontWeight(el.fontWeight);
@@ -112,11 +128,16 @@ class SVGGenerator {
     final text = el.type.isClock ? _getClockText(el.type, el.isShort) : el.text;
 
     buffer.writeln(
-        '      <text x="$x" y="$y" fill="$color" font-family="$fontFamily" font-size="$fontSize" font-weight="$fontWeight" text-anchor="$textAnchor" alignment-baseline="middle">$text</text>');
+      '      <text x="$x" y="$y" fill="$color" font-family="$fontFamily" font-size="$fontSize" font-weight="$fontWeight" text-anchor="$textAnchor" alignment-baseline="middle">$text</text>',
+    );
   }
 
   static void _addContainer(
-      StringBuffer buffer, LockElement el, double canvasW, double canvasH) {
+    StringBuffer buffer,
+    LockElement el,
+    double canvasW,
+    double canvasH,
+  ) {
     final color = _toHex(el.color);
     final borderColor = _toHex(el.borderColor);
     final borderWidth = el.borderWidth * ratio;
@@ -129,11 +150,17 @@ class SVGGenerator {
     final y = (canvasH - h) / 2 + (align.y * (canvasH - h) / 2);
 
     buffer.writeln(
-        '      <rect x="$x" y="$y" width="$w" height="$h" rx="$radius" ry="$radius" fill="$color" stroke="$borderColor" stroke-width="$borderWidth" />');
+      '      <rect x="$x" y="$y" width="$w" height="$h" rx="$radius" ry="$radius" fill="$color" stroke="$borderColor" stroke-width="$borderWidth" />',
+    );
   }
 
-  static void _addImage(StringBuffer buffer, LockElement el, double canvasW,
-      double canvasH, String? imgPath) {
+  static void _addImage(
+    StringBuffer buffer,
+    LockElement el,
+    double canvasW,
+    double canvasH,
+    String? imgPath,
+  ) {
     final w = el.width * ratio;
     final h = el.height * ratio;
     final align = el.align as Alignment;
@@ -144,11 +171,13 @@ class SVGGenerator {
       final bytes = File(imgPath).readAsBytesSync();
       final base64Image = base64Encode(bytes);
       buffer.writeln(
-          '      <image xlink:href="data:image/png;base64,$base64Image" x="$x" y="$y" width="$w" height="$h" />');
+        '      <image xlink:href="data:image/png;base64,$base64Image" x="$x" y="$y" width="$w" height="$h" />',
+      );
     } else {
       buffer.writeln('      <!-- Placeholder for ${el.type.name} -->');
       buffer.writeln(
-          '      <rect x="$x" y="$y" width="$w" height="$h" fill="#cccccc" opacity="0.3" rx="${10 * ratio}" />');
+        '      <rect x="$x" y="$y" width="$w" height="$h" fill="#cccccc" opacity="0.3" rx="${10 * ratio}" />',
+      );
     }
   }
 
@@ -187,6 +216,3 @@ class SVGGenerator {
     };
   }
 }
-
-
-

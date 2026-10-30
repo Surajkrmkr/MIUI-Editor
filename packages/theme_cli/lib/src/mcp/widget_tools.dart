@@ -157,6 +157,93 @@ List<SpecIssue> styleOwnerIssues(ThemeSpec spec, ThemeToolContext ctx) {
   return issues;
 }
 
+/// `list_<kind>_sets` and `get_<kind>_set` for a family of per-user layouts.
+List<McpTool> _infoSetTools({
+  required String kind,
+  required List<ClockSetTemplate> Function() sets,
+  required String what,
+}) => [
+  McpTool(
+    name: 'list_${kind}_sets',
+    description:
+        'Lists the ready-made $what that belong to one user. Use only these '
+        'for that user, never another user\'s. Read one with get_${kind}_set.',
+    inputSchema: const {
+      'type': 'object',
+      'properties': {'user': userProp},
+      'required': ['user'],
+    },
+    readOnly: true,
+    handler: (args, progress) async {
+      final user = requireUser(args);
+      final own = [
+        for (final c in sets())
+          if (c.user == user) c,
+      ];
+      return ToolResult(
+        jsonEncode({
+          'user': user,
+          if (own.isEmpty)
+            'note':
+                '$user has no $kind sets. Design it yourself; do not use '
+                'another user\'s.',
+          '${kind}_sets': [
+            for (final c in own)
+              {
+                'id': c.id,
+                'name': c.name,
+                'types': [for (final e in c.elements) e['type']],
+              },
+          ],
+        }),
+      );
+    },
+  ),
+  McpTool(
+    name: 'get_${kind}_set',
+    description:
+        'Reads a $kind set of list_${kind}_sets: its elements, ready to add '
+        'to lockscreen.elements. Only fields that differ from the defaults '
+        'are listed. Shape sizes are theme pixels, dx and dy are screen '
+        'units from the centre. Move it with dx and dy, recolor it to suit '
+        'the wallpaper and keep it clear of the status bar.',
+    inputSchema: {
+      'type': 'object',
+      'properties': {
+        'id': {'type': 'string', 'description': 'From list_${kind}_sets.'},
+        'user': userProp,
+      },
+      'required': ['id', 'user'],
+    },
+    readOnly: true,
+    handler: (args, progress) async {
+      final id = args['id'];
+      if (id is! String || id.isEmpty) {
+        throw const ToolException('id is required.');
+      }
+      final user = requireUser(args);
+      final found = sets().where((c) => c.id == id).firstOrNull;
+      if (found == null) {
+        throw ToolException('No $kind set "$id". See list_${kind}_sets.');
+      }
+      if (found.user != user) {
+        throw ToolException(
+          'The $kind set "$id" belongs to ${found.user ?? 'nobody'}, not '
+          '$user. Pick one from list_${kind}_sets for $user.',
+        );
+      }
+      return ToolResult(
+        jsonEncode({
+          'id': found.id,
+          'name': found.name,
+          'user': user,
+          'elements': found.elements,
+        }),
+      );
+    },
+  ),
+];
+
 /// Tools that tell the agent what the desktop editor's Widget Center offers.
 List<McpTool> widgetTools(ThemeToolContext ctx) => [
   McpTool(
@@ -188,6 +275,12 @@ List<McpTool> widgetTools(ThemeToolContext ctx) => [
                   'user': u,
                   'style_sets': sets.where((s) => s.$1.user == u).length,
                   'clock_sets': WidgetLibrary.builtin.clockSets
+                      .where((c) => c.user == u)
+                      .length,
+                  'weather_sets': WidgetLibrary.builtin.weatherSets
+                      .where((c) => c.user == u)
+                      .length,
+                  'battery_sets': WidgetLibrary.builtin.batterySets
                       .where((c) => c.user == u)
                       .length,
                 },
@@ -285,6 +378,20 @@ List<McpTool> widgetTools(ThemeToolContext ctx) => [
         }),
       );
     },
+  ),
+  ..._infoSetTools(
+    kind: 'weather',
+    sets: () => WidgetLibrary.builtin.weatherSets,
+    what:
+        'weather layouts (icon, temperature, description, city, humidity '
+        'and AQI texts framed by geometry shapes)',
+  ),
+  ..._infoSetTools(
+    kind: 'battery',
+    sets: () => WidgetLibrary.builtin.batterySets,
+    what:
+        'battery layouts (live rings, gauges and bars drawn with arc and '
+        'rectangle shapes, plus the percentage text)',
   ),
   McpTool(
     name: 'list_widgets',

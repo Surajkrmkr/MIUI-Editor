@@ -28,6 +28,7 @@ class _TileLook {
     this.tileGloss = false,
     this.colorful = false,
     this.hex = false,
+    this.shape,
     this.border,
     this.badge,
     this.glyphShadow = false,
@@ -41,6 +42,9 @@ class _TileLook {
   final double glyphScale;
   final bool glyphGloss, tileGloss, colorful;
   final bool hex;
+
+  /// Tile outline other than the rounded [radius] or hexagon.
+  final OutlinedBorder? shape;
   final BorderSide? border;
 
   /// Soft drop shadow under the glyph so it looks raised off the tile.
@@ -143,6 +147,7 @@ class ShortcutSetArt {
       );
     }
     final corner = Radius.circular(p.width * .2 * k);
+    if (_studioPanel(el, k, p, base, opacity) case final studio?) return studio;
     if (el.shortcutStyle == ShortcutStyle.softRow) {
       return Container(
         width: p.width * k,
@@ -300,9 +305,15 @@ class ShortcutSetArt {
         child: glyph,
       );
     }
-    final shape = look.hex
-        ? const _HexBorder()
-        : RoundedRectangleBorder(borderRadius: look.radius);
+    final shape =
+        look.shape ??
+        (look.hex
+            ? const _HexBorder()
+            : RoundedRectangleBorder(borderRadius: look.radius));
+    final outline = switch ((look.border, shape)) {
+      (final side?, final OutlinedBorder s) => s.copyWith(side: side),
+      _ => shape,
+    };
     return SizedBox(
       width: w,
       height: h,
@@ -315,14 +326,7 @@ class ShortcutSetArt {
         position: DecorationPosition.background,
         child: DecoratedBox(
           position: DecorationPosition.foreground,
-          decoration: ShapeDecoration(
-            shape: look.border == null
-                ? shape
-                : RoundedRectangleBorder(
-                    borderRadius: look.radius,
-                    side: look.border!,
-                  ),
-          ),
+          decoration: ShapeDecoration(shape: outline),
           child: ClipPath(
             clipper: ShapeBorderClipper(shape: shape),
             child: Stack(
@@ -609,6 +613,418 @@ class ShortcutSetArt {
     end: Alignment.bottomRight,
     colors: [a, b],
   );
+
+  /// Suraj's studio looks. Colors: `unlockAccent`, `borderColor`,
+  /// `colorSecondary` and `strokeColor` are the palette tiles cycle through,
+  /// `color` is the glyph ink.
+  static _TileLook _studioLook(
+    LockElement el,
+    ShortcutApp app,
+    int index,
+    double s,
+    List<BoxShadow> soft,
+  ) {
+    // Bars and docks keep colorSecondary for the panel, not the tiles.
+    final panelBased = const {
+      ShortcutStyle.pillBar,
+      ShortcutStyle.glassBar,
+      ShortcutStyle.ledBar,
+      ShortcutStyle.glassStrip,
+      ShortcutStyle.tabRail,
+    }.contains(el.shortcutStyle);
+    final palette = [
+      el.unlockAccent,
+      el.borderColor,
+      if (!panelBased) el.colorSecondary,
+      el.strokeColor.a > 0 ? el.strokeColor : el.unlockAccent,
+    ];
+    final tint = palette[index % palette.length];
+    final kind = _kindFor(app, mono: true);
+    const clear = Color(0x00FFFFFF);
+    final none = _vertical(clear, clear);
+    final detail = panelBased
+        ? Colors.black.withValues(alpha: .4)
+        : Color.lerp(tint, Colors.black, .5)!;
+    switch (el.shortcutStyle) {
+      case ShortcutStyle.circleBadge:
+        return _TileLook(
+          fill: _diagonal(Color.lerp(tint, Colors.white, .3)!, tint),
+          kind: kind,
+          detail: detail,
+          ink: el.color,
+          glyphScale: .5,
+          tileGloss: true,
+          glyphShadow: true,
+          border: BorderSide(
+            color: Colors.white.withValues(alpha: .55),
+            width: s * .03,
+          ),
+          radius: BorderRadius.circular(s / 2),
+          shadow: soft,
+        );
+      case ShortcutStyle.squircleGlass:
+        return _TileLook(
+          fill: _vertical(
+            Colors.white.withValues(alpha: .28),
+            Colors.white.withValues(alpha: .1),
+          ),
+          kind: kind,
+          detail: detail,
+          ink: el.color,
+          glyphScale: .52,
+          tileGloss: true,
+          glyphShadow: true,
+          border: BorderSide(
+            color: Colors.white.withValues(alpha: .5),
+            width: s * .02,
+          ),
+          radius: BorderRadius.circular(s * .34),
+          shadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: .18),
+              blurRadius: s * .14,
+              offset: Offset(0, s * .05),
+            ),
+          ],
+        );
+      case ShortcutStyle.bevelBlock:
+        return _TileLook(
+          fill: _vertical(Color.lerp(tint, Colors.white, .14)!, tint),
+          kind: kind,
+          detail: detail,
+          ink: el.color,
+          glyphScale: .5,
+          shape: BeveledRectangleBorder(
+            borderRadius: BorderRadius.circular(s * .28),
+          ),
+          radius: BorderRadius.zero,
+          shadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: .28),
+              offset: Offset(s * .04, s * .05),
+            ),
+          ],
+        );
+      case ShortcutStyle.starBurst:
+        return _TileLook(
+          fill: RadialGradient(
+            center: const Alignment(-.3, -.4),
+            colors: [Color.lerp(tint, Colors.white, .35)!, tint],
+          ),
+          kind: kind,
+          detail: detail,
+          ink: el.color,
+          glyphScale: .42,
+          glyphShadow: true,
+          shape: const StarBorder(
+            points: 10,
+            innerRadiusRatio: .86,
+            pointRounding: .4,
+            valleyRounding: .3,
+          ),
+          radius: BorderRadius.zero,
+          shadow: soft,
+        );
+      case ShortcutStyle.neoOutline:
+        return _TileLook(
+          fill: _vertical(tint, tint),
+          kind: kind,
+          detail: detail,
+          ink: el.color,
+          glyphScale: .5,
+          border: BorderSide(color: el.color, width: s * .05),
+          radius: BorderRadius.circular(s * .22),
+          shadow: [
+            BoxShadow(color: el.color, offset: Offset(s * .07, s * .07)),
+          ],
+        );
+      case ShortcutStyle.honeyOutline:
+        return _TileLook(
+          fill: _vertical(
+            tint.withValues(alpha: .16),
+            tint.withValues(alpha: .04),
+          ),
+          kind: kind,
+          detail: detail,
+          ink: tint,
+          glyphScale: .4,
+          hex: true,
+          border: BorderSide(color: tint, width: s * .035),
+          radius: BorderRadius.zero,
+          shadow: [
+            BoxShadow(color: tint.withValues(alpha: .3), blurRadius: s * .12),
+          ],
+        );
+      case ShortcutStyle.pebbleStagger:
+        final big = Radius.circular(s * .5), small = Radius.circular(s * .16);
+        return _TileLook(
+          fill: _diagonal(Color.lerp(tint, Colors.white, .28)!, tint),
+          kind: kind,
+          detail: detail,
+          ink: el.color,
+          glyphScale: .5,
+          tileGloss: true,
+          radius: switch (index % 4) {
+            0 => BorderRadius.only(
+              topLeft: big,
+              topRight: big,
+              bottomLeft: big,
+              bottomRight: small,
+            ),
+            1 => BorderRadius.only(
+              topLeft: small,
+              topRight: big,
+              bottomLeft: big,
+              bottomRight: big,
+            ),
+            2 => BorderRadius.only(
+              topLeft: big,
+              topRight: small,
+              bottomLeft: big,
+              bottomRight: big,
+            ),
+            _ => BorderRadius.only(
+              topLeft: big,
+              topRight: big,
+              bottomLeft: small,
+              bottomRight: big,
+            ),
+          },
+          shadow: soft,
+        );
+      case ShortcutStyle.pillBar:
+        return _TileLook(
+          fill: _diagonal(Color.lerp(tint, Colors.white, .25)!, tint),
+          kind: kind,
+          detail: detail,
+          ink: el.color,
+          glyphScale: .52,
+          border: BorderSide(
+            color: Colors.white.withValues(alpha: .4),
+            width: s * .03,
+          ),
+          radius: BorderRadius.circular(s / 2),
+          shadow: soft,
+        );
+      case ShortcutStyle.glassBar:
+        return _TileLook(
+          fill: index == 0
+              ? _vertical(
+                  Colors.white.withValues(alpha: .26),
+                  Colors.white.withValues(alpha: .1),
+                )
+              : none,
+          kind: kind,
+          detail: detail,
+          ink: el.color,
+          glyphScale: .56,
+          glyphShadow: true,
+          radius: BorderRadius.circular(s * .32),
+          shadow: const [],
+        );
+      case ShortcutStyle.ledBar:
+        return _TileLook(
+          fill: _vertical(
+            Color.lerp(el.colorSecondary, Colors.black, .55)!,
+            Color.lerp(el.colorSecondary, Colors.black, .3)!,
+          ),
+          kind: kind,
+          detail: detail,
+          ink: el.color,
+          glyphScale: .52,
+          border: BorderSide(color: tint, width: s * .03),
+          radius: BorderRadius.circular(s * .16),
+          shadow: [
+            BoxShadow(color: tint.withValues(alpha: .5), blurRadius: s * .2),
+          ],
+        );
+      case ShortcutStyle.glassStrip:
+        return _TileLook(
+          fill: index == 0
+              ? _vertical(
+                  el.unlockAccent.withValues(alpha: .42),
+                  el.unlockAccent.withValues(alpha: .16),
+                )
+              : none,
+          kind: kind,
+          detail: detail,
+          ink: el.color,
+          glyphScale: .58,
+          glyphShadow: true,
+          radius: BorderRadius.circular(s * .3),
+          shadow: const [],
+        );
+      case ShortcutStyle.tabRail:
+        final active = index == 0;
+        return _TileLook(
+          fill: active
+              ? _vertical(
+                  Color.lerp(el.unlockAccent, Colors.white, .18)!,
+                  el.unlockAccent,
+                )
+              : none,
+          kind: kind,
+          detail: detail,
+          ink: active ? el.borderColor : el.color.withValues(alpha: .72),
+          glyphScale: .54,
+          radius: BorderRadius.circular(s * .28),
+          shadow: active
+              ? [
+                  BoxShadow(
+                    color: el.unlockAccent.withValues(alpha: .5),
+                    blurRadius: s * .2,
+                  ),
+                ]
+              : const [],
+        );
+      default:
+        return _TileLook(
+          fill: none,
+          kind: kind,
+          detail: detail,
+          ink: el.color,
+          radius: BorderRadius.circular(s * .2),
+          shadow: const [],
+        );
+    }
+  }
+
+  static BorderRadius _dockRadius(LockElement el, double r) =>
+      switch (_edgeOf(el)) {
+        ShortcutEdge.right => BorderRadius.horizontal(left: Radius.circular(r)),
+        ShortcutEdge.left => BorderRadius.horizontal(right: Radius.circular(r)),
+        ShortcutEdge.floating => BorderRadius.circular(r),
+      };
+
+  /// Panels of the studio row and dock looks; null for the other styles.
+  static Widget? _studioPanel(
+    LockElement el,
+    double k,
+    Rect p,
+    Color base,
+    double opacity,
+  ) {
+    Color a(Color c) => c.withValues(alpha: c.a * opacity);
+    final w = p.width * k, h = p.height * k;
+    switch (el.shortcutStyle) {
+      case ShortcutStyle.pillBar:
+        return Container(
+          width: w,
+          height: h,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(h / 2),
+            gradient: _vertical(
+              a(Color.lerp(base, Colors.white, .12)!),
+              a(Color.lerp(base, Colors.black, .12)!),
+            ),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: .22),
+              width: max(el.borderWidth, 1.2),
+            ),
+          ),
+        );
+      case ShortcutStyle.glassBar:
+        return Container(
+          width: w,
+          height: h,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(h * .36),
+            gradient: _vertical(
+              Color.lerp(
+                base,
+                Colors.white,
+                .3,
+              )!.withValues(alpha: .3 * opacity + .06),
+              base.withValues(alpha: .14 * opacity + .04),
+            ),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: .4),
+              width: max(el.borderWidth, 1.2),
+            ),
+          ),
+        );
+      case ShortcutStyle.ledBar:
+        return Container(
+          width: w,
+          height: h,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(h * .22),
+            color: a(Color.lerp(base, Colors.black, .4)!),
+            border: Border.all(
+              color: el.borderColor.withValues(alpha: .8),
+              width: max(el.borderWidth, h * .02),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: el.borderColor.withValues(alpha: .35),
+                blurRadius: h * .25,
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(h * .22),
+            child: CustomPaint(
+              painter: _DotGridPainter(
+                Colors.white.withValues(alpha: .09),
+                h * .1,
+              ),
+            ),
+          ),
+        );
+      case ShortcutStyle.glassStrip:
+        return Container(
+          width: w,
+          height: h,
+          decoration: BoxDecoration(
+            borderRadius: _dockRadius(el, w * .42),
+            gradient: _vertical(
+              Color.lerp(
+                base,
+                Colors.white,
+                .25,
+              )!.withValues(alpha: .28 * opacity + .05),
+              base.withValues(alpha: .1 * opacity + .04),
+            ),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: .38),
+              width: max(el.borderWidth, 1.2),
+            ),
+          ),
+        );
+      case ShortcutStyle.tabRail:
+        final onRight = _edgeOf(el) != ShortcutEdge.left;
+        return Container(
+          width: w,
+          height: h,
+          decoration: BoxDecoration(
+            borderRadius: _dockRadius(el, w * .3),
+            gradient: _vertical(
+              a(base),
+              a(Color.lerp(base, Colors.black, .28)!),
+            ),
+          ),
+          child: Align(
+            alignment: onRight ? Alignment.centerRight : Alignment.centerLeft,
+            child: Container(
+              width: max(2.5, w * .035),
+              height: h * .5,
+              decoration: BoxDecoration(
+                color: el.unlockAccent,
+                borderRadius: BorderRadius.circular(w),
+                boxShadow: [
+                  BoxShadow(
+                    color: el.unlockAccent.withValues(alpha: .6),
+                    blurRadius: w * .1,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      default:
+        return null;
+    }
+  }
 
   static _TileLook _look(LockElement el, ShortcutApp app, int index, double s) {
     final soft = [
@@ -1001,6 +1417,19 @@ class ShortcutSetArt {
             ),
           ],
         );
+      case ShortcutStyle.circleBadge:
+      case ShortcutStyle.squircleGlass:
+      case ShortcutStyle.bevelBlock:
+      case ShortcutStyle.starBurst:
+      case ShortcutStyle.neoOutline:
+      case ShortcutStyle.pillBar:
+      case ShortcutStyle.glassBar:
+      case ShortcutStyle.ledBar:
+      case ShortcutStyle.glassStrip:
+      case ShortcutStyle.tabRail:
+      case ShortcutStyle.honeyOutline:
+      case ShortcutStyle.pebbleStagger:
+        return _studioLook(el, app, index, s, soft);
       case ShortcutStyle.socialCards:
         return _TileLook(
           fill: _vertical(el.colorSecondary, el.colorSecondary),
@@ -1297,8 +1726,12 @@ class ShortcutSetPreview extends StatelessWidget {
 }
 
 /// Pointy-top hexagon with softly rounded corners.
-class _HexBorder extends ShapeBorder {
-  const _HexBorder();
+class _HexBorder extends OutlinedBorder {
+  const _HexBorder({super.side});
+
+  @override
+  OutlinedBorder copyWith({BorderSide? side}) =>
+      _HexBorder(side: side ?? this.side);
 
   @override
   EdgeInsetsGeometry get dimensions => EdgeInsets.zero;
@@ -1330,8 +1763,33 @@ class _HexBorder extends ShapeBorder {
   }
 
   @override
-  void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {}
+  void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {
+    if (side.style == BorderStyle.none || side.width <= 0) return;
+    canvas.drawPath(getOuterPath(rect), side.toPaint());
+  }
 
   @override
-  ShapeBorder scale(double t) => this;
+  ShapeBorder scale(double t) => _HexBorder(side: side.scale(t));
+}
+
+/// Evenly spaced dots, like an LED matrix behind the glass.
+class _DotGridPainter extends CustomPainter {
+  const _DotGridPainter(this.color, this.step);
+  final Color color;
+  final double step;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    final r = max(.6, step * .08);
+    for (var y = step / 2; y < size.height; y += step) {
+      for (var x = step / 2; x < size.width; x += step) {
+        canvas.drawCircle(Offset(x, y), r, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DotGridPainter old) =>
+      old.color != color || old.step != step;
 }

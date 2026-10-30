@@ -619,6 +619,20 @@ enum ShortcutStyle {
   candyCapsule,
   softRow,
   glossOrbs,
+
+  // Suraj's studio looks.
+  circleBadge,
+  squircleGlass,
+  bevelBlock,
+  starBurst,
+  neoOutline,
+  pillBar,
+  glassBar,
+  ledBar,
+  glassStrip,
+  tabRail,
+  honeyOutline,
+  pebbleStagger,
 }
 
 /// Which screen edge a dock is attached to; [floating] rounds every corner.
@@ -658,6 +672,18 @@ enum CalendarStyle {
   editorial,
   ledger,
   postageStamp,
+
+  // Suraj's studio calendars.
+  blueprintGrid,
+  sunsetBands,
+  pixelArcade,
+  leatherStitch,
+  paperLayers,
+  starryNight,
+  terrazzoChips,
+  ribbonHeader,
+  plannerTab,
+  holoGlass,
 }
 
 enum AnalogStyle {
@@ -752,4 +778,28 @@ enum UnlockSkin {
   slotPlate,
   waveTrack,
   pixelRun,
+
+  // Suraj's studio tap skins.
+  petalFlower,
+  cloudPuff,
+  roundTriangle,
+  capsuleSplit,
+  viewfinder,
+  droplet,
+  homePlate,
+  nightSky,
+  layeredDiscs,
+  ribbonBanner,
+
+  // Suraj's studio slide skins.
+  batteryCharge,
+  gradientRail,
+  arrowTrack,
+  filmStrip,
+  dualPill,
+  stubTicket,
+  starPath,
+  keyhole,
+  glassTube,
+  heartbeat,
 }

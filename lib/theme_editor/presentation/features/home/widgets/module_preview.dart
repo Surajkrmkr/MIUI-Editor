@@ -55,7 +55,7 @@ class ModulePreview extends ConsumerWidget {
                   end: Alignment.bottomRight,
                   colors: [
                     accent,
-                    Color.alphaBlend(Colors.black.withAlpha(40), accent)
+                    Color.alphaBlend(Colors.black.withAlpha(40), accent),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(20),
@@ -83,8 +83,11 @@ class ModulePreview extends ConsumerWidget {
                               0.8, // Slightly smaller radius for nested icons
                         ),
                       ),
-                      child: const Icon(Icons.wifi_rounded,
-                          color: Colors.white, size: 22),
+                      child: const Icon(
+                        Icons.wifi_rounded,
+                        color: Colors.white,
+                        size: 22,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     const Expanded(
@@ -103,8 +106,10 @@ class ModulePreview extends ConsumerWidget {
                           SizedBox(height: 2),
                           Text(
                             'Connected · Secure',
-                            style:
-                                TextStyle(color: Colors.white70, fontSize: 10),
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 10,
+                            ),
                           ),
                         ],
                       ),

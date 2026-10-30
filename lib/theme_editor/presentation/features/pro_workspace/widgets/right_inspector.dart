@@ -15,7 +15,8 @@ class RightInspector extends ConsumerWidget {
     final colors = context.appColors;
     final page = ref.watch(workspaceProvider).page;
 
-    final hasContent = page == WorkspacePage.lockscreen ||
+    final hasContent =
+        page == WorkspacePage.lockscreen ||
         page == WorkspacePage.svgEditor ||
         page == WorkspacePage.icons;
     if (!hasContent) return const SizedBox.shrink();
@@ -48,11 +49,7 @@ class RightInspector extends ConsumerWidget {
       case WorkspacePage.icons:
       case WorkspacePage.svgEditor:
         return const Column(
-          children: [
-            ModulePreview(),
-            SizedBox(height: 24),
-            SlidersPanel(),
-          ],
+          children: [ModulePreview(), SizedBox(height: 24), SlidersPanel()],
         );
       case WorkspacePage.lockscreen:
         return const Column(

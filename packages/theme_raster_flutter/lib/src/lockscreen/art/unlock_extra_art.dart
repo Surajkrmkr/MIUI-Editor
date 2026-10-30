@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:theme_core/theme_core.dart';
 
 import '../lock_element.dart';
+import 'unlock_studio_art.dart';
 
 /// Tap-to-unlock skins added after the first set.
 const extraTapSkins = {
+  ...studioTapSkins,
   UnlockSkin.hexBadge,
   UnlockSkin.ticketPunch,
   UnlockSkin.keycap,
@@ -21,6 +23,7 @@ const extraTapSkins = {
 
 /// Slide-to-unlock skins added after the first set.
 const extraSlideSkins = {
+  ...studioSlideSkins,
   UnlockSkin.dotTrail,
   UnlockSkin.zipper,
   UnlockSkin.rulerSlide,
@@ -739,7 +742,7 @@ bool paintExtraUnlockTrack(Canvas canvas, Size size, LockElement el, double k) {
         );
       }
     default:
-      return false;
+      return paintStudioUnlockTrack(canvas, size, el, k);
   }
   return true;
 }
@@ -981,7 +984,7 @@ bool paintExtraUnlockThumb(Canvas canvas, Size size, LockElement el, double k) {
         Paint()..color = Colors.black.withValues(alpha: .25),
       );
     default:
-      return false;
+      return paintStudioUnlockThumb(canvas, size, el, k);
   }
   return true;
 }

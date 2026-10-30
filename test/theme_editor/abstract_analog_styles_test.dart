@@ -27,7 +27,7 @@ void main() {
   test(
     'abstract styles are selectable, serializable and export four parts',
     () {
-      expect(builtinAnalogStyles.styles, hasLength(30));
+      expect(builtinAnalogStyles.styles, hasLength(40));
       for (final style in _styles) {
         final preset = builtinAnalogStyles.styles.singleWhere(
           (s) => s.appearance['analogStyle'] == style.name,

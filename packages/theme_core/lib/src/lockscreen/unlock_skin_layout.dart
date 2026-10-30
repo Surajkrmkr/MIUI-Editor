@@ -114,6 +114,28 @@ const _slideSpecs = <UnlockSkin, UnlockSkinSpec>{
   UnlockSkin.slotPlate: UnlockSkinSpec(UnlockSkinShape.tile, pad: .14),
   UnlockSkin.waveTrack: UnlockSkinSpec(UnlockSkinShape.circle, pad: .2),
   UnlockSkin.pixelRun: UnlockSkinSpec(UnlockSkinShape.tile, pad: .14),
+  UnlockSkin.batteryCharge: UnlockSkinSpec(
+    UnlockSkinShape.tile,
+    thumbWidth: 1.1,
+    pad: .16,
+  ),
+  UnlockSkin.gradientRail: UnlockSkinSpec(UnlockSkinShape.circle, pad: .18),
+  UnlockSkin.arrowTrack: UnlockSkinSpec(UnlockSkinShape.circle, pad: .16),
+  UnlockSkin.filmStrip: UnlockSkinSpec(
+    UnlockSkinShape.tile,
+    thumbWidth: 1.3,
+    pad: .16,
+  ),
+  UnlockSkin.dualPill: UnlockSkinSpec(UnlockSkinShape.circle, pad: .12),
+  UnlockSkin.stubTicket: UnlockSkinSpec(
+    UnlockSkinShape.pill,
+    thumbWidth: 1.5,
+    pad: .1,
+  ),
+  UnlockSkin.starPath: UnlockSkinSpec(UnlockSkinShape.circle, pad: .14),
+  UnlockSkin.keyhole: UnlockSkinSpec(UnlockSkinShape.circle, pad: .16),
+  UnlockSkin.glassTube: UnlockSkinSpec(UnlockSkinShape.circle, pad: .2),
+  UnlockSkin.heartbeat: UnlockSkinSpec(UnlockSkinShape.circle, pad: .16),
 };
 
 UnlockSkinSpec unlockSkinSpecOf(LockElementSpec el) =>

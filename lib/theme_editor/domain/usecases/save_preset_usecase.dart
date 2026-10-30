@@ -7,6 +7,9 @@ class SavePresetUseCase {
   const SavePresetUseCase(this._repo);
   final PresetRepository _repo;
 
-  Future<Failure?> call(String presetName, List<LockElement> elements, {Uint8List? previewBytes}) =>
-      _repo.save(presetName, elements, previewBytes: previewBytes);
+  Future<Failure?> call(
+    String presetName,
+    List<LockElement> elements, {
+    Uint8List? previewBytes,
+  }) => _repo.save(presetName, elements, previewBytes: previewBytes);
 }

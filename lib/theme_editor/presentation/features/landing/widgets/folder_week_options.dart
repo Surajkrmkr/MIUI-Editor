@@ -53,14 +53,18 @@ class _FolderWeekOptionsState extends ConsumerState<FolderWeekOptions> {
             // ── Section heading ─────────────────────────────────────────────
             Row(
               children: [
-                Icon(Icons.folder_open_rounded,
-                    color: colors.primary, size: 20),
+                Icon(
+                  Icons.folder_open_rounded,
+                  color: colors.primary,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
-                Text('Select Folder',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w600)),
+                Text(
+                  'Select Folder',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -78,8 +82,9 @@ class _FolderWeekOptionsState extends ConsumerState<FolderWeekOptions> {
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children:
-                      (dirState.preLockFolders.toList()..sort()).map((folder) {
+                  children: (dirState.preLockFolders.toList()..sort()).map((
+                    folder,
+                  ) {
                     final selected = folder == dirState.selectedFolder;
                     return ChoiceChip(
                       label: Text(folder),
@@ -102,8 +107,10 @@ class _FolderWeekOptionsState extends ConsumerState<FolderWeekOptions> {
             if (dirState.status.isNotEmpty) ...[
               const SizedBox(height: 12),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: colors.primary.withAlpha(15),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -111,16 +118,19 @@ class _FolderWeekOptionsState extends ConsumerState<FolderWeekOptions> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline_rounded,
-                        size: 16, color: colors.primary),
+                    Icon(
+                      Icons.info_outline_rounded,
+                      size: 16,
+                      color: colors.primary,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         dirState.status,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colors.primary,
-                              fontWeight: FontWeight.w500,
-                            ),
+                          color: colors.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ],
@@ -133,14 +143,18 @@ class _FolderWeekOptionsState extends ConsumerState<FolderWeekOptions> {
             // ── Week number ─────────────────────────────────────────────────
             Row(
               children: [
-                Icon(Icons.calendar_today_rounded,
-                    color: colors.primary, size: 20),
+                Icon(
+                  Icons.calendar_today_rounded,
+                  color: colors.primary,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
-                Text('Week Number',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w600)),
+                Text(
+                  'Week Number',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),

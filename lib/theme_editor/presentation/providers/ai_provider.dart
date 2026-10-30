@@ -23,12 +23,11 @@ class AiState {
     bool? isLoading,
     String? lastError,
     List<List<LockElement>>? variants,
-  }) =>
-      AiState(
-        isLoading: isLoading ?? this.isLoading,
-        lastError: lastError,
-        variants: variants ?? this.variants,
-      );
+  }) => AiState(
+    isLoading: isLoading ?? this.isLoading,
+    lastError: lastError,
+    variants: variants ?? this.variants,
+  );
 }
 
 class AiNotifier extends Notifier<AiState> {

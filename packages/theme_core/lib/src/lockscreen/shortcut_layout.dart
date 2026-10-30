@@ -10,7 +10,9 @@ bool isDockStyle(ShortcutStyle s) =>
     s == ShortcutStyle.darkDock ||
     s == ShortcutStyle.pastelDock ||
     s == ShortcutStyle.neonCapsule ||
-    s == ShortcutStyle.candyCapsule;
+    s == ShortcutStyle.candyCapsule ||
+    s == ShortcutStyle.glassStrip ||
+    s == ShortcutStyle.tabRail;
 
 bool isCapsuleStyle(ShortcutStyle s) =>
     s == ShortcutStyle.neonCapsule || s == ShortcutStyle.candyCapsule;
@@ -41,6 +43,9 @@ class ShortcutSetLayout {
       case ShortcutStyle.socialRow:
       case ShortcutStyle.softRow:
       case ShortcutStyle.glossOrbs:
+      case ShortcutStyle.pillBar:
+      case ShortcutStyle.glassBar:
+      case ShortcutStyle.ledBar:
         final tile = w / (n + max(0, n - 1) * .18 + .5);
         final pad = tile * .25;
         final h = tile + pad * 2;
@@ -49,6 +54,8 @@ class ShortcutSetLayout {
             Rect2.fromLTWH(pad + i * tile * 1.18, pad, tile, tile),
         ], Rect2.fromLTWH(0, 0, w, h));
       case ShortcutStyle.hexGrid:
+      case ShortcutStyle.honeyOutline:
+      case ShortcutStyle.pebbleStagger:
         final gap = w * .045;
         final tile = (w - gap * 1.5) / 2.5;
         final rows = (n + 1) ~/ 2;
