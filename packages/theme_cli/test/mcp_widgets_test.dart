@@ -95,15 +95,14 @@ void main() {
         'user': 'suraj',
       }, withRoot: false);
       final sets = body(r)['sets'] as List;
-      expect(sets.map((s) => s['id']), contains('builtin-analog-suraj'));
+      expect(sets.map((s) => s['id']), contains('builtin-analog-suraj-studio'));
       expect(sets.every((s) => s['builtin'] == true), isTrue);
       expect(sets.every((s) => s['user'] == 'suraj'), isTrue);
-      expect(body(r)['scope'], 'user');
     });
 
     test('the built-in styles are shared out, none twice', () async {
       final ids = <String>[];
-      for (final user in ['suraj', 'subhangi', 'annapurna']) {
+      for (final user in themeUsers) {
         final r = await call('list_widget_styles', {
           'user': user,
         }, withRoot: false);
@@ -117,13 +116,25 @@ void main() {
       expect(ids, hasLength(all.length));
     });
 
-    test('a user without sets gets every built-in one', () async {
+    test('a user without that kind of set gets none, not others\'', () async {
       final r = await call('list_widget_styles', {
-        'user': 'rajat',
+        'user': 'suraj',
+        'type': 'shortcutSet',
       }, withRoot: false);
-      expect(body(r)['scope'], 'builtin_fallback');
-      final sets = body(r)['sets'] as List;
-      expect(sets.map((s) => s['user']), containsAll(['suraj', 'subhangi']));
+      expect(body(r)['sets'], isEmpty);
+      expect(body(r)['note'], contains('another user'));
+    });
+
+    test('Suraj\'s old styles went to Rajat and Abhishek', () async {
+      for (final user in ['rajat', 'abhishek']) {
+        final r = await call('list_widget_styles', {
+          'user': user,
+        }, withRoot: false);
+        expect(
+          (body(r)['sets'] as List).every((s) => s['user'] == user),
+          isTrue,
+        );
+      }
     });
 
     test('need to know the user', () async {
@@ -139,8 +150,8 @@ void main() {
       final users = body(r)['users'] as List;
       expect(users.map((u) => u['user']), themeUsers);
       final counts = {for (final u in users) u['user']: u['style_sets']};
-      expect(counts['suraj'], 4);
-      expect(counts['rajat'], 0);
+      expect(counts['suraj'], 3);
+      expect(counts['rajat'], greaterThan(0));
     });
 
     test('filter by element type', () async {
@@ -165,6 +176,7 @@ void main() {
           .first['id'];
       final r = await call('get_widget_style', {
         'id': id,
+        'user': 'suraj',
         'element': jsonEncode({'type': 'analogClock', 'dx': 120}),
       });
       final element = body(r)['element'] as Map;
@@ -182,14 +194,130 @@ void main() {
           .first['id'];
       final r = await call('get_widget_style', {
         'id': id,
+        'user': 'suraj',
         'element': '{"type":"hourClock"}',
       });
       expect(r['isError'], isTrue);
     });
 
     test('an element that is not JSON is refused', () async {
-      final r = await call('get_widget_style', {'id': 'x', 'element': '['});
+      final r = await call('get_widget_style', {
+        'id': 'x',
+        'user': 'suraj',
+        'element': '[',
+      });
       expect(r['isError'], isTrue);
+    });
+
+    test('another user\'s style is refused, and so is no user', () async {
+      final list = await call('list_widget_styles', {
+        'user': 'rajat',
+        'type': 'analogClock',
+      }, withRoot: false);
+      final id = (body(list)['sets'] as List)
+          .expand((s) => s['styles'] as List)
+          .first['id'];
+      final other = await call('get_widget_style', {
+        'id': id,
+        'user': 'suraj',
+      }, withRoot: false);
+      expect(other['isError'], isTrue);
+      expect(other['content'][0]['text'], contains('belongs to rajat'));
+      final none = await call('get_widget_style', {'id': id}, withRoot: false);
+      expect(none['isError'], isTrue);
+      final own = await call('get_widget_style', {
+        'id': id,
+        'user': 'rajat',
+      }, withRoot: false);
+      expect(own.containsKey('isError'), isFalse);
+    });
+
+    group('clock sets', () {
+      test('are listed and read for their user only', () async {
+        final list = await call('list_clock_sets', {
+          'user': 'suraj',
+        }, withRoot: false);
+        final sets = body(list)['clock_sets'] as List;
+        expect(sets, hasLength(10));
+        final id = sets.first['id'] as String;
+        final got = await call('get_clock_set', {
+          'id': id,
+          'user': 'suraj',
+        }, withRoot: false);
+        expect(body(got)['elements'], isNotEmpty);
+        expect(body(got)['fonts_needed'], isNotEmpty);
+        final other = await call('get_clock_set', {
+          'id': id,
+          'user': 'rajat',
+        }, withRoot: false);
+        expect(other['isError'], isTrue);
+        expect(other['content'][0]['text'], contains('belongs to suraj'));
+      });
+
+      test('all shared ones went to somebody else', () async {
+        var total = 0;
+        for (final user in themeUsers.where((u) => u != 'suraj')) {
+          final list = await call('list_clock_sets', {
+            'user': user,
+          }, withRoot: false);
+          total += (body(list)['clock_sets'] as List).length;
+        }
+        expect(total, 15);
+      });
+
+      test('need the user', () async {
+        final r = await call('list_clock_sets', {}, withRoot: false);
+        expect(r['isError'], isTrue);
+      });
+    });
+
+    group('validate_spec and the user\'s styles', () {
+      Future<List<String>> codes(Map<String, Object?> spec) async {
+        final r = await call('validate_spec', {
+          'spec': jsonEncode(spec),
+          'contrast': false,
+        }, withRoot: false);
+        return [for (final i in body(r)['issues'] as List) i['code'] as String];
+      }
+
+      Future<Map<String, Object?>> base(String user) async {
+        final r = await call('get_base_spec', {
+          'title': 'T',
+          'user': user,
+        }, withRoot: false);
+        return Map<String, Object?>.from(body(r)['spec'] as Map);
+      }
+
+      test('a spec without a user is warned about', () async {
+        final spec = await base('suraj');
+        (spec['meta'] as Map).remove('profile');
+        expect(await codes(spec), contains('meta.profile_missing'));
+      });
+
+      test('a style from another user is warned about', () async {
+        final list = await call('list_widget_styles', {
+          'user': 'rajat',
+          'type': 'analogClock',
+        }, withRoot: false);
+        final id = (body(list)['sets'] as List)
+            .expand((s) => s['styles'] as List)
+            .first['id'];
+        final styled = await call('get_widget_style', {
+          'id': id,
+          'user': 'rajat',
+          'element': {'type': 'analogClock'},
+        }, withRoot: false);
+        final element = body(styled)['element'];
+        final spec = await base('suraj');
+        ((spec['lockscreen'] as Map)['elements'] as List).add(element);
+        expect(await codes(spec), contains('style.other_user'));
+
+        final mine = await base('rajat');
+        ((mine['lockscreen'] as Map)['elements'] as List).add(element);
+        final found = await codes(mine);
+        expect(found, isNot(contains('style.other_user')));
+        expect(found, isNot(contains('meta.profile_missing')));
+      });
     });
 
     group('the designer\'s own sets in WidgetStyles/', () {
@@ -239,7 +367,6 @@ void main() {
         save('broken.json', {'format': 'x'});
         final r = await call('list_widget_styles', {'user': 'Suraj'});
         final sets = body(r)['sets'] as List;
-        expect(body(r)['scope'], 'user');
         final own = sets.where((s) => s['builtin'] == false).toList();
         expect(sets.map((s) => s['id']), contains('mine'));
         expect(sets.map((s) => s['id']), isNot(contains('theirs')));
@@ -266,10 +393,10 @@ void main() {
         expect(other['content'][0]['text'], contains('belongs to rajat'));
 
         final users = body(await call('list_users', {}))['users'] as List;
-        expect(users.firstWhere((u) => u['user'] == 'suraj')['style_sets'], 5);
+        expect(users.firstWhere((u) => u['user'] == 'suraj')['style_sets'], 4);
       });
 
-      test('a user without sets of the type gets the built-in ones', () async {
+      test('a user without sets of the type gets none', () async {
         save('mine.json', {
           'format': 'miui-editor.widget-style-set',
           'version': 1,
@@ -286,13 +413,11 @@ void main() {
           ],
         });
         final r = await call('list_widget_styles', {
-          'user': 'rajat',
-          'type': 'analogClock',
+          'user': 'suraj',
+          'type': 'shortcutSet',
         });
-        expect(body(r)['scope'], 'builtin_fallback');
-        expect(body(r)['note'], contains('analogClock'));
-        final sets = body(r)['sets'] as List;
-        expect(sets.every((s) => s['builtin'] == true), isTrue);
+        expect(body(r)['sets'], isEmpty);
+        expect(body(r)['note'], contains('shortcutSet'));
       });
 
       test('a set nobody has claimed is not offered to a user', () async {

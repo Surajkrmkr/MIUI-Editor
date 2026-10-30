@@ -8,6 +8,7 @@ import 'package:theme_core/lockscreen_layout.dart'
 import '../lock_element.dart';
 import '../lock_element_spec_bridge.dart';
 import '../lockscreen_clock.dart';
+import 'analog_extra_art.dart';
 
 /// Rotating parts drawn for [el], bottom to top.
 List<AnalogPart> analogPartsOf(LockElement el) =>
@@ -274,6 +275,17 @@ class _DialPainter extends CustomPainter {
       case AnalogStyle.brutalistPop:
       case AnalogStyle.holoWarp:
         _paintAbstract(canvas, size);
+      case AnalogStyle.atomicStar:
+      case AnalogStyle.honeycomb:
+      case AnalogStyle.gearwork:
+      case AnalogStyle.radarSweep:
+      case AnalogStyle.petalBloom:
+      case AnalogStyle.ringedPlanet:
+      case AnalogStyle.stainedGlass:
+      case AnalogStyle.blueprint:
+      case AnalogStyle.vinylRecord:
+      case AnalogStyle.gaugeDial:
+        paintExtraAnalogDial(canvas, size, style, face, ticks, accent);
       case AnalogStyle.indigo:
         canvas.drawCircle(
           c + Offset(r * .06, r * .1),
@@ -1504,6 +1516,17 @@ class _HandPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final c = size.center(Offset.zero);
     final r = size.width / 2;
+    if (paintExtraAnalogHand(
+      canvas,
+      c,
+      r,
+      part,
+      style,
+      color,
+      this.cap ?? color,
+    )) {
+      return;
+    }
     final short = style == AnalogStyle.numerals;
     var (length, tail, width) = switch (part) {
       AnalogPart.hour => (short ? .4 : .46, .0, .024),

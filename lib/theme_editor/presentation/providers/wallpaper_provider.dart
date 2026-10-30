@@ -161,17 +161,18 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
     }
 
     final entities = await dir.list().toList();
-    final paths = entities
-        .whereType<File>()
-        .where((f) {
-          final lower = f.path.toLowerCase();
-          return lower.endsWith('.jpg') ||
-              lower.endsWith('.jpeg') ||
-              lower.endsWith('.png');
-        })
-        .map((f) => f.path)
-        .toList()
-      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    final paths =
+        entities
+            .whereType<File>()
+            .where((f) {
+              final lower = f.path.toLowerCase();
+              return lower.endsWith('.jpg') ||
+                  lower.endsWith('.jpeg') ||
+                  lower.endsWith('.png');
+            })
+            .map((f) => f.path)
+            .toList()
+          ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
 
     if (paths.isNotEmpty) _setActivating(true);
     state = state.copyWith(isLoading: false, paths: paths, index: 0);
@@ -269,7 +270,7 @@ class WallpaperNotifier extends Notifier<WallpaperState> {
               setHomeWallpaper(homePath);
             }
           }
-          applyDesign(ref, saved);
+          applyDesign(ref, saved, adoptUser: false);
         }
       }
 

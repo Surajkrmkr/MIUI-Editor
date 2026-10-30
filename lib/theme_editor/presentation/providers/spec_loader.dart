@@ -53,10 +53,13 @@ Future<ThemeSpec?> readSavedDesign(String weekNum, String themeName) async {
   return spec?.meta.title == themeName ? spec : null;
 }
 
-/// Puts [spec]'s profile, icon style and lockscreen into the editor.
-void applyDesign(Ref ref, ThemeSpec spec) {
+/// Puts [spec]'s profile, icon style and lockscreen into the editor. With
+/// [adoptUser] off the user already chosen stays, as when a theme is reopened.
+void applyDesign(Ref ref, ThemeSpec spec, {bool adoptUser = true}) {
   final type = UserProfileType.values.asNameMap()[spec.meta.profile];
-  if (type != null) ref.read(userProfileProvider.notifier).select(type);
+  if (adoptUser && type != null) {
+    ref.read(userProfileProvider.notifier).select(type);
+  }
   if (kUserProfiles[ref.read(userProfileProvider)]?.iconFolder !=
       spec.icons.pack) {
     ref.read(iconStyleOverrideProvider.notifier).select(spec.icons.pack);

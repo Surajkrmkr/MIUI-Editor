@@ -143,6 +143,8 @@ void main() {
       'get_preset',
       'get_rules',
       'list_users',
+      'list_clock_sets',
+      'get_clock_set',
       'list_widgets',
       'get_widget',
       'list_widget_styles',

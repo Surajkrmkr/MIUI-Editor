@@ -6,6 +6,7 @@ import '../../adapters.dart';
 import '../lock_element.dart';
 import '../lock_element_spec_bridge.dart';
 import '../lockscreen_clock.dart';
+import 'calendar_extra_art.dart';
 
 /// Geometry of a styled calendar in theme pixels (before `scale`); the math
 /// lives in theme_core, this adds Flutter types for the painters.
@@ -193,7 +194,8 @@ class _PanelPainter extends CustomPainter {
 
     if (el.calendarStyle != CalendarStyle.neoBrutalism &&
         el.calendarStyle != CalendarStyle.floatingBadges &&
-        el.calendarStyle != CalendarStyle.ticketStub) {
+        el.calendarStyle != CalendarStyle.ticketStub &&
+        el.calendarStyle != CalendarStyle.postageStamp) {
       canvas.drawRRect(panel, Paint()..color = el.unlockAccent);
     }
 
@@ -789,6 +791,9 @@ class _PanelPainter extends CustomPainter {
           curX += dashW + spaceW;
         }
       default:
+        if (extraCalendarStyles.contains(el.calendarStyle)) {
+          paintExtraCalendarPanel(canvas, size, el, l, k, panel);
+        }
     }
   }
 

@@ -92,6 +92,28 @@ const _slideSpecs = <UnlockSkin, UnlockSkinSpec>{
     shadow: true,
     pad: .2,
   ),
+  UnlockSkin.dotTrail: UnlockSkinSpec(UnlockSkinShape.circle, pad: .14),
+  UnlockSkin.zipper: UnlockSkinSpec(
+    UnlockSkinShape.tile,
+    thumbWidth: 1.25,
+    pad: .12,
+  ),
+  UnlockSkin.rulerSlide: UnlockSkinSpec(
+    UnlockSkinShape.tile,
+    thumbWidth: .62,
+    pad: .1,
+  ),
+  UnlockSkin.sunMoon: UnlockSkinSpec(UnlockSkinShape.circle, pad: .1),
+  UnlockSkin.bracketTrack: UnlockSkinSpec(
+    UnlockSkinShape.tile,
+    thumbWidth: 1.3,
+    pad: .14,
+  ),
+  UnlockSkin.stairSteps: UnlockSkinSpec(UnlockSkinShape.circle, pad: .18),
+  UnlockSkin.ropeBead: UnlockSkinSpec(UnlockSkinShape.circle, pad: .12),
+  UnlockSkin.slotPlate: UnlockSkinSpec(UnlockSkinShape.tile, pad: .14),
+  UnlockSkin.waveTrack: UnlockSkinSpec(UnlockSkinShape.circle, pad: .2),
+  UnlockSkin.pixelRun: UnlockSkinSpec(UnlockSkinShape.tile, pad: .14),
 };
 
 UnlockSkinSpec unlockSkinSpecOf(LockElementSpec el) =>
@@ -132,6 +154,37 @@ class UnlockSkinLayout {
           center = Pt(min(h, w * .4) / 2, h / 2);
           size = min(h, w * .4) * .7 * iconScale;
           text = Rect2.fromLTRB(min(h, w * .4), 0, w - h * .3, h);
+        case UnlockSkin.hexBadge ||
+            UnlockSkin.gemDiamond ||
+            UnlockSkin.radarPulse ||
+            UnlockSkin.dialKnob ||
+            UnlockSkin.sealScallop:
+          final area = hasText ? h * .78 : h;
+          center = Pt(w / 2, area / 2);
+          size = min(w, area) * .62 * iconScale;
+          text = Rect2.fromLTRB(w * .05, h * .8, w * .95, h * .98);
+        case UnlockSkin.shieldCrest:
+          final area = hasText ? h * .8 : h;
+          center = Pt(w / 2, area * .44);
+          size = min(w, area) * .55 * iconScale;
+          text = Rect2.fromLTRB(w * .12, h * .8, w * .88, h * .98);
+        case UnlockSkin.ticketPunch:
+          center = Pt(w * .86, h / 2);
+          size = min(w * .3, h * .8) * iconScale;
+          text = Rect2.fromLTRB(w * .06, h * .18, w * .66, h * .82);
+        case UnlockSkin.keycap:
+          center = Pt(w / 2, hasText ? h * .3 : h * .42);
+          size = min(w, h * .72) * .62 * iconScale;
+          text = Rect2.fromLTRB(w * .08, h * .52, w * .92, h * .74);
+        case UnlockSkin.domeRay:
+          final r = min(w / 2 * .9, h * .66);
+          center = Pt(w / 2, h * .92 - r * (hasText ? .6 : .5));
+          size = r * .9 * iconScale;
+          text = Rect2.fromLTRB(w * .25, h * .92 - r * .32, w * .75, h * .9);
+        case UnlockSkin.speechBubble:
+          center = Pt(w / 2, hasText ? h * .3 : h * .4);
+          size = min(w, h * .7) * .62 * iconScale;
+          text = Rect2.fromLTRB(w * .08, h * .46, w * .92, h * .7);
         default:
           final d = min(w, hasText ? h * .7 : h) * .62;
           center = Pt(w / 2, hasText ? h * .38 : h / 2);

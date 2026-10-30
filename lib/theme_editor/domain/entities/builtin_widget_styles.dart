@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'element_widget.dart';
+import 'suraj_widget_styles.dart';
 import 'widget_style.dart';
 
 class ClockSetPreset {
@@ -8,10 +9,22 @@ class ClockSetPreset {
     required this.name,
     required this.background,
     required this.elements,
+    this.user,
   });
 
   final String id;
   final String name;
+
+  /// Profile this set was made for; null means everyone sees it.
+  final String? user;
+
+  ClockSetPreset forUser(String user) => ClockSetPreset(
+    id: id,
+    name: name,
+    background: background,
+    elements: elements,
+    user: user,
+  );
 
   /// Picker card backdrop, so light and dark sets both read well.
   final Color background;
@@ -38,7 +51,7 @@ const clockSetElementTypes = <ElementType>{
 const _sage = Color(0xFFB9CB92);
 const _teal = Color(0xFF7FD1C2);
 
-const builtinClockSets = <ClockSetPreset>[
+const _sharedClockSets = <ClockSetPreset>[
   ClockSetPreset(
     id: 'clock-set-sage',
     name: 'Soft sage',
@@ -735,6 +748,20 @@ const builtinClockSets = <ClockSetPreset>[
       ),
     ],
   ),
+];
+
+/// The shared clock sets dealt out like the other styles; Suraj's own are
+/// his alone.
+final builtinClockSets = <ClockSetPreset>[
+  for (final (i, set) in _sharedClockSets.indexed)
+    set.forUser(styleSetUsers[i % styleSetUsers.length]),
+  ...surajClockSets,
+];
+
+/// Clock sets [user] may use; everything for the default user (null).
+List<ClockSetPreset> clockSetsFor(String? user) => [
+  for (final set in builtinClockSets)
+    if (user == null || set.user == null || set.user == user) set,
 ];
 
 final builtinUnlockStyles = WidgetStyleSet(
@@ -3077,28 +3104,36 @@ final builtinCalendarStyles = WidgetStyleSet(
   ],
 );
 
-/// The users the built-in styles are shared out to; more can be added later.
-const styleSetUsers = ['suraj', 'subhangi', 'annapurna'];
+/// The users the shared built-in styles are dealt to; Suraj has his own sets.
+const styleSetUsers = ['rajat', 'abhishek', 'subhangi', 'annapurna'];
 
-/// Deals each style type out to [styleSetUsers] in turn, so everyone gets a
-/// mix of looks for every widget.
+/// Deals each style type out in turn, so everyone gets a mix of looks for
+/// every widget. Every third style, which used to be Suraj's, alternates
+/// between Rajat and Abhishek.
 List<WidgetStyleSet> _splitAmongUsers(WidgetStyleSet set) {
   final byType = <ElementType, List<WidgetStyle>>{};
   for (final style in set.styles) {
     byType.putIfAbsent(style.type, () => []).add(style);
   }
-  final users = styleSetUsers.length;
+  final owned = <String, List<WidgetStyle>>{};
+  for (final styles in byType.values) {
+    for (var i = 0; i < styles.length; i++) {
+      final user = switch (i % 3) {
+        0 => (i ~/ 3).isEven ? 'rajat' : 'abhishek',
+        1 => 'subhangi',
+        _ => 'annapurna',
+      };
+      owned.putIfAbsent(user, () => []).add(styles[i]);
+    }
+  }
   return [
-    for (var u = 0; u < users; u++)
-      if (byType.values.any((styles) => styles.length > u))
+    for (final user in styleSetUsers)
+      if (owned[user] case final styles?)
         WidgetStyleSet(
-          id: '${set.id}-${styleSetUsers[u]}',
+          id: '${set.id}-$user',
           name: set.name,
-          user: styleSetUsers[u],
-          styles: [
-            for (final styles in byType.values)
-              for (var i = u; i < styles.length; i += users) styles[i],
-          ],
+          user: user,
+          styles: styles,
         ),
   ];
 }
@@ -3111,4 +3146,7 @@ final builtinStyleSets = [
     builtinCalendarStyles,
   ])
     ..._splitAmongUsers(set),
+  surajAnalogStyles,
+  surajCalendarStyles,
+  surajUnlockStyles,
 ];

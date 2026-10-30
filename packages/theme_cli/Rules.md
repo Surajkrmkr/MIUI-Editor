@@ -2,7 +2,7 @@
 
 Process, in this order, for every theme:
 
-0. Know which user the theme is for (list_users). If my request does not name one, ask me and wait for the answer before anything else. Pass it as user to get_base_spec and list_widget_styles; use only styles from that user's own sets.
+0. Know which user the theme is for (list_users). If my request does not name one, ask me and wait for the answer before anything else. Pass it as user to get_base_spec, list_widget_styles, get_widget_style, list_clock_sets and get_clock_set; use only styles and clock sets from that user's own sets, never another user's. If the user has none for a widget, keep its default look.
 
 1. Write a 2-line design brief before any JSON: the mood, the clock style, the main widget, the color scheme, and what makes it different from the last themes.
 2. Study references. Design references come only from the AI preset folder: call list_references, then get_reference on at least two that suit the wallpaper and look at the pictures. Take layout, spacing and proportions from them. Never use the Preset folder (list_presets, get_preset) for ideas. If the AI preset folder is empty, stop and tell me.

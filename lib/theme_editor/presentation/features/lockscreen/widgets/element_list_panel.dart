@@ -5,6 +5,8 @@ import '../../../../../core/theme/theme_extensions.dart';
 import '../../../../domain/entities/element_widget.dart';
 import '../../../../domain/entities/builtin_widget_styles.dart';
 import '../../../providers/element_provider.dart';
+import '../../../providers/user_profile_provider.dart';
+import '../../../../domain/entities/user_profile.dart';
 
 class ElementListPanel extends ConsumerWidget {
   const ElementListPanel({super.key});
@@ -14,6 +16,8 @@ class ElementListPanel extends ConsumerWidget {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
     final state = ref.watch(elementProvider);
+    final profile = ref.watch(userProfileProvider);
+    final user = profile == UserProfileType.defaultUser ? null : profile.name;
     final notifier = ref.read(elementProvider.notifier);
     final addedCount = state.elements.length;
 
@@ -126,7 +130,11 @@ class ElementListPanel extends ConsumerWidget {
                   backgroundColor: colors.surfaceOverlay,
                   children: [
                     if (entry.key == 'Custom Widgets')
-                      _ClockSetsTile(state: state, notifier: notifier),
+                      _ClockSetsTile(
+                        state: state,
+                        notifier: notifier,
+                        user: user,
+                      ),
                     ...entry.value.map((type) {
                       final added = state.contains(type);
                       return Padding(
@@ -246,9 +254,14 @@ class ElementListPanel extends ConsumerWidget {
 }
 
 class _ClockSetsTile extends StatelessWidget {
-  const _ClockSetsTile({required this.state, required this.notifier});
+  const _ClockSetsTile({
+    required this.state,
+    required this.notifier,
+    required this.user,
+  });
   final ElementState state;
   final ElementNotifier notifier;
+  final String? user;
 
   @override
   Widget build(BuildContext context) {
@@ -285,7 +298,10 @@ class _ClockSetsTile extends StatelessWidget {
           ),
           onTap: () => added
               ? notifier.setActive(first.type, id: first.name)
-              : notifier.applyClockSet(builtinClockSets.first.elements),
+              : notifier.applyClockSet(
+                  (clockSetsFor(user).firstOrNull ?? builtinClockSets.first)
+                      .elements,
+                ),
         ),
       ),
     );

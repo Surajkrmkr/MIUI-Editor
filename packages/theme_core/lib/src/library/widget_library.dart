@@ -163,9 +163,34 @@ class WidgetStyleSet {
   final String? user;
 }
 
-/// The widget templates and style sets that ship with the editor.
+/// A clock layout (digits, date lines) made for one user; [elements] are
+/// spec elements with defaults left out, ready for a lockscreen.
+class ClockSetTemplate {
+  const ClockSetTemplate({
+    required this.id,
+    required this.name,
+    required this.elements,
+    this.user,
+  });
+
+  factory ClockSetTemplate.fromJson(Map<String, dynamic> j) => ClockSetTemplate(
+    id: j['id'] as String,
+    name: j['name'] as String,
+    user: themeUserOf(j['user']),
+    elements: [
+      for (final e in j['elements'] as List)
+        Map<String, dynamic>.from(e as Map),
+    ],
+  );
+
+  final String id, name;
+  final String? user;
+  final List<Map<String, dynamic>> elements;
+}
+
+/// The widget templates, style sets and clock sets that ship with the editor.
 class WidgetLibrary {
-  const WidgetLibrary._(this.widgets, this.styleSets);
+  const WidgetLibrary._(this.widgets, this.styleSets, this.clockSets);
 
   static final WidgetLibrary builtin = () {
     final json = jsonDecode(widgetLibraryJson) as Map<String, dynamic>;
@@ -178,9 +203,14 @@ class WidgetLibrary {
         for (final s in json['styleSets'] as List)
           WidgetStyleSet.fromJson(Map<String, dynamic>.from(s as Map)),
       ],
+      [
+        for (final c in json['clockSets'] as List? ?? const [])
+          ClockSetTemplate.fromJson(Map<String, dynamic>.from(c as Map)),
+      ],
     );
   }();
 
   final List<WidgetTemplate> widgets;
   final List<WidgetStyleSet> styleSets;
+  final List<ClockSetTemplate> clockSets;
 }

@@ -19,8 +19,9 @@ const _instructions =
     'Builds MIUI/HyperOS 3 themes from a JSON spec. Every theme is for one '
     'user (list_users): if the designer\'s request does not name the user, '
     'ask which one before doing anything else, and wait for the answer; '
-    'never guess. Pass it as user to get_base_spec and list_widget_styles, '
-    'which then offer only that user\'s own style sets. '
+    'never guess. Pass it as user to get_base_spec, list_widget_styles, '
+    'get_widget_style, list_clock_sets and get_clock_set, which offer only '
+    'that user\'s own sets; never use another user\'s styles or clock sets. '
     'Call get_spec_schema for '
     'the format. Pick a wallpaper with list_wallpapers and look at it with '
     'view_wallpaper (it also gives its dominant colors). Take design '
@@ -241,7 +242,12 @@ List<McpTool> themeTools(ThemeToolContext ctx) {
             report = const SpecValidator().validateText(text, fileOptions);
           }
         }
-        return ToolResult(jsonEncode(report.toJson()), isError: !report.ok);
+        final spec = report.spec;
+        final merged = ValidationReport([
+          ...report.issues,
+          if (spec != null) ...styleOwnerIssues(spec, ctx),
+        ], spec: spec);
+        return ToolResult(jsonEncode(merged.toJson()), isError: !merged.ok);
       },
     ),
     McpTool(

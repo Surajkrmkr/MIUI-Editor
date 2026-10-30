@@ -39,6 +39,7 @@ String _generate() {
         {
           'id': set.id,
           'name': set.name,
+          if (set.user != null) 'user': set.user,
           'styles': [
             for (final s in set.styles)
               {
@@ -48,6 +49,15 @@ String _generate() {
                 'appearance': s.appearance,
               },
           ],
+        },
+    ],
+    'clockSets': [
+      for (final c in builtinClockSets)
+        {
+          'id': c.id,
+          'name': c.name,
+          if (c.user != null) 'user': c.user,
+          'elements': [for (final e in c.elements) _compact(e)],
         },
     ],
   };

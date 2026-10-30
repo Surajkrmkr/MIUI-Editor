@@ -540,7 +540,27 @@
             "neonLine",
             "liquidGlass",
             "gradientFlow",
-            "groove"
+            "groove",
+            "hexBadge",
+            "ticketPunch",
+            "keycap",
+            "domeRay",
+            "radarPulse",
+            "gemDiamond",
+            "shieldCrest",
+            "speechBubble",
+            "dialKnob",
+            "sealScallop",
+            "dotTrail",
+            "zipper",
+            "rulerSlide",
+            "sunMoon",
+            "bracketTrack",
+            "stairSteps",
+            "ropeBead",
+            "slotPlate",
+            "waveTrack",
+            "pixelRun"
           ]
         },
         "unlockAccent": {
@@ -590,7 +610,17 @@
             "squirclePebble",
             "moireRings",
             "brutalistPop",
-            "holoWarp"
+            "holoWarp",
+            "atomicStar",
+            "honeycomb",
+            "gearwork",
+            "radarSweep",
+            "petalBloom",
+            "ringedPlanet",
+            "stainedGlass",
+            "blueprint",
+            "vinylRecord",
+            "gaugeDial"
           ]
         },
         "shortcutStyle": {
@@ -639,7 +669,17 @@
             "lunarPhase",
             "polarArc",
             "cyberMatrix",
-            "ticketStub"
+            "ticketStub",
+            "notebookSpiral",
+            "tearOff",
+            "chalkboard",
+            "graphPaper",
+            "washiTape",
+            "retroLcd",
+            "windowChrome",
+            "editorial",
+            "ledger",
+            "postageStamp"
           ]
         },
         "shortcutApps": {

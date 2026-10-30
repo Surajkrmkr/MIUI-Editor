@@ -32,6 +32,9 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
   bool _busy = false;
   bool _allUsers = false;
 
+  /// Whose clock sets are listed: a user name, or 'all'. Null follows the user.
+  String? _clockOwner;
+
   Future<void> _run(
     Future<Failure?> Function() action, {
     bool reload = false,
@@ -186,6 +189,20 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
     final current = ref.watch(elementProvider).elements;
+    final profile = ref.watch(userProfileProvider);
+    final user = profile == UserProfileType.defaultUser ? null : profile.name;
+    final owners = {
+      for (final p in builtinClockSets)
+        if (p.user != null) p.user!,
+    }.toList();
+    final owner =
+        _clockOwner ?? (user != null && owners.contains(user) ? user : 'all');
+    final presets = owner == 'all'
+        ? builtinClockSets
+        : [
+            for (final p in builtinClockSets)
+              if (p.user == owner || p.user == null) p,
+          ];
     ClockSetPreset? active;
     for (final preset in builtinClockSets) {
       if (_clockSetActive(preset, current)) {
@@ -214,11 +231,66 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
           ),
         ),
         const SizedBox(height: 10),
+        DropdownButtonFormField<String>(
+          key: ValueKey('clock-owner-$owner'),
+          initialValue: owner,
+          isExpanded: true,
+          dropdownColor: colors.surfaceElevated,
+          style: TextStyle(
+            fontSize: 12,
+            color: scheme.onSurface,
+            fontWeight: FontWeight.w500,
+          ),
+          decoration: InputDecoration(
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 8,
+            ),
+            labelText: 'Style Set',
+            labelStyle: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+            prefixIcon: Icon(
+              Icons.style_outlined,
+              size: 16,
+              color: colors.primary,
+            ),
+            filled: true,
+            fillColor: colors.bgSubtle,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              borderSide: BorderSide(color: colors.border),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              borderSide: BorderSide(color: colors.border.withAlpha(120)),
+            ),
+          ),
+          items: [
+            for (final name in owners)
+              DropdownMenuItem(
+                value: name,
+                child: Text(
+                  '${name[0].toUpperCase()}${name.substring(1)} · '
+                  '${builtinClockSets.where((p) => p.user == name).length} sets',
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
+            DropdownMenuItem(
+              value: 'all',
+              child: Text(
+                'All users · ${builtinClockSets.length} sets',
+                style: const TextStyle(fontSize: 12),
+              ),
+            ),
+          ],
+          onChanged: (value) => setState(() => _clockOwner = value),
+        ),
+        const SizedBox(height: 10),
         LayoutBuilder(
           builder: (context, constraints) => GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: builtinClockSets.length,
+            itemCount: presets.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: constraints.maxWidth >= 320 ? 2 : 1,
               mainAxisExtent: 170,
@@ -226,7 +298,7 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
               mainAxisSpacing: 8,
             ),
             itemBuilder: (context, index) {
-              final preset = builtinClockSets[index];
+              final preset = presets[index];
               final selected = identical(preset, active);
               final ys = preset.elements.map((e) => e.dy);
               // Align so the 300px window is centred on the set's middle.
@@ -289,7 +361,9 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
                           children: [
                             Expanded(
                               child: Text(
-                                preset.name,
+                                owner == 'all' && preset.user != null
+                                    ? '${preset.name} · ${preset.user}'
+                                    : preset.name,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -323,6 +397,14 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
 
   @override
   Widget build(BuildContext context) {
+    // A manual pick belongs to the user it was made for.
+    ref.listen(userProfileProvider, (_, _) {
+      setState(() {
+        _clockOwner = null;
+        _setId = null;
+        _allUsers = false;
+      });
+    });
     if (clockSetElementTypes.contains(widget.element.type)) {
       return _clockSetPicker();
     }

@@ -831,6 +831,16 @@ class ElementInfoPanel extends ConsumerWidget {
                             AnalogStyle.moireRings => 'Moiré Rings',
                             AnalogStyle.brutalistPop => 'Brutalist Pop',
                             AnalogStyle.holoWarp => 'Holo Warp',
+                            AnalogStyle.atomicStar => 'Atomic Star',
+                            AnalogStyle.honeycomb => 'Honeycomb',
+                            AnalogStyle.gearwork => 'Gearwork',
+                            AnalogStyle.radarSweep => 'Radar Sweep',
+                            AnalogStyle.petalBloom => 'Petal Bloom',
+                            AnalogStyle.ringedPlanet => 'Ringed Planet',
+                            AnalogStyle.stainedGlass => 'Stained Glass',
+                            AnalogStyle.blueprint => 'Blueprint',
+                            AnalogStyle.vinylRecord => 'Vinyl Record',
+                            AnalogStyle.gaugeDial => 'Gauge Dial',
                           };
                           return DropdownMenuItem(
                             value: style,
@@ -917,6 +927,16 @@ class ElementInfoPanel extends ConsumerWidget {
                             CalendarStyle.polarArc => 'Polar Arc',
                             CalendarStyle.cyberMatrix => 'Cyber Matrix',
                             CalendarStyle.ticketStub => 'Ticket Stub',
+                            CalendarStyle.notebookSpiral => 'Notebook Spiral',
+                            CalendarStyle.tearOff => 'Tear-off Page',
+                            CalendarStyle.chalkboard => 'Chalkboard',
+                            CalendarStyle.graphPaper => 'Graph Paper',
+                            CalendarStyle.washiTape => 'Washi Tape',
+                            CalendarStyle.retroLcd => 'Retro LCD',
+                            CalendarStyle.windowChrome => 'Window Chrome',
+                            CalendarStyle.editorial => 'Editorial',
+                            CalendarStyle.ledger => 'Ledger',
+                            CalendarStyle.postageStamp => 'Postage Stamp',
                           };
                           return DropdownMenuItem(
                             value: style,

@@ -18,8 +18,11 @@ void main() {
     expect(lib.widgets.map((w) => w.name), contains('Battery Ring'));
     expect(lib.styleSets.map((s) => s.id), [
       for (final kind in ['unlock', 'analog', 'shortcuts', 'calendar'])
-        for (final user in ['suraj', 'subhangi', 'annapurna'])
+        for (final user in ['rajat', 'abhishek', 'subhangi', 'annapurna'])
           'builtin-$kind-$user',
+      'builtin-analog-suraj-studio',
+      'builtin-calendar-suraj-studio',
+      'builtin-unlock-suraj-studio',
     ]);
     expect(lib.styleSets.every((s) => s.user != null), isTrue);
     for (final set in lib.styleSets) {

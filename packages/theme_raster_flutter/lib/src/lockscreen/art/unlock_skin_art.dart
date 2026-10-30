@@ -6,6 +6,7 @@ import 'package:theme_core/lockscreen_layout.dart' as core;
 import '../../adapters.dart';
 import '../lock_element.dart';
 import '../lock_element_spec_bridge.dart';
+import 'unlock_extra_art.dart';
 
 export 'package:theme_core/lockscreen_layout.dart'
     show UnlockSkinShape, UnlockSkinSpec;
@@ -230,6 +231,7 @@ class _TrackPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width, h = size.height;
+    if (paintExtraUnlockTrack(canvas, size, el, k)) return;
     final bgOpacity = el.unlockBackgroundOpacity.clamp(0, 1).toDouble();
     final base = _alpha(el.colorSecondary, bgOpacity);
     final blend = _alpha(
@@ -518,6 +520,7 @@ class _ThumbPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (paintExtraUnlockThumb(canvas, size, el, k)) return;
     final spec = _specOf(el);
     final h = size.height;
     final pad = h * spec.pad;
