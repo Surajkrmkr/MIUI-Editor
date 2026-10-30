@@ -1130,7 +1130,12 @@ class _DialPainter extends CustomPainter {
             ..lineTo(center.dx, center.dy + s)
             ..lineTo(center.dx - s * .7, center.dy)
             ..close();
-          canvas.drawPath(path, Paint()..style = PaintingStyle.fill..color = col);
+          canvas.drawPath(
+            path,
+            Paint()
+              ..style = PaintingStyle.fill
+              ..color = col,
+          );
         }
         diamond(const Offset(0, -.72), .08, accent);
         diamond(const Offset(-.72, 0), .08, accent);

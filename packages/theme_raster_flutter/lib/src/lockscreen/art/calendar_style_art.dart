@@ -113,19 +113,19 @@ class CalendarStylePreview extends StatelessWidget {
                         width: (el.borderWidth > 0 ? el.borderWidth : 2.5) * k,
                       )
                     : el.calendarStyle == CalendarStyle.neonCyber ||
-                      el.calendarStyle == CalendarStyle.cyberMatrix
+                          el.calendarStyle == CalendarStyle.cyberMatrix
                     ? Border.all(color: el.strokeColor, width: 1.5 * k)
                     : el.calendarStyle == CalendarStyle.outlineRings ||
-                      el.calendarStyle == CalendarStyle.polarArc
+                          el.calendarStyle == CalendarStyle.polarArc
                     ? Border.all(color: el.borderColor, width: 1.5 * k)
                     : el.calendarStyle == CalendarStyle.bracketModern
                     ? Border.all(color: el.strokeColor, width: 1.5 * k)
                     : (el.borderWidth > 0
-                        ? Border.all(
-                            color: el.borderColor,
-                            width: el.borderWidth * k,
-                          )
-                        : null),
+                          ? Border.all(
+                              color: el.borderColor,
+                              width: el.borderWidth * k,
+                            )
+                          : null),
               ),
             ),
           ),
@@ -287,25 +287,66 @@ class _PanelPainter extends CustomPainter {
         final bLen = min(size.width, size.height) * 0.08;
         canvas.drawLine(Offset(0, bLen), Offset.zero, bracketPaint);
         canvas.drawLine(Offset.zero, Offset(bLen, 0), bracketPaint);
-        canvas.drawLine(Offset(size.width - bLen, 0), Offset(size.width, 0), bracketPaint);
-        canvas.drawLine(Offset(size.width, 0), Offset(size.width, bLen), bracketPaint);
-        canvas.drawLine(Offset(0, size.height - bLen), Offset(0, size.height), bracketPaint);
-        canvas.drawLine(Offset(0, size.height), Offset(bLen, size.height), bracketPaint);
-        canvas.drawLine(Offset(size.width - bLen, size.height), Offset(size.width, size.height), bracketPaint);
-        canvas.drawLine(Offset(size.width, size.height), Offset(size.width, size.height - bLen), bracketPaint);
+        canvas.drawLine(
+          Offset(size.width - bLen, 0),
+          Offset(size.width, 0),
+          bracketPaint,
+        );
+        canvas.drawLine(
+          Offset(size.width, 0),
+          Offset(size.width, bLen),
+          bracketPaint,
+        );
+        canvas.drawLine(
+          Offset(0, size.height - bLen),
+          Offset(0, size.height),
+          bracketPaint,
+        );
+        canvas.drawLine(
+          Offset(0, size.height),
+          Offset(bLen, size.height),
+          bracketPaint,
+        );
+        canvas.drawLine(
+          Offset(size.width - bLen, size.height),
+          Offset(size.width, size.height),
+          bracketPaint,
+        );
+        canvas.drawLine(
+          Offset(size.width, size.height),
+          Offset(size.width, size.height - bLen),
+          bracketPaint,
+        );
         if (l.weekdayRow case final row?) {
           final y = sc(l.cell(row, 0)).bottom + 3.0 * k;
           final linePaint = Paint()
             ..color = soft(el.strokeColor, 0.75)
             ..strokeWidth = 1.2 * k;
-          canvas.drawLine(Offset(size.width * 0.06, y), Offset(size.width * 0.94, y), linePaint);
-          canvas.drawCircle(Offset(size.width * 0.06, y), 2.0 * k, Paint()..color = el.strokeColor);
-          canvas.drawCircle(Offset(size.width * 0.94, y), 2.0 * k, Paint()..color = el.strokeColor);
+          canvas.drawLine(
+            Offset(size.width * 0.06, y),
+            Offset(size.width * 0.94, y),
+            linePaint,
+          );
+          canvas.drawCircle(
+            Offset(size.width * 0.06, y),
+            2.0 * k,
+            Paint()..color = el.strokeColor,
+          );
+          canvas.drawCircle(
+            Offset(size.width * 0.94, y),
+            2.0 * k,
+            Paint()..color = el.strokeColor,
+          );
         }
       case CalendarStyle.neoBrutalism:
         final offset = 4.0 * k;
         final shadowRRect = RRect.fromRectAndRadius(
-          Rect.fromLTWH(offset, offset, size.width - offset, size.height - offset),
+          Rect.fromLTWH(
+            offset,
+            offset,
+            size.width - offset,
+            size.height - offset,
+          ),
           Radius.circular(l.panelRadius * k),
         );
         canvas.drawRRect(shadowRRect, Paint()..color = el.borderColor);
@@ -329,7 +370,8 @@ class _PanelPainter extends CustomPainter {
             Offset(size.width - offset, y),
             Paint()
               ..color = el.borderColor
-              ..strokeWidth = (el.borderWidth > 0 ? el.borderWidth : 2.5) * 0.7 * k,
+              ..strokeWidth =
+                  (el.borderWidth > 0 ? el.borderWidth : 2.5) * 0.7 * k,
           );
         }
       case CalendarStyle.bentoGrid:
@@ -575,12 +617,32 @@ class _PanelPainter extends CustomPainter {
         final arm = min(size.width, size.height) * 0.12;
         canvas.drawLine(Offset(0, arm), Offset.zero, bPaint);
         canvas.drawLine(Offset.zero, Offset(arm, 0), bPaint);
-        canvas.drawLine(Offset(size.width - arm, 0), Offset(size.width, 0), bPaint);
+        canvas.drawLine(
+          Offset(size.width - arm, 0),
+          Offset(size.width, 0),
+          bPaint,
+        );
         canvas.drawLine(Offset(size.width, 0), Offset(size.width, arm), bPaint);
-        canvas.drawLine(Offset(0, size.height - arm), Offset(0, size.height), bPaint);
-        canvas.drawLine(Offset(0, size.height), Offset(arm, size.height), bPaint);
-        canvas.drawLine(Offset(size.width - arm, size.height), Offset(size.width, size.height), bPaint);
-        canvas.drawLine(Offset(size.width, size.height), Offset(size.width, size.height - arm), bPaint);
+        canvas.drawLine(
+          Offset(0, size.height - arm),
+          Offset(0, size.height),
+          bPaint,
+        );
+        canvas.drawLine(
+          Offset(0, size.height),
+          Offset(arm, size.height),
+          bPaint,
+        );
+        canvas.drawLine(
+          Offset(size.width - arm, size.height),
+          Offset(size.width, size.height),
+          bPaint,
+        );
+        canvas.drawLine(
+          Offset(size.width, size.height),
+          Offset(size.width, size.height - arm),
+          bPaint,
+        );
         if (l.weekdayRow case final row?) {
           final y = sc(l.cell(row, 0)).bottom + 2.0 * k;
           canvas.drawLine(
@@ -676,9 +738,11 @@ class _PanelPainter extends CustomPainter {
           ..strokeWidth = 1.2 * k;
         for (var i = 0; i < 18; i++) {
           final angle = pi * 0.2 + (i / 17) * pi * 0.6;
-          final p1 = arcCenter + Offset(cos(angle), sin(angle)) * (size.width * 0.5);
+          final p1 =
+              arcCenter + Offset(cos(angle), sin(angle)) * (size.width * 0.5);
           final p2 =
-              arcCenter + Offset(cos(angle), sin(angle)) * (size.width * 0.5 + 4.0 * k);
+              arcCenter +
+              Offset(cos(angle), sin(angle)) * (size.width * 0.5 + 4.0 * k);
           canvas.drawLine(p1, p2, tickPaint);
         }
         canvas.restore();
@@ -763,7 +827,12 @@ class _PanelPainter extends CustomPainter {
             size.height,
           )
           ..lineTo(l.panelRadius * k, size.height)
-          ..quadraticBezierTo(0, size.height, 0, size.height - l.panelRadius * k)
+          ..quadraticBezierTo(
+            0,
+            size.height,
+            0,
+            size.height - l.panelRadius * k,
+          )
           ..lineTo(0, notchY + notchR)
           ..arcToPoint(
             Offset(0, notchY - notchR),
@@ -787,7 +856,11 @@ class _PanelPainter extends CustomPainter {
         var curX = notchR + 4.0 * k;
         while (curX < size.width - notchR - 4.0 * k) {
           final nextX = min(curX + dashW, size.width - notchR - 4.0 * k);
-          canvas.drawLine(Offset(curX, notchY), Offset(nextX, notchY), stitchPaint);
+          canvas.drawLine(
+            Offset(curX, notchY),
+            Offset(nextX, notchY),
+            stitchPaint,
+          );
           curX += dashW + spaceW;
         }
       default:
