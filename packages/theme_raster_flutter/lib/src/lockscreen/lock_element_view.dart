@@ -13,6 +13,7 @@ import 'font_text_style.dart';
 import 'gradient_text.dart';
 import 'lock_element.dart';
 import 'lockscreen_clock.dart';
+import 'surface_fx.dart';
 import 'unlock_control_preview.dart';
 
 /// Finds an exported lockscreen image: [relativePath] is under
@@ -131,8 +132,10 @@ class _LockElementViewState extends State<LockElementView> {
       return ShortcutSetPreview(element: el, resolveImage: widget.resolveImage);
     }
     if (el.type.isAnalog) return AnalogClockPreview(element: el);
-    if (el.type.isClock) return _clock(el);
-    if (el.type.isContainer) return _container(el);
+    if (el.type.isClock) return SurfaceFx(element: el, child: _clock(el));
+    if (el.type.isContainer) {
+      return SurfaceFx(element: el, child: _container(el));
+    }
     if (el.type == ElementType.notification) return _notification(el);
     if (el.type.isText) return _text(el);
 

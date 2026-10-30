@@ -77,6 +77,9 @@ class LockElement {
     this.strokeColorDigit2 = const Color(0x00000000),
     this.isLiquidGlass = false,
     this.isFrostedGlass = false,
+    this.surfaceTexture = IconTexture.none,
+    this.textureScale = 1.0,
+    this.textureOpacity = 0.3,
     this.perspectiveTilt = 0,
     this.shapeStrokeWidth = 8,
     this.startAngle = -90,
@@ -231,6 +234,10 @@ class LockElement {
       isLiquidGlass,
       isFrostedGlass;
 
+  /// Icon-style texture, clipped to the clock glyphs / container.
+  final IconTexture surfaceTexture;
+  final double textureScale, textureOpacity;
+
   /// See [LockElementSpec.perspectiveTilt].
   final double perspectiveTilt;
 
@@ -304,6 +311,9 @@ class LockElement {
     double? blurRadius,
     bool? isLiquidGlass,
     bool? isFrostedGlass,
+    IconTexture? surfaceTexture,
+    double? textureScale,
+    double? textureOpacity,
     double? perspectiveTilt,
     double? shapeStrokeWidth,
     double? startAngle,
@@ -376,6 +386,9 @@ class LockElement {
     blurRadius: blurRadius ?? this.blurRadius,
     isLiquidGlass: isLiquidGlass ?? this.isLiquidGlass,
     isFrostedGlass: isFrostedGlass ?? this.isFrostedGlass,
+    surfaceTexture: surfaceTexture ?? this.surfaceTexture,
+    textureScale: textureScale ?? this.textureScale,
+    textureOpacity: textureOpacity ?? this.textureOpacity,
     perspectiveTilt: perspectiveTilt ?? this.perspectiveTilt,
     shapeStrokeWidth: shapeStrokeWidth ?? this.shapeStrokeWidth,
     startAngle: startAngle ?? this.startAngle,
@@ -449,6 +462,9 @@ class LockElement {
     'blurRadius': blurRadius,
     'isLiquidGlass': isLiquidGlass,
     'isFrostedGlass': isFrostedGlass,
+    'surfaceTexture': surfaceTexture.name,
+    'textureScale': textureScale,
+    'textureOpacity': textureOpacity,
     'perspectiveTilt': perspectiveTilt,
     'shapeStrokeWidth': shapeStrokeWidth,
     'startAngle': startAngle,
@@ -559,6 +575,10 @@ class LockElement {
     blurRadius: (j['blurRadius'] as num?)?.toDouble() ?? 0,
     isLiquidGlass: j['isLiquidGlass'] as bool? ?? false,
     isFrostedGlass: j['isFrostedGlass'] as bool? ?? false,
+    surfaceTexture: IconTexture.values.asNameMap()[j['surfaceTexture']] ??
+        IconTexture.none,
+    textureScale: (j['textureScale'] as num?)?.toDouble() ?? 1,
+    textureOpacity: (j['textureOpacity'] as num?)?.toDouble() ?? 0.3,
     perspectiveTilt: ((j['perspectiveTilt'] as num?)?.toDouble() ?? 0).clamp(
       -60,
       60,

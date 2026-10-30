@@ -22,6 +22,7 @@ export 'src/lockscreen/lockscreen_canvas.dart';
 export 'src/lockscreen/lockscreen_preview_renderer.dart';
 export 'src/lockscreen/unlock_control_preview.dart';
 export 'src/lockscreen/lockscreen_clock.dart';
+export 'src/lockscreen/surface_fx.dart';
 export 'src/lockscreen/maml_ease_ext.dart';
 export 'package:theme_core/lockscreen_layout.dart'
     show AnalogClockType, AnalogPart, OrbitDigital;

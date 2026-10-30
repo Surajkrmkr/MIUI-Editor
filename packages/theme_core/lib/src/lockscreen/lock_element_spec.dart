@@ -83,6 +83,9 @@ class LockElementSpec {
     this.strokeColorDigit2 = _clear,
     this.isLiquidGlass = false,
     this.isFrostedGlass = false,
+    this.surfaceTexture = 'none',
+    this.textureScale = 1.0,
+    this.textureOpacity = 0.3,
     this.perspectiveTilt = 0,
     this.shapeStrokeWidth = 8,
     this.startAngle = -90,
@@ -146,6 +149,10 @@ class LockElementSpec {
       useSeparateColors,
       isLiquidGlass,
       isFrostedGlass;
+
+  /// [IconTexture] name, baked into clock and container PNGs.
+  final String surfaceTexture;
+  final double textureScale, textureOpacity;
 
   /// Degrees the clock text turns about the screen's vertical centre line,
   /// so the digits grow linearly across the screen; baked into the PNGs.
@@ -305,6 +312,9 @@ class LockElementSpec {
     'blurRadius': blurRadius,
     'isLiquidGlass': isLiquidGlass,
     'isFrostedGlass': isFrostedGlass,
+    'surfaceTexture': surfaceTexture,
+    'textureScale': textureScale,
+    'textureOpacity': textureOpacity,
     'perspectiveTilt': perspectiveTilt,
     'shapeStrokeWidth': shapeStrokeWidth,
     'startAngle': startAngle,
@@ -417,6 +427,9 @@ class LockElementSpec {
       blurRadius: dbl('blurRadius', 0),
       isLiquidGlass: j['isLiquidGlass'] as bool? ?? false,
       isFrostedGlass: j['isFrostedGlass'] as bool? ?? false,
+      surfaceTexture: j['surfaceTexture'] as String? ?? 'none',
+      textureScale: dbl('textureScale', 1),
+      textureOpacity: dbl('textureOpacity', 0.3),
       perspectiveTilt: dbl('perspectiveTilt', 0).clamp(-60, 60).toDouble(),
       shapeStrokeWidth: dbl('shapeStrokeWidth', 8),
       startAngle: dbl('startAngle', -90),

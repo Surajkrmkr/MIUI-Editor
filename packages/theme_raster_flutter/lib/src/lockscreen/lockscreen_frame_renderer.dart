@@ -17,6 +17,7 @@ import 'art/unlock_skin_art.dart';
 import 'font_text_style.dart';
 import 'gradient_text.dart';
 import 'lock_element.dart';
+import 'surface_fx.dart';
 
 class LockscreenFrameRenderer {
   const LockscreenFrameRenderer({this.batchSize = 8});
@@ -402,7 +403,10 @@ class LockscreenFrameRenderer {
 
   // ── Child widget builders ──────────────────────────────────────────────────
 
-  Widget _clockText(LockElement el, String text) {
+  Widget _clockText(LockElement el, String text) =>
+      SurfaceFx(element: el, child: _clockGlyphs(el, text));
+
+  Widget _clockGlyphs(LockElement el, String text) {
     if (el.useSeparateColors &&
         (el.type == ElementType.hourClock ||
             el.type == ElementType.minClock ||
@@ -481,7 +485,10 @@ class LockscreenFrameRenderer {
     );
   }
 
-  Widget _containerWidget(LockElement el) {
+  Widget _containerWidget(LockElement el) =>
+      SurfaceFx(element: el, child: _containerBody(el));
+
+  Widget _containerBody(LockElement el) {
     Widget containerWidget;
     if (el.isLiquidGlass) {
       final frostBlur = el.blurRadius > 0 ? el.blurRadius : 0.0;

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/core/theme/app_radius.dart';
 import '../../../../../core/theme/theme_extensions.dart';
 import '../../../../domain/entities/builtin_widget_styles.dart';
+import '../../../../domain/entities/icon_texture.dart';
 import '../../../../domain/entities/element_widget.dart';
 import '../../../providers/element_provider.dart';
 import '../../../common/widgets/drop_zone.dart';
@@ -465,7 +466,7 @@ class ElementInfoPanel extends ConsumerWidget {
                   label: usesFontSize ? 'Font Size' : 'Scale',
                   value: usesFontSize ? el.fontSize : el.scale,
                   min: 0,
-                  max: usesFontSize ? 100 : 4,
+                  max: usesFontSize ? 100 : 10,
                   onChanged: (v) => usesFontSize
                       ? n.setFontSize(el.type, v)
                       : n.setScale(el.type, v),
@@ -481,6 +482,57 @@ class ElementInfoPanel extends ConsumerWidget {
               ],
             ),
           ),
+
+          if (el.type.isContainer ||
+              (el.type.isClock &&
+                  !el.type.isAnalog &&
+                  el.type != ElementType.weatherIconClock))
+            _Section(
+              title: 'TEXTURE',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DropdownButtonFormField<IconTexture>(
+                    key: ValueKey('tx-${el.type}-${el.surfaceTexture}'),
+                    initialValue: el.surfaceTexture,
+                    isDense: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Texture',
+                      isDense: true,
+                    ),
+                    items: [
+                      for (final t in IconTexture.values)
+                        DropdownMenuItem(value: t, child: Text(t.label)),
+                    ],
+                    onChanged: (v) => n.updateSurfaceFx(
+                      el.type,
+                      (e) => e.copyWith(surfaceTexture: v),
+                    ),
+                  ),
+                  if (el.surfaceTexture != IconTexture.none) ...[
+                    _SliderRow(
+                      label: 'Scale',
+                      value: el.textureScale,
+                      min: 0.1,
+                      max: 5,
+                      onChanged: (v) => n.updateSurfaceFx(
+                        el.type,
+                        (e) => e.copyWith(textureScale: v),
+                      ),
+                    ),
+                    _SliderRow(
+                      label: 'Opacity',
+                      value: el.textureOpacity,
+                      max: 1,
+                      onChanged: (v) => n.updateSurfaceFx(
+                        el.type,
+                        (e) => e.copyWith(textureOpacity: v),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
 
           if (el.type.isContainer)
             _Section(
@@ -3057,6 +3109,10 @@ class _ScalePresets extends StatelessWidget {
     3.0,
     3.5,
     4.0,
+    5.0,
+    6.0,
+    8.0,
+    10.0,
   ];
   static const _fontPresets = [
     8.0,

@@ -630,6 +630,8 @@ class ElementNotifier extends Notifier<ElementState> {
       _change(t, (e) => e.copyWith(isLiquidGlass: v));
   void setIsFrostedGlass(ElementType t, bool v) =>
       _change(t, (e) => e.copyWith(isFrostedGlass: v));
+  void updateSurfaceFx(ElementType t, LockElement Function(LockElement) f) =>
+      _change(t, f);
 
   /// Tilts every clock text element alike, so they read as one surface.
   void setPerspectiveTilt(double v) {
