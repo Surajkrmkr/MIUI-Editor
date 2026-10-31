@@ -128,6 +128,30 @@ void main() {
     expect(builtinClockSets.where((s) => s.user == 'suraj'), hasLength(10));
     expect(builtinWeatherSets.where((s) => s.user == 'suraj'), hasLength(12));
     expect(builtinBatterySets.where((s) => s.user == 'suraj'), hasLength(12));
+    final annapurna = builtinBatterySets
+        .where((set) => set.user == 'annapurna')
+        .toList();
+    expect(annapurna, hasLength(7));
+    expect(annapurna.map((set) => set.id).toSet(), hasLength(7));
+    for (final preset in annapurna) {
+      expect(
+        preset.elements.every(isBatterySetElement),
+        isTrue,
+        reason: preset.id,
+      );
+      expect(
+        preset.elements.map((element) => element.name).toSet().length,
+        preset.elements.length,
+        reason: preset.id,
+      );
+      expect(
+        preset.elements.any(
+          (element) => element.type == ElementType.batteryText,
+        ),
+        isTrue,
+        reason: preset.id,
+      );
+    }
     // Every look names its own art, so none reuses an earlier one.
     final looks = <Object?>{
       for (final s in of(ElementType.analogClock)) s.appearance['analogStyle'],
@@ -189,6 +213,10 @@ void main() {
     for (final (name, all) in [
       ('weather', builtinWeatherSets),
       ('battery', builtinBatterySets),
+      (
+        'annapurna-battery',
+        builtinBatterySets.where((set) => set.user == 'annapurna').toList(),
+      ),
     ]) {
       await _sheet(tester, name, [
         for (final p in all) (p.name, p.elements, p.background),

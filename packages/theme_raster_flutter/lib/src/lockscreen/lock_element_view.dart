@@ -8,6 +8,9 @@ import 'package:theme_core/theme_core.dart';
 import 'package:theme_core/lockscreen_layout.dart' show AnalogClockType;
 import 'art/analog_clock_art.dart';
 import 'art/calendar_style_art.dart';
+import 'art/day_strip_art.dart';
+import 'art/gauge_art.dart';
+import 'art/ticker_art.dart';
 import 'art/shortcut_set_art.dart';
 import 'font_text_style.dart';
 import 'gradient_text.dart';
@@ -15,6 +18,7 @@ import 'lock_element.dart';
 import 'lockscreen_clock.dart';
 import 'surface_fx.dart';
 import 'unlock_control_preview.dart';
+import 'wallpaper_glass.dart';
 
 /// Finds an exported lockscreen image: [relativePath] is under
 /// `lockscreen/advance`, without the `.png`.
@@ -77,6 +81,11 @@ class _LockElementViewState extends State<LockElementView> {
       );
     }
     if (el.type == ElementType.calendarGrid) return _calendar(el);
+    if (el.type == ElementType.dayStrip) return DayStripPreview(element: el);
+    if (el.type == ElementType.countdownTicker) {
+      return TickerPreview(element: el);
+    }
+    if (el.type == ElementType.gaugeSet) return GaugePreview(element: el);
     if (el.type.isUnlockControl) {
       return _unlock(el);
     }
@@ -320,8 +329,12 @@ class _LockElementViewState extends State<LockElementView> {
                 ? el.strokeColorDigit1
                 : el.strokeColor,
             blurRadius: el.blurRadius,
-            isLiquidGlass: el.isLiquidGlass,
-            isFrostedGlass: el.isFrostedGlass,
+            isWallpaperGlass: el.isWallpaperGlass,
+            glassBlur: el.glassBlur,
+            glassTint: el.glassTint,
+            glassRim: el.glassRim,
+            glassShadow: el.glassShadow,
+            glassEdgeLight: el.glassEdgeLight,
           ),
           GradientText(
             txt[1],
@@ -343,8 +356,12 @@ class _LockElementViewState extends State<LockElementView> {
                 ? el.strokeColorDigit2
                 : el.strokeColor,
             blurRadius: el.blurRadius,
-            isLiquidGlass: el.isLiquidGlass,
-            isFrostedGlass: el.isFrostedGlass,
+            isWallpaperGlass: el.isWallpaperGlass,
+            glassBlur: el.glassBlur,
+            glassTint: el.glassTint,
+            glassRim: el.glassRim,
+            glassShadow: el.glassShadow,
+            glassEdgeLight: el.glassEdgeLight,
           ),
         ],
       );
@@ -368,8 +385,12 @@ class _LockElementViewState extends State<LockElementView> {
       strokeWidth: el.strokeWidth,
       strokeColor: el.strokeColor,
       blurRadius: el.blurRadius,
-      isLiquidGlass: el.isLiquidGlass,
-      isFrostedGlass: el.isFrostedGlass,
+      isWallpaperGlass: el.isWallpaperGlass,
+      glassBlur: el.glassBlur,
+      glassTint: el.glassTint,
+      glassRim: el.glassRim,
+      glassShadow: el.glassShadow,
+      glassEdgeLight: el.glassEdgeLight,
     );
   }
 
@@ -380,146 +401,30 @@ class _LockElementViewState extends State<LockElementView> {
   }
 
   Widget _container(LockElement el) {
-    Widget containerWidget;
-    if (el.isLiquidGlass) {
-      final frostBlur = el.blurRadius > 0 ? el.blurRadius : 0.0;
-      containerWidget = Container(
-        height: el.height,
-        width: el.width,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(el.radius),
-          boxShadow: [
-            // Splay & Depth ambient occlusion (Figma Depth 100, Splay 100)
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.16),
-              blurRadius: 28,
-              offset: const Offset(0, 8),
-              spreadRadius: -2,
-            ),
-            // Soft outer refraction glow
-            BoxShadow(
-              color: Colors.white.withValues(alpha: 0.14),
-              blurRadius: 18,
-              spreadRadius: -1,
-            ),
-          ],
+    if (el.isWallpaperGlass) return WallpaperGlassBox(element: el);
+    final base = Container(
+      height: el.height,
+      width: el.width,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(el.radius),
+        border: el.borderWidth > 0
+            ? Border.all(width: el.borderWidth, color: el.borderColor)
+            : null,
+        gradient: LinearGradient(
+          begin: el.gradStartAlign as Alignment,
+          end: el.gradEndAlign as Alignment,
+          colors: [el.color, el.colorSecondary],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(el.radius),
-          child: Stack(
-            children: [
-              // 1. Frost Blur (Figma Frost = 0 by default, or user adjustable)
-              if (frostBlur > 0)
-                Positioned.fill(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(
-                      sigmaX: frostBlur,
-                      sigmaY: frostBlur,
-                    ),
-                    child: const SizedBox.expand(),
-                  ),
-                ),
-
-              // 2. Base Glass Fill (Figma Fill: #D9D9D9 at 20% opacity)
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(el.radius),
-                    color: const Color(0xFFD9D9D9).withValues(alpha: 0.20),
-                  ),
-                ),
-              ),
-
-              // 3. Chromatic Dispersion & Refraction (Figma Refraction 80, Dispersion 100, Depth 100)
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(el.radius),
-                    gradient: const RadialGradient(
-                      center: Alignment(-0.2, -0.2),
-                      radius: 1.1,
-                      colors: [
-                        Color(
-                          0x00FFFFFF,
-                        ), // Ultra-clear center (shows background sharp & magnified)
-                        Color(
-                          0x08FF3366,
-                        ), // Red-orange chromatic dispersion fringe
-                        Color(
-                          0x1033CCFF,
-                        ), // Cyan-blue chromatic dispersion fringe
-                        Color(0x28FFFFFF), // Outer refraction edge
-                      ],
-                      stops: [0.65, 0.85, 0.94, 1.0],
-                    ),
-                  ),
-                ),
-              ),
-
-              // 4. Directional Light & Specular Bevel (Figma Light: -45° at 80% intensity)
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(el.radius),
-                    // Light angle -45°: top-left bright light fading across to bottom-right
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(
-                          0xCCFFFFFF,
-                        ), // 80% light specular highlight at top-left
-                        Color(0x22FFFFFF),
-                        Color(0x00FFFFFF),
-                        Color(0x55FFFFFF), // Bottom-right refraction bounce
-                      ],
-                      stops: [0.0, 0.25, 0.70, 1.0],
-                    ),
-                    border: Border.all(
-                      width: el.borderWidth > 0 ? el.borderWidth : 1.5,
-                      color: const Color(0x99FFFFFF), // Crisp glass outline
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    } else {
-      Widget base = Container(
-        height: el.height,
-        width: el.width,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(el.radius),
-          border: el.borderWidth > 0
-              ? Border.all(width: el.borderWidth, color: el.borderColor)
-              : null,
-          gradient: LinearGradient(
-            begin: el.gradStartAlign as Alignment,
-            end: el.gradEndAlign as Alignment,
-            colors: [el.color, el.colorSecondary],
-          ),
-        ),
-      );
-
-      if (el.blurRadius > 0) {
-        containerWidget = ClipRRect(
-          borderRadius: BorderRadius.circular(el.radius),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: el.blurRadius,
-              sigmaY: el.blurRadius,
-            ),
-            child: base,
-          ),
-        );
-      } else {
-        containerWidget = base;
-      }
-    }
-
-    return containerWidget;
+      ),
+    );
+    if (el.blurRadius <= 0) return base;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(el.radius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: el.blurRadius, sigmaY: el.blurRadius),
+        child: base,
+      ),
+    );
   }
 
   Widget _unlock(LockElement element) => UnlockControlPreview(element: element);

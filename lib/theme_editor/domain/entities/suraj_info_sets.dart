@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'builtin_widget_styles.dart' show ClockSetPreset;
@@ -38,7 +40,8 @@ bool isWeatherSetElement(LockElement e) =>
 /// Whether [e] belongs to a battery set (its text or its shapes).
 bool isBatterySetElement(LockElement e) =>
     batterySetElementTypes.contains(e.type) ||
-    (e.type.isShape && e.instanceId.startsWith(batterySetIdPrefix));
+    ((e.type.isShape || e.type.isNormalText) &&
+        e.instanceId.startsWith(batterySetIdPrefix));
 
 class _Build {
   _Build(this.prefix, this.shift);
@@ -58,6 +61,7 @@ class _Build {
     Color fill = const Color(0x00000000),
     Color line = const Color(0x00000000),
     double lineW = 0,
+    double angle = 0,
   }) => elements.add(
     LockElement(
       type: ElementType.rectangleShape,
@@ -70,6 +74,7 @@ class _Build {
       color: line,
       colorSecondary: fill,
       shapeStrokeWidth: lineW * _ratio,
+      angle: angle,
     ),
   );
 
@@ -154,9 +159,11 @@ class _Build {
     double size,
     Color color, {
     FontWeight weight = FontWeight.w600,
+    String instanceId = '',
   }) => elements.add(
     LockElement(
       type: type,
+      instanceId: instanceId,
       dx: dx,
       dy: dy + shift,
       fontSize: size,
@@ -164,6 +171,51 @@ class _Build {
       color: color,
     ),
   );
+
+  void label(
+    String value,
+    double dx,
+    double dy,
+    double size,
+    Color color, {
+    FontWeight weight = FontWeight.w600,
+  }) => elements.add(
+    LockElement(
+      type: ElementType.normalText1,
+      instanceId: _id,
+      text: value,
+      dx: dx,
+      dy: dy + shift,
+      fontSize: size,
+      fontWeight: weight,
+      color: color,
+    ),
+  );
+
+  void line(
+    double x1,
+    double y1,
+    double x2,
+    double y2,
+    double stroke,
+    Color color,
+  ) {
+    final dx = x2 - x1;
+    final dy = y2 - y1;
+    elements.add(
+      LockElement(
+        type: ElementType.lineShape,
+        instanceId: _id,
+        dx: (x1 + x2) / 2,
+        dy: (y1 + y2) / 2 + shift,
+        width: math.sqrt(dx * dx + dy * dy) * _ratio,
+        height: stroke * _ratio,
+        shapeStrokeWidth: stroke * _ratio,
+        color: color,
+        angle: -math.atan2(dy, dx) * 180 / math.pi,
+      ),
+    );
+  }
 
   void icon(double dx, double dy, double scale) => elements.add(
     LockElement(
@@ -594,5 +646,283 @@ final surajBatterySets = <ClockSetPreset>[
     b.arc(-70, 0, 46, 6, color: _white, track: const Color(0x40FFFFFF));
     b.text(_pct, 22, -9, 22, _white, weight: FontWeight.w800);
     b.bar(22, 14, 104, 6, color: const Color(0xFF7CFFB2));
+  }),
+];
+
+ClockSetPreset _annapurnaBattery(
+  String slug,
+  String name,
+  Color background,
+  void Function(_Build builder) design,
+) {
+  final builder = _Build('$batterySetIdPrefix-annapurna-$slug-', 140);
+  design(builder);
+  return ClockSetPreset(
+    id: 'battery-set-annapurna-$slug',
+    name: name,
+    user: 'annapurna',
+    background: background,
+    elements: builder.elements,
+  );
+}
+
+void _phoneOutline(
+  _Build builder,
+  double x,
+  double y,
+  double size,
+  Color color,
+) {
+  builder.rect(
+    x,
+    y,
+    size * .58,
+    size,
+    r: size * .12,
+    line: color,
+    lineW: size * .075,
+  );
+  builder.line(
+    x - size * .09,
+    y - size * .34,
+    x + size * .09,
+    y - size * .34,
+    size * .055,
+    color,
+  );
+  builder.disc(x, y + size * .34, size * .07, fill: color);
+}
+
+void _heart(_Build builder, double x, double y, double size, Color color) {
+  builder.rect(
+    x,
+    y + size * .12,
+    size * .57,
+    size * .57,
+    fill: color,
+    angle: 45,
+  );
+  builder.disc(x - size * .2, y - size * .12, size * .58, fill: color);
+  builder.disc(x + size * .2, y - size * .12, size * .58, fill: color);
+}
+
+final annapurnaBatterySets = <ClockSetPreset>[
+  _annapurnaBattery('my-phone', 'My Phone', const Color(0xFFF9FAF9), (builder) {
+    const mint = Color(0xFF78C9B6);
+    const ink = Color(0xFF20252F);
+    builder.rect(0, 0, 200, 88, r: 44, fill: const Color(0xFFE9ECEB));
+    builder.arc(-62, 0, 55, 6, color: mint, track: const Color(0xFFB7DFD4));
+    _phoneOutline(builder, -62, 0, 25, mint);
+    builder.label('My Phone', 31, -17, 16, ink, weight: FontWeight.w800);
+    builder.text(_pct, 31, 16, 25, ink, weight: FontWeight.w900);
+  }),
+  _annapurnaBattery('green-badge', 'Battery badge', const Color(0xFFF6F4ED), (
+    builder,
+  ) {
+    const white = Color(0xFFF4FFF6);
+    builder.rect(
+      0,
+      0,
+      112,
+      174,
+      r: 26,
+      fill: const Color(0xFF9EDFA8),
+      line: const Color(0xFF3F5E43),
+      lineW: 3.5,
+    );
+    builder.arc(0, -44, 58, 5, color: white, track: const Color(0x88F4FFF6));
+    _phoneOutline(builder, 0, -44, 31, white);
+    builder.line(-3, -48, 2, -48, 1.8, white);
+    builder.line(2, -48, -2, -41, 1.8, white);
+    builder.line(-2, -41, 3, -41, 1.8, white);
+    builder.label('Battery', 0, 13, 17, white, weight: FontWeight.w800);
+    builder.text(_pct, 0, 53, 26, white, weight: FontWeight.w800);
+  }),
+  _annapurnaBattery('electric-type', 'electric', const Color(0xFFB78D70), (
+    builder,
+  ) {
+    const outline = Color(0xFF96735F);
+    const paper = Color(0xFFF4DFC8);
+    for (final offset in const [
+      Offset(-1, -1),
+      Offset(1, -1),
+      Offset(-1, 1),
+      Offset(1, 1),
+    ]) {
+      builder.label(
+        'electric:',
+        -40 + offset.dx,
+        offset.dy + 1,
+        24,
+        outline,
+        weight: FontWeight.w800,
+      );
+      builder.text(
+        _pct,
+        36 + offset.dx,
+        offset.dy + 1,
+        24,
+        outline,
+        weight: FontWeight.w800,
+        instanceId: builder._id,
+      );
+    }
+    for (final offset in const [
+      Offset(-.7, 0),
+      Offset(.7, 0),
+      Offset(0, -.7),
+      Offset(0, .7),
+    ]) {
+      builder.label(
+        'electric:',
+        -40 + offset.dx,
+        offset.dy,
+        24,
+        paper,
+        weight: FontWeight.w800,
+      );
+      builder.text(
+        _pct,
+        36 + offset.dx,
+        offset.dy,
+        24,
+        paper,
+        weight: FontWeight.w800,
+        instanceId: builder._id,
+      );
+    }
+    builder.label(
+      'electric:',
+      -40,
+      0,
+      24,
+      const Color(0xFFC29B80),
+      weight: FontWeight.w800,
+    );
+    builder.text(
+      _pct,
+      36,
+      0,
+      24,
+      const Color(0xFFC29B80),
+      weight: FontWeight.w800,
+    );
+  }),
+  _annapurnaBattery('happy-cell', 'Happy battery', const Color(0xFF8F9DA8), (
+    builder,
+  ) {
+    const white = Color(0xFFF8FBF7);
+    const ink = Color(0xFF8F9DA8);
+    builder.rect(0, 0, 68, 160, r: 10, line: white, lineW: 3);
+    builder.rect(0, -84, 22, 8, r: 2, line: white, lineW: 2.5);
+    for (final x in [-22.5, -7.5, 7.5, 22.5]) {
+      builder.rect(x, -40, 8, 39, r: 1.5, fill: white);
+    }
+    builder.text(_pct, 0, -1, 16, white, weight: FontWeight.w500);
+    builder.disc(0, 43, 36, fill: white);
+    builder.disc(-7, 38, 4, fill: ink);
+    builder.disc(7, 38, 4, fill: ink);
+    builder.arc(
+      0,
+      43,
+      21,
+      2.5,
+      color: ink,
+      track: const Color(0x00000000),
+      start: 20,
+      sweep: 140,
+      source: ArcProgressSource.none,
+    );
+  }),
+  _annapurnaBattery(
+    'pastel-capsules',
+    'Gluttony value',
+    const Color(0xFFFFFFFF),
+    (builder) {
+      const ink = Color(0xFF252A29);
+      builder.rect(
+        0,
+        -19,
+        112,
+        38,
+        r: 16,
+        fill: const Color(0xFFFFFFFF),
+        line: ink,
+        lineW: 3,
+      );
+      const shades = [
+        Color(0xFFA8D4DE),
+        Color(0xFFEAB19D),
+        Color(0xFFEACF81),
+        Color(0xFFF0C3AC),
+        Color(0xFF91B5A5),
+      ];
+      for (final (index, shade) in shades.indexed) {
+        builder.rect(-40 + index * 20, -19, 11, 25, r: 5.5, fill: shade);
+      }
+      builder.label(
+        'Gluttony value',
+        -38,
+        38,
+        20,
+        ink,
+        weight: FontWeight.w600,
+      );
+      builder.text(_pct, 96, 38, 20, ink, weight: FontWeight.w600);
+    },
+  ),
+  _annapurnaBattery('flower-cell', 'Flower battery', const Color(0xFFFFFCF6), (
+    builder,
+  ) {
+    const rose = Color(0xFFC38E85);
+    builder.rect(
+      0,
+      -17,
+      126,
+      40,
+      r: 13,
+      fill: const Color(0xFFFFFCF6),
+      line: rose,
+      lineW: 2.5,
+    );
+    builder.rect(66, -17, 4, 13, r: 2, fill: rose);
+    for (final x in [-44.0, -15.0, 15.0, 44.0]) {
+      for (var petal = 0; petal < 5; petal++) {
+        final angle = -math.pi / 2 + petal * 2 * math.pi / 5;
+        builder.disc(
+          x + 6 * math.cos(angle),
+          -17 + 6 * math.sin(angle),
+          4.5,
+          fill: rose,
+        );
+      }
+      builder.disc(x, -17, 3, fill: const Color(0xFFE6B7A5));
+    }
+    builder.text(_pct, 0, 36, 25, rose, weight: FontWeight.w400);
+  }),
+  _annapurnaBattery('heart-ribbon', 'Heart ribbon', const Color(0xFFD6805D), (
+    builder,
+  ) {
+    const white = Color(0xFFFFF8E8);
+    builder.rect(0, 0, 244, 44, r: 22, line: white, lineW: 2.5);
+    final points = [
+      for (var vertex = 0; vertex < 10; vertex++)
+        Offset(
+          -93 +
+              (vertex.isEven ? 12 : 5.5) *
+                  math.cos(-math.pi / 2 + vertex * math.pi / 5),
+          (vertex.isEven ? 12 : 5.5) *
+              math.sin(-math.pi / 2 + vertex * math.pi / 5),
+        ),
+    ];
+    for (var vertex = 0; vertex < points.length; vertex++) {
+      final start = points[vertex];
+      final end = points[(vertex + 1) % points.length];
+      builder.line(start.dx, start.dy, end.dx, end.dy, 2, white);
+    }
+    builder.text(_pct, -53, 0, 15, white, weight: FontWeight.w500);
+    for (final x in [-10.0, 13.0, 36.0, 59.0, 82.0, 105.0]) {
+      _heart(builder, x, 0, 13, white);
+    }
   }),
 ];

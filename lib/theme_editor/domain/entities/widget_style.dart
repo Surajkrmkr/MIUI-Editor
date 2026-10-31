@@ -60,6 +60,21 @@ class WidgetStyle {
         throw const FormatException('Unknown calendar style');
       }
     }
+    if (appearance['dayStripStyle'] case final String style) {
+      if (!DayStripStyle.values.any((value) => value.name == style)) {
+        throw const FormatException('Unknown day strip style');
+      }
+    }
+    if (appearance['tickerStyle'] case final String style) {
+      if (!TickerStyle.values.any((value) => value.name == style)) {
+        throw const FormatException('Unknown ticker style');
+      }
+    }
+    if (appearance['gaugeStyle'] case final String style) {
+      if (!GaugeStyle.values.any((value) => value.name == style)) {
+        throw const FormatException('Unknown gauge style');
+      }
+    }
     if (appearance['shortcutStyle'] case final String style) {
       if (!ShortcutStyle.values.any((value) => value.name == style)) {
         throw const FormatException('Unknown shortcut style');
@@ -105,7 +120,10 @@ class WidgetStyle {
         ElementType.dateTimeText3,
       }.contains(type) ||
       type == ElementType.shortcutSet ||
-      type == ElementType.calendarGrid;
+      type == ElementType.calendarGrid ||
+      type == ElementType.dayStrip ||
+      type == ElementType.countdownTicker ||
+      type == ElementType.gaugeSet;
 
   static const numericBounds = <String, (double, double)>{
     'width': (48, 1080),
@@ -134,6 +152,9 @@ class WidgetStyle {
     ...numericBounds.keys,
     ..._flags,
     'calendarStyle',
+    'dayStripStyle',
+    'tickerStyle',
+    'gaugeStyle',
     'unlockIcon',
     'unlockIconPath',
     'unlockTargetPath',

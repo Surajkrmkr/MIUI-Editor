@@ -436,6 +436,11 @@ class LockscreenSpec {
     'shortcutStyle': ShortcutStyle.values,
     'shortcutEdge': ShortcutEdge.values,
     'calendarStyle': CalendarStyle.values,
+    'dayStripStyle': DayStripStyle.values,
+    'tickerStyle': TickerStyle.values,
+    'tickerSource': TickerSource.values,
+    'gaugeStyle': GaugeStyle.values,
+    'surfaceTexture': IconTexture.values,
     'gradientType': GradientType.values,
     'animation': ElementAnimation.values,
   };

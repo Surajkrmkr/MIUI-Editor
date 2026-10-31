@@ -139,82 +139,87 @@ Iterable<String> _compare(
 }
 
 void main() {
-  testWidgets('lockscreen canvas matches the golden', (tester) async {
-    lockscreenNow = () => DateTime(2026, 2, 8, 14, 36, 55);
-    addTearDown(() => lockscreenNow = DateTime.now);
-    tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(600, 900);
-    addTearDown(tester.view.reset);
-    await tester.runAsync(loadSdkFonts);
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await tester.runAsync(SharedPreferences.getInstance);
+  testWidgets(
+    'lockscreen canvas matches the golden',
+    (tester) async {
+      lockscreenNow = () => DateTime(2026, 2, 8, 14, 36, 55);
+      addTearDown(() => lockscreenNow = DateTime.now);
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(600, 900);
+      addTearDown(tester.view.reset);
+      await tester.runAsync(loadSdkFonts);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await tester.runAsync(SharedPreferences.getInstance);
 
-    final actual = <String, Map<String, Object>>{};
-    for (final el in _elements()) {
-      final key = GlobalKey();
-      await tester.pumpWidget(
-        ProviderScope(
-          key: UniqueKey(),
-          overrides: [
-            sharedPrefsProvider.overrideWithValue(prefs!),
-            elementProvider.overrideWith(
-              () => _Fixed(ElementState(elements: [el])),
-            ),
-          ],
-          child: MaterialApp(
-            debugShowCheckedModeBanner: false,
-            home: Align(
-              alignment: Alignment.topLeft,
-              child: RepaintBoundary(
-                key: key,
-                child: const ElementWidgetPreview(),
+      final actual = <String, Map<String, Object>>{};
+      for (final el in _elements()) {
+        final key = GlobalKey();
+        await tester.pumpWidget(
+          ProviderScope(
+            key: UniqueKey(),
+            overrides: [
+              sharedPrefsProvider.overrideWithValue(prefs!),
+              elementProvider.overrideWith(
+                () => _Fixed(ElementState(elements: [el])),
+              ),
+            ],
+            child: MaterialApp(
+              debugShowCheckedModeBanner: false,
+              home: Align(
+                alignment: Alignment.topLeft,
+                child: RepaintBoundary(
+                  key: key,
+                  child: const ElementWidgetPreview(),
+                ),
               ),
             ),
           ),
-        ),
+        );
+        // Image, SVG and font loading complete outside the fake-async zone.
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 60)),
+        );
+        await tester.pump();
+
+        final bytes = await tester.runAsync(() async {
+          final boundary =
+              key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+          final image = await boundary.toImage();
+          final data = await image.toByteData(format: ui.ImageByteFormat.png);
+          return data!.buffer.asUint8List();
+        });
+        actual[el.name] = _describe(img.decodePng(Uint8List.fromList(bytes!))!);
+      }
+
+      final sorted = Map.fromEntries(
+        actual.entries.toList()..sort((a, b) => a.key.compareTo(b.key)),
       );
-      // Image, SVG and font loading complete outside the fake-async zone.
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 60)),
+      expect(sorted.length, _elements().length);
+
+      final golden = File(_goldenPath);
+      if (Platform.environment['UPDATE_GOLDENS'] == '1' ||
+          !golden.existsSync()) {
+        golden.writeAsStringSync(
+          '${const JsonEncoder.withIndent(' ').convert(sorted)}\n',
+        );
+        // ignore: avoid_print
+        print('Wrote golden: $_goldenPath (${sorted.length} canvases)');
+        return;
+      }
+
+      final expected = (jsonDecode(golden.readAsStringSync()) as Map).map(
+        (k, v) => MapEntry(k as String, Map<String, Object>.from(v as Map)),
       );
-      await tester.pump();
-
-      final bytes = await tester.runAsync(() async {
-        final boundary =
-            key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
-        final image = await boundary.toImage();
-        final data = await image.toByteData(format: ui.ImageByteFormat.png);
-        return data!.buffer.asUint8List();
-      });
-      actual[el.name] = _describe(img.decodePng(Uint8List.fromList(bytes!))!);
-    }
-
-    final sorted = Map.fromEntries(
-      actual.entries.toList()..sort((a, b) => a.key.compareTo(b.key)),
-    );
-    expect(sorted.length, _elements().length);
-
-    final golden = File(_goldenPath);
-    if (Platform.environment['UPDATE_GOLDENS'] == '1' || !golden.existsSync()) {
-      golden.writeAsStringSync(
-        '${const JsonEncoder.withIndent(' ').convert(sorted)}\n',
-      );
-      // ignore: avoid_print
-      print('Wrote golden: $_goldenPath (${sorted.length} canvases)');
-      return;
-    }
-
-    final expected = (jsonDecode(golden.readAsStringSync()) as Map).map(
-      (k, v) => MapEntry(k as String, Map<String, Object>.from(v as Map)),
-    );
-    final problems = <String>[
-      for (final k in expected.keys)
-        if (!sorted.containsKey(k)) 'missing: $k',
-      for (final k in sorted.keys)
-        if (!expected.containsKey(k)) 'unexpected: $k',
-      for (final k in expected.keys.where(sorted.containsKey))
-        ..._compare(k, expected[k]!, sorted[k]!),
-    ];
-    expect(problems, isEmpty);
-  }, timeout: const Timeout(Duration(minutes: 5)));
+      final problems = <String>[
+        for (final k in expected.keys)
+          if (!sorted.containsKey(k)) 'missing: $k',
+        for (final k in sorted.keys)
+          if (!expected.containsKey(k)) 'unexpected: $k',
+        for (final k in expected.keys.where(sorted.containsKey))
+          ..._compare(k, expected[k]!, sorted[k]!),
+      ];
+      expect(problems, isEmpty);
+    },
+    timeout: const Timeout(Duration(minutes: 5)),
+  );
 }

@@ -4,6 +4,9 @@ import '../values/alignment2.dart';
 import '../values/rgba.dart';
 import 'analog.dart';
 import 'calendar_layout.dart';
+import 'day_strip_layout.dart';
+import 'gauge_layout.dart';
+import 'ticker_layout.dart';
 import 'element_enums.dart';
 import 'geometry.dart';
 import 'lock_element_spec.dart';
@@ -39,6 +42,8 @@ class ManifestBuilder {
       (element) =>
           element.isVisible &&
           (element.type.isHealth ||
+              (element.type == ElementType.gaugeSet &&
+                  GaugeLayout.of(element).usesSteps) ||
               (element.type == ElementType.arcShape &&
                   element.effectiveProgressSource == ArcProgressSource.steps)),
     )) {
@@ -165,9 +170,34 @@ class ManifestBuilder {
     }
     _addOneShotTriggers(doc, elements);
     if (elements.any(
+      (e) =>
+          e.isVisible &&
+          e.type == ElementType.gaugeSet &&
+          GaugeLayout.of(e).usesCompass,
+    )) {
+      // Heading in degrees from the orientation sensor, for compass gauges.
+      doc.findAllElements('VariableBinders').single.children.add(
+        XmlElement(
+          XmlName('SensorBinder'),
+          [
+            XmlAttribute(XmlName('type'), 'orientation'),
+            XmlAttribute(XmlName('delay'), '2'),
+          ],
+          [
+            XmlElement(XmlName('Variable'), [
+              XmlAttribute(XmlName('name'), 'gauge_azimuth'),
+              XmlAttribute(XmlName('index'), '0'),
+            ]),
+          ],
+        ),
+      );
+    }
+    if (elements.any(
       (element) =>
           element.isVisible &&
           (element.type.isWeatherText ||
+              (element.type == ElementType.gaugeSet &&
+                  GaugeLayout.of(element).usesWeather) ||
               element.type == ElementType.weatherIconClock),
     )) {
       final external =
@@ -628,6 +658,18 @@ class ManifestBuilder {
       ]).toXmlString();
     }
 
+    if (el.type == ElementType.dayStrip) {
+      return _dayStripXml(el, dx, dy, ang, bold);
+    }
+
+    if (el.type == ElementType.countdownTicker) {
+      return _tickerXml(el, dx, dy, ang);
+    }
+
+    if (el.type == ElementType.gaugeSet) {
+      return _gaugeXml(el, dx, dy, ang);
+    }
+
     if (el.type == ElementType.calendarGrid &&
         el.calendarStyle != CalendarStyle.classic) {
       return _styledCalendarXml(el, dx, dy, ang, sz, bold);
@@ -796,33 +838,153 @@ class ManifestBuilder {
         "<Text x='$x' y='$y' align='center' alignV='center' size='${f(size)}'"
         " color='$ink' bold='true' $attrs/>";
     const o = OrbitDigital.minuteOrbit, so = OrbitDigital.secondOrbit;
-    return text(
-          cx,
-          cy,
-          OrbitDigital.hourText,
-          "format='%02d' paras='ifelse(#time_format==1,#hour24,#hour12)'",
-        ) +
-        "<DateTime x='$cx' y='$cy+${f(OrbitDigital.dayY)}' align='center' alignV='center'"
-            " size='${f(OrbitDigital.dayText)}' color='$ink' format='EEE'/>" +
-        "<DateTime x='$cx' y='$cy+${f(OrbitDigital.dateY)}' align='center' alignV='center'"
-            " size='${f(OrbitDigital.dateText)}' color='$ink' bold='true' format='MM/dd'/>" +
-        "<Circle x='${px(o, 'minute')}' y='${py(o, 'minute')}' r='${f(OrbitDigital.minuteBubble)}' fillColor='$disc'/>" +
-        text(
-          px(o, 'minute'),
-          py(o, 'minute'),
-          OrbitDigital.minuteText,
-          "format='%02d' paras='#minute'",
-        ) +
-        "<Line x='${px(so, 'second')}' y='${py(so, 'second')}'"
-            " x1='${px(OrbitDigital.secondStem, 'second')}' y1='${py(OrbitDigital.secondStem, 'second')}'"
-            " strokeColor='$disc' weight='${f(.008)}' cap='round'/>" +
-        "<Circle x='${px(so, 'second')}' y='${py(so, 'second')}' r='${f(OrbitDigital.secondBubble)}' fillColor='$disc'/>" +
-        text(
-          px(so, 'second'),
-          py(so, 'second'),
-          OrbitDigital.secondText,
-          "format='%02d' paras='#second'",
+    return "${text(cx, cy, OrbitDigital.hourText, "format='%02d' paras='ifelse(#time_format==1,#hour24,#hour12)'")}<DateTime x='$cx' y='$cy+${f(OrbitDigital.dayY)}' align='center' alignV='center' size='${f(OrbitDigital.dayText)}' color='$ink' format='EEE'/><DateTime x='$cx' y='$cy+${f(OrbitDigital.dateY)}' align='center' alignV='center' size='${f(OrbitDigital.dateText)}' color='$ink' bold='true' format='MM/dd'/><Circle x='${px(o, 'minute')}' y='${py(o, 'minute')}' r='${f(OrbitDigital.minuteBubble)}' fillColor='$disc'/>${text(px(o, 'minute'), py(o, 'minute'), OrbitDigital.minuteText, "format='%02d' paras='#minute'")}<Line x='${px(so, 'second')}' y='${py(so, 'second')}' x1='${px(OrbitDigital.secondStem, 'second')}' y1='${py(OrbitDigital.secondStem, 'second')}' strokeColor='$disc' weight='${f(.008)}' cap='round'/><Circle x='${px(so, 'second')}' y='${py(so, 'second')}' r='${f(OrbitDigital.secondBubble)}' fillColor='$disc'/>${text(px(so, 'second'), py(so, 'second'), OrbitDigital.secondText, "format='%02d' paras='#second'")}";
+  }
+
+  /// Static art (tracks, discs, roses) as a PNG; progress and text live.
+  String _gaugeXml(LockElementSpec el, String dx, String dy, String ang) {
+    final l = GaugeLayout.of(el);
+    String f(double v) => v.toStringAsFixed(2);
+    String hex(Rgba c) => c.toHex(withAlpha: true);
+    final inset = l.exportInset;
+    final (start, sweep) = l.arc;
+    final r = l.ringRadius;
+    final ink = hex(el.colorSecondary);
+    final b = StringBuffer(
+      "<Group x='#sw/2+$dx' y='#sh/2+$dy' angle='$ang' scale='${el.scale}'>"
+      "<Group x='-${el.width / 2}' y='-${el.height / 2}'>"
+      "<Image src='calendar/${el.name}_gauges.png' x='${f(-inset)}' y='${f(-inset)}'"
+      " w='${f(el.width + inset * 2)}' h='${f(el.height + inset * 2)}'/>",
+    );
+    for (final s in l.slots) {
+      final cx = f(s.center.dx), cy = f(s.center.dy);
+      final fr = GaugeLayout.fractionExp(s.source);
+      String arc(String from, String span, {bool pie = false}) =>
+          "<Arc x='$cx' y='$cy' w='${f(r * 2)}' h='${f(r * 2)}'"
+          " startAngle='$from' sweep='$span' close='$pie'"
+          " strokeColor='${pie ? '#00000000' : ink}' fillColor='${pie ? ink : '#00000000'}'"
+          " weight='${pie ? 0 : f(l.weight)}' cap='round'/>";
+      if (s.source == GaugeSource.compass) {
+        b.write(arc('${f(start - 7)}+#gauge_azimuth', '14'));
+      } else {
+        switch (l.style) {
+          case GaugeStyle.segmentRing:
+            b.write(
+              "<Array count='10' indexName='__g'>"
+              "${arc('${f(start + 3)}+#__g*36', '30').replaceFirst('/>', " visibility='lt(#__g,int($fr*10+0.999))'/>")}"
+              '</Array>',
+            );
+          case GaugeStyle.tickDial:
+            String at(double rad, String trig) =>
+                '${trig == 'cos' ? cx : cy}+${f(rad)}*$trig((-90+#__g*12)*0.0174533)';
+            b.write(
+              "<Array count='30' indexName='__g'>"
+              "<Line x='${at(r - l.weight / 2, 'cos')}' y='${at(r - l.weight / 2, 'sin')}'"
+              " x1='${at(r + l.weight / 2, 'cos')}' y1='${at(r + l.weight / 2, 'sin')}'"
+              " strokeColor='$ink' weight='${f(l.weight * .3)}' cap='round'"
+              " visibility='lt(#__g,int($fr*30+0.999))'/>"
+              '</Array>',
+            );
+          case GaugeStyle.pieFill:
+            b.write(arc(f(start), '${f(sweep)}*$fr', pie: true));
+          default:
+            b.write(arc(f(start), '${f(sweep)}*$fr'));
+        }
+        if (l.style == GaugeStyle.neonOrbit) {
+          final a = '(${f(start)}+${f(sweep)}*$fr)*0.0174533';
+          b.write(
+            "<Circle x='$cx+${f(r)}*cos($a)' y='$cy+${f(r)}*sin($a)'"
+            " r='${f(l.weight * 1.3)}' fillColor='#FFFFFFFF'/>",
+          );
+        }
+      }
+      final v = GaugeLayout.valueExp(s.source);
+      final vp = l.valueAt(s), cp = l.captionAt(s);
+      final valueSize = s.source == GaugeSource.alarm
+          ? l.valueSize * .62
+          : l.valueSize;
+      b.write(
+        "<Text x='${f(vp.dx)}' y='${f(vp.dy)}' align='center' alignV='center'"
+        " size='${f(valueSize)}' color='${hex(el.color)}' bold='true'"
+        '${v.textExp != null ? ' textExp="${v.textExp}"' : " format='${v.format}' paras='${v.paras}'"}/>'
+        "<Text x='${f(cp.dx)}' y='${f(cp.dy)}' align='center' alignV='center'"
+        " size='${f(l.captionSize)}' color='${hex(l.captionColor)}' bold='true'"
+        ' textExp="${GaugeLayout.captionExp(s.source)}"/>',
+      );
+    }
+    b.write('</Group></Group>');
+    return b.toString();
+  }
+
+  /// Static panel PNG plus live numbers; the current value is always the
+  /// middle slot, so each tick the row appears to shift by one.
+  String _tickerXml(LockElementSpec el, String dx, String dy, String ang) {
+    final l = TickerLayout.of(el);
+    String f(double v) => v.toStringAsFixed(2);
+    String hex(Rgba c) => c.toHex(withAlpha: true);
+    final inset = l.exportInset;
+    final b = StringBuffer(
+      "<Group x='#sw/2+$dx' y='#sh/2+$dy' angle='$ang' scale='${el.scale}'>"
+      "<Group x='-${el.width / 2}' y='-${el.height / 2}'>"
+      '${l.varsXml}'
+      "<Image src='calendar/${el.name}_ticker.png' x='${f(-inset)}' y='${f(-inset)}'"
+      " w='${f(el.width + inset * 2)}' h='${f(el.height + inset * 2)}'/>",
+    );
+    if (el.tickerStyle == TickerStyle.progressTrack) {
+      final t = l.track;
+      b.write(
+        "<Rectangle x='${f(t.left)}' y='${f(t.top)}' h='${f(t.height)}'"
+        " w='${f(t.width)}*#${l.varCurrent}/max(1,#${l.varMax})'"
+        " cornerRadius='${f(t.height / 2)}' fillColor='${hex(el.colorSecondary)}'/>",
+      );
+    }
+    for (final s in l.slots) {
+      b.write(
+        "<Text format='${l.mamlFormat}' paras='${l.valueExp(s.offset)}'"
+        " x='${f(s.center.dx)}' y='${f(s.center.dy)}' align='center' alignV='center'"
+        " size='${f(s.size)}' color='${hex(s.color)}' bold='${s.isCurrent}'"
+        " visibility='${l.visibleExp(s.offset)}'/>",
+      );
+    }
+    b.write('</Group></Group>');
+    return b.toString();
+  }
+
+  /// Static panel PNG plus live weekday (and date) text per slot; today is
+  /// always the middle slot, so only the text needs to change on device.
+  String _dayStripXml(
+    LockElementSpec el,
+    String dx,
+    String dy,
+    String ang,
+    String bold,
+  ) {
+    final l = DayStripLayout.of(el);
+    String f(double v) => v.toStringAsFixed(2);
+    String hex(Rgba c) => c.toHex(withAlpha: true);
+    final inset = l.exportInset;
+    final b = StringBuffer(
+      "<Group x='#sw/2+$dx' y='#sh/2+$dy' angle='$ang' scale='${el.scale}'>"
+      "<Group x='-${el.width / 2}' y='-${el.height / 2}'>"
+      "<Image src='calendar/${el.name}_strip.png' x='${f(-inset)}' y='${f(-inset)}'"
+      " w='${f(el.width + inset * 2)}' h='${f(el.height + inset * 2)}'/>",
+    );
+    for (final s in l.slots) {
+      b.write(
+        "<Text textExp=\"${l.labelExp(s.offset)}\" x='${f(s.label.dx)}' y='${f(s.label.dy)}'"
+        " align='center' alignV='center' size='${f(s.labelSize)}'"
+        " color='${hex(s.color)}' bold='$bold'/>",
+      );
+      if (s.date case final d?) {
+        b.write(
+          "<DateTime format='d' value='#time_sys+(${s.offset})*86400000'"
+          " x='${f(d.dx)}' y='${f(d.dy)}' align='center' alignV='center'"
+          " size='${f(s.dateSize)}' color='${hex(s.dateColor)}' bold='true'/>",
         );
+      }
+    }
+    b.write('</Group></Group>');
+    return b.toString();
   }
 
   String _styledCalendarXml(

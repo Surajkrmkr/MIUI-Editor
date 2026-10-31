@@ -276,7 +276,8 @@ final List<LockWidget> kPresetWidgets = [
         font: 'gf:Bebas Neue',
         gradStartAlign: Alignment.topCenter,
         gradEndAlign: Alignment.bottomCenter,
-        isFrostedGlass: true,
+        isWallpaperGlass: true,
+        glassEdgeLight: true,
       ),
       LockElement(
         type: ElementType.dotClock,
@@ -286,7 +287,8 @@ final List<LockWidget> kPresetWidgets = [
         font: 'gf:Bebas Neue',
         gradStartAlign: Alignment.topCenter,
         gradEndAlign: Alignment.bottomCenter,
-        isFrostedGlass: true,
+        isWallpaperGlass: true,
+        glassEdgeLight: true,
       ),
       LockElement(
         type: ElementType.minClock,
@@ -297,7 +299,8 @@ final List<LockWidget> kPresetWidgets = [
         font: 'gf:Bebas Neue',
         gradStartAlign: Alignment.topCenter,
         gradEndAlign: Alignment.bottomCenter,
-        isFrostedGlass: true,
+        isWallpaperGlass: true,
+        glassEdgeLight: true,
       ),
       LockElement(
         type: ElementType.batteryText,

@@ -6,6 +6,20 @@ import 'element_enums.dart';
 /// Reference screen height/width the editor lays elements out against.
 const double lockscreenScreenRatio = 2340 / 600;
 
+/// Snaps a stored day count to the supported 3, 5 or 7.
+int dayStripCountOf(Object? value) => switch ((value as num?)?.round()) {
+  final n? when n >= 7 => 7,
+  final n? when n >= 5 => 5,
+  _ => 3,
+};
+
+/// Snaps a stored ticker length to the supported 5, 7, 9 or 11.
+int tickerCountOf(Object? value) {
+  final n = (value as num?)?.round() ?? 9;
+  final odd = n.isEven ? n - 1 : n;
+  return odd.clamp(5, 11);
+}
+
 /// Editor canvas size in logical pixels.
 const double lockscreenViewWidth = 276.92;
 const double lockscreenViewHeight = 600.0;
@@ -73,6 +87,13 @@ class LockElementSpec {
     this.shortcutStyle = ShortcutStyle.glossDock,
     this.shortcutEdge = ShortcutEdge.right,
     this.calendarStyle = CalendarStyle.classic,
+    this.dayStripStyle = DayStripStyle.glassPills,
+    this.dayStripCount = 3,
+    this.tickerStyle = TickerStyle.glowLine,
+    this.tickerSource = TickerSource.seconds,
+    this.tickerCount = 9,
+    this.gaugeStyle = GaugeStyle.openArc,
+    this.gaugeItems = 'battery,todayLeft,monthLeft',
     this.shortcutApps = 'gallery,camera,music,browser,whatsapp,settings',
     this.shortcutThemeIcons = false,
     this.borderWidth = 0,
@@ -102,8 +123,17 @@ class LockElementSpec {
     this.strokeColor = _clear,
     this.strokeColorDigit1 = _clear,
     this.strokeColorDigit2 = _clear,
-    this.isLiquidGlass = false,
-    this.isFrostedGlass = false,
+    this.isWallpaperGlass = false,
+    this.glassEdgeLight = false,
+    this.glassBlur = 14,
+    this.glassTint = 0.22,
+    this.glassRim = 0.8,
+    this.glassShadowColor = const Rgba(0xFF000000),
+    this.glassShadowOpacity = 0.16,
+    this.glassShadowBlur = 8,
+    this.glassShadowDistance = 1.5,
+    this.glassShadowAngle = 90,
+    this.glassShadowSpread = 0,
     this.surfaceTexture = 'none',
     this.textureScale = 1.0,
     this.textureOpacity = 0.3,
@@ -141,6 +171,19 @@ class LockElementSpec {
   final ShortcutStyle shortcutStyle;
   final ShortcutEdge shortcutEdge;
   final CalendarStyle calendarStyle;
+  final DayStripStyle dayStripStyle;
+
+  /// Days shown in a day strip, today in the middle: 3, 5 or 7.
+  final int dayStripCount;
+  final TickerStyle tickerStyle;
+  final TickerSource tickerSource;
+
+  /// Numbers shown by a countdown ticker, current value in the middle.
+  final int tickerCount;
+  final GaugeStyle gaugeStyle;
+
+  /// Comma-separated [GaugeSource] names, in slot order.
+  final String gaugeItems;
 
   /// Comma-separated shortcut app keys, in slot order.
   final String shortcutApps;
@@ -168,8 +211,23 @@ class LockElementSpec {
       isVisible,
       isLocked,
       useSeparateColors,
-      isLiquidGlass,
-      isFrostedGlass;
+      isWallpaperGlass,
+      /// Light catching the wallpaper glass glyphs' inner edges.
+      glassEdgeLight;
+
+  /// Wallpaper glass: blur sigma in canvas units, tint strength 0-1.
+  final double glassBlur, glassTint;
+
+  /// Wallpaper glass inner rim width in canvas units; 0 hides it.
+  final double glassRim;
+
+  /// Wallpaper glass shadow; angle in degrees, 90 points straight down.
+  final Rgba glassShadowColor;
+  final double glassShadowOpacity,
+      glassShadowBlur,
+      glassShadowDistance,
+      glassShadowAngle,
+      glassShadowSpread;
 
   /// [IconTexture] name, baked into clock and container PNGs.
   final String surfaceTexture;
@@ -302,6 +360,13 @@ class LockElementSpec {
     'shortcutStyle': shortcutStyle.name,
     'shortcutEdge': shortcutEdge.name,
     'calendarStyle': calendarStyle.name,
+    'dayStripStyle': dayStripStyle.name,
+    'dayStripCount': dayStripCount,
+    'tickerStyle': tickerStyle.name,
+    'tickerSource': tickerSource.name,
+    'tickerCount': tickerCount,
+    'gaugeStyle': gaugeStyle.name,
+    'gaugeItems': gaugeItems,
     'shortcutApps': shortcutApps,
     'shortcutThemeIcons': shortcutThemeIcons,
     'borderWidth': borderWidth,
@@ -331,8 +396,17 @@ class LockElementSpec {
     'isLocked': isLocked,
     'useSeparateColors': useSeparateColors,
     'blurRadius': blurRadius,
-    'isLiquidGlass': isLiquidGlass,
-    'isFrostedGlass': isFrostedGlass,
+    'isWallpaperGlass': isWallpaperGlass,
+    'glassEdgeLight': glassEdgeLight,
+    'glassBlur': glassBlur,
+    'glassTint': glassTint,
+    'glassRim': glassRim,
+    'glassShadowColor': glassShadowColor.argb,
+    'glassShadowOpacity': glassShadowOpacity,
+    'glassShadowBlur': glassShadowBlur,
+    'glassShadowDistance': glassShadowDistance,
+    'glassShadowAngle': glassShadowAngle,
+    'glassShadowSpread': glassShadowSpread,
     'surfaceTexture': surfaceTexture,
     'textureScale': textureScale,
     'textureOpacity': textureOpacity,
@@ -411,6 +485,25 @@ class LockElementSpec {
         'calendarStyle',
         CalendarStyle.classic,
       ),
+      dayStripStyle: pick(
+        DayStripStyle.values,
+        'dayStripStyle',
+        DayStripStyle.glassPills,
+      ),
+      dayStripCount: dayStripCountOf(j['dayStripCount']),
+      tickerStyle: pick(
+        TickerStyle.values,
+        'tickerStyle',
+        TickerStyle.glowLine,
+      ),
+      tickerSource: pick(
+        TickerSource.values,
+        'tickerSource',
+        TickerSource.seconds,
+      ),
+      tickerCount: tickerCountOf(j['tickerCount']),
+      gaugeStyle: pick(GaugeStyle.values, 'gaugeStyle', GaugeStyle.openArc),
+      gaugeItems: j['gaugeItems'] as String? ?? 'battery,todayLeft,monthLeft',
       shortcutApps:
           j['shortcutApps'] as String? ??
           'gallery,camera,music,browser,whatsapp,settings',
@@ -446,8 +539,17 @@ class LockElementSpec {
       isLocked: j['isLocked'] as bool? ?? false,
       useSeparateColors: j['useSeparateColors'] as bool? ?? false,
       blurRadius: dbl('blurRadius', 0),
-      isLiquidGlass: j['isLiquidGlass'] as bool? ?? false,
-      isFrostedGlass: j['isFrostedGlass'] as bool? ?? false,
+      isWallpaperGlass: j['isWallpaperGlass'] as bool? ?? false,
+      glassEdgeLight: j['glassEdgeLight'] as bool? ?? false,
+      glassBlur: dbl('glassBlur', 14),
+      glassTint: dbl('glassTint', 0.22),
+      glassRim: dbl('glassRim', 0.8),
+      glassShadowColor: rgba('glassShadowColor', const Rgba(0xFF000000)),
+      glassShadowOpacity: dbl('glassShadowOpacity', 0.16),
+      glassShadowBlur: dbl('glassShadowBlur', 8),
+      glassShadowDistance: dbl('glassShadowDistance', 1.5),
+      glassShadowAngle: dbl('glassShadowAngle', 90),
+      glassShadowSpread: dbl('glassShadowSpread', 0),
       surfaceTexture: j['surfaceTexture'] as String? ?? 'none',
       textureScale: dbl('textureScale', 1),
       textureOpacity: dbl('textureOpacity', 0.3),

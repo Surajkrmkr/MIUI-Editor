@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import 'wallpaper_glass.dart';
+
 class GradientText extends StatelessWidget {
   const GradientText(
     this.text, {
@@ -10,8 +12,16 @@ class GradientText extends StatelessWidget {
     this.strokeWidth = 0,
     this.strokeColor = Colors.transparent,
     this.blurRadius = 0,
-    this.isLiquidGlass = false,
-    this.isFrostedGlass = false,
+    this.isWallpaperGlass = false,
+    this.glassBlur = 14,
+    this.glassTint = 0.22,
+    this.glassRim = 0.8,
+    this.glassEdgeLight = false,
+    this.glassShadow = const BoxShadow(
+      color: Color(0x29000000),
+      blurRadius: 8,
+      offset: Offset(0, 1.5),
+    ),
   });
 
   final String text;
@@ -20,11 +30,13 @@ class GradientText extends StatelessWidget {
   final double strokeWidth;
   final Color strokeColor;
   final double blurRadius;
-  final bool isLiquidGlass;
 
-  /// Translucent glyphs fading downwards with a soft halo and a light rim;
-  /// baked into the fill so exported clock PNGs look the same on device.
-  final bool isFrostedGlass;
+  /// Glyphs show the blurred background of the enclosing
+  /// [WallpaperGlassScope], tinted by [gradient] at [glassTint] strength.
+  final bool isWallpaperGlass;
+  final double glassBlur, glassTint, glassRim;
+  final BoxShadow glassShadow;
+  final bool glassEdgeLight;
 
   @override
   Widget build(BuildContext context) {
@@ -58,59 +70,79 @@ class GradientText extends StatelessWidget {
       );
     }
 
-    if (isFrostedGlass) {
+    if (isWallpaperGlass) {
       final top = gradient.colors.first;
       final bottom = gradient.colors.last;
+      final tint = glassTint.clamp(0.0, 1.0);
+      final shadow = glassShadow;
+      Paint shadowPaint(PaintingStyle style) => Paint()
+        ..style = style
+        ..strokeWidth = shadow.spreadRadius * 2
+        ..strokeJoin = StrokeJoin.round
+        ..color = shadow.color.withValues(alpha: 1)
+        ..maskFilter = shadow.blurSigma > 0
+            ? MaskFilter.blur(BlurStyle.normal, shadow.blurSigma)
+            : null;
       return Stack(
         alignment: Alignment.center,
         children: [
-          // Shadow, not MaskFilter BlurStyle.outer: that crashes Impeller on text.
-          Text(
-            text,
-            style: baseStyle.copyWith(
-              color: Colors.transparent,
-              shadows: [
-                Shadow(
-                  color: top.withValues(alpha: top.a * .35),
-                  blurRadius: 6,
+          if (shadow.color.a > 0)
+            Transform.translate(
+              offset: shadow.offset,
+              // Opaque layers faded together, so fill and spread don't stack.
+              child: Opacity(
+                opacity: shadow.color.a,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Text(
+                      text,
+                      style: baseStyle.copyWith(
+                        foreground: shadowPaint(PaintingStyle.fill),
+                      ),
+                    ),
+                    if (shadow.spreadRadius > 0)
+                      Text(
+                        text,
+                        style: baseStyle.copyWith(
+                          foreground: shadowPaint(PaintingStyle.stroke),
+                        ),
+                      ),
+                  ],
                 ),
-              ],
+              ),
             ),
+          GlassBackdropFill(
+            blur: glassBlur,
+            child: Text(text, style: baseStyle.copyWith(color: Colors.white)),
           ),
-          gradientLayer(
-            LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                top.withValues(alpha: top.a * .8),
-                Color.lerp(top, bottom, .5)!.withValues(alpha: top.a * .42),
-                bottom.withValues(alpha: bottom.a * .14),
-              ],
-              stops: const [0, .55, 1],
+          if (tint > 0)
+            gradientLayer(
+              LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  top.withValues(alpha: (top.a * tint * 1.3).clamp(0, 1)),
+                  bottom.withValues(alpha: bottom.a * tint * .7),
+                ],
+              ),
             ),
-          ),
-          gradientLayer(
-            const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xD9FFFFFF), Color(0x40FFFFFF), Color(0x14FFFFFF)],
-              stops: [0, .5, 1],
-            ),
-            paintingStyle: PaintingStyle.stroke,
-            layerStrokeWidth: .8,
-          ),
+          gradientLayer(glassSheen),
+          if (glassEdgeLight) _EdgeLight(text: text, style: baseStyle),
+          if (glassRim > 0)
+            _InnerRim(text: text, style: baseStyle, width: glassRim),
         ],
       );
     }
 
-    if (!hasStroke && !hasBlur && !isLiquidGlass) {
+    if (!hasStroke && !hasBlur) {
       return gradientLayer(gradient);
     }
 
     return Stack(
       alignment: Alignment.center,
       children: [
-        // 1. Outside Stroke Outline (drawn BEHIND the fill)
+        // Outside stroke, drawn behind the fill.
         if (hasStroke)
           Text(
             text,
@@ -123,75 +155,126 @@ class GradientText extends StatelessWidget {
                 ..color = strokeColor,
             ),
           ),
-
-        // 2. Liquid Glass Ambient Shadow
-        if (isLiquidGlass)
-          Text(
-            text,
-            style: baseStyle.copyWith(
-              color: Colors.transparent,
-              shadows: [
-                Shadow(
-                  color: Colors.black.withValues(alpha: 0.45),
-                  blurRadius: 12,
-                ),
-              ],
-            ),
-          ),
-
-        // 3. Main Text Body Fill (with Gradient Shader + Blur if set)
-        if (isLiquidGlass)
-          gradientLayer(
-            LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                (baseStyle.color ?? Colors.white),
-                (baseStyle.color ?? Colors.white).withValues(alpha: 0.70),
-                const Color(0xFFD6E8FF).withValues(alpha: 0.85),
-              ],
-              stops: const [0.0, 0.5, 1.0],
-            ),
-          )
-        else
-          gradientLayer(gradient),
-
-        // 4. Liquid Glass 3D Bevel Rim Stroke
-        if (isLiquidGlass)
-          gradientLayer(
-            const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFFFFFFF),
-                Color(0xCCFFFFFF),
-                Color(0x2033CCFF),
-                Color(0x80FFFFFF),
-              ],
-              stops: [0.0, 0.35, 0.70, 1.0],
-            ),
-            paintingStyle: PaintingStyle.stroke,
-            layerStrokeWidth: 2.0,
-          ),
-
-        // 5. Liquid Glass Top Specular Sheen Overlay
-        if (isLiquidGlass)
-          gradientLayer(
-            const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xF0FFFFFF),
-                Color(0x50FFFFFF),
-                Color(0x05FFFFFF),
-                Color(0x35FFFFFF),
-              ],
-              stops: [0.0, 0.35, 0.65, 1.0],
-            ),
-          ),
+        gradientLayer(gradient),
       ],
     );
   }
+}
+
+/// Light catching the glyphs' inner edges: a soft highlight inside the
+/// top-left edges and a faint shade inside the bottom-right ones.
+class _EdgeLight extends StatelessWidget {
+  const _EdgeLight({required this.text, required this.style});
+
+  final String text;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+    foregroundPainter: _EdgeLightPainter(
+      text,
+      DefaultTextStyle.of(context).style.merge(style),
+    ),
+    child: Text(text, style: style.copyWith(color: Colors.transparent)),
+  );
+}
+
+class _EdgeLightPainter extends CustomPainter {
+  const _EdgeLightPainter(this.text, this.style);
+
+  final String text;
+  final TextStyle style;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final glyphs = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: style.copyWith(foreground: Paint()..color = Colors.white),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    final bounds = (Offset.zero & size).inflate(size.longestSide);
+    paintGlassEdgeLight(
+      canvas,
+      bounds,
+      (style.fontSize ?? 35) / 35,
+      (shift) => glyphs.paint(canvas, shift),
+    );
+    glyphs.dispose();
+  }
+
+  @override
+  bool shouldRepaint(_EdgeLightPainter oldDelegate) =>
+      text != oldDelegate.text || style != oldDelegate.style;
+}
+
+/// A light rim of [width] drawn only inside the glyphs, so it reads as one
+/// edge rather than a band straddling the outline.
+class _InnerRim extends StatelessWidget {
+  const _InnerRim({
+    required this.text,
+    required this.style,
+    required this.width,
+  });
+
+  final String text;
+  final TextStyle style;
+  final double width;
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+    foregroundPainter: _InnerRimPainter(
+      text,
+      DefaultTextStyle.of(context).style.merge(style),
+      width,
+    ),
+    child: Text(text, style: style.copyWith(color: Colors.transparent)),
+  );
+}
+
+class _InnerRimPainter extends CustomPainter {
+  const _InnerRimPainter(this.text, this.style, this.width);
+
+  final String text;
+  final TextStyle style;
+  final double width;
+
+  TextPainter _layout(Paint paint) => TextPainter(
+    text: TextSpan(
+      text: text,
+      style: style.copyWith(color: null, foreground: paint),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final bounds = (Offset.zero & size).inflate(size.longestSide);
+    final stroke = _layout(
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = width * 2
+        ..strokeJoin = StrokeJoin.round
+        ..shader = glassRimGradient.createShader(Offset.zero & size),
+    );
+    final mask = _layout(Paint()..color = const Color(0xFFFFFFFF));
+    canvas.saveLayer(bounds, Paint());
+    stroke.paint(canvas, Offset.zero);
+    canvas.saveLayer(bounds, Paint()..blendMode = BlendMode.dstIn);
+    mask.paint(canvas, Offset.zero);
+    canvas
+      ..restore()
+      ..restore();
+    stroke.dispose();
+    mask.dispose();
+  }
+
+  @override
+  bool shouldRepaint(_InnerRimPainter oldDelegate) =>
+      text != oldDelegate.text ||
+      style != oldDelegate.style ||
+      width != oldDelegate.width;
 }
 
 /// A srcIn [ShaderMask] whose mask reaches past the child's box, so glyphs

@@ -1805,7 +1805,8 @@ const surajClockSets = <ClockSetPreset>[
         fontWeight: FontWeight.w700,
         gradStartAlign: Alignment.topCenter,
         gradEndAlign: Alignment.bottomCenter,
-        isLiquidGlass: true,
+        isWallpaperGlass: true,
+        glassEdgeLight: true,
       ),
       LockElement(
         type: ElementType.minClock,
@@ -1816,7 +1817,8 @@ const surajClockSets = <ClockSetPreset>[
         fontWeight: FontWeight.w700,
         gradStartAlign: Alignment.topCenter,
         gradEndAlign: Alignment.bottomCenter,
-        isLiquidGlass: true,
+        isWallpaperGlass: true,
+        glassEdgeLight: true,
       ),
       LockElement(
         type: ElementType.dateTimeText1,

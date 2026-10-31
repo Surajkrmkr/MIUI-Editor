@@ -112,6 +112,34 @@ class ElementState {
       : null;
 
   bool contains(ElementType t) => elements.any((e) => e.type == t);
+
+  /// Returns the layers of an inserted weather or battery preset.
+  List<LockElement> infoSetMembers(LockElement element) {
+    final owns = isWeatherSetElement(element)
+        ? isWeatherSetElement
+        : isBatterySetElement(element)
+        ? isBatterySetElement
+        : null;
+    if (owns == null ||
+        !elements.any(
+          (item) => (item.type.isShape || item.type.isNormalText) && owns(item),
+        )) {
+      return const [];
+    }
+    return elements.where(owns).toList();
+  }
+
+  /// Layers exposed for editing, with each information set represented once.
+  List<LockElement> get editableElements {
+    final seen = <String>{};
+    final result = <LockElement>[];
+    for (final element in elements.reversed) {
+      if (!seen.add(element.name)) continue;
+      result.add(element);
+      seen.addAll(infoSetMembers(element).map((member) => member.name));
+    }
+    return result.reversed.toList();
+  }
 }
 
 class ElementNotifier extends Notifier<ElementState> {
@@ -163,7 +191,12 @@ class ElementNotifier extends Notifier<ElementState> {
   // _change: single-element mutation that pushes history.
   bool _matches(LockElement element, ElementType type, {String? id}) {
     if (element.type != type) return false;
-    if (!type.isShape) return true;
+    if (!type.isShape &&
+        !state.elements.any(
+          (item) => item.type == type && item.instanceId.isNotEmpty,
+        )) {
+      return true;
+    }
     final target =
         id ??
         (state.activeType == type && state.activeId.isNotEmpty
@@ -180,14 +213,27 @@ class ElementNotifier extends Notifier<ElementState> {
     LockElement Function(LockElement) fn, {
     String? id,
   }) {
+    final names = _interactionMembers(
+      t,
+      id: id,
+    ).map((element) => element.name).toSet();
     _record();
     state = state.copyWith(
       elements: state.elements
-          .map((e) => _matches(e, t, id: id) ? fn(e) : e)
+          .map((e) => names.contains(e.name) ? fn(e) : e)
           .toList(),
       undoCount: _history.length,
       redoCount: 0,
     );
+  }
+
+  List<LockElement> _interactionMembers(ElementType type, {String? id}) {
+    final element = state.elements
+        .where((element) => _matches(element, type, id: id))
+        .firstOrNull;
+    if (element == null) return const [];
+    final members = state.infoSetMembers(element);
+    return members.isEmpty ? [element] : members;
   }
 
   // ── Structural mutations (push history) ───────────────────────────────────
@@ -261,8 +307,12 @@ class ElementNotifier extends Notifier<ElementState> {
   }
 
   void remove(ElementType t, {String? id}) {
+    final names = _interactionMembers(
+      t,
+      id: id,
+    ).map((element) => element.name).toSet();
     final updated = state.elements
-        .where((e) => !_matches(e, t, id: id))
+        .where((e) => !names.contains(e.name))
         .toList();
     _record();
     state = state.copyWith(
@@ -312,10 +362,17 @@ class ElementNotifier extends Notifier<ElementState> {
   }
 
   void reorder(int oldIndex, int newIndex) {
-    if (newIndex > oldIndex) newIndex -= 1;
-    final items = [...state.elements];
-    final item = items.removeAt(oldIndex);
-    items.insert(newIndex, item);
+    final element = state.elements[oldIndex];
+    final moving = _interactionMembers(element.type, id: element.name);
+    final names = moving.map((member) => member.name).toSet();
+    final insertionIndex = state.elements
+        .take(newIndex)
+        .where((member) => !names.contains(member.name))
+        .length;
+    final items = state.elements
+        .where((member) => !names.contains(member.name))
+        .toList();
+    items.insertAll(insertionIndex, moving);
     _record();
     state = state.copyWith(
       elements: items,
@@ -336,17 +393,20 @@ class ElementNotifier extends Notifier<ElementState> {
     );
   }
 
-  void setActive(ElementType t, {String? id}) => state = state.copyWith(
-    activeType: t,
-    activeId:
-        id ??
-        state.elements
-            .where((element) => element.type == t)
-            .firstOrNull
-            ?.name ??
-        '',
-    hasSelection: true,
-  );
+  void setActive(ElementType t, {String? id}) {
+    final element = state.elements
+        .where((element) => _matches(element, t, id: id))
+        .firstOrNull;
+    final members = element == null
+        ? <LockElement>[]
+        : state.infoSetMembers(element);
+    state = state.copyWith(
+      activeType: t,
+      activeId: id ?? element?.name ?? '',
+      selectedIds: members.map((member) => member.name).toSet(),
+      hasSelection: true,
+    );
+  }
 
   void deselect() => state = state.copyWith(hasSelection: false);
   void setBgAlpha(double v) => state = state.copyWith(bgAlpha: v);
@@ -357,12 +417,11 @@ class ElementNotifier extends Notifier<ElementState> {
 
   /// Enters group selection mode with [t] as the first selected element.
   void enterGroupMode(ElementType t, {String? id}) {
+    final members = _interactionMembers(t, id: id);
     state = state.copyWith(
       isGroupMode: true,
-      selectedTypes: {t},
-      selectedIds: {
-        id ?? state.elements.firstWhere((element) => element.type == t).name,
-      },
+      selectedTypes: members.map((element) => element.type).toSet(),
+      selectedIds: members.map((element) => element.name).toSet(),
       hasSelection: false,
     );
   }
@@ -375,10 +434,14 @@ class ElementNotifier extends Notifier<ElementState> {
     final updated = Set<String>.from(
       state.elements.where(state.isSelected).map((element) => element.name),
     );
+    final names = _interactionMembers(
+      t,
+      id: id,
+    ).map((element) => element.name).toSet();
     if (updated.contains(target)) {
-      updated.remove(target);
+      updated.removeAll(names);
     } else {
-      updated.add(target);
+      updated.addAll(names);
     }
     if (updated.isEmpty) {
       state = state.copyWith(
@@ -407,21 +470,8 @@ class ElementNotifier extends Notifier<ElementState> {
   /// Moves every unlocked element in [selectedTypes] by ([dx], [dy]) and records history.
   void nudgeGroupElements(double dx, double dy) {
     _record();
-    var els = state.elements;
-    for (final t in state.selectedTypes) {
-      els = els
-          .map(
-            (e) => e.type == t && state.isSelected(e) && !e.isLocked
-                ? e.copyWith(dx: e.dx + dx, dy: e.dy + dy)
-                : e,
-          )
-          .toList();
-    }
-    state = state.copyWith(
-      elements: els,
-      undoCount: _history.length,
-      redoCount: 0,
-    );
+    moveGroupElements(dx, dy);
+    state = state.copyWith(undoCount: _history.length, redoCount: 0);
   }
 
   /// Sets the primary color on every element in [selectedTypes] and records history.
@@ -465,11 +515,21 @@ class ElementNotifier extends Notifier<ElementState> {
   /// Moves every unlocked element in [selectedTypes] by ([dx], [dy]).
   /// No history per frame — call [snapshotForGroupDrag] on drag start.
   void moveGroupElements(double dx, double dy) {
+    final blocked = <String>{};
+    for (final element in state.elements.where((element) => element.isLocked)) {
+      blocked.addAll(
+        state.infoSetMembers(element).map((member) => member.name),
+      );
+    }
     var els = state.elements;
     for (final t in state.selectedTypes) {
       els = els
           .map(
-            (e) => e.type == t && state.isSelected(e) && !e.isLocked
+            (e) =>
+                e.type == t &&
+                    state.isSelected(e) &&
+                    !e.isLocked &&
+                    !blocked.contains(e.name)
                 ? e.copyWith(dx: e.dx + dx, dy: e.dy + dy)
                 : e,
           )
@@ -480,14 +540,34 @@ class ElementNotifier extends Notifier<ElementState> {
 
   // update() is the no-history base for continuous/slider operations.
   void centerGroup({required bool horizontal}) {
+    final positions = <String, double>{};
+    final blocked = <String>{};
+    for (final element in state.editableElements) {
+      final members = state.infoSetMembers(element);
+      if (members.isEmpty) continue;
+      if (members.any((member) => member.isLocked)) {
+        blocked.addAll(members.map((member) => member.name));
+        continue;
+      }
+      final coordinates =
+          members.map((member) => horizontal ? member.dx : member.dy).toList()
+            ..sort();
+      final center = (coordinates.first + coordinates.last) / 2;
+      for (final member in members) {
+        positions[member.name] = (horizontal ? member.dx : member.dy) - center;
+      }
+    }
     _record();
     state = state.copyWith(
       elements: state.elements
           .map(
-            (element) => state.isSelected(element) && !element.isLocked
+            (element) =>
+                state.isSelected(element) &&
+                    !element.isLocked &&
+                    !blocked.contains(element.name)
                 ? element.copyWith(
-                    dx: horizontal ? 0 : element.dx,
-                    dy: horizontal ? element.dy : 0,
+                    dx: horizontal ? positions[element.name] ?? 0 : element.dx,
+                    dy: horizontal ? element.dy : positions[element.name] ?? 0,
                   )
                 : element,
           )
@@ -540,6 +620,128 @@ class ElementNotifier extends Notifier<ElementState> {
     );
   }
 
+  void _customizeInfoSet(
+    LockElement element,
+    LockElement Function(LockElement member) customize,
+  ) {
+    final members = state.infoSetMembers(element);
+    if (members.isEmpty || members.any((member) => member.isLocked)) return;
+    final names = members.map((member) => member.name).toSet();
+    final updated = [
+      for (final member in state.elements)
+        if (names.contains(member.name)) customize(member) else member,
+    ];
+    if (Iterable.generate(
+      updated.length,
+      (index) => identical(updated[index], state.elements[index]),
+    ).every((same) => same)) {
+      return;
+    }
+    _record();
+    state = state.copyWith(
+      elements: updated,
+      undoCount: _history.length,
+      redoCount: 0,
+    );
+  }
+
+  /// Updates a set's palette slot, including every matching decorative layer.
+  void setInfoSetColor(
+    LockElement element,
+    Color color, {
+    required Set<String> foregroundIds,
+    required Set<String> fillIds,
+  }) => _customizeInfoSet(element, (member) {
+    final foreground = foregroundIds.contains(member.name)
+        ? color
+        : member.color;
+    final fill = fillIds.contains(member.name) ? color : member.colorSecondary;
+    return foreground == member.color && fill == member.colorSecondary
+        ? member
+        : member.copyWith(color: foreground, colorSecondary: fill);
+  });
+
+  /// Applies wallpaper colors to a complete set while preserving opacity.
+  void applyInfoSetColors(
+    LockElement element, {
+    required Color text,
+    required Color accent,
+    required Color background,
+    required Color outline,
+  }) => _customizeInfoSet(element, (member) {
+    final foreground = member.type.isShape
+        ? member.effectiveProgressSource != ArcProgressSource.none
+              ? accent
+              : outline
+        : text;
+    return member.copyWith(
+      color: member.color.a == 0
+          ? member.color
+          : foreground.withValues(alpha: member.color.a),
+      colorSecondary: member.type.isShape && member.colorSecondary.a > 0
+          ? background.withValues(alpha: member.colorSecondary.a)
+          : member.colorSecondary,
+    );
+  });
+
+  /// Edits fixed labels together without replacing live battery values.
+  void setInfoSetText(LockElement element, Set<String> labelIds, String text) =>
+      _customizeInfoSet(
+        element,
+        (member) =>
+            member.type.isNormalText &&
+                labelIds.contains(member.name) &&
+                member.text != text
+            ? member.copyWith(text: text)
+            : member,
+      );
+
+  /// Resizes a set around its shared center without changing individual styles.
+  void scaleElementSet(
+    bool Function(LockElement element) owns,
+    double scale, {
+    bool recordHistory = true,
+  }) {
+    final members = state.elements.where(owns).toList();
+    if (members.isEmpty ||
+        members.any((element) => element.isLocked) ||
+        !scale.isFinite ||
+        scale <= 0 ||
+        members.first.scale <= 0) {
+      return;
+    }
+    final factor = scale / members.first.scale;
+    if (factor == 1) return;
+    var left = members.first.dx;
+    var right = left;
+    var top = members.first.dy;
+    var bottom = top;
+    for (final element in members.skip(1)) {
+      if (element.dx < left) left = element.dx;
+      if (element.dx > right) right = element.dx;
+      if (element.dy < top) top = element.dy;
+      if (element.dy > bottom) bottom = element.dy;
+    }
+    final centerX = (left + right) / 2;
+    final centerY = (top + bottom) / 2;
+    if (recordHistory) _record();
+    state = state.copyWith(
+      elements: [
+        for (final element in state.elements)
+          if (owns(element))
+            element.copyWith(
+              dx: centerX + (element.dx - centerX) * factor,
+              dy: centerY + (element.dy - centerY) * factor,
+              scale: element.scale * factor,
+            )
+          else
+            element,
+      ],
+      undoCount: _history.length,
+      redoCount: 0,
+    );
+  }
+
   void applyClockSetColors({
     required Color color,
     required Color colorSecondary,
@@ -578,12 +780,42 @@ class ElementNotifier extends Notifier<ElementState> {
       );
 
   // High-frequency drag — no history per frame; use snapshotForDrag() on start.
-  void moveElement(ElementType t, double dx, double dy) =>
-      update(t, (e) => e.copyWith(dx: e.dx + dx, dy: e.dy + dy));
+  void moveElement(ElementType t, double dx, double dy) {
+    final element = state.elements
+        .where((element) => _matches(element, t))
+        .firstOrNull;
+    final members = element == null
+        ? <LockElement>[]
+        : state.infoSetMembers(element);
+    if (members.isEmpty) {
+      update(
+        t,
+        (element) => element.copyWith(dx: element.dx + dx, dy: element.dy + dy),
+      );
+      return;
+    }
+    if (members.any((member) => member.isLocked)) return;
+    final names = members.map((member) => member.name).toSet();
+    state = state.copyWith(
+      elements: [
+        for (final element in state.elements)
+          if (names.contains(element.name))
+            element.copyWith(dx: element.dx + dx, dy: element.dy + dy)
+          else
+            element,
+      ],
+    );
+  }
 
   // Continuous / slider ops — no per-change history.
-  void setPosition(ElementType t, double dx, double dy) =>
-      update(t, (e) => e.copyWith(dx: dx, dy: dy));
+  void setPosition(ElementType t, double dx, double dy) {
+    final element = state.elements
+        .where((element) => _matches(element, t))
+        .firstOrNull;
+    if (element == null) return;
+    moveElement(t, dx - element.dx, dy - element.dy);
+  }
+
   void setScale(ElementType t, double v) =>
       update(t, (e) => e.copyWith(scale: v));
   void setAngle(ElementType t, double v) =>
@@ -641,18 +873,26 @@ class ElementNotifier extends Notifier<ElementState> {
       _change(t, (e) => e.copyWith(isWrap: v));
   void setVisible(ElementType t, bool v) =>
       _change(t, (e) => e.copyWith(isVisible: v));
-  void toggleVisibility(ElementType t, {String? id}) =>
-      _change(t, (e) => e.copyWith(isVisible: !e.isVisible), id: id);
+  void toggleVisibility(ElementType t, {String? id}) {
+    final visible = _interactionMembers(
+      t,
+      id: id,
+    ).any((element) => element.isVisible);
+    _change(t, (element) => element.copyWith(isVisible: !visible), id: id);
+  }
+
   void setLocked(ElementType t, bool v) =>
       _change(t, (e) => e.copyWith(isLocked: v));
-  void toggleLock(ElementType t, {String? id}) =>
-      _change(t, (e) => e.copyWith(isLocked: !e.isLocked), id: id);
+  void toggleLock(ElementType t, {String? id}) {
+    final locked = _interactionMembers(
+      t,
+      id: id,
+    ).any((element) => element.isLocked);
+    _change(t, (element) => element.copyWith(isLocked: !locked), id: id);
+  }
+
   void setUseSeparateColors(ElementType t, bool v) =>
       _change(t, (e) => e.copyWith(useSeparateColors: v));
-  void setIsLiquidGlass(ElementType t, bool v) =>
-      _change(t, (e) => e.copyWith(isLiquidGlass: v));
-  void setIsFrostedGlass(ElementType t, bool v) =>
-      _change(t, (e) => e.copyWith(isFrostedGlass: v));
   void updateSurfaceFx(ElementType t, LockElement Function(LockElement) f) =>
       _change(t, f);
 
@@ -672,9 +912,37 @@ class ElementNotifier extends Notifier<ElementState> {
   }
 
   void resetPosition(ElementType t) =>
-      _change(t, (e) => e.copyWith(dx: 0, dy: 0));
-  void centerHorizontal(ElementType t) => _change(t, (e) => e.copyWith(dx: 0));
-  void centerVertical(ElementType t) => _change(t, (e) => e.copyWith(dy: 0));
+      _centerElement(t, horizontal: true, vertical: true);
+  void centerHorizontal(ElementType t) => _centerElement(t, horizontal: true);
+  void centerVertical(ElementType t) => _centerElement(t, vertical: true);
+
+  void _centerElement(
+    ElementType type, {
+    bool horizontal = false,
+    bool vertical = false,
+  }) {
+    final members = _interactionMembers(type);
+    if (members.isEmpty) return;
+    if (state.infoSetMembers(members.first).isEmpty) {
+      _change(
+        type,
+        (element) => element.copyWith(
+          dx: horizontal ? 0 : element.dx,
+          dy: vertical ? 0 : element.dy,
+        ),
+      );
+      return;
+    }
+    if (members.any((member) => member.isLocked)) return;
+    final xs = members.map((member) => member.dx).toList()..sort();
+    final ys = members.map((member) => member.dy).toList()..sort();
+    snapshotForDrag();
+    moveElement(
+      type,
+      horizontal ? -(xs.first + xs.last) / 2 : 0,
+      vertical ? -(ys.first + ys.last) / 2 : 0,
+    );
+  }
 
   /// Sets font on multiple elements in a single history entry (e.g. hour+min link).
   void applyFont(String font) {

@@ -5,6 +5,7 @@ import 'package:theme_core/theme_core.dart';
 
 import 'lock_element.dart';
 import 'lock_element_view.dart';
+import 'wallpaper_glass.dart';
 
 /// Places [child] the way the lockscreen canvas does: scaled and rotated about
 /// the middle of a full-screen box, then aligned inside it. The caller sets
@@ -73,43 +74,46 @@ class LockscreenCanvas extends StatelessWidget {
     width: lockscreenViewWidth,
     height: lockscreenViewHeight,
     child: ClipRect(
-      child: Stack(
-        children: [
-          if (wallpaper != null)
-            Image(
-              image: wallpaper!,
-              gaplessPlayback: true,
-              fit: BoxFit.cover,
-              width: lockscreenViewWidth,
-              height: lockscreenViewHeight,
-            ),
-          if (bgImage != null)
-            Image(
-              image: bgImage!,
-              gaplessPlayback: true,
-              fit: BoxFit.cover,
-              width: lockscreenViewWidth,
-              height: lockscreenViewHeight,
-            ),
-          if (dimming > 0)
-            ColoredBox(
-              color: Colors.black.withAlpha((dimming * 255).round()),
-              child: const SizedBox.expand(),
-            ),
-          for (final el in elements.where((el) => el.isVisible))
-            Positioned(
-              left: el.dx,
-              top: el.dy,
-              child: LockElementFrame(
-                element: el,
-                child: LockElementView(
-                  key: ValueKey(el.name),
+      child: WallpaperGlassScope(
+        layers: [?wallpaper, ?bgImage],
+        child: Stack(
+          children: [
+            if (wallpaper != null)
+              Image(
+                image: wallpaper!,
+                gaplessPlayback: true,
+                fit: BoxFit.cover,
+                width: lockscreenViewWidth,
+                height: lockscreenViewHeight,
+              ),
+            if (bgImage != null)
+              Image(
+                image: bgImage!,
+                gaplessPlayback: true,
+                fit: BoxFit.cover,
+                width: lockscreenViewWidth,
+                height: lockscreenViewHeight,
+              ),
+            if (dimming > 0)
+              ColoredBox(
+                color: Colors.black.withAlpha((dimming * 255).round()),
+                child: const SizedBox.expand(),
+              ),
+            for (final el in elements.where((el) => el.isVisible))
+              Positioned(
+                left: el.dx,
+                top: el.dy,
+                child: LockElementFrame(
                   element: el,
-                  resolveImage: resolveImage,
+                  child: LockElementView(
+                    key: ValueKey(el.name),
+                    element: el,
+                    resolveImage: resolveImage,
+                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     ),
   );

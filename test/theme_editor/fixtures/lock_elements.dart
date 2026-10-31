@@ -58,7 +58,7 @@ const kitchenSink = LockElement(
   strokeColor: Color(0xFF999999),
   strokeColorDigit1: Color(0xFF888888),
   strokeColorDigit2: Color(0xFF777777),
-  isLiquidGlass: true,
+  isWallpaperGlass: true,
   shapeStrokeWidth: 5,
   startAngle: -45,
   sweepAngle: 180,

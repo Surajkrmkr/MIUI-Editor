@@ -62,6 +62,9 @@ enum ElementType {
   analogClock,
   shortcutSet,
   calendarGrid,
+  dayStrip,
+  countdownTicker,
+  gaugeSet,
   toggleSwitch,
   missedCalls,
   stepsCount,
@@ -112,7 +115,12 @@ extension ElementTypeX on ElementType {
     ElementType.weatherAqi,
     ElementType.weatherHumidity,
   }.contains(this);
-  bool get supportsCustomFont => !isText && this != ElementType.calendarGrid;
+  bool get supportsCustomFont =>
+      !isText &&
+      this != ElementType.calendarGrid &&
+      this != ElementType.dayStrip &&
+      this != ElementType.countdownTicker &&
+      this != ElementType.gaugeSet;
   String get label => name
       .replaceAllMapped(
         RegExp(r'([a-z0-9])([A-Z])'),
@@ -252,7 +260,10 @@ extension ElementTypeX on ElementType {
       isClock ||
       isContainer ||
       this == ElementType.shortcutSet ||
-      this == ElementType.calendarGrid;
+      this == ElementType.calendarGrid ||
+      this == ElementType.dayStrip ||
+      this == ElementType.countdownTicker ||
+      this == ElementType.gaugeSet;
   bool get swipeUpUnlock => this == ElementType.swipeUpUnlock;
   bool get isUnlockControl =>
       this == ElementType.tapToUnlock ||
@@ -338,7 +349,9 @@ const Map<String, List<ElementType>> kElementGroups = {
     ElementType.weatherAqi,
     ElementType.weatherHumidity,
   ],
-  'Calendar': [ElementType.calendarGrid],
+  'Calendar': [ElementType.calendarGrid, ElementType.dayStrip],
+  'Countdown': [ElementType.countdownTicker],
+  'Gauges': [ElementType.gaugeSet],
   'Notification': [ElementType.notification],
   'Battery': [ElementType.batteryText],
   'Geometry': [
@@ -637,6 +650,145 @@ enum ShortcutStyle {
 
 /// Which screen edge a dock is attached to; [floating] rounds every corner.
 enum ShortcutEdge { right, left, floating }
+
+/// Look of a gauge set: a row of circular complications.
+enum GaugeStyle {
+  openArc,
+  fullRing,
+  glassDisc,
+  tickDial,
+  segmentRing,
+  neonOrbit,
+  pieFill,
+  halfDial,
+  compassRose,
+  bezelBold;
+
+  String get label => switch (this) {
+    openArc => 'Open Arc',
+    fullRing => 'Full Ring',
+    glassDisc => 'Glass Disc',
+    tickDial => 'Tick Dial',
+    segmentRing => 'Segment Ring',
+    neonOrbit => 'Neon Orbit',
+    pieFill => 'Pie Fill',
+    halfDial => 'Half Dial',
+    compassRose => 'Compass Rose',
+    bezelBold => 'Bold Bezel',
+  };
+}
+
+/// What one gauge of a gauge set shows.
+enum GaugeSource {
+  battery('Battery', 'BAT'),
+  todayLeft('Today left %', 'TODAY'),
+  hoursLeft('Hours left today', 'HRS'),
+  weekLeft('Days left in week', 'WEEK'),
+  monthLeft('Days left in month', 'MONTH'),
+  yearLeft('Days left in year', 'YEAR'),
+  date('Date', ''),
+  temperature('Temperature', 'TEMP'),
+  aqi('Air quality', 'AQI'),
+  humidity('Humidity', 'HUM'),
+  steps('Steps', 'STEPS'),
+  alarm('Next alarm', 'ALARM'),
+  compass('Compass', ''),
+  notifications('Notifications', 'NOTIF'),
+  seconds('Seconds', 'SEC');
+
+  const GaugeSource(this.label, this.caption);
+  final String label;
+
+  /// Small text under the value; [date] and [compass] compute theirs.
+  final String caption;
+
+  static const defaults = [battery, todayLeft, monthLeft];
+
+  /// Slots from a comma-separated list, unknown keys dropped, at most 6.
+  static List<GaugeSource> parse(String csv) {
+    final byName = values.asNameMap();
+    final items = [
+      for (final key in csv.split(','))
+        if (byName[key.trim()] case final s?) s,
+    ].take(6).toList();
+    return items.isEmpty ? [...defaults] : items;
+  }
+}
+
+/// What a countdown ticker shows: seconds count up, days count what is left.
+enum TickerSource {
+  seconds,
+  monthDaysLeft,
+  yearDaysLeft;
+
+  String get label => switch (this) {
+    seconds => 'Seconds',
+    monthDaysLeft => 'Days left in month',
+    yearDaysLeft => 'Days left in year',
+  };
+}
+
+/// Look of the countdown ticker: a row of numbers around the current value.
+enum TickerStyle {
+  glowLine,
+  rulerTicks,
+  focusLens,
+  odometer,
+  pulseWave,
+  scanBeam,
+  dialArc,
+  progressTrack,
+  perspectiveFloor,
+  neonRing;
+
+  String get label => switch (this) {
+    glowLine => 'Glow Line',
+    rulerTicks => 'Ruler Ticks',
+    focusLens => 'Focus Lens',
+    odometer => 'Odometer',
+    pulseWave => 'Pulse Wave',
+    scanBeam => 'Scan Beam',
+    dialArc => 'Dial Arc',
+    progressTrack => 'Progress Track',
+    perspectiveFloor => 'Perspective Floor',
+    neonRing => 'Neon Ring',
+  };
+}
+
+/// Look of the day strip: a row of weekdays with today in the middle.
+enum DayStripStyle {
+  glassPills,
+  outlineCapsules,
+  neonTube,
+  dateStack,
+  dotIndicator,
+  underlineTabs,
+  segmentedBar,
+  circleBadges,
+  neoBrutal,
+  calendarTear,
+  orbitArc,
+  fadeCarousel,
+  bracketMono,
+  softClay;
+
+  String get label => switch (this) {
+    glassPills => 'Glass Pills',
+    outlineCapsules => 'Outline Capsules',
+    neonTube => 'Neon Tube',
+    dateStack => 'Date Stack',
+    dotIndicator => 'Dot Indicator',
+    underlineTabs => 'Underline Tabs',
+    segmentedBar => 'Segmented Bar',
+    circleBadges => 'Circle Badges',
+    neoBrutal => 'Neo-Brutal',
+    calendarTear => 'Calendar Tear',
+    orbitArc => 'Orbit Arc',
+    fadeCarousel => 'Fade Carousel',
+    bracketMono => 'Bracket Mono',
+    softClay => 'Soft Clay',
+  };
+}
 
 /// Look of the calendar grid; [classic] is the original plain grid.
 enum CalendarStyle {

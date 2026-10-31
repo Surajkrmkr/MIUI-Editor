@@ -412,6 +412,9 @@
             "analogClock",
             "shortcutSet",
             "calendarGrid",
+            "dayStrip",
+            "countdownTicker",
+            "gaugeSet",
             "toggleSwitch",
             "missedCalls",
             "batteryLevel",
@@ -724,6 +727,68 @@
             "holoGlass"
           ]
         },
+        "dayStripStyle": {
+          "enum": [
+            "glassPills",
+            "outlineCapsules",
+            "neonTube",
+            "dateStack",
+            "dotIndicator",
+            "underlineTabs",
+            "segmentedBar",
+            "circleBadges",
+            "neoBrutal",
+            "calendarTear",
+            "orbitArc",
+            "fadeCarousel",
+            "bracketMono",
+            "softClay"
+          ]
+        },
+        "dayStripCount": {
+          "type": "number"
+        },
+        "tickerStyle": {
+          "enum": [
+            "glowLine",
+            "rulerTicks",
+            "focusLens",
+            "odometer",
+            "pulseWave",
+            "scanBeam",
+            "dialArc",
+            "progressTrack",
+            "perspectiveFloor",
+            "neonRing"
+          ]
+        },
+        "tickerSource": {
+          "enum": [
+            "seconds",
+            "monthDaysLeft",
+            "yearDaysLeft"
+          ]
+        },
+        "tickerCount": {
+          "type": "number"
+        },
+        "gaugeStyle": {
+          "enum": [
+            "openArc",
+            "fullRing",
+            "glassDisc",
+            "tickDial",
+            "segmentRing",
+            "neonOrbit",
+            "pieFill",
+            "halfDial",
+            "compassRose",
+            "bezelBold"
+          ]
+        },
+        "gaugeItems": {
+          "type": "string"
+        },
         "shortcutApps": {
           "type": "string"
         },
@@ -826,14 +891,60 @@
         "blurRadius": {
           "type": "number"
         },
-        "isLiquidGlass": {
+        "isWallpaperGlass": {
           "type": "boolean"
         },
-        "isFrostedGlass": {
+        "glassEdgeLight": {
           "type": "boolean"
+        },
+        "glassBlur": {
+          "type": "number"
+        },
+        "glassTint": {
+          "type": "number"
+        },
+        "glassRim": {
+          "type": "number"
+        },
+        "glassShadowColor": {
+          "type": "number"
+        },
+        "glassShadowOpacity": {
+          "type": "number"
+        },
+        "glassShadowBlur": {
+          "type": "number"
+        },
+        "glassShadowDistance": {
+          "type": "number"
+        },
+        "glassShadowAngle": {
+          "type": "number"
+        },
+        "glassShadowSpread": {
+          "type": "number"
         },
         "surfaceTexture": {
-          "type": "string"
+          "enum": [
+            "none",
+            "grain",
+            "paper",
+            "linen",
+            "brushedMetal",
+            "carbonFiber",
+            "marble",
+            "terrazzo",
+            "halftone",
+            "dots",
+            "grid",
+            "stripes",
+            "waves",
+            "topographic",
+            "glitter",
+            "wood",
+            "leather",
+            "concrete"
+          ]
         },
         "textureScale": {
           "type": "number"

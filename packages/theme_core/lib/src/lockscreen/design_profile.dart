@@ -17,6 +17,9 @@ extension DesignKinds on ElementType {
         ElementType.notification,
         ElementType.missedCalls,
         ElementType.calendarGrid,
+        ElementType.dayStrip,
+        ElementType.countdownTicker,
+        ElementType.gaugeSet,
         ElementType.weatherIconClock,
         ElementType.progressBar,
       }.contains(this);

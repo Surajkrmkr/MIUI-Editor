@@ -46,6 +46,13 @@ class LockElement {
     this.shortcutStyle = ShortcutStyle.glossDock,
     this.shortcutEdge = ShortcutEdge.right,
     this.calendarStyle = CalendarStyle.classic,
+    this.dayStripStyle = DayStripStyle.glassPills,
+    this.dayStripCount = 3,
+    this.tickerStyle = TickerStyle.glowLine,
+    this.tickerSource = TickerSource.seconds,
+    this.tickerCount = 9,
+    this.gaugeStyle = GaugeStyle.openArc,
+    this.gaugeItems = 'battery,todayLeft,monthLeft',
     this.shortcutApps = 'gallery,camera,music,browser,whatsapp,settings',
     this.shortcutThemeIcons = false,
     this.borderWidth = 0,
@@ -75,8 +82,17 @@ class LockElement {
     this.strokeColor = const Color(0x00000000),
     this.strokeColorDigit1 = const Color(0x00000000),
     this.strokeColorDigit2 = const Color(0x00000000),
-    this.isLiquidGlass = false,
-    this.isFrostedGlass = false,
+    this.isWallpaperGlass = false,
+    this.glassEdgeLight = false,
+    this.glassBlur = 14,
+    this.glassTint = 0.22,
+    this.glassRim = 0.8,
+    this.glassShadowColor = const Color(0xFF000000),
+    this.glassShadowOpacity = 0.16,
+    this.glassShadowBlur = 8,
+    this.glassShadowDistance = 1.5,
+    this.glassShadowAngle = 90,
+    this.glassShadowSpread = 0,
     this.surfaceTexture = IconTexture.none,
     this.textureScale = 1.0,
     this.textureOpacity = 0.3,
@@ -200,6 +216,19 @@ class LockElement {
   final ShortcutStyle shortcutStyle;
   final ShortcutEdge shortcutEdge;
   final CalendarStyle calendarStyle;
+  final DayStripStyle dayStripStyle;
+
+  /// See [LockElementSpec.dayStripCount].
+  final int dayStripCount;
+  final TickerStyle tickerStyle;
+  final TickerSource tickerSource;
+
+  /// See [LockElementSpec.tickerCount].
+  final int tickerCount;
+  final GaugeStyle gaugeStyle;
+
+  /// See [LockElementSpec.gaugeItems].
+  final String gaugeItems;
 
   /// Comma-separated shortcut app keys, in slot order.
   final String shortcutApps;
@@ -231,8 +260,31 @@ class LockElement {
       isVisible,
       isLocked,
       useSeparateColors,
-      isLiquidGlass,
-      isFrostedGlass;
+      isWallpaperGlass,
+      glassEdgeLight;
+
+  /// See [LockElementSpec.glassBlur] and [LockElementSpec.glassTint].
+  final double glassBlur, glassTint, glassRim;
+
+  /// See [LockElementSpec.glassShadowAngle].
+  final Color glassShadowColor;
+  final double glassShadowOpacity,
+      glassShadowBlur,
+      glassShadowDistance,
+      glassShadowAngle,
+      glassShadowSpread;
+
+  BoxShadow get glassShadow => BoxShadow(
+    color: glassShadowColor.withValues(
+      alpha: glassShadowOpacity.clamp(0.0, 1.0),
+    ),
+    blurRadius: glassShadowBlur,
+    spreadRadius: glassShadowSpread,
+    offset: Offset.fromDirection(
+      glassShadowAngle * 3.141592653589793 / 180,
+      glassShadowDistance,
+    ),
+  );
 
   /// Icon-style texture, clipped to the clock glyphs / container.
   final IconTexture surfaceTexture;
@@ -280,6 +332,13 @@ class LockElement {
     ShortcutStyle? shortcutStyle,
     ShortcutEdge? shortcutEdge,
     CalendarStyle? calendarStyle,
+    DayStripStyle? dayStripStyle,
+    int? dayStripCount,
+    TickerStyle? tickerStyle,
+    TickerSource? tickerSource,
+    int? tickerCount,
+    GaugeStyle? gaugeStyle,
+    String? gaugeItems,
     String? shortcutApps,
     bool? shortcutThemeIcons,
     double? borderWidth,
@@ -309,8 +368,17 @@ class LockElement {
     bool? isLocked,
     bool? useSeparateColors,
     double? blurRadius,
-    bool? isLiquidGlass,
-    bool? isFrostedGlass,
+    bool? isWallpaperGlass,
+    bool? glassEdgeLight,
+    double? glassBlur,
+    double? glassTint,
+    double? glassRim,
+    Color? glassShadowColor,
+    double? glassShadowOpacity,
+    double? glassShadowBlur,
+    double? glassShadowDistance,
+    double? glassShadowAngle,
+    double? glassShadowSpread,
     IconTexture? surfaceTexture,
     double? textureScale,
     double? textureOpacity,
@@ -355,6 +423,13 @@ class LockElement {
     shortcutStyle: shortcutStyle ?? this.shortcutStyle,
     shortcutEdge: shortcutEdge ?? this.shortcutEdge,
     calendarStyle: calendarStyle ?? this.calendarStyle,
+    dayStripStyle: dayStripStyle ?? this.dayStripStyle,
+    dayStripCount: dayStripCount ?? this.dayStripCount,
+    tickerStyle: tickerStyle ?? this.tickerStyle,
+    tickerSource: tickerSource ?? this.tickerSource,
+    tickerCount: tickerCount ?? this.tickerCount,
+    gaugeStyle: gaugeStyle ?? this.gaugeStyle,
+    gaugeItems: gaugeItems ?? this.gaugeItems,
     shortcutApps: shortcutApps ?? this.shortcutApps,
     shortcutThemeIcons: shortcutThemeIcons ?? this.shortcutThemeIcons,
     borderWidth: borderWidth ?? this.borderWidth,
@@ -384,8 +459,17 @@ class LockElement {
     isLocked: isLocked ?? this.isLocked,
     useSeparateColors: useSeparateColors ?? this.useSeparateColors,
     blurRadius: blurRadius ?? this.blurRadius,
-    isLiquidGlass: isLiquidGlass ?? this.isLiquidGlass,
-    isFrostedGlass: isFrostedGlass ?? this.isFrostedGlass,
+    isWallpaperGlass: isWallpaperGlass ?? this.isWallpaperGlass,
+    glassEdgeLight: glassEdgeLight ?? this.glassEdgeLight,
+    glassBlur: glassBlur ?? this.glassBlur,
+    glassTint: glassTint ?? this.glassTint,
+    glassRim: glassRim ?? this.glassRim,
+    glassShadowColor: glassShadowColor ?? this.glassShadowColor,
+    glassShadowOpacity: glassShadowOpacity ?? this.glassShadowOpacity,
+    glassShadowBlur: glassShadowBlur ?? this.glassShadowBlur,
+    glassShadowDistance: glassShadowDistance ?? this.glassShadowDistance,
+    glassShadowAngle: glassShadowAngle ?? this.glassShadowAngle,
+    glassShadowSpread: glassShadowSpread ?? this.glassShadowSpread,
     surfaceTexture: surfaceTexture ?? this.surfaceTexture,
     textureScale: textureScale ?? this.textureScale,
     textureOpacity: textureOpacity ?? this.textureOpacity,
@@ -431,6 +515,13 @@ class LockElement {
     'shortcutStyle': shortcutStyle.name,
     'shortcutEdge': shortcutEdge.name,
     'calendarStyle': calendarStyle.name,
+    'dayStripStyle': dayStripStyle.name,
+    'dayStripCount': dayStripCount,
+    'tickerStyle': tickerStyle.name,
+    'tickerSource': tickerSource.name,
+    'tickerCount': tickerCount,
+    'gaugeStyle': gaugeStyle.name,
+    'gaugeItems': gaugeItems,
     'shortcutApps': shortcutApps,
     'shortcutThemeIcons': shortcutThemeIcons,
     'borderWidth': borderWidth,
@@ -460,8 +551,17 @@ class LockElement {
     'isLocked': isLocked,
     'useSeparateColors': useSeparateColors,
     'blurRadius': blurRadius,
-    'isLiquidGlass': isLiquidGlass,
-    'isFrostedGlass': isFrostedGlass,
+    'isWallpaperGlass': isWallpaperGlass,
+    'glassEdgeLight': glassEdgeLight,
+    'glassBlur': glassBlur,
+    'glassTint': glassTint,
+    'glassRim': glassRim,
+    'glassShadowColor': glassShadowColor.toARGB32(),
+    'glassShadowOpacity': glassShadowOpacity,
+    'glassShadowBlur': glassShadowBlur,
+    'glassShadowDistance': glassShadowDistance,
+    'glassShadowAngle': glassShadowAngle,
+    'glassShadowSpread': glassShadowSpread,
     'surfaceTexture': surfaceTexture.name,
     'textureScale': textureScale,
     'textureOpacity': textureOpacity,
@@ -539,6 +639,20 @@ class LockElement {
       (style) => style.name == j['calendarStyle'],
       orElse: () => CalendarStyle.classic,
     ),
+    dayStripStyle:
+        DayStripStyle.values.asNameMap()[j['dayStripStyle']] ??
+        DayStripStyle.glassPills,
+    dayStripCount: dayStripCountOf(j['dayStripCount']),
+    tickerStyle:
+        TickerStyle.values.asNameMap()[j['tickerStyle']] ??
+        TickerStyle.glowLine,
+    tickerSource:
+        TickerSource.values.asNameMap()[j['tickerSource']] ??
+        TickerSource.seconds,
+    tickerCount: tickerCountOf(j['tickerCount']),
+    gaugeStyle:
+        GaugeStyle.values.asNameMap()[j['gaugeStyle']] ?? GaugeStyle.openArc,
+    gaugeItems: j['gaugeItems'] as String? ?? 'battery,todayLeft,monthLeft',
     shortcutApps:
         j['shortcutApps'] as String? ??
         'gallery,camera,music,browser,whatsapp,settings',
@@ -573,10 +687,19 @@ class LockElement {
     isLocked: j['isLocked'] as bool? ?? false,
     useSeparateColors: j['useSeparateColors'] as bool? ?? false,
     blurRadius: (j['blurRadius'] as num?)?.toDouble() ?? 0,
-    isLiquidGlass: j['isLiquidGlass'] as bool? ?? false,
-    isFrostedGlass: j['isFrostedGlass'] as bool? ?? false,
-    surfaceTexture: IconTexture.values.asNameMap()[j['surfaceTexture']] ??
-        IconTexture.none,
+    isWallpaperGlass: j['isWallpaperGlass'] as bool? ?? false,
+    glassEdgeLight: j['glassEdgeLight'] as bool? ?? false,
+    glassBlur: (j['glassBlur'] as num?)?.toDouble() ?? 14,
+    glassTint: (j['glassTint'] as num?)?.toDouble() ?? 0.22,
+    glassRim: (j['glassRim'] as num?)?.toDouble() ?? 0.8,
+    glassShadowColor: Color(j['glassShadowColor'] as int? ?? 0xFF000000),
+    glassShadowOpacity: (j['glassShadowOpacity'] as num?)?.toDouble() ?? 0.16,
+    glassShadowBlur: (j['glassShadowBlur'] as num?)?.toDouble() ?? 8,
+    glassShadowDistance: (j['glassShadowDistance'] as num?)?.toDouble() ?? 1.5,
+    glassShadowAngle: (j['glassShadowAngle'] as num?)?.toDouble() ?? 90,
+    glassShadowSpread: (j['glassShadowSpread'] as num?)?.toDouble() ?? 0,
+    surfaceTexture:
+        IconTexture.values.asNameMap()[j['surfaceTexture']] ?? IconTexture.none,
     textureScale: (j['textureScale'] as num?)?.toDouble() ?? 1,
     textureOpacity: (j['textureOpacity'] as num?)?.toDouble() ?? 0.3,
     perspectiveTilt: ((j['perspectiveTilt'] as num?)?.toDouble() ?? 0).clamp(

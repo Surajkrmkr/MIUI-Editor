@@ -61,13 +61,12 @@ bool paintExtraUnlockTrack(Canvas canvas, Size size, LockElement el, double k) {
   final border = el.borderWidth * k;
   final hasText = el.unlockText.isNotEmpty;
 
-  Paint fillOf(Rect r, [Color? a, Color? b]) =>
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [a ?? base, b ?? blend],
-        ).createShader(r);
+  Paint fillOf(Rect r, [Color? a, Color? b]) => Paint()
+    ..shader = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [a ?? base, b ?? blend],
+    ).createShader(r);
   Paint stroke(Color c, double width, {StrokeCap cap = StrokeCap.round}) =>
       Paint()
         ..style = PaintingStyle.stroke
@@ -240,8 +239,9 @@ bool paintExtraUnlockTrack(Canvas canvas, Size size, LockElement el, double k) {
       }
       final core = Rect.fromCircle(center: c, radius: r * .56);
       canvas.drawCircle(c, r * .56, fillOf(core));
-      if (border > 0)
+      if (border > 0) {
         canvas.drawCircle(c, r * .56, stroke(el.borderColor, border));
+      }
       for (var i = 0; i < 4; i++) {
         final dir = Offset(cos(i * pi / 2), sin(i * pi / 2));
         canvas.drawLine(
@@ -360,7 +360,7 @@ bool paintExtraUnlockTrack(Canvas canvas, Size size, LockElement el, double k) {
       final area = hasText ? h * .78 : h;
       final c = Offset(w / 2, area / 2);
       final r = min(w, area) / 2 * .8;
-      final lit = 6;
+      const lit = 6;
       for (var i = 0; i < 11; i++) {
         final a = 3 * pi / 4 + i * (3 * pi / 2) / 10;
         canvas.drawCircle(

@@ -195,8 +195,9 @@ Optional only: color, colorSecondary, borderColor, colorDigit1, colorDigit2, gra
                     as Map?)?['parts']
                 ?.first['text']
             as String?;
-    if (text == null || text.trim().isEmpty)
+    if (text == null || text.trim().isEmpty) {
       throw Exception('Empty AI response');
+    }
     return text;
   }
 
@@ -226,8 +227,9 @@ Optional only: color, colorSecondary, borderColor, colorDigit1, colorDigit2, gra
     final text =
         ((json['choices'] as List?)?.first as Map?)?['message']?['content']
             as String?;
-    if (text == null || text.trim().isEmpty)
+    if (text == null || text.trim().isEmpty) {
       throw Exception('Empty AI response');
+    }
     return text;
   }
 
@@ -255,8 +257,9 @@ Optional only: color, colorSecondary, borderColor, colorDigit1, colorDigit2, gra
 
     final json = jsonDecode(res.body) as Map<String, dynamic>;
     final text = (json['message'] as Map?)?['content'] as String?;
-    if (text == null || text.trim().isEmpty)
+    if (text == null || text.trim().isEmpty) {
       throw Exception('Empty AI response');
+    }
     return text;
   }
 
@@ -409,8 +412,9 @@ Optional only: color, colorSecondary, borderColor, colorDigit1, colorDigit2, gra
       }
       if (s.startsWith('#')) {
         final hex = s.substring(1);
-        if (hex.length == 6)
+        if (hex.length == 6) {
           return int.tryParse('FF$hex', radix: 16) ?? 0xFFFFFFFF;
+        }
         if (hex.length == 8) return int.tryParse(hex, radix: 16) ?? 0xFFFFFFFF;
       }
       return int.tryParse(s) ?? 0xFFFFFFFF;

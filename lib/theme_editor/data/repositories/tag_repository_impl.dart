@@ -32,8 +32,9 @@ class TagRepositoryImpl implements TagRepository {
         '${PathConstants.tagDirectory(weekNum)}$themeName.txt',
       );
       final file = File(path);
-      if (!await file.exists())
+      if (!await file.exists()) {
         return (null, null); // no file yet — not an error
+      }
       final content = await file.readAsString();
       return (content.split(',').where((t) => t.isNotEmpty).toList(), null);
     } catch (e) {

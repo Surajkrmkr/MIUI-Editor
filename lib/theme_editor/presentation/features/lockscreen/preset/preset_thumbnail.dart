@@ -263,8 +263,12 @@ class _StaticElement extends StatelessWidget {
             strokeWidth: el.strokeWidth,
             strokeColor: sc1,
             blurRadius: el.blurRadius,
-            isLiquidGlass: el.isLiquidGlass,
-            isFrostedGlass: el.isFrostedGlass,
+            isWallpaperGlass: el.isWallpaperGlass,
+            glassBlur: el.glassBlur,
+            glassTint: el.glassTint,
+            glassRim: el.glassRim,
+            glassShadow: el.glassShadow,
+            glassEdgeLight: el.glassEdgeLight,
           ),
           GradientText(
             txt[1],
@@ -282,8 +286,12 @@ class _StaticElement extends StatelessWidget {
             strokeWidth: el.strokeWidth,
             strokeColor: sc2,
             blurRadius: el.blurRadius,
-            isLiquidGlass: el.isLiquidGlass,
-            isFrostedGlass: el.isFrostedGlass,
+            isWallpaperGlass: el.isWallpaperGlass,
+            glassBlur: el.glassBlur,
+            glassTint: el.glassTint,
+            glassRim: el.glassRim,
+            glassShadow: el.glassShadow,
+            glassEdgeLight: el.glassEdgeLight,
           ),
         ],
       );
@@ -303,101 +311,16 @@ class _StaticElement extends StatelessWidget {
       strokeWidth: el.strokeWidth,
       strokeColor: sc,
       blurRadius: el.blurRadius,
-      isLiquidGlass: el.isLiquidGlass,
-      isFrostedGlass: el.isFrostedGlass,
+      isWallpaperGlass: el.isWallpaperGlass,
+      glassBlur: el.glassBlur,
+      glassTint: el.glassTint,
+      glassRim: el.glassRim,
+      glassShadow: el.glassShadow,
+      glassEdgeLight: el.glassEdgeLight,
     );
   }
 
   Widget _container() {
-    if (el.isLiquidGlass) {
-      final frostBlur = el.blurRadius > 0 ? el.blurRadius : 0.0;
-      return Container(
-        height: el.height,
-        width: el.width,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(el.radius),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.16),
-              blurRadius: 28,
-              offset: const Offset(0, 8),
-              spreadRadius: -2,
-            ),
-            BoxShadow(
-              color: Colors.white.withValues(alpha: 0.14),
-              blurRadius: 18,
-              spreadRadius: -1,
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(el.radius),
-          child: Stack(
-            children: [
-              if (frostBlur > 0)
-                Positioned.fill(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(
-                      sigmaX: frostBlur,
-                      sigmaY: frostBlur,
-                    ),
-                    child: const SizedBox.expand(),
-                  ),
-                ),
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(el.radius),
-                    color: const Color(0xFFD9D9D9).withValues(alpha: 0.20),
-                  ),
-                ),
-              ),
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(el.radius),
-                    gradient: const RadialGradient(
-                      center: Alignment(-0.2, -0.2),
-                      radius: 1.1,
-                      colors: [
-                        Color(0x00FFFFFF),
-                        Color(0x08FF3366),
-                        Color(0x1033CCFF),
-                        Color(0x28FFFFFF),
-                      ],
-                      stops: [0.65, 0.85, 0.94, 1.0],
-                    ),
-                  ),
-                ),
-              ),
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(el.radius),
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xCCFFFFFF),
-                        Color(0x22FFFFFF),
-                        Color(0x00FFFFFF),
-                        Color(0x55FFFFFF),
-                      ],
-                      stops: [0.0, 0.25, 0.70, 1.0],
-                    ),
-                    border: Border.all(
-                      width: el.borderWidth > 0 ? el.borderWidth : 1.5,
-                      color: const Color(0x99FFFFFF),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     final c = _adapt(el.color);
     final c2 = _adapt(el.colorSecondary);
     Widget child = Container(

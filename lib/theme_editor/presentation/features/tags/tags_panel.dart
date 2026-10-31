@@ -24,11 +24,12 @@ class _TagsPanelState extends ConsumerState<TagsPanel> {
     final state = ref.watch(tagProvider);
     final notifier = ref.read(tagProvider.notifier);
 
-    if (!state.isLoaded)
+    if (!state.isLoaded) {
       return const SizedBox(
         width: 220,
         child: Center(child: CircularProgressIndicator()),
       );
+    }
 
     return SizedBox(
       width: 220,

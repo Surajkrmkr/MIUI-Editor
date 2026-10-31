@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/theme_extensions.dart';
 import '../../../providers/element_provider.dart';
 import '../../../../domain/entities/element_widget.dart';
+import '../../../../domain/entities/builtin_widget_styles.dart';
 
 class LayerManager extends ConsumerWidget {
   const LayerManager({super.key, this.scrollable = false});
@@ -13,7 +14,7 @@ class LayerManager extends ConsumerWidget {
     final colors = context.appColors;
     final state = ref.watch(elementProvider);
     final notifier = ref.read(elementProvider.notifier);
-    final layers = state.elements.reversed.toList();
+    final layers = state.editableElements.reversed.toList();
     Widget constrain(Widget child) =>
         scrollable ? Expanded(child: child) : child;
 
@@ -67,14 +68,33 @@ class LayerManager extends ConsumerWidget {
               buildDefaultDragHandles: false,
               shrinkWrap: !scrollable,
               physics: scrollable ? null : const NeverScrollableScrollPhysics(),
-              itemCount: state.elements.length,
-              onReorder: (oldIndex, newIndex) => notifier.reorder(
-                layers.length - 1 - oldIndex,
-                layers.length - newIndex,
-              ),
+              itemCount: layers.length,
+              onReorderItem: (oldIndex, newIndex) {
+                if (oldIndex == newIndex) return;
+                final target = layers[newIndex];
+                final members = state.infoSetMembers(target);
+                final names = (members.isEmpty ? [target] : members)
+                    .map((element) => element.name)
+                    .toSet();
+                final boundary = newIndex > oldIndex
+                    ? state.elements.indexWhere(
+                        (element) => names.contains(element.name),
+                      )
+                    : state.elements.lastIndexWhere(
+                            (element) => names.contains(element.name),
+                          ) +
+                          1;
+                notifier.reorder(
+                  state.elements.indexOf(layers[oldIndex]),
+                  boundary,
+                );
+              },
               itemBuilder: (context, index) {
                 final element = layers[index];
-                final isActive = state.active?.name == element.name;
+                final members = state.infoSetMembers(element);
+                final isActive =
+                    state.active?.name == element.name ||
+                    members.any((member) => member.name == state.active?.name);
                 final isChecked =
                     state.isGroupMode && state.isSelected(element);
 
@@ -85,7 +105,17 @@ class LayerManager extends ConsumerWidget {
                 return _LayerTile(
                   key: ValueKey(element.name),
                   index: index,
-                  element: element,
+                  element: members.isEmpty
+                      ? element
+                      : element.copyWith(
+                          isLocked: members.any((member) => member.isLocked),
+                          isVisible: members.any((member) => member.isVisible),
+                        ),
+                  label: members.isEmpty
+                      ? element.label
+                      : isWeatherSetElement(element)
+                      ? 'Weather Sets'
+                      : 'Battery Sets',
                   isActive: isActive,
                   isChecked: isChecked,
                   onToggleChecked: toggleChecked,
@@ -111,6 +141,7 @@ class _LayerTile extends StatelessWidget {
   const _LayerTile({
     super.key,
     required this.element,
+    required this.label,
     required this.index,
     required this.isActive,
     required this.isChecked,
@@ -122,6 +153,7 @@ class _LayerTile extends StatelessWidget {
   });
 
   final LockElement element;
+  final String label;
   final int index;
   final bool isActive;
   final bool isChecked;
@@ -182,7 +214,7 @@ class _LayerTile extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  element.label,
+                  label,
                   style: TextStyle(
                     color: isActive ? colors.textPrimary : colors.textSecondary,
                     fontSize: 11,
@@ -192,9 +224,7 @@ class _LayerTile extends StatelessWidget {
                 ),
               ),
               _ActionButton(
-                tooltip: element.isVisible
-                    ? 'Hide ${element.label}'
-                    : 'Show ${element.label}',
+                tooltip: element.isVisible ? 'Hide $label' : 'Show $label',
                 icon: element.isVisible
                     ? Icons.visibility_outlined
                     : Icons.visibility_off_outlined,
@@ -202,9 +232,7 @@ class _LayerTile extends StatelessWidget {
                 onTap: onToggleVisibility,
               ),
               _ActionButton(
-                tooltip: element.isLocked
-                    ? 'Unlock ${element.label}'
-                    : 'Lock ${element.label}',
+                tooltip: element.isLocked ? 'Unlock $label' : 'Lock $label',
                 icon: element.isLocked
                     ? Icons.lock_rounded
                     : Icons.lock_outline_rounded,
@@ -213,7 +241,7 @@ class _LayerTile extends StatelessWidget {
               ),
               _ActionButton(
                 icon: Icons.delete_outline_rounded,
-                tooltip: 'Delete ${element.label}',
+                tooltip: 'Delete $label',
                 onTap: onDelete,
               ),
             ],

@@ -225,6 +225,11 @@ class LockscreenNotifier extends Notifier<LockscreenState> {
           layout: ThemeLayout(tp),
           onProgress: (done, total) =>
               state = state.copyWith(pngsDone: done, pngsTotal: total),
+          // Same layers the editor's glass preview refracts.
+          glassBackground: [
+            ws.currentPath,
+            PathConstants.p('${PathConstants.lockscreenAdvance(tp)}bg.png'),
+          ],
         );
 
     state = state.copyWith(isExportingPngs: false);

@@ -16,10 +16,12 @@ class ExportLockscreenPngsUseCase {
     required ElementState elementState,
     required ThemeLayout layout,
     required void Function(int done, int total) onProgress,
+    List<String?>? glassBackground,
   }) => LockscreenFrameRenderer(batchSize: batchSize).render(
     context: context,
     elements: elementState.elements,
     layout: layout,
     onProgress: onProgress,
+    glassBackground: glassBackground,
   );
 }

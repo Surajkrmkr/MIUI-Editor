@@ -160,7 +160,9 @@ class ElementListPanel extends ConsumerWidget {
                       final styled =
                           type == ElementType.shortcutSet ||
                           type == ElementType.analogClock;
-                      final style = styled ? _firstStyleFor(type, user) : null;
+                      final style = styled
+                          ? _firstStyleFor(type, user)
+                          : _starterFor(type);
                       final noStyles = styled && !added && style == null;
                       return Padding(
                         padding: const EdgeInsets.symmetric(
@@ -351,6 +353,20 @@ List<ClockSetPreset> _forUser(List<ClockSetPreset> sets, String? user) => [
   for (final set in sets)
     if (user == null || set.user == null || set.user == user) set,
 ];
+
+/// A new day strip, ticker or gauge set starts from its first built-in style.
+LockElement? _starterFor(ElementType type) => switch (type) {
+  ElementType.dayStrip => builtinDayStripStyles.styles.first.applyTo(
+    const LockElement(type: ElementType.dayStrip, width: 600),
+  ),
+  ElementType.countdownTicker => builtinTickerStyles.styles.first.applyTo(
+    const LockElement(type: ElementType.countdownTicker, width: 1000),
+  ),
+  ElementType.gaugeSet => builtinGaugeStyles.styles.first.applyTo(
+    const LockElement(type: ElementType.gaugeSet, width: 900),
+  ),
+  _ => null,
+};
 
 /// The first style of [type] in the sets [user] may use; null if none.
 LockElement? _firstStyleFor(ElementType type, String? user) {

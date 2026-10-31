@@ -3,7 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:theme_raster_flutter/theme_raster_flutter.dart'
-    show LockscreenCanvas;
+    show DayStripPreview, GaugePreview, LockscreenCanvas, TickerPreview;
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../../core/theme/app_radius.dart';
@@ -191,6 +191,7 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
     required String title,
     required List<ClockSetPreset> all,
     required bool Function(LockElement element) owns,
+    bool scalable = false,
   }) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
@@ -211,7 +212,7 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
           ];
     ClockSetPreset? active;
     for (final preset in all) {
-      if (_setActive(preset, current, owns)) {
+      if (_setActive(preset, current, owns, allowUniformScale: scalable)) {
         active = preset;
         break;
       }
@@ -369,6 +370,7 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
         title: 'Weather Sets',
         all: builtinWeatherSets,
         owns: isWeatherSetElement,
+        scalable: true,
       );
     }
     if (batterySetElementTypes.contains(widget.element.type)) {
@@ -376,6 +378,7 @@ class _WidgetStylesPanelState extends ConsumerState<WidgetStylesPanel> {
         title: 'Battery Sets',
         all: builtinBatterySets,
         owns: isBatterySetElement,
+        scalable: true,
       );
     }
     final colors = context.appColors;
@@ -721,17 +724,27 @@ bool _styleActive(WidgetStyle style, LockElement element) {
 bool _setActive(
   ClockSetPreset preset,
   List<LockElement> current,
-  bool Function(LockElement element) owns,
-) {
+  bool Function(LockElement element) owns, {
+  bool allowUniformScale = false,
+}) {
   final clocks = current.where(owns).toList();
   if (clocks.length != preset.elements.length) return false;
+  final first = preset.elements.first;
+  final scaleFactor = allowUniformScale && first.scale > 0
+      ? (clocks
+                    .where((element) => element.name == first.name)
+                    .firstOrNull
+                    ?.scale ??
+                first.scale) /
+            first.scale
+      : 1.0;
   return preset.elements.every((want) {
     final have = clocks.where((e) => e.name == want.name).firstOrNull;
     return have != null &&
         have.font == want.font &&
         have.fontWeight == want.fontWeight &&
         have.text == want.text &&
-        (have.scale - want.scale).abs() < .01 &&
+        (have.scale - want.scale * scaleFactor).abs() < .01 &&
         (have.fontSize - want.fontSize).abs() < .01;
   });
 }
@@ -991,6 +1004,15 @@ class _StylePreview extends StatelessWidget {
   Widget build(BuildContext context) {
     if (element.type == ElementType.shortcutSet) {
       return ShortcutSetPreview(element: element);
+    }
+    if (element.type == ElementType.dayStrip) {
+      return DayStripPreview(element: element.copyWith(width: 600));
+    }
+    if (element.type == ElementType.countdownTicker) {
+      return TickerPreview(element: element.copyWith(width: 1000));
+    }
+    if (element.type == ElementType.gaugeSet) {
+      return GaugePreview(element: element.copyWith(width: 900));
     }
     if (element.type == ElementType.calendarGrid) {
       return element.calendarStyle == CalendarStyle.classic

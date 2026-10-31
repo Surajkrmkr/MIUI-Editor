@@ -40,8 +40,17 @@ class ElementInfoPanel extends ConsumerWidget {
     if (state.active == null) return const SizedBox.shrink();
 
     final el = state.active!;
+    final infoSet = state.infoSetMembers(el);
+    if (infoSet.isNotEmpty) {
+      return _InfoSetPanel(element: el, members: infoSet);
+    }
     final isUnlock = el.type.isUnlockControl;
+    final isDayStrip = el.type == ElementType.dayStrip;
+    final isTicker = el.type == ElementType.countdownTicker;
+    final isGauge = el.type == ElementType.gaugeSet;
     final supportsOutlineWidth =
+        isDayStrip ||
+        isTicker ||
         (isUnlock && el.unlockSkin != UnlockSkin.classic) ||
         (el.type == ElementType.calendarGrid &&
             el.calendarStyle != CalendarStyle.classic) ||
@@ -63,7 +72,10 @@ class ElementInfoPanel extends ConsumerWidget {
             }.contains(el.shortcutStyle));
     final usesFontSize =
         (el.type.isText && el.type != ElementType.notification) ||
-        el.type == ElementType.calendarGrid;
+        el.type == ElementType.calendarGrid ||
+        isDayStrip ||
+        isTicker ||
+        isGauge;
     final isHourMinSec =
         el.type == ElementType.hourClock ||
         el.type == ElementType.minClock ||
@@ -254,6 +266,12 @@ class ElementInfoPanel extends ConsumerWidget {
                                 ? 'Progress'
                                 : el.type == ElementType.calendarGrid
                                 ? 'Dates & Text'
+                                : isDayStrip
+                                ? 'Day Text'
+                                : isTicker
+                                ? 'Numbers'
+                                : isGauge
+                                ? 'Values'
                                 : 'Primary',
                             onChanged: (c) => n.setColor(el.type, c),
                           ),
@@ -267,8 +285,13 @@ class ElementInfoPanel extends ConsumerWidget {
                                 ? 'Background'
                                 : el.type == ElementType.arcShape
                                 ? 'Track'
-                                : el.type == ElementType.calendarGrid
+                                : el.type == ElementType.calendarGrid ||
+                                      isDayStrip
                                 ? 'Today Highlight'
+                                : isTicker
+                                ? 'Glow / Highlight'
+                                : isGauge
+                                ? 'Progress'
                                 : 'Secondary',
                             onChanged: (c) => n.setColorSecondary(el.type, c),
                           ),
@@ -276,6 +299,9 @@ class ElementInfoPanel extends ConsumerWidget {
                       ],
                     ),
                     if ((isUnlock && el.unlockSkin != UnlockSkin.classic) ||
+                        isDayStrip ||
+                        isTicker ||
+                        isGauge ||
                         el.type == ElementType.analogClock ||
                         el.type == ElementType.shortcutSet ||
                         (el.type == ElementType.calendarGrid &&
@@ -292,6 +318,12 @@ class ElementInfoPanel extends ConsumerWidget {
                                   ? 'Tile'
                                   : el.type == ElementType.calendarGrid
                                   ? 'Panel Fill'
+                                  : isDayStrip
+                                  ? 'Day Fill'
+                                  : isTicker
+                                  ? 'Panel / Track'
+                                  : isGauge
+                                  ? 'Track / Disc'
                                   : 'Accent',
                               onChanged: (c) => n.update(
                                 el.type,
@@ -309,6 +341,12 @@ class ElementInfoPanel extends ConsumerWidget {
                                   ? 'Tile 2 / Outline'
                                   : el.type == ElementType.calendarGrid
                                   ? 'Border / Frame'
+                                  : isDayStrip
+                                  ? 'Outline / Accent'
+                                  : isTicker
+                                  ? 'Lines / Ticks'
+                                  : isGauge
+                                  ? 'Bezel / Marks'
                                   : 'Outline',
                               onChanged: (c) => n.update(
                                 el.type,
@@ -318,15 +356,24 @@ class ElementInfoPanel extends ConsumerWidget {
                           ),
                         ],
                       ),
-                      if (el.type == ElementType.calendarGrid &&
-                          el.calendarStyle != CalendarStyle.classic) ...[
+                      if (isDayStrip ||
+                          isTicker ||
+                          isGauge ||
+                          (el.type == ElementType.calendarGrid &&
+                              el.calendarStyle != CalendarStyle.classic)) ...[
                         const SizedBox(height: 10),
                         Row(
                           children: [
                             Expanded(
                               child: _ColorBtn(
                                 color: el.strokeColor,
-                                label: 'Accent / Details',
+                                label: isDayStrip
+                                    ? 'Today Text'
+                                    : isTicker
+                                    ? 'Current Number'
+                                    : isGauge
+                                    ? 'Captions'
+                                    : 'Accent / Details',
                                 onChanged: (c) => n.update(
                                   el.type,
                                   (e) => e.copyWith(strokeColor: c),
@@ -402,11 +449,7 @@ class ElementInfoPanel extends ConsumerWidget {
                       !el.type.isAnalog &&
                       el.type != ElementType.weatherIconClock) ...[
                     const SizedBox(height: 6),
-                    _ToggleRow(
-                      label: 'Frosted Glass Text',
-                      value: el.isFrostedGlass,
-                      onChanged: (v) => n.setIsFrostedGlass(el.type, v),
-                    ),
+                    _WallpaperGlassControls(element: el, notifier: n),
                     _SliderRow(
                       label: 'Perspective Tilt',
                       value: el.perspectiveTilt,
@@ -482,6 +525,29 @@ class ElementInfoPanel extends ConsumerWidget {
               ],
             ),
           ),
+
+          if (isGauge)
+            _Section(
+              title: 'SCALE',
+              child: Column(
+                children: [
+                  _SliderRow(
+                    key: const ValueKey('gauge-scale'),
+                    label: 'Scale',
+                    value: el.scale,
+                    min: .1,
+                    max: 10,
+                    onChanged: (v) => n.setScale(el.type, v),
+                  ),
+                  const SizedBox(height: 4),
+                  _ScalePresets(
+                    isText: false,
+                    value: el.scale,
+                    onSelected: (v) => n.setScale(el.type, v),
+                  ),
+                ],
+              ),
+            ),
 
           if (el.type.isContainer ||
               (el.type.isClock &&
@@ -575,11 +641,7 @@ class ElementInfoPanel extends ConsumerWidget {
                     onChanged: (v) => n.setBlurRadius(el.type, v),
                   ),
                   const SizedBox(height: 6),
-                  _ToggleRow(
-                    label: 'Liquid Glass Effect',
-                    value: el.isLiquidGlass,
-                    onChanged: (v) => n.setIsLiquidGlass(el.type, v),
-                  ),
+                  _WallpaperGlassControls(element: el, notifier: n),
                   const SizedBox(height: 8),
                   Align(
                     alignment: Alignment.centerLeft,
@@ -684,7 +746,12 @@ class ElementInfoPanel extends ConsumerWidget {
               ),
             ),
 
-          if (el.type.isText || el.type == ElementType.calendarGrid || isUnlock)
+          if (el.type.isText ||
+              el.type == ElementType.calendarGrid ||
+              el.type == ElementType.dayStrip ||
+              el.type == ElementType.countdownTicker ||
+              el.type == ElementType.gaugeSet ||
+              isUnlock)
             _Section(
               title: 'TEXT STYLE',
               child: _ToggleRow(
@@ -855,6 +922,129 @@ class ElementInfoPanel extends ConsumerWidget {
                             );
                           }
                         },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          if (isGauge) _GaugeSlots(element: el),
+
+          if (isTicker)
+            _Section(
+              title: 'COUNTDOWN TICKER',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  DropdownButtonFormField<TickerSource>(
+                    key: ValueKey('ticker-src-${el.tickerSource}'),
+                    initialValue: el.tickerSource,
+                    isDense: true,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Counts',
+                      isDense: true,
+                    ),
+                    items: [
+                      for (final s in TickerSource.values)
+                        DropdownMenuItem(value: s, child: Text(s.label)),
+                    ],
+                    onChanged: (s) =>
+                        n.update(el.type, (e) => e.copyWith(tickerSource: s)),
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<TickerStyle>(
+                    key: ValueKey('ticker-style-${el.tickerStyle}'),
+                    initialValue: el.tickerStyle,
+                    isDense: true,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Style',
+                      isDense: true,
+                    ),
+                    items: [
+                      for (final s in TickerStyle.values)
+                        DropdownMenuItem(value: s, child: Text(s.label)),
+                    ],
+                    onChanged: (s) =>
+                        n.update(el.type, (e) => e.copyWith(tickerStyle: s)),
+                  ),
+                  const SizedBox(height: 12),
+                  SegmentedButton<int>(
+                    segments: const [
+                      ButtonSegment(value: 5, label: Text('5')),
+                      ButtonSegment(value: 7, label: Text('7')),
+                      ButtonSegment(value: 9, label: Text('9')),
+                      ButtonSegment(value: 11, label: Text('11')),
+                    ],
+                    selected: {el.tickerCount},
+                    showSelectedIcon: false,
+                    style: const ButtonStyle(
+                      visualDensity: VisualDensity.compact,
+                      textStyle: WidgetStatePropertyAll(
+                        TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    onSelectionChanged: (values) => n.update(
+                      el.type,
+                      (e) => e.copyWith(
+                        tickerCount: values.single,
+                        width: (e.width / e.tickerCount * values.single)
+                            .clamp(300.0, 1080.0)
+                            .roundToDouble(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          if (isDayStrip)
+            _Section(
+              title: 'DAY STRIP',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  DropdownButtonFormField<DayStripStyle>(
+                    key: ValueKey('strip-${el.dayStripStyle}'),
+                    initialValue: el.dayStripStyle,
+                    isDense: true,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Style',
+                      isDense: true,
+                    ),
+                    items: [
+                      for (final s in DayStripStyle.values)
+                        DropdownMenuItem(value: s, child: Text(s.label)),
+                    ],
+                    onChanged: (s) =>
+                        n.update(el.type, (e) => e.copyWith(dayStripStyle: s)),
+                  ),
+                  const SizedBox(height: 12),
+                  SegmentedButton<int>(
+                    segments: const [
+                      ButtonSegment(value: 3, label: Text('3 days')),
+                      ButtonSegment(value: 5, label: Text('5 days')),
+                      ButtonSegment(value: 7, label: Text('Full week')),
+                    ],
+                    selected: {el.dayStripCount},
+                    showSelectedIcon: false,
+                    style: const ButtonStyle(
+                      visualDensity: VisualDensity.compact,
+                      textStyle: WidgetStatePropertyAll(
+                        TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    // Width follows the day count so each day keeps its size.
+                    onSelectionChanged: (values) => n.update(
+                      el.type,
+                      (e) => e.copyWith(
+                        dayStripCount: values.single,
+                        width: (e.width / e.dayStripCount * values.single)
+                            .clamp(240.0, 1080.0)
+                            .roundToDouble(),
                       ),
                     ),
                   ),
@@ -1863,7 +2053,7 @@ class ElementInfoPanel extends ConsumerWidget {
     );
   }
 
-  Future<void> _applyWallpaperColors(
+  static Future<void> _applyWallpaperColors(
     BuildContext context,
     WidgetRef ref,
     LockElement element,
@@ -1878,7 +2068,15 @@ class ElementInfoPanel extends ConsumerWidget {
     final palette = await ExportSystemModulesUseCase.wallpaperPalette(path);
     if (!context.mounted) return;
     final notifier = ref.read(elementProvider.notifier);
-    if (clockSetElementTypes.contains(element.type)) {
+    if (ref.read(elementProvider).infoSetMembers(element).isNotEmpty) {
+      notifier.applyInfoSetColors(
+        element,
+        text: palette.light,
+        accent: palette.primary,
+        background: palette.dark,
+        outline: palette.secondary,
+      );
+    } else if (clockSetElementTypes.contains(element.type)) {
       notifier.applyClockSetColors(
         color: palette.light,
         colorSecondary: palette.dark,
@@ -2439,6 +2637,430 @@ class _AnimationTracksPanel extends StatelessWidget {
   };
 }
 
+class _InfoSetPanel extends ConsumerWidget {
+  const _InfoSetPanel({required this.element, required this.members});
+
+  final LockElement element;
+  final List<LockElement> members;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.read(elementProvider.notifier);
+    final weather = isWeatherSetElement(element);
+    final title = weather ? 'Weather Sets' : 'Battery Sets';
+    final owns = weather ? isWeatherSetElement : isBatterySetElement;
+    final xs = members.map((member) => member.dx).toList()..sort();
+    final ys = members.map((member) => member.dy).toList()..sort();
+    final centerX = (xs.first + xs.last) / 2;
+    final centerY = (ys.first + ys.last) / 2;
+    final locked = members.any((member) => member.isLocked);
+    final scale = members.first.scale;
+    final palette = <Color, String>{};
+    final roleCounts = <String, int>{};
+    void addColor(Color color, String role) {
+      if (color.a == 0 || palette.containsKey(color)) return;
+      final count = (roleCounts[role] ?? 0) + 1;
+      roleCounts[role] = count;
+      palette[color] = count == 1 ? role : '$role $count';
+    }
+
+    for (final member in members.where((member) => member.type.isText)) {
+      addColor(member.color, 'Text');
+    }
+    for (final member in members.where((member) => member.type.isShape)) {
+      final progress = member.effectiveProgressSource != ArcProgressSource.none;
+      if (member.shapeStrokeWidth > 0 || progress) {
+        addColor(member.color, progress ? 'Accent' : 'Outline');
+      }
+      if (member.type != ElementType.lineShape &&
+          (member.type != ElementType.arcShape || progress)) {
+        addColor(member.colorSecondary, progress ? 'Track' : 'Fill');
+      }
+    }
+    final labels = <String, List<LockElement>>{};
+    for (final member in members.where((member) => member.type.isNormalText)) {
+      labels.putIfAbsent(member.text, () => []).add(member);
+    }
+    Widget colorButton(int index) {
+      final entry = palette.entries.elementAt(index);
+      return KeyedSubtree(
+        key: ValueKey('info-set-color-$index'),
+        child: _ColorBtn(
+          color: entry.key,
+          label: entry.value,
+          onChanged: (color) => notifier.setInfoSetColor(
+            element,
+            color,
+            foregroundIds: members
+                .where((member) => member.color == entry.key)
+                .map((member) => member.name)
+                .toSet(),
+            fillIds: members
+                .where(
+                  (member) =>
+                      member.type.isShape && member.colorSecondary == entry.key,
+                )
+                .map((member) => member.name)
+                .toSet(),
+          ),
+        ),
+      );
+    }
+
+    void move(double dx, double dy) {
+      notifier.snapshotForDrag();
+      notifier.moveElement(element.type, dx, dy);
+    }
+
+    return SizedBox(
+      width: 450,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+              IconButton(
+                tooltip: locked ? 'Unlock $title' : 'Lock $title',
+                icon: Icon(locked ? Icons.lock_outline : Icons.lock_open),
+                onPressed: () => notifier.setLocked(element.type, !locked),
+              ),
+              IconButton(
+                tooltip: element.isVisible ? 'Hide $title' : 'Show $title',
+                icon: Icon(
+                  element.isVisible
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                ),
+                onPressed: () =>
+                    notifier.setVisible(element.type, !element.isVisible),
+              ),
+              IconButton(
+                tooltip: 'Delete $title',
+                icon: const Icon(Icons.delete_outline),
+                onPressed: () => notifier.removeElements(owns),
+              ),
+            ],
+          ),
+          _Section(
+            title: 'POSITION',
+            child: IgnorePointer(
+              ignoring: locked,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _NumField(
+                      label: 'X',
+                      value: centerX,
+                      onChanged: (value) => move(value - centerX, 0),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _NumField(
+                      label: 'Y',
+                      value: centerY,
+                      onChanged: (value) => move(0, value - centerY),
+                    ),
+                  ),
+                  IconButton.outlined(
+                    tooltip: 'Center horizontally',
+                    icon: const Icon(Icons.align_horizontal_center, size: 18),
+                    onPressed: () => move(-centerX, 0),
+                  ),
+                  const SizedBox(width: 4),
+                  IconButton.outlined(
+                    tooltip: 'Center vertically',
+                    icon: const Icon(Icons.align_vertical_center, size: 18),
+                    onPressed: () => move(0, -centerY),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          _Section(
+            title: 'SCALE',
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Scale',
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                    _EditableValue(
+                      value: scale.clamp(.1, 10.0),
+                      min: .1,
+                      max: 10,
+                      decimals: 2,
+                      unit: 'x',
+                      onChanged: (value) =>
+                          notifier.scaleElementSet(owns, value),
+                    ),
+                  ],
+                ),
+                Slider(
+                  key: ValueKey('$title-scale'),
+                  value: scale.clamp(.1, 10.0),
+                  min: .1,
+                  max: 10,
+                  label: '${scale.toStringAsFixed(2)}x',
+                  onChangeStart: locked || scale <= 0
+                      ? null
+                      : (_) => notifier.snapshotForDrag(),
+                  onChanged: locked || scale <= 0
+                      ? null
+                      : (value) => notifier.scaleElementSet(
+                          owns,
+                          value,
+                          recordHistory: false,
+                        ),
+                ),
+                _ScalePresets(
+                  isText: false,
+                  value: scale,
+                  onSelected: (value) => notifier.scaleElementSet(owns, value),
+                ),
+              ],
+            ),
+          ),
+          if (palette.isNotEmpty)
+            _Section(
+              title: 'COLOR',
+              child: IgnorePointer(
+                ignoring: locked,
+                child: Column(
+                  children: [
+                    for (var index = 0; index < palette.length; index += 2) ...[
+                      if (index > 0) const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(child: colorButton(index)),
+                          if (index + 1 < palette.length) ...[
+                            const SizedBox(width: 10),
+                            Expanded(child: colorButton(index + 1)),
+                          ],
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.wallpaper_rounded, size: 16),
+                        label: const Text(
+                          'Use Wallpaper Colors',
+                          style: TextStyle(fontSize: 11),
+                        ),
+                        onPressed: locked
+                            ? null
+                            : () => ElementInfoPanel._applyWallpaperColors(
+                                context,
+                                ref,
+                                element,
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          if (labels.isNotEmpty)
+            _Section(
+              title: 'TEXT',
+              child: Column(
+                children: [
+                  for (final (index, group) in labels.values.indexed)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _UnlockTextField(
+                        key: ValueKey('info-set-text-${group.first.name}'),
+                        initialText: group.first.text,
+                        labelText: labels.length == 1
+                            ? 'Label'
+                            : 'Label ${index + 1}',
+                        hintText: '',
+                        enabled: !locked,
+                        onChanged: (text) => notifier.setInfoSetText(
+                          element,
+                          group.map((member) => member.name).toSet(),
+                          text,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          _Section(
+            title: 'WIDGET STYLES',
+            child: IgnorePointer(
+              ignoring: locked,
+              child: WidgetStylesPanel(
+                key: ValueKey('styles-$title'),
+                element: members.firstWhere(
+                  (member) => weather
+                      ? weatherSetElementTypes.contains(member.type)
+                      : batterySetElementTypes.contains(member.type),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Wallpaper glass toggle and, when on, its blur, tint, edge and shadow.
+class _WallpaperGlassControls extends StatelessWidget {
+  const _WallpaperGlassControls({
+    required this.element,
+    required this.notifier,
+  });
+
+  final LockElement element;
+  final ElementNotifier notifier;
+
+  @override
+  Widget build(BuildContext context) {
+    final el = element;
+    void set(LockElement Function(LockElement) change) =>
+        notifier.updateSurfaceFx(el.type, change);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _ToggleRow(
+          label: 'Wallpaper Glass',
+          value: el.isWallpaperGlass,
+          onChanged: (v) => set((e) => e.copyWith(isWallpaperGlass: v)),
+        ),
+        if (el.isWallpaperGlass) ...[
+          _ToggleRow(
+            label: 'Edge Light',
+            value: el.glassEdgeLight,
+            onChanged: (v) => set((e) => e.copyWith(glassEdgeLight: v)),
+          ),
+          for (final (label, value, max, decimals, apply)
+              in <
+                (
+                  String,
+                  double,
+                  double,
+                  int,
+                  LockElement Function(LockElement, double),
+                )
+              >[
+                (
+                  'Glass Blur',
+                  el.glassBlur,
+                  40,
+                  0,
+                  (e, v) => e.copyWith(glassBlur: v.roundToDouble()),
+                ),
+                (
+                  'Glass Tint',
+                  el.glassTint,
+                  1,
+                  2,
+                  (e, v) => e.copyWith(glassTint: v),
+                ),
+                (
+                  'Rim Width',
+                  el.glassRim,
+                  4,
+                  2,
+                  (e, v) => e.copyWith(glassRim: v),
+                ),
+              ])
+            _SliderRow(
+              label: label,
+              value: value,
+              max: max,
+              decimals: decimals,
+              onChanged: (v) => set((e) => apply(e, v)),
+            ),
+          const SizedBox(height: 8),
+          _ColorBtn(
+            color: el.glassShadowColor,
+            label: 'Shadow Color',
+            onChanged: (c) => set((e) => e.copyWith(glassShadowColor: c)),
+          ),
+          for (final (label, value, max, unit, apply)
+              in <
+                (
+                  String,
+                  double,
+                  double,
+                  String?,
+                  LockElement Function(LockElement, double),
+                )
+              >[
+                (
+                  'Shadow Opacity',
+                  el.glassShadowOpacity,
+                  1,
+                  null,
+                  (e, v) => e.copyWith(glassShadowOpacity: v),
+                ),
+                (
+                  'Shadow Blur',
+                  el.glassShadowBlur,
+                  40,
+                  null,
+                  (e, v) => e.copyWith(glassShadowBlur: v),
+                ),
+                (
+                  'Shadow Distance',
+                  el.glassShadowDistance,
+                  30,
+                  null,
+                  (e, v) => e.copyWith(glassShadowDistance: v),
+                ),
+                (
+                  'Shadow Angle',
+                  el.glassShadowAngle,
+                  360,
+                  '°',
+                  (e, v) => e.copyWith(glassShadowAngle: v.roundToDouble()),
+                ),
+                (
+                  'Shadow Spread',
+                  el.glassShadowSpread,
+                  10,
+                  null,
+                  (e, v) => e.copyWith(glassShadowSpread: v),
+                ),
+              ])
+            _SliderRow(
+              key: ValueKey('glass-$label'),
+              label: label,
+              value: value,
+              max: max,
+              unit: unit,
+              decimals: unit == null ? 2 : 0,
+              onChanged: (v) => set((e) => apply(e, v)),
+            ),
+          Text(
+            'Bakes the current background into the PNGs, so it '
+            'only matches this wallpaper on the phone.',
+            style: TextStyle(
+              fontSize: 10,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class _GroupPanel extends StatefulWidget {
   const _GroupPanel({required this.state, required this.n});
   final ElementState state;
@@ -2627,6 +3249,178 @@ class _GroupPanelState extends State<_GroupPanel> {
 
 // ── Section wrapper ───────────────────────────────────────────────────────────
 
+/// Gauge set editor: style plus 1–6 slots that can be changed, moved,
+/// removed and added, like a shortcut set.
+class _GaugeSlots extends ConsumerWidget {
+  const _GaugeSlots({required this.element});
+  final LockElement element;
+
+  static const _maxSlots = 6;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
+    final n = ref.read(elementProvider.notifier);
+    final el = element;
+    final items = GaugeSource.parse(el.gaugeItems);
+
+    // Width follows the slot count so each gauge keeps its size.
+    void save(List<GaugeSource> next) => n.update(
+      el.type,
+      (e) => e.copyWith(
+        gaugeItems: next.map((s) => s.name).join(','),
+        width: (e.width / items.length * next.length)
+            .clamp(240.0, 1080.0)
+            .roundToDouble(),
+      ),
+    );
+
+    Widget iconButton(IconData icon, String tip, VoidCallback? onPressed) =>
+        IconButton(
+          tooltip: tip,
+          visualDensity: VisualDensity.compact,
+          iconSize: 16,
+          splashRadius: 14,
+          icon: Icon(icon),
+          onPressed: onPressed,
+        );
+
+    return _Section(
+      title: 'GAUGES',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          DropdownButtonFormField<GaugeStyle>(
+            key: ValueKey('gauge-style-${el.gaugeStyle}'),
+            initialValue: el.gaugeStyle,
+            isDense: true,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              labelText: 'Style',
+              isDense: true,
+            ),
+            items: [
+              for (final s in GaugeStyle.values)
+                DropdownMenuItem(value: s, child: Text(s.label)),
+            ],
+            onChanged: (s) =>
+                n.update(el.type, (e) => e.copyWith(gaugeStyle: s)),
+          ),
+          const SizedBox(height: 12),
+          for (final (i, source) in items.indexed)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Container(
+                padding: const EdgeInsets.only(left: 8, top: 2, bottom: 2),
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerHighest.withValues(alpha: .35),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: scheme.outlineVariant.withValues(alpha: .4),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      '${i + 1}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: scheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<GaugeSource>(
+                          key: ValueKey('${el.name}-gauge-$i-${source.name}'),
+                          value: source,
+                          isDense: true,
+                          isExpanded: true,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: scheme.onSurface,
+                          ),
+                          items: [
+                            for (final s in GaugeSource.values)
+                              DropdownMenuItem(value: s, child: Text(s.label)),
+                          ],
+                          onChanged: (s) {
+                            if (s == null) return;
+                            final next = [...items]..[i] = s;
+                            n.update(
+                              el.type,
+                              (e) => e.copyWith(
+                                gaugeItems: next.map((x) => x.name).join(','),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    iconButton(
+                      Icons.arrow_upward_rounded,
+                      'Move left',
+                      i == 0
+                          ? null
+                          : () => n.update(
+                              el.type,
+                              (e) => e.copyWith(
+                                gaugeItems:
+                                    ([...items]
+                                          ..[i] = items[i - 1]
+                                          ..[i - 1] = items[i])
+                                        .map((x) => x.name)
+                                        .join(','),
+                              ),
+                            ),
+                    ),
+                    iconButton(
+                      Icons.arrow_downward_rounded,
+                      'Move right',
+                      i == items.length - 1
+                          ? null
+                          : () => n.update(
+                              el.type,
+                              (e) => e.copyWith(
+                                gaugeItems:
+                                    ([...items]
+                                          ..[i] = items[i + 1]
+                                          ..[i + 1] = items[i])
+                                        .map((x) => x.name)
+                                        .join(','),
+                              ),
+                            ),
+                    ),
+                    iconButton(
+                      Icons.close_rounded,
+                      'Remove',
+                      items.length == 1
+                          ? null
+                          : () => save([...items]..removeAt(i)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          if (items.length < _maxSlots)
+            OutlinedButton.icon(
+              icon: const Icon(Icons.add_rounded, size: 16),
+              label: const Text('Add Gauge'),
+              onPressed: () => save([
+                ...items,
+                GaugeSource.values.firstWhere(
+                  (s) => !items.contains(s),
+                  orElse: () => GaugeSource.battery,
+                ),
+              ]),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _Section extends StatelessWidget {
   const _Section({required this.title, required this.child, this.trailing});
   final String title;
@@ -2752,10 +3546,16 @@ class _UnlockTextField extends StatefulWidget {
     super.key,
     required this.initialText,
     required this.onChanged,
+    this.labelText = 'Custom Text',
+    this.hintText = 'e.g. Slide to unlock',
+    this.enabled = true,
   });
 
   final String initialText;
   final ValueChanged<String> onChanged;
+  final String labelText;
+  final String hintText;
+  final bool enabled;
 
   @override
   State<_UnlockTextField> createState() => _UnlockTextFieldState();
@@ -2792,6 +3592,7 @@ class _UnlockTextFieldState extends State<_UnlockTextField> {
 
     return TextField(
       controller: _controller,
+      enabled: widget.enabled,
       style: const TextStyle(fontSize: 12),
       decoration: InputDecoration(
         isDense: true,
@@ -2799,9 +3600,9 @@ class _UnlockTextFieldState extends State<_UnlockTextField> {
           horizontal: 10,
           vertical: 10,
         ),
-        labelText: 'Custom Text',
+        labelText: widget.labelText,
         labelStyle: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-        hintText: 'e.g. Slide to unlock',
+        hintText: widget.hintText,
         hintStyle: TextStyle(
           fontSize: 12,
           color: scheme.onSurfaceVariant.withAlpha(120),
@@ -3245,6 +4046,7 @@ class _ToggleRow extends StatelessWidget {
 
 class _SliderRow extends StatelessWidget {
   const _SliderRow({
+    super.key,
     required this.label,
     required this.value,
     required this.onChanged,
