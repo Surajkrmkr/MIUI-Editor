@@ -1,67 +1,78 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'dart:isolate';
+import 'dart:typed_data';
+
 import 'package:image/image.dart' as img;
 
-class ThumbnailEngine {
-  static const int targetWidth = 430;
-  static const int targetHeight = 932;
-  static const double targetRatio = targetWidth / targetHeight;
+class ImageSize {
+  const ImageSize(this.width, this.height);
+  final int width;
+  final int height;
+}
 
-  /// Generates a thumbnail exactly like the Python script.
-  /// Runs in a background isolate to prevent UI blocking.
+class ThumbnailEngine {
+  /// JPEG quality for thumbnails: keeps grid thumbnails around 40–70 KB.
+  static const int quality = 80;
+
+  /// Reads only the image header, so 4K PNGs don't need a full decode.
+  /// Null when the file isn't a supported image.
+  static Future<ImageSize?> readSize(String path) async {
+    final bytes = await File(path).readAsBytes();
+    final decoder = img.findDecoderForData(bytes);
+    final info = decoder?.startDecode(bytes);
+    if (info == null || info.width == 0 || info.height == 0) return null;
+    return ImageSize(info.width, info.height);
+  }
+
+  /// Center-crops [inputPath] to [width]:[height], resizes and returns JPEG
+  /// bytes. Runs in a background isolate to keep the UI responsive.
+  static Future<Uint8List> generate({
+    required String inputPath,
+    required int width,
+    required int height,
+  }) {
+    return Isolate.run(() => _generate(inputPath, width, height, quality));
+  }
+
+  /// The original 430 × 932, quality-88 thumbnail written to a file; still used
+  /// by the BuffyWalls importer.
   static Future<void> generateThumbnail({
     required String inputPath,
     required String outputPath,
   }) async {
-    await compute(_processImage, {
-      'input': inputPath,
-      'output': outputPath,
-    });
+    final bytes = await Isolate.run(() => _generate(inputPath, 430, 932, 88));
+    await File(outputPath).writeAsBytes(bytes);
   }
 
-  static void _processImage(Map<String, String> paths) {
-    final inputPath = paths['input']!;
-    final outputPath = paths['output']!;
-
-    final bytes = File(inputPath).readAsBytesSync();
-    img.Image? image = img.decodeImage(bytes);
-
+  static Uint8List _generate(String inputPath, int width, int height, int quality) {
+    final image = img.decodeImage(File(inputPath).readAsBytesSync());
     if (image == null) {
       throw Exception('Could not decode image at $inputPath');
     }
 
-    // Convert to RGB if necessary (mirroring Python script's img.convert("RGB"))
-    if (image.numChannels != 3) {
-      // In image 4.x, we check numChannels or use convertColor
-      // image = image.convert(numChannels: 3); // Simple way
-    }
-
-    final int ow = image.width;
-    final int oh = image.height;
-    final double originalRatio = ow / oh;
-
-    img.Image cropped;
-
-    if (originalRatio > targetRatio) {
-      final int newWidth = (oh * targetRatio).toInt();
-      final int left = (ow - newWidth) ~/ 2;
-      cropped = img.copyCrop(image, x: left, y: 0, width: newWidth, height: oh);
+    final targetRatio = width / height;
+    final ratio = image.width / image.height;
+    final img.Image cropped;
+    if (ratio > targetRatio) {
+      final newWidth = (image.height * targetRatio).round();
+      cropped = img.copyCrop(image,
+          x: (image.width - newWidth) ~/ 2, y: 0, width: newWidth, height: image.height);
     } else {
-      final int newHeight = (ow / targetRatio).toInt();
-      final int top = (oh - newHeight) ~/ 2;
-      cropped = img.copyCrop(image, x: 0, y: top, width: ow, height: newHeight);
+      final newHeight = (image.width / targetRatio).round();
+      cropped = img.copyCrop(image,
+          x: 0, y: (image.height - newHeight) ~/ 2, width: image.width, height: newHeight);
     }
 
-    // Resize to exact target size
     final thumbnail = img.copyResize(
       cropped,
-      width: targetWidth,
-      height: targetHeight,
-      interpolation: img.Interpolation.cubic, // High quality resize
+      width: width,
+      height: height,
+      interpolation: img.Interpolation.cubic,
     );
-
-    // Save as JPEG with 88 quality (matching Python script)
-    final jpegBytes = img.encodeJpg(thumbnail, quality: 88);
-    File(outputPath).writeAsBytesSync(jpegBytes);
+    // JPEG has no alpha; flatten transparent PNGs onto black like the app shows them.
+    final flattened = thumbnail.numChannels == 4
+        ? img.compositeImage(img.Image(width: width, height: height), thumbnail)
+        : thumbnail;
+    return img.encodeJpg(flattened, quality: quality);
   }
 }

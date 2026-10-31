@@ -1,10 +1,10 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import '../../application/providers/analytics_provider.dart';
+import '../../application/providers/catalog_provider.dart';
 import '../../application/providers/credentials_provider.dart';
-import '../../application/providers/settings_provider.dart';
+import '../../domain/models/catalog.dart';
 import '../../domain/models/credential_models.dart';
 import '../../infrastructure/services/app_settings_service.dart';
 
@@ -50,7 +50,7 @@ class _WallRioSettingsDialogState extends ConsumerState<_WallRioSettingsDialog>
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 3, vsync: this);
+    _tabCtrl = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -106,11 +106,8 @@ class _WallRioSettingsDialogState extends ConsumerState<_WallRioSettingsDialog>
                     controller: _tabCtrl,
                     tabs: const [
                       Tab(
-                          icon: Icon(Icons.folder_special_rounded, size: 16),
-                          text: 'Projects'),
-                      Tab(
-                          icon: Icon(Icons.photo_library_rounded, size: 16),
-                          text: 'Repository'),
+                          icon: Icon(Icons.cloud_rounded, size: 16),
+                          text: 'Storage'),
                       Tab(
                           icon: Icon(Icons.vpn_key_rounded, size: 16),
                           text: 'Credentials'),
@@ -131,8 +128,7 @@ class _WallRioSettingsDialogState extends ConsumerState<_WallRioSettingsDialog>
               child: TabBarView(
                 controller: _tabCtrl,
                 children: const [
-                  _ProjectsTab(),
-                  _RepositoryTab(),
+                  _StorageTab(),
                   _CredentialsTab(),
                 ],
               ),
@@ -164,114 +160,137 @@ class _WallRioSettingsDialogState extends ConsumerState<_WallRioSettingsDialog>
 }
 
 // =============================================================================
-// Tab — Projects
+// Tab — Storage
 // =============================================================================
 
-class _ProjectsTab extends ConsumerWidget {
-  const _ProjectsTab();
+class _StorageTab extends ConsumerStatefulWidget {
+  const _StorageTab();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final savedPathsState = ref.watch(savedPathsProvider);
-    final cs = Theme.of(context).colorScheme;
-
-    return savedPathsState.when(
-      data: (paths) => ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Text(
-            'JSON Project Slots',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: cs.primary,
-                ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Configure up to 3 JSON data files to switch between projects.',
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: cs.onSurfaceVariant),
-          ),
-          const SizedBox(height: 20),
-          for (int i = 0; i < 3; i++) ...[
-            _JsonSlotCard(
-              index: i,
-              savedPath: i < paths.length ? paths[i] : null,
-            ),
-            if (i < 2) const SizedBox(height: 14),
-          ],
-        ],
-      ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Center(child: Text('Error: $err')),
-    );
-  }
+  ConsumerState<_StorageTab> createState() => _StorageTabState();
 }
 
-// =============================================================================
-// Tab — Repository
-// =============================================================================
-
-class _RepositoryTab extends ConsumerWidget {
-  const _RepositoryTab();
+class _StorageTabState extends ConsumerState<_StorageTab> {
+  final _bucketCtrl = TextEditingController();
+  final _jsonFolderCtrl = TextEditingController();
+  final _imagesRootCtrl = TextEditingController();
+  final _liveRootCtrl = TextEditingController();
+  bool _loaded = false;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final repoPath = ref.watch(wallpaperRepoPathProvider);
-    final cs = Theme.of(context).colorScheme;
+  void dispose() {
+    _bucketCtrl.dispose();
+    _jsonFolderCtrl.dispose();
+    _imagesRootCtrl.dispose();
+    _liveRootCtrl.dispose();
+    super.dispose();
+  }
 
-    return repoPath.when(
-      data: (path) => SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Wallpaper Repository',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: cs.primary,
+  Future<void> _save() async {
+    String clean(TextEditingController c) =>
+        c.text.trim().replaceAll(RegExp(r'^/+|/+$'), '');
+    final settings = StorageSettings(
+      bucket: clean(_bucketCtrl),
+      jsonFolder: clean(_jsonFolderCtrl),
+      imagesRoot: clean(_imagesRootCtrl),
+      liveRoot: clean(_liveRootCtrl),
+    );
+    await ref.read(storageSettingsProvider.notifier).save(settings);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Storage settings saved')),
+    );
+  }
+
+  void _reset() {
+    const defaults = StorageSettings();
+    setState(() {
+      _bucketCtrl.text = defaults.bucket;
+      _jsonFolderCtrl.text = defaults.jsonFolder;
+      _imagesRootCtrl.text = defaults.imagesRoot;
+      _liveRootCtrl.text = defaults.liveRoot;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return ref.watch(storageSettingsProvider).when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, _) => Center(child: Text('Error: $err')),
+          data: (settings) {
+            if (!_loaded) {
+              _loaded = true;
+              _bucketCtrl.text = settings.bucket;
+              _jsonFolderCtrl.text = settings.jsonFolder;
+              _imagesRootCtrl.text = settings.imagesRoot;
+              _liveRootCtrl.text = settings.liveRoot;
+            }
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Firebase Storage',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: cs.primary,
+                            ),
                       ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Local folder where wallpaper image files are stored on disk.',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: cs.onSurfaceVariant),
-                ),
-                const SizedBox(height: 20),
-                _LabeledField(
-                  label: 'Base Path',
-                  child: _PickerField(
-                    value: path ?? '',
-                    hint: 'Select folder...',
-                    onPick: () async {
-                      final result =
-                          await FilePicker.platform.getDirectoryPath();
-                      if (result != null) {
-                        await ref
-                            .read(wallpaperRepoPathProvider.notifier)
-                            .setPath(result);
-                      }
-                    },
+                      const SizedBox(height: 4),
+                      Text(
+                        'Where the catalogs and wallpapers live. The defaults are the live '
+                        'app data. To try things out safely, point both folders at a test '
+                        'prefix (e.g. cms_test/wallriojson) holding a copy of the JSON.',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: cs.onSurfaceVariant),
+                      ),
+                      const SizedBox(height: 20),
+                      _LabeledField(
+                        label: 'Bucket',
+                        child: TextField(controller: _bucketCtrl),
+                      ),
+                      const SizedBox(height: 14),
+                      _LabeledField(
+                        label: 'JSON folder (rio.Json, desktop.json, live_wall.json, collections.json, history/)',
+                        child: TextField(controller: _jsonFolderCtrl),
+                      ),
+                      const SizedBox(height: 14),
+                      _LabeledField(
+                        label: 'Images root (<category>/…, Desktop/…, <collection>/…)',
+                        child: TextField(controller: _imagesRootCtrl),
+                      ),
+                      const SizedBox(height: 14),
+                      _LabeledField(
+                        label: 'Live root (livewalls/, previews/, thumbnails/)',
+                        child: TextField(controller: _liveRootCtrl),
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          TextButton(onPressed: _reset, child: const Text('Reset to defaults')),
+                          const Spacer(),
+                          FilledButton.icon(
+                            onPressed: _save,
+                            icon: const Icon(Icons.save_rounded, size: 16),
+                            label: const Text('Save'),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Center(child: Text('Error: $err')),
-    );
+              ),
+            );
+          },
+        );
   }
 }
 
@@ -535,7 +554,7 @@ class _CredentialsTabState extends ConsumerState<_CredentialsTab> {
                     ),
                     const SizedBox(height: 10),
                     _ServiceAccountRow(
-                      title: 'Google Cloud (AdMob / Play)',
+                      title: 'Google Cloud (AdMob / Play / Storage)',
                       isSignedIn: status.isSignedIn,
                       disabled: status.clientId?.isEmpty ?? true,
                       loading: _signingIn,
@@ -638,156 +657,6 @@ class _CredentialsTabState extends ConsumerState<_CredentialsTab> {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) => Center(child: Text('Error: $err')),
-    );
-  }
-}
-
-// =============================================================================
-// JSON Slot Card
-// =============================================================================
-
-class _JsonSlotCard extends ConsumerStatefulWidget {
-  const _JsonSlotCard({required this.index, this.savedPath});
-
-  final int index;
-  final dynamic savedPath;
-
-  @override
-  ConsumerState<_JsonSlotCard> createState() => _JsonSlotCardState();
-}
-
-class _JsonSlotCardState extends ConsumerState<_JsonSlotCard> {
-  late TextEditingController _labelCtrl;
-  String _path = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _labelCtrl = TextEditingController(
-        text: widget.savedPath?.label ?? 'Project ${widget.index + 1}');
-    _path = widget.savedPath?.path ?? '';
-  }
-
-  @override
-  void didUpdateWidget(_JsonSlotCard old) {
-    super.didUpdateWidget(old);
-    if (widget.savedPath != old.savedPath) {
-      _labelCtrl.text =
-          widget.savedPath?.label ?? 'Project ${widget.index + 1}';
-      _path = widget.savedPath?.path ?? '';
-    }
-  }
-
-  @override
-  void dispose() {
-    _labelCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Slot header
-            Row(
-              children: [
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: cs.primary.withAlpha(25),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    '${widget.index + 1}',
-                    style: TextStyle(
-                        color: cs.primary,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'Slot ${widget.index + 1}',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: cs.primary,
-                      ),
-                ),
-                const Spacer(),
-                if (widget.savedPath != null)
-                  IconButton(
-                    icon: Icon(Icons.delete_outline_rounded,
-                        color: cs.error, size: 18),
-                    onPressed: () => ref
-                        .read(savedPathsProvider.notifier)
-                        .removePath(widget.savedPath!.path),
-                    visualDensity: VisualDensity.compact,
-                    tooltip: 'Remove slot',
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _LabeledField(
-              label: 'Label',
-              child: TextField(
-                controller: _labelCtrl,
-                decoration: const InputDecoration(hintText: 'e.g. Production'),
-              ),
-            ),
-            const SizedBox(height: 14),
-            _LabeledField(
-              label: 'JSON File',
-              child: _PickerField(
-                value: _path,
-                hint: 'Select JSON file...',
-                onPick: _pickFile,
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 40,
-              child: FilledButton.icon(
-                onPressed: _path.isEmpty ? null : _save,
-                icon: const Icon(Icons.save_rounded, size: 16),
-                label: const Text('Save Slot'),
-                style: FilledButton.styleFrom(
-                  textStyle:
-                      const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _pickFile() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['json'],
-    );
-    if (result != null && result.files.single.path != null) {
-      setState(() => _path = result.files.single.path!);
-    }
-  }
-
-  void _save() {
-    ref.read(savedPathsProvider.notifier).savePath(
-          _path.trim(),
-          _labelCtrl.text.trim(),
-        );
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Slot saved')),
     );
   }
 }
@@ -906,64 +775,6 @@ class _LabeledField extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         child,
-      ],
-    );
-  }
-}
-
-class _PickerField extends StatefulWidget {
-  const _PickerField({
-    required this.value,
-    required this.hint,
-    required this.onPick,
-  });
-
-  final String value;
-  final String hint;
-  final VoidCallback onPick;
-
-  @override
-  State<_PickerField> createState() => _PickerFieldState();
-}
-
-class _PickerFieldState extends State<_PickerField> {
-  late TextEditingController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = TextEditingController(text: widget.value);
-  }
-
-  @override
-  void didUpdateWidget(_PickerField old) {
-    super.didUpdateWidget(old);
-    if (widget.value != old.value) _ctrl.text = widget.value;
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: _ctrl,
-            readOnly: true,
-            decoration: InputDecoration(hintText: widget.hint),
-          ),
-        ),
-        const SizedBox(width: 8),
-        IconButton.outlined(
-          tooltip: 'Pick',
-          icon: const Icon(Icons.folder_open_rounded, size: 18),
-          onPressed: widget.onPick,
-        ),
       ],
     );
   }

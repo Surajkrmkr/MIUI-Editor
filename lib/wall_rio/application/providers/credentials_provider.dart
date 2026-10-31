@@ -5,6 +5,17 @@ import '../../domain/models/credential_models.dart';
 import '../../infrastructure/services/secure_storage_service.dart';
 import '../../infrastructure/services/google_api_service.dart';
 
+/// Scopes requested at sign-in. Storage read/write is for publishing wallpapers;
+/// accounts signed in before it was added must sign in again.
+const wallRioScopes = [
+  'https://www.googleapis.com/auth/firebase.messaging',
+  'https://www.googleapis.com/auth/admob.report',
+  'https://www.googleapis.com/auth/playdeveloperreporting',
+  storageScope,
+];
+
+const storageScope = 'https://www.googleapis.com/auth/devstorage.read_write';
+
 class CredentialsStateNotifier extends AsyncNotifier<CredentialStatus> {
   final _storage = SecureStorageService();
   final _googleAuth = GoogleApiService();
@@ -48,11 +59,7 @@ class CredentialsStateNotifier extends AsyncNotifier<CredentialStatus> {
 
   Future<bool> signIn() async {
     debugPrint('[WallRio] CredentialsStateNotifier.signIn: starting…');
-    final success = await _googleAuth.signIn([
-      'https://www.googleapis.com/auth/firebase.messaging',
-      'https://www.googleapis.com/auth/admob.report',
-      'https://www.googleapis.com/auth/playdeveloperreporting',
-    ]);
+    final success = await _googleAuth.signIn(wallRioScopes);
     debugPrint('[WallRio] CredentialsStateNotifier.signIn: result=$success');
     if (success) {
       debugPrint('[WallRio] CredentialsStateNotifier.signIn: invalidating provider…');

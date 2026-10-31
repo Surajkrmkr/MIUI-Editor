@@ -71,9 +71,9 @@
 
 ### 4. WallRio CMS
 **Location**: `lib/wall_rio/`  
-**Purpose**: Wallpaper CMS with Git integration and analytics  
+**Purpose**: Wallpaper CMS for the Firebase Storage catalogs (upload, thumbnails, JSON history) and analytics  
 **Entry**: GoRouter-based (file: `wall_rio/application/providers/router_provider.dart`)  
-**Storage**: Hive local database (registered adapters: `SavedFilePathImplAdapter`, `LocalVersionImplAdapter`)  
+**Storage**: Firebase Storage via the GCS JSON API; settings in SharedPreferences  
 **Features**:
 - Wallpaper management
 - Git version control
@@ -123,10 +123,6 @@ void main() async {
   if (Platform.isAndroid) {
     await requestPermissions();
   }
-  
-  // Hive for WallRio
-  await Hive.initFlutter();
-  Hive.registerAdapter(...);
   
   // Video player
   VideoPlayerMediaKit.ensureInitialized(...);
@@ -307,7 +303,6 @@ feature_name/
 | State | flutter_riverpod | 3.3.1 | State management |
 | Navigation | go_router | 17.1.0 | Routing (Image Utility, WallRio) |
 | UI | Flutter Material 3 | - | UI framework |
-| Local Storage | hive_flutter | 1.1.0 | WallRio database |
 | Local Storage | shared_preferences | 2.2.2 | App settings |
 | HTTP | dio | 5.9.2 | API calls |
 | Images | cached_network_image | 3.4.1 | Image caching |

@@ -1,18 +1,20 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import 'package:miui_icon_generator/widgets/app_icon_button.dart';
-import '../../application/providers/cms_provider.dart';
-import '../../application/providers/settings_provider.dart';
+
 import '../../application/providers/analytics_provider.dart';
-import '../../domain/models/wallpaper.dart';
-import '../widgets/batch_add_dialog.dart';
+import '../../application/providers/catalog_provider.dart';
+import '../../domain/models/catalog.dart';
+import '../../infrastructure/services/storage_client.dart';
+import '../widgets/collection_dialog.dart';
+import '../widgets/entry_edit_dialog.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/stat_card.dart';
-import '../widgets/wallpaper_form.dart';
-import '../widgets/git_panel.dart';
+import '../widgets/storage_image.dart';
+import '../widgets/upload_dialog.dart';
+import 'settings_screen.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -22,12 +24,17 @@ class DashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
-  bool _showGitPanel = false;
+  String _query = '';
+  String? _category;
 
   @override
   Widget build(BuildContext context) {
-    final cmsState = ref.watch(cmsProvider);
-    final currentPath = ref.watch(currentFilePathProvider);
+    final kind = ref.watch(selectedKindProvider);
+    final catalog = ref.watch(catalogProvider(kind));
+    final doc = catalog.valueOrNull;
+    final collectionId = doc == null ? null : _collectionIdFor(doc);
+    // Collections: uploading needs a collection to upload into.
+    final canUpload = doc != null && (!kind.hasCollections || collectionId != null);
 
     return Scaffold(
       appBar: AppBar(
@@ -47,157 +54,251 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ),
           ],
         ),
-        title: Text(currentPath != null
-            ? 'Dashboard - ${currentPath.split('\\').last.split('/').last}'
-            : 'Dashboard'),
+        title: SegmentedButton<CatalogKind>(
+          showSelectedIcon: false,
+          segments: [
+            for (final k in CatalogKind.values)
+              ButtonSegment(value: k, label: Text(k.label)),
+          ],
+          selected: {kind},
+          onSelectionChanged: (s) {
+            setState(() => _category = null);
+            ref.read(selectedKindProvider.notifier).select(s.first);
+          },
+        ),
         actions: [
           _AppBarBtn(
-            icon: Icons.refresh_rounded,
+            icon: Icons.insights_rounded,
             tooltip: 'Refresh Analytics',
             onPressed: () => ref.read(analyticsStateProvider.notifier).refresh(),
           ),
           _AppBarBtn(
-            icon: _showGitPanel ? Icons.view_sidebar : Icons.view_sidebar_outlined,
-            tooltip: 'Toggle Source Control',
-            isActive: _showGitPanel,
-            onPressed: () => setState(() => _showGitPanel = !_showGitPanel),
+            icon: Icons.refresh_rounded,
+            tooltip: 'Reload ${kind.jsonFile}',
+            onPressed: () => ref.read(catalogProvider(kind).notifier).reload(),
           ),
-          if (currentPath != null) ...[
-            const _AppBarDivider(),
-            _AppBarBtn(
-              icon: Icons.add_photo_alternate_rounded,
-              tooltip: 'Batch Add',
-              onPressed: () => _showBatchAddDialog(context, cmsState.value!),
-            ),
-            _AppBarBtn(
-              icon: Icons.add_circle_outline_rounded,
-              tooltip: 'Add Wallpaper',
-              onPressed: () => _showAddWallpaperDialog(context, cmsState.value!),
-            ),
-            _AppBarBtn(
-              icon: Icons.save_rounded,
-              tooltip: 'Save & Backup',
-              onPressed: () => _showSaveDialog(context, ref, currentPath),
-            ),
-          ],
+          _AppBarBtn(
+            icon: Icons.history_rounded,
+            tooltip: 'History & Restore',
+            onPressed: () => context.go('/history'),
+          ),
+          const _AppBarDivider(),
+          _AppBarBtn(
+            icon: Icons.cloud_upload_outlined,
+            tooltip: 'Upload Wallpapers',
+            onPressed: canUpload
+                ? () => showUploadDialog(context, doc, collectionId: collectionId)
+                : null,
+          ),
           const SizedBox(width: 8),
         ],
       ),
       drawer: const Sidebar(),
-      body: Row(
-        children: [
-          Expanded(
-            child: cmsState.when(
-              data: (data) {
-                if (data == null) {
-                  return _buildProjectSelection(context, ref);
-                }
-                return _buildDashboardContent(context, data, ref);
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
-                    const SizedBox(height: 16),
-                    Text('Error: $err', style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () {
-                        final path = ref.read(currentFilePathProvider);
-                        if (path != null) {
-                          ref.read(cmsProvider.notifier).loadFile(path);
-                        }
-                      },
-                      child: const Text('Retry'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        ref.read(currentFilePathProvider.notifier).set(null);
-                        ref.read(cmsProvider.notifier).updateData(null as dynamic);
-                      },
-                      child: const Text('Back to Project Selection'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          if (_showGitPanel) const GitPanel(),
-        ],
+      body: catalog.when(
+        data: (doc) => _buildContent(context, doc, _collectionIdFor(doc)),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, _) => _CatalogError(
+          error: err,
+          onRetry: () => ref.invalidate(catalogProvider(kind)),
+        ),
       ),
-      floatingActionButton: currentPath != null
-          ? FloatingActionButton(
-              onPressed: () => _showAddWallpaperDialog(context, cmsState.value!),
-              tooltip: 'Quick Add Single',
-              child: const Icon(Icons.add),
-            )
-          : null,
+      floatingActionButton: !canUpload
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () => showUploadDialog(context, doc, collectionId: collectionId),
+              icon: const Icon(Icons.cloud_upload_outlined),
+              label: const Text('Upload'),
+            ),
     );
   }
 
-  Widget _buildProjectSelection(BuildContext context, WidgetRef ref) {
-    final savedPathsState = ref.watch(savedPathsProvider);
-    final colors = context.appColors;
+  /// The selected collection, falling back to the first; null for other kinds.
+  String? _collectionIdFor(CatalogDocument doc) {
+    if (!doc.kind.hasCollections) return null;
+    final selected = ref.watch(selectedCollectionProvider);
+    if (doc.collection(selected) != null) return selected;
+    final collections = doc.collections;
+    return collections.isEmpty ? null : '${collections.first['id']}';
+  }
 
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      color: colors.bg,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.folder_outlined, size: 80, color: colors.textDisabled),
-            const SizedBox(height: 24),
-            Text(
-              'No JSON file loaded',
-              style: TextStyle(
-                fontSize: 22,
-                color: colors.textSecondary,
-                letterSpacing: 1.1,
-              ),
+  Future<void> _editCollection(Map<String, dynamic>? existing) async {
+    final id = await showCollectionDialog(context, existing: existing);
+    if (id == null || !mounted) return;
+    setState(() => _category = null);
+    ref.read(selectedCollectionProvider.notifier).select(id);
+  }
+
+  Widget _buildContent(BuildContext context, CatalogDocument doc, String? collectionId) {
+    final colors = context.appColors;
+    final collection = doc.kind.hasCollections ? doc.collection(collectionId) : null;
+    final walls = doc.kind.hasCollections && collectionId == null
+        ? <Map<String, dynamic>>[]
+        : doc.wallsOf(collectionId);
+    final categories = walls.map((w) => '${w['category'] ?? ''}').where((c) => c.isNotEmpty).toSet().toList()..sort();
+    final premium = walls.where((w) => w['isPremium'] == true).length;
+    final query = _query.toLowerCase();
+    final visible = walls.where((w) {
+      if (_category != null && w['category'] != _category) return false;
+      if (query.isEmpty) return true;
+      return '${w['name']} ${w['author']} ${(w['tags'] as List? ?? const []).join(' ')}'
+          .toLowerCase()
+          .contains(query);
+    }).toList();
+    final isDesktop = doc.kind == CatalogKind.desktop;
+    final title = collection == null ? doc.kind.jsonFile : '${collection['name']}';
+
+    return CustomScrollView(
+      slivers: [
+        _buildAnalytics(context),
+        if (doc.kind.hasCollections) _buildCollectionBar(context, doc, collection),
+        SliverPadding(
+          padding: const EdgeInsets.all(24),
+          sliver: SliverToBoxAdapter(
+            child: Row(
+              children: [
+                StatCard(title: 'Wallpapers', value: '${walls.length}', icon: Icons.image, color: colors.primary),
+                const SizedBox(width: 16),
+                StatCard(title: 'Categories', value: '${categories.length}', icon: Icons.category, color: colors.success),
+                const SizedBox(width: 16),
+                StatCard(title: 'Premium', value: '$premium', icon: Icons.star, color: colors.warning),
+              ],
             ),
-            const SizedBox(height: 64),
-            savedPathsState.when(
-              data: (paths) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(3, (index) {
-                    final p = index < paths.length ? paths[index] : null;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: _ProjectSlot(
-                        index: index,
-                        label: p?.label,
-                        path: p?.path,
-                        onSelect: p != null ? () {
-                          ref.read(currentFilePathProvider.notifier).set(p.path);
-                          ref.read(cmsProvider.notifier).loadFile(p.path);
-                        } : null,
-                        onConfigure: () => context.go('/settings'),
-                      ),
-                    );
-                  }),
-                );
-              },
-              loading: () => const CircularProgressIndicator(),
-              error: (err, stack) => Text('Error: $err', style: const TextStyle(color: Colors.red)),
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          sliver: SliverToBoxAdapter(
+            child: Row(
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colors.textPrimary),
+                ),
+                const SizedBox(width: 12),
+                Text('${visible.length} shown', style: TextStyle(color: colors.textSecondary)),
+                const Spacer(),
+                SizedBox(
+                  width: 220,
+                  child: DropdownButtonFormField<String?>(
+                    key: ValueKey('${doc.kind}-$collectionId'),
+                    initialValue: _category,
+                    isDense: true,
+                    // Long category names get an ellipsis instead of overflowing.
+                    isExpanded: true,
+                    decoration: const InputDecoration(labelText: 'Category', isDense: true),
+                    items: [
+                      const DropdownMenuItem(value: null, child: Text('All')),
+                      for (final c in categories)
+                        DropdownMenuItem(
+                          value: c,
+                          child: Text(c, overflow: TextOverflow.ellipsis),
+                        ),
+                    ],
+                    onChanged: (v) => setState(() => _category = v),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                SizedBox(
+                  width: 280,
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search name, author, tags…',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      isDense: true,
+                    ),
+                    onChanged: (v) => setState(() => _query = v),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 80),
-            ElevatedButton.icon(
-              onPressed: () => _openFile(context, ref),
-              icon: const Icon(Icons.file_open_rounded),
-              label: const Text('Open WallRio JSON'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colors.surface,
-                foregroundColor: colors.primary,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 96),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: isDesktop ? 340 : 200,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: isDesktop ? 1.35 : 0.5,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => _WallpaperCard(
+                entry: visible[index],
+                kind: doc.kind,
+                onTap: () => showEntryEditDialog(
+                  context,
+                  doc,
+                  visible[index],
+                  collectionId: collectionId,
                 ),
               ),
+              childCount: visible.length,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Collection picker plus create / edit, above the stats.
+  Widget _buildCollectionBar(
+    BuildContext context,
+    CatalogDocument doc,
+    Map<String, dynamic>? collection,
+  ) {
+    final colors = context.appColors;
+    final collections = doc.collections;
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+      sliver: SliverToBoxAdapter(
+        child: Row(
+          children: [
+            SizedBox(
+              width: 280,
+              child: DropdownButtonFormField<String>(
+                key: ValueKey('collection-${collection?['id']}-${collections.length}'),
+                initialValue: collection == null ? null : '${collection['id']}',
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'Collection', isDense: true),
+                items: [
+                  for (final c in collections)
+                    DropdownMenuItem(
+                      value: '${c['id']}',
+                      child: Text(
+                        '${c['name']}  (${(c['walls'] as List? ?? const []).length})',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                ],
+                onChanged: (id) {
+                  setState(() => _category = null);
+                  ref.read(selectedCollectionProvider.notifier).select(id);
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            if (collection != null) ...[
+              Flexible(
+                child: Text(
+                  '${collection['productId']}'
+                  '${collection['hideForIOS'] == true ? '  ·  hidden on iOS' : ''}',
+                  style: TextStyle(color: colors.textSecondary, fontSize: 12),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              IconButton(
+                tooltip: 'Edit collection',
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                onPressed: () => _editCollection(collection),
+              ),
+            ],
+            const Spacer(),
+            OutlinedButton.icon(
+              onPressed: () => _editCollection(null),
+              icon: const Icon(Icons.create_new_folder_outlined, size: 18),
+              label: const Text('New collection'),
             ),
           ],
         ),
@@ -205,19 +306,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildDashboardContent(BuildContext context, RioData data, WidgetRef ref) {
-    final walls = data.walls;
-    final categories = walls.map((w) => w.category).toSet().toList();
-    final premium = walls.where((w) => w.isPremium).length;
-    final analyticsState = ref.watch(analyticsStateProvider);
-
-    return CustomScrollView(
-      slivers: [
-        analyticsState.when(
+  Widget _buildAnalytics(BuildContext context) {
+    final colors = context.appColors;
+    return ref.watch(analyticsStateProvider).when(
           data: (analytics) {
             if (analytics == null) return const SliverToBoxAdapter(child: SizedBox.shrink());
             final admob = analytics.admob;
-            final play  = analytics.play;
+            final play = analytics.play;
             return SliverPadding(
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
               sliver: SliverToBoxAdapter(
@@ -226,17 +321,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     Expanded(
                       child: _AnalyticsCard(
                         title: 'Yesterday AdMob Earnings',
-                        value: admob == null
-                            ? '—'
-                            : '\$${admob.earnings.toStringAsFixed(2)}',
+                        value: admob == null ? '—' : '\$${admob.earnings.toStringAsFixed(2)}',
                         icon: Icons.monetization_on,
-                        color: context.appColors.primary,
-                        metrics: admob == null ? [] : [
-                          ('Impressions', '${admob.impressions}'),
-                          ('Requests',    '${admob.requests}'),
-                          ('Match Rate',  '${(admob.matchRate * 100).toStringAsFixed(1)}%'),
-                          ('eCPM',        '\$${admob.ecpm.toStringAsFixed(3)}'),
-                        ],
+                        color: colors.primary,
+                        metrics: admob == null
+                            ? []
+                            : [
+                                ('Impressions', '${admob.impressions}'),
+                                ('Requests', '${admob.requests}'),
+                                ('Match Rate', '${(admob.matchRate * 100).toStringAsFixed(1)}%'),
+                                ('eCPM', '\$${admob.ecpm.toStringAsFixed(3)}'),
+                              ],
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -245,13 +340,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         title: 'Play Console',
                         value: play == null ? '—' : 'Active',
                         icon: Icons.android_rounded,
-                        color: Colors.greenAccent.shade400,
-                        metrics: play == null ? [] : [
-                          ('Crash Rate', '${(play.crashRate * 100).toStringAsFixed(2)}%'),
-                          ('ANR Rate',   '${(play.anrRate * 100).toStringAsFixed(2)}%'),
-                          ('Rating',     play.averageRating > 0 ? play.averageRating.toStringAsFixed(1) : '—'),
-                          ('Revenue',    'GCS export only'),
-                        ],
+                        color: colors.success,
+                        metrics: play == null
+                            ? []
+                            : [
+                                ('Crash Rate', '${(play.crashRate * 100).toStringAsFixed(2)}%'),
+                                ('ANR Rate', '${(play.anrRate * 100).toStringAsFixed(2)}%'),
+                                ('Rating', play.averageRating > 0 ? play.averageRating.toStringAsFixed(1) : '—'),
+                                ('Revenue', 'GCS export only'),
+                              ],
                       ),
                     ),
                   ],
@@ -260,205 +357,145 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             );
           },
           loading: () => const SliverToBoxAdapter(child: LinearProgressIndicator()),
-          error: (err, _) => SliverToBoxAdapter(child: Center(child: Text('Analytics Error: $err', style: const TextStyle(color: Colors.red, fontSize: 10)))),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.all(24.0),
-          sliver: SliverToBoxAdapter(
-            child: Row(
-              children: [
-                StatCard(
-                  title: 'Total Wallpapers',
-                  value: walls.length.toString(),
-                  icon: Icons.image,
-                  color: Colors.blue,
-                ),
-                const SizedBox(width: 16),
-                StatCard(
-                  title: 'Categories',
-                  value: categories.length.toString(),
-                  icon: Icons.category,
-                  color: Colors.green,
-                ),
-                const SizedBox(width: 16),
-                StatCard(
-                  title: 'Premium',
-                  value: premium.toString(),
-                  icon: Icons.star,
-                  color: Colors.orange,
-                ),
-              ],
+          error: (err, _) => SliverToBoxAdapter(
+            child: Center(
+              child: Text('Analytics Error: $err', style: TextStyle(color: colors.error, fontSize: 10)),
             ),
           ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          sliver: SliverToBoxAdapter(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        );
+  }
+}
+
+/// Explains why the catalog didn't load, with the most likely fix.
+class _CatalogError extends StatelessWidget {
+  const _CatalogError({required this.error, required this.onRetry});
+
+  final Object error;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final notSignedIn = error is NotSignedInException;
+    // Google rejected the saved refresh token (expired or revoked).
+    final expired = '$error'.contains('invalid_grant');
+    final missingScope = error is StorageException &&
+        ((error as StorageException).statusCode == 403 ||
+            (error as StorageException).statusCode == 401);
+    final needsSignIn = notSignedIn || expired || missingScope;
+    final message = notSignedIn
+        ? 'Sign in with Google in Settings to load the catalogs.'
+        : expired
+            ? 'Your Google sign-in has expired. In Settings → Credentials, '
+                'click Switch next to Google Cloud and sign in again.'
+            : missingScope
+            ? 'Your Google sign-in has no Storage access yet. In Settings → '
+                'Credentials, click Switch next to Google Cloud and sign in again to grant it.'
+            : '$error';
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(needsSignIn ? Icons.lock_outline : Icons.error_outline,
+                size: 48, color: colors.textDisabled),
+            const SizedBox(height: 16),
+            SelectableText(message, textAlign: TextAlign.center, style: TextStyle(color: colors.textSecondary)),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
-                  'Wallpapers',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(
-                  width: 300,
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Search wallpapers...',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                if (needsSignIn)
+                  FilledButton(
+                    onPressed: () => showWallRioSettings(context),
+                    child: const Text('Open Settings'),
+                  ),
+                const SizedBox(width: 12),
+                OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WallpaperCard extends StatelessWidget {
+  const _WallpaperCard({required this.entry, required this.kind, required this.onTap});
+
+  final Map<String, dynamic> entry;
+  final CatalogKind kind;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: StorageImage('${entry['thumbnail'] ?? ''}')),
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${entry['name']}',
+                        style: TextStyle(fontWeight: FontWeight.bold, color: colors.textPrimary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      isDense: true,
-                    ),
+                      Text(
+                        '#${entry['id']} · ${entry['category']} · ${entry['author']}',
+                        style: TextStyle(fontSize: 11, color: colors.textSecondary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.all(24.0),
-          sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 5,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 0.7,
-            ),
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final wall = walls[index];
-                return _WallpaperCard(
-                  wall: wall,
-                  onEdit: () => _showEditWallpaperDialog(context, data, wall),
-                  onDelete: () => _showDeleteDialog(context, ref, wall),
-                );
-              },
-              childCount: walls.length,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showAddWallpaperDialog(BuildContext context, RioData data) {
-    showDialog(
-      context: context,
-      builder: (context) => WallpaperForm(
-        existingCategories: data.walls.map((w) => w.category).toSet().toList()..sort(),
-        existingTags: data.walls.expand((w) => w.tags).toSet().toList()..sort(),
-        existingColors: data.walls.expand((w) => w.color).toSet().toList()..sort(),
-      ),
-    );
-  }
-
-  void _showEditWallpaperDialog(BuildContext context, RioData data, Wallpaper wall) {
-    showDialog(
-      context: context,
-      builder: (context) => WallpaperForm(
-        initialWallpaper: wall,
-        existingCategories: data.walls.map((w) => w.category).toSet().toList()..sort(),
-        existingTags: data.walls.expand((w) => w.tags).toSet().toList()..sort(),
-        existingColors: data.walls.expand((w) => w.color).toSet().toList()..sort(),
-      ),
-    );
-  }
-
-  Future<void> _showDeleteDialog(BuildContext context, WidgetRef ref, Wallpaper wall) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Wallpaper'),
-        content: Text('Are you sure you want to delete "${wall.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      ref.read(cmsProvider.notifier).deleteWallpaper(wall.id);
-    }
-  }
-
-  Future<void> _openFile(BuildContext context, WidgetRef ref) async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['json'],
-    );
-
-    if (result != null && result.files.single.path != null) {
-      final path = result.files.single.path!;
-      ref.read(currentFilePathProvider.notifier).set(path);
-      await ref.read(cmsProvider.notifier).loadFile(path);
-      
-      // Save to shared prefs for next time
-      await ref.read(jsonPathProvider.notifier).setPath(path);
-    }
-  }
-
-  Future<void> _showSaveDialog(BuildContext context, WidgetRef ref, String path) async {
-    final controller = TextEditingController();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Save Changes'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Enter a commit message for this version:'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                hintText: 'e.g., Added new wallpapers to abstract category',
-                border: OutlineInputBorder(),
+            if (kind.isVideo)
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: colors.surface.withValues(alpha: 0.85),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.play_arrow_rounded, size: 14, color: colors.textPrimary),
+                      Text('LIVE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+                    ],
+                  ),
+                ),
               ),
-              autofocus: true,
-            ),
+            if (entry['isPremium'] == true)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: CircleAvatar(
+                  backgroundColor: colors.warning,
+                  radius: 12,
+                  child: Icon(Icons.star, size: 16, color: colors.onPrimary),
+                ),
+              ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Save & Backup'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && controller.text.isNotEmpty) {
-      await ref.read(cmsProvider.notifier).saveFile(path, controller.text);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Saved and backup created!')),
-        );
-      }
-    }
-  }
-
-  void _showBatchAddDialog(BuildContext context, RioData data) {
-    showDialog(
-      context: context,
-      builder: (context) => BatchAddDialog(
-        existingCategories: data.walls.map((w) => w.category).toSet().toList()..sort(),
-        existingTags: data.walls.expand((w) => w.tags).toSet().toList()..sort(),
-        existingColors: data.walls.expand((w) => w.color).toSet().toList()..sort(),
       ),
     );
   }
@@ -557,180 +594,6 @@ class _AnalyticsCard extends StatelessWidget {
   }
 }
 
-class _ProjectSlot extends StatelessWidget {
-  final int index;
-  final String? label;
-  final String? path;
-  final VoidCallback? onSelect;
-  final VoidCallback onConfigure;
-
-  const _ProjectSlot({
-    required this.index,
-    this.label,
-    this.path,
-    this.onSelect,
-    required this.onConfigure,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isEmpty = label == null;
-    final colors = context.appColors;
-
-    return InkWell(
-      onTap: onSelect ?? onConfigure,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        width: 180,
-        height: 120,
-        decoration: BoxDecoration(
-          color: colors.bg,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: onSelect != null ? colors.primary.withValues(alpha: 0.3) : colors.border,
-            width: 1,
-          ),
-        ),
-        child: Stack(
-          children: [
-            if (!isEmpty)
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: colors.primarySelection,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'Slot ${index + 1}',
-                    style: TextStyle(fontSize: 10, color: colors.primary),
-                  ),
-                ),
-              ),
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    isEmpty ? Icons.add_circle_outline : Icons.insert_drive_file_outlined,
-                    size: 32,
-                    color: isEmpty ? colors.border : colors.primary,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    isEmpty ? 'Empty Slot' : label!,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: isEmpty ? colors.textDisabled : colors.textPrimary,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (!isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4, left: 12, right: 12),
-                      child: Text(
-                        path!.split('\\').last.split('/').last,
-                        style: TextStyle(fontSize: 10, color: colors.textDisabled),
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _WallpaperCard extends StatelessWidget {
-  final Wallpaper wall;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _WallpaperCard({
-    required this.wall,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: InkWell(
-                  onTap: onEdit,
-                  child: Image.network(
-                    wall.thumbnail,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    errorBuilder: (context, error, stackTrace) => Center(
-                      child: Icon(Icons.broken_image, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      wall.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          wall.category,
-                          style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete_outline, size: 16, color: Theme.of(context).colorScheme.error),
-                          onPressed: onDelete,
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          if (wall.isPremium)
-            const Positioned(
-              top: 8,
-              right: 8,
-              child: CircleAvatar(
-                backgroundColor: Colors.orange,
-                radius: 12,
-                child: Icon(Icons.star, size: 16, color: Colors.white),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
 // =============================================================================
 // Modern AppBar toolbar helpers
 // =============================================================================
@@ -740,13 +603,11 @@ class _AppBarBtn extends StatelessWidget {
     required this.icon,
     required this.tooltip,
     required this.onPressed,
-    this.isActive = false,
   });
 
   final IconData icon;
   final String tooltip;
   final VoidCallback? onPressed;
-  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
@@ -759,7 +620,6 @@ class _AppBarBtn extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           decoration: BoxDecoration(
-            color: isActive ? colors.primarySelection : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Material(
@@ -773,7 +633,7 @@ class _AppBarBtn extends StatelessWidget {
                 child: Icon(
                   icon,
                   size: 17,
-                  color: isActive ? colors.primary : colors.textSecondary,
+                  color: onPressed == null ? colors.textDisabled : colors.textSecondary,
                 ),
               ),
             ),

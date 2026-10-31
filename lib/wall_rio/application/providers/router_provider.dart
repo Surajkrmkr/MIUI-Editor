@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../presentation/screens/dashboard_screen.dart';
+import '../../presentation/screens/history_screen.dart';
 import '../../presentation/screens/settings_screen.dart';
-import '../../presentation/screens/git_control_screen.dart';
 
 // Renamed from routerProvider to avoid conflict with image_utility's routerProvider
 final wallRioRouterProvider = Provider<GoRouter>((ref) {
@@ -14,12 +14,12 @@ final wallRioRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const DashboardScreen(),
       ),
       GoRoute(
-        path: '/settings',
-        builder: (context, state) => const SettingsScreen(),
+        path: '/history',
+        builder: (context, state) => const HistoryScreen(),
       ),
       GoRoute(
-        path: '/git',
-        builder: (context, state) => const GitControlScreen(),
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );

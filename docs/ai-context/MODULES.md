@@ -10,7 +10,7 @@ RootApp (Launcher)
 ├── Image Utility (MaterialApp.router - GoRouter)
 ├── Themes Deployment (MaterialApp)
 ├── WallRio CMS (MaterialApp.router - GoRouter)
-│   └── Hive Database
+│   └── Firebase Storage catalogs
 ├── BuffyWalls CMS (MaterialApp)
 
 Core Shared
@@ -263,67 +263,82 @@ Simple Navigator (single page app)
 
 ### Purpose
 
-CMS for wallpaper management with Git version control and analytics.
+CMS for the WallRio app's wallpaper catalogs in **Firebase Storage**: upload
+wallpapers (with automatic thumbnails), edit/delete entries, and restore
+earlier catalog versions. Also shows AdMob / Play analytics and sends FCM pushes.
 
 ### Structure
 
 ```
 wall_rio/
 ├── application/
-│   └── providers/
-│       └── router_provider.dart     # GoRouter setup
+│   ├── providers/
+│   │   ├── catalog_provider.dart    # storage settings, client, catalog per kind, history
+│   │   ├── credentials_provider.dart # Google OAuth (wallRioScopes incl. devstorage.read_write)
+│   │   └── router_provider.dart     # GoRouter: /, /history, /settings
+│   └── services/catalog_service.dart # load / publish / update / delete / restore
 ├── domain/
-│   ├── entities/
-│   ├── models/cms_models.dart       # Hive models
-│   └── repositories/
-├── presentation/
-│   ├── screens/
-│   ├── pages/
-│   └── widgets/
-└── [data layer]
+│   ├── catalog_rules.dart           # pure rules: URLs, ids, paths, resolution, validation
+│   └── models/catalog.dart          # CatalogKind, CatalogDocument, WallpaperDraft, StorageSettings
+├── infrastructure/services/
+│   ├── storage_client.dart          # GCS JSON API (conditional upload, copy, list)
+│   └── thumbnail_engine.dart        # header-only size read, thumbnails in an isolate
+└── presentation/
+    ├── screens/                     # dashboard, history, settings
+    └── widgets/                     # upload_dialog, entry_edit_dialog, wallpaper_fields, storage_image
 ```
 
-### Entry Point
+### Catalogs
 
-GoRouter-based routing
+| Kind | JSON | Min upload | Generated | Media paths |
+|---|---|---|---|---|
+| Mobile | `rio.Json` (`walls: [...]`) | 1720 × 3728 image | 430 × 932 thumbnail | `wallrio_wall_data/<Category>/<Name>.<ext>`, `…/Thumbnails/<Name>-small.jpg` |
+| Desktop | `desktop.json` (`walls: [[...]]`) | 3840 × 2160 image | 640 × 360 thumbnail | `wallrio_wall_data/Desktop/<Name>.<ext>`, `…/Thumbnail/<Name>-small.jpg` |
+| Live | `live_wall.json` (`walls: [...]`) | 1080 × 1920 MP4 | preview clip (fit 1280×720, 2 Mbps) + JPEG frame at 1 s (fit 960×540), via ffmpeg like `process_videos.py` | `wallrio_live/livewalls/<Name>.mp4`, `previews/<Name>_preview.mp4`, `thumbnails/<Name>.jpg` |
+| Collections | `collections.json` (`collections: [{id, productId, name, hideForIOS?, walls}]`) | 1720 × 3728 image | 430 × 932 thumbnail | `wallrio_wall_data/<Collection>/<Name>.<ext>`, `…/Thumbnails/<Name>-small.jpg` |
 
-### Storage
+- Live uploads need **ffmpeg/ffprobe** (`brew install ffmpeg`); `VideoEngine` looks in
+  `/opt/homebrew/bin`, `/usr/local/bin`, `/usr/bin` and `PATH`.
+- Collection ids and wallpaper ids inside collections are strings; each collection keeps
+  its own order (some are oldest first), and new wallpapers follow it.
+- New collections are created from the Collections tab (name, in-app product id,
+  hide on iOS). The app lists a collection as soon as it's saved, even when empty; the
+  in-app product must be created in Play Console / App Store Connect separately.
 
-**Hive** local database for:
+### Rules the service enforces
 
-- Saved file paths (`SavedFilePathImplAdapter`)
-- Local versions (`LocalVersionImplAdapter`)
+- Images upload before the JSON, with `ifGenerationMatch=0`: **existing files are never
+  overwritten** (the app caches images for a year), so a taken name must be renamed.
+- Images: `Cache-Control: public, max-age=31536000, immutable`. JSON: gzipped,
+  `Content-Encoding: gzip`, `Cache-Control: public, max-age=300`.
+- Every JSON save first copies the live version to `wallriojson/history/<kind>/<timestamp>.json`
+  and is conditional on the generation it was read at; on a conflict the edit is
+  re-applied to the latest copy (up to 3 tries).
+- New entries go to the top (newest first), id = max id + 1, author defaults to the newest entry's.
+- Entries are matched by `url` (`videoUrl` for live; ids are not unique in the existing data).
+- Bulk metadata: Upload → **Fill from JSON** (`domain/bulk_details.dart`); schema and example in
+  `docs/wallrio_bulk_details.schema.json`. Entries match dropped files by name.
 
-### Features
+### Auth
 
-- **Wallpaper Management**: Organize, categorize wallpapers
-- **Git Integration**: Version control for wallpapers
-- **Analytics**: Tracking and insights
-- **Push Notifications**: Update notifications
+The signed-in Google account (OAuth client in Settings → Credentials) calls the GCS
+JSON API directly, so Firebase Storage rules don't apply to the CMS. Accounts signed
+in before Storage was added must click **Switch** to grant the new scope.
 
-### State Management
+### Tests
 
-- Riverpod for UI state
-- Hive for persistent data
-
-### Navigation Pattern
-
-**GoRouter** with routes in `application/providers/router_provider.dart`
-
-### Database Adapters
-
-Register in `main.dart`:
-
-```dart
-Hive.registerAdapter(SavedFilePathImplAdapter());
-Hive.registerAdapter(LocalVersionImplAdapter());
-```
+- `test/wall_rio/catalog_rules_test.dart` — pure rules.
+- `test/wall_rio/catalog_service_storage_test.dart` — real bucket, throwaway folder;
+  skipped unless `WALLRIO_TEST_TOKEN=$(gcloud auth print-access-token)` is set.
 
 ### Key Files to Update When Adding Features
 
-- `domain/models/cms_models.dart` — Add Hive model classes
+- New catalog — add a `CatalogKind`, its paths (`CatalogRules.objectPaths`) and entry shape (`buildEntry`).
 - `presentation/screens/` — Add new screens
 - `application/providers/router_provider.dart` — Register routes
+
+> The git classes (`git_models`, `git_repository`, `cli_git_repository`) and
+> `ThumbnailEngine.generateThumbnail` remain only because BuffyWalls imports them.
 
 ---
 

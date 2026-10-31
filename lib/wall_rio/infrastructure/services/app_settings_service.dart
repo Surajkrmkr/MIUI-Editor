@@ -1,10 +1,14 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../domain/models/catalog.dart';
+
 class AppSettingsService {
-  static const String _jsonPathKey = 'wallrio_json_path';
-  static const String _wallpaperRepoPathKey = 'wallrio_wallpaper_repo_path';
   static const String _admobPublisherIdKey = 'admob_publisher_id';
   static const String _playPackageNameKey = 'play_package_name';
+  static const String _bucketKey = 'wallrio_storage_bucket';
+  static const String _jsonFolderKey = 'wallrio_storage_json_folder';
+  static const String _imagesRootKey = 'wallrio_storage_images_root';
+  static const String _liveRootKey = 'wallrio_storage_live_root';
 
   Future<String?> getAdMobPublisherId() async {
     final prefs = await SharedPreferences.getInstance();
@@ -26,23 +30,22 @@ class AppSettingsService {
     await prefs.setString(_playPackageNameKey, name);
   }
 
-  Future<String?> getJsonPath() async {
+  Future<StorageSettings> getStorageSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_jsonPathKey);
+    const defaults = StorageSettings();
+    return StorageSettings(
+      bucket: prefs.getString(_bucketKey) ?? defaults.bucket,
+      jsonFolder: prefs.getString(_jsonFolderKey) ?? defaults.jsonFolder,
+      imagesRoot: prefs.getString(_imagesRootKey) ?? defaults.imagesRoot,
+      liveRoot: prefs.getString(_liveRootKey) ?? defaults.liveRoot,
+    );
   }
 
-  Future<void> setJsonPath(String path) async {
+  Future<void> setStorageSettings(StorageSettings settings) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_jsonPathKey, path);
-  }
-
-  Future<String?> getWallpaperRepoPath() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_wallpaperRepoPathKey);
-  }
-
-  Future<void> setWallpaperRepoPath(String path) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_wallpaperRepoPathKey, path);
+    await prefs.setString(_bucketKey, settings.bucket);
+    await prefs.setString(_jsonFolderKey, settings.jsonFolder);
+    await prefs.setString(_imagesRootKey, settings.imagesRoot);
+    await prefs.setString(_liveRootKey, settings.liveRoot);
   }
 }

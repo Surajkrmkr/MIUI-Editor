@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
-import '../../application/providers/cms_provider.dart';
-import '../../application/providers/settings_provider.dart';
+
+import '../../application/providers/catalog_provider.dart';
+import '../../domain/models/catalog.dart';
 import '../screens/settings_screen.dart';
 
 class Sidebar extends ConsumerWidget {
@@ -10,10 +12,36 @@ class Sidebar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentPath = ref.watch(currentFilePathProvider);
-    final savedPathsState = ref.watch(savedPathsProvider);
+    final kind = ref.watch(selectedKindProvider);
+    final settings = ref.watch(storageSettingsProvider).valueOrNull;
+    final location = GoRouterState.of(context).uri.path;
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
+
+    Widget item({
+      required IconData icon,
+      required String label,
+      required bool selected,
+      required VoidCallback onTap,
+    }) {
+      return ListTile(
+        leading: Icon(icon, size: 18, color: selected ? colors.primary : colors.textSecondary),
+        title: Text(
+          label,
+          style: TextStyle(
+            color: selected ? colors.primary : colors.textPrimary,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+            fontSize: 13,
+          ),
+        ),
+        selected: selected,
+        dense: true,
+        onTap: () {
+          Navigator.pop(context);
+          onTap();
+        },
+      );
+    }
 
     return Drawer(
       child: Column(
@@ -40,147 +68,49 @@ class Sidebar extends ConsumerWidget {
                 const SizedBox(height: 12),
                 Text(
                   'WallRio CMS',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: colors.textPrimary,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary),
                 ),
+                if (settings != null)
+                  Text(
+                    settings.bucket,
+                    style: TextStyle(fontSize: 10, color: colors.textDisabled),
+                    overflow: TextOverflow.ellipsis,
+                  ),
               ],
             ),
           ),
-
           const SizedBox(height: 8),
 
-          // ── Projects section ─────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'PROJECTS',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: colors.textSecondary,
-                  letterSpacing: 1.1,
-                ),
-              ),
+          // ── Catalogs ─────────────────────────────────────────────────────
+          for (final k in CatalogKind.values)
+            item(
+              icon: switch (k) {
+                CatalogKind.mobile => Icons.smartphone_rounded,
+                CatalogKind.desktop => Icons.desktop_windows_rounded,
+                CatalogKind.live => Icons.play_circle_outline_rounded,
+                CatalogKind.collections => Icons.collections_bookmark_outlined,
+              },
+              label: '${k.label} · ${k.jsonFile}',
+              selected: location == '/' && kind == k,
+              onTap: () {
+                ref.read(selectedKindProvider.notifier).select(k);
+                context.go('/');
+              },
             ),
-          ),
-
-          savedPathsState.when(
-            data: (paths) => Column(
-              children: List.generate(3, (index) {
-                final p = index < paths.length ? paths[index] : null;
-
-                if (p == null) {
-                  return ListTile(
-                    leading: Icon(Icons.add_circle_outline_rounded,
-                        size: 18, color: colors.textDisabled),
-                    title: Text(
-                      'Slot ${index + 1} — Empty',
-                      style: TextStyle(color: colors.textDisabled, fontSize: 13),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      showWallRioSettings(context);
-                    },
-                    dense: true,
-                  );
-                }
-
-                final isActive = currentPath == p.path;
-                return ListTile(
-                  leading: Icon(
-                    isActive
-                        ? Icons.insert_drive_file_rounded
-                        : Icons.insert_drive_file_outlined,
-                    size: 18,
-                    color: isActive ? colors.primary : colors.textSecondary,
-                  ),
-                  title: Text(
-                    p.label,
-                    style: TextStyle(
-                      color: isActive ? colors.primary : colors.textPrimary,
-                      fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-                      fontSize: 13,
-                    ),
-                  ),
-                  subtitle: Text(
-                    p.path.split('/').last,
-                    style: TextStyle(fontSize: 10, color: colors.textDisabled),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  selected: isActive,
-                  dense: true,
-                  onTap: () {
-                    ref.read(currentFilePathProvider.notifier).set(p.path);
-                    ref.read(cmsProvider.notifier).loadFile(p.path);
-                    Navigator.pop(context);
-                  },
-                );
-              }),
-            ),
-            loading: () => const Padding(
-              padding: EdgeInsets.all(16),
-              child: LinearProgressIndicator(),
-            ),
-            error: (_, __) =>
-                const ListTile(title: Text('Error loading projects')),
+          item(
+            icon: Icons.history_rounded,
+            label: 'History & Restore',
+            selected: location == '/history',
+            onTap: () => context.go('/history'),
           ),
 
           const Spacer(),
-
-          // ── Active file indicator ────────────────────────────────────────
-          if (currentPath != null)
-            Container(
-              margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: colors.primary.withAlpha(15),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: colors.primary.withAlpha(40)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.check_circle_rounded, size: 14, color: colors.primary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Active File',
-                          style: TextStyle(
-                              fontSize: 9,
-                              color: colors.primary,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.8),
-                        ),
-                        Text(
-                          currentPath.split('/').last,
-                          style: TextStyle(
-                              fontSize: 11,
-                              color: colors.textPrimary,
-                              fontWeight: FontWeight.w500),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
           // ── Footer ──────────────────────────────────────────────────────────
           Divider(color: colors.borderSubtle),
           ListTile(
             leading: Icon(Icons.settings_rounded, color: colors.textSecondary, size: 18),
-            title: Text('Settings',
-                style: TextStyle(color: colors.textPrimary, fontSize: 13)),
+            title: Text('Settings', style: TextStyle(color: colors.textPrimary, fontSize: 13)),
             onTap: () {
               Navigator.pop(context);
               showWallRioSettings(context);

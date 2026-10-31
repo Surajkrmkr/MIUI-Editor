@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wallrio_bulk_details.schema.json",
+  "title": "WallRio CMS bulk upload details",
+  "description": "Paste into Upload → Fill from JSON. \"defaults\" apply to every dropped file; each \"walls\" entry overrides them for the file named in \"file\" (case-insensitive, extension optional). A bare array is accepted as \"walls\".",
+  "oneOf": [
+    { "$ref": "#/$defs/document" },
+    { "$ref": "#/$defs/walls" }
+  ],
+  "$defs": {
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "$schema": { "type": "string" },
+        "defaults": { "$ref": "#/$defs/fields" },
+        "walls": { "$ref": "#/$defs/walls" }
+      }
+    },
+    "walls": {
+      "type": "array",
+      "items": {
+        "allOf": [{ "$ref": "#/$defs/fields" }],
+        "type": "object",
+        "required": ["file"],
+        "properties": {
+          "file": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the dropped file, e.g. \"golden_fields.jpg\" or \"golden_fields\"."
+          }
+        },
+        "unevaluatedProperties": false
+      }
+    },
+    "fields": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Wallpaper name; also its file name in Storage." },
+        "author": { "type": "string" },
+        "category": { "type": "string", "description": "Existing or new category." },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "colors": { "type": "array", "items": { "type": "string" }, "description": "Color names, e.g. \"Red\", \"Blue\"." },
+        "isPremium": { "type": "boolean" }
+      },
+      "unevaluatedProperties": false
+    }
+  },
+  "examples": [
+    {
+      "defaults": { "author": "WallRio", "category": "Nature", "isPremium": false },
+      "walls": [
+        {
+          "file": "golden_fields.jpg",
+          "name": "Golden Fields",
+          "tags": ["Sunset", "Field", "Warm"],
+          "colors": ["Yellow", "Orange"]
+        },
+        {
+          "file": "misty_peaks.png",
+          "name": "Misty Peaks",
+          "category": "Mountains",
+          "tags": ["Fog", "Mountain"],
+          "colors": ["Blue", "Grey"],
+          "isPremium": true
+        }
+      ]
+    }
+  ]
+}
