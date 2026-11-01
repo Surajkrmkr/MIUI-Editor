@@ -233,7 +233,9 @@ class CatalogRules {
     if (!RegExp(r'^[a-z0-9_]+(\.[a-z0-9_]+)+$').hasMatch(productId)) {
       problems.add('Product id must look like com.wallrio.collection.name');
     }
-    if (others.any((c) => '${c['name']}'.toLowerCase() == name.trim().toLowerCase())) {
+    if (others.any(
+      (c) => '${c['name']}'.toLowerCase() == name.trim().toLowerCase(),
+    )) {
       problems.add('A collection named "${name.trim()}" already exists');
     }
     if (others.any((c) => c['productId'] == productId)) {
