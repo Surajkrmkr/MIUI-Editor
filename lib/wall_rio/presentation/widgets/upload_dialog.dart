@@ -107,11 +107,7 @@ class _UploadDialogState extends ConsumerState<UploadDialog> {
   Future<void> _addFiles(Iterable<String> paths) async {
     for (final path in paths) {
       if (_files.any((f) => f.path == path)) continue;
-      final ext = CatalogRules.extensionOf(path);
-      final allowed = _kind.uploadExtensions
-          .map(CatalogRules.extensionOf)
-          .toSet();
-      if (!allowed.contains(ext)) {
+      if (!CatalogRules.acceptsUpload(_kind, path)) {
         setState(
           () => _files.add(_PickedFile.invalid(path, 'Only ${_typesLabel()}')),
         );

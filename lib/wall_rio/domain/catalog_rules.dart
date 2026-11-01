@@ -82,6 +82,10 @@ class CatalogRules {
     return ext == 'jpeg' ? 'jpg' : ext;
   }
 
+  /// Whether the file extension is supported by the selected catalog.
+  static bool acceptsUpload(CatalogKind kind, String path) =>
+      kind.uploadExtensions.contains(extensionOf(path));
+
   /// Storage paths for a new wallpaper, keyed by the entry field they fill.
   /// [folder] is the category (mobile) or the collection name (collections).
   static Map<String, String> objectPaths({

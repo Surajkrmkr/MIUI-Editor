@@ -38,6 +38,41 @@ void main() {
     expect(CatalogRules.nameFromFilename('Abyss Dragon.png'), 'Abyss Dragon');
   });
 
+  group('upload formats', () {
+    test('image catalogs accept JPG, JPEG and PNG regardless of case', () {
+      for (final kind in [
+        CatalogKind.mobile,
+        CatalogKind.desktop,
+        CatalogKind.collections,
+      ]) {
+        for (final extension in ['jpg', 'jpeg', 'png', 'JPG', 'JPEG', 'PNG']) {
+          expect(
+            CatalogRules.acceptsUpload(kind, '/uploads/wallpaper.$extension'),
+            isTrue,
+          );
+        }
+        for (final filename in ['wallpaper.webp', 'wallpaper.mp4', 'wallpaper']) {
+          expect(CatalogRules.acceptsUpload(kind, '/uploads/$filename'), isFalse);
+        }
+      }
+    });
+
+    test('live catalog accepts only MP4 regardless of case', () {
+      for (final extension in ['mp4', 'MP4']) {
+        expect(
+          CatalogRules.acceptsUpload(CatalogKind.live, '/uploads/video.$extension'),
+          isTrue,
+        );
+      }
+      for (final filename in ['video.mov', 'wallpaper.png', 'video']) {
+        expect(
+          CatalogRules.acceptsUpload(CatalogKind.live, '/uploads/$filename'),
+          isFalse,
+        );
+      }
+    });
+  });
+
   group('resolution', () {
     test('mobile needs at least 1720 × 3728', () {
       expect(CatalogRules.resolutionError(CatalogKind.mobile, 1720, 3728), isNull);
