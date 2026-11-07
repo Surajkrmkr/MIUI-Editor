@@ -47,12 +47,6 @@ class BuffySettingsNotifier extends Notifier<BuffySettings> {
     state = state.copyWith(localRepoPath: path);
   }
 
-  Future<void> setJsonFilePath(String path) async {
-    final prefs = ref.read(sharedPrefsProvider);
-    await prefs.setString('buffy_json_file_path', path);
-    state = state.copyWith(jsonFilePath: path);
-  }
-
   Future<void> setAdMobPublisherId(String id) async {
     final prefs = ref.read(sharedPrefsProvider);
     await prefs.setString('buffy_admob_publisher_id', id);

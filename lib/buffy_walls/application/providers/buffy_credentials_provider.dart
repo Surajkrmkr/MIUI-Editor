@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/buffy_credential_models.dart';
 import '../../infrastructure/services/buffy_secure_storage_service.dart';
+import '../../../wall_rio/application/providers/credentials_provider.dart' show storageScope;
 import '../../../wall_rio/infrastructure/services/google_api_service.dart';
 
 class BuffyCredentialsStateNotifier extends AsyncNotifier<BuffyCredentialStatus> {
@@ -50,6 +51,7 @@ class BuffyCredentialsStateNotifier extends AsyncNotifier<BuffyCredentialStatus>
       'https://www.googleapis.com/auth/firebase.messaging',
       'https://www.googleapis.com/auth/admob.report',
       'https://www.googleapis.com/auth/playdeveloperreporting',
+      storageScope,
     ]);
     if (success) {
       ref.invalidateSelf();

@@ -346,7 +346,7 @@ in before Storage was added must click **Switch** to grant the new scope.
 
 ### Purpose
 
-Wallpaper CMS with categorization and GitLab push integration.
+Wallpaper CMS with categorization. Loads the catalog from Firebase Storage (`buffywalls.appspot.com`) and publishes media and catalog there; the Git panel remains for the local repos.
 
 ### Structure
 

@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import 'package:miui_icon_generator/widgets/app_icon_button.dart';
 import '../../application/providers/buffy_cms_provider.dart';
-import '../../application/providers/buffy_settings_provider.dart';
 import '../../application/providers/buffy_analytics_provider.dart';
+import '../../application/providers/buffy_storage_provider.dart';
 import '../../domain/models/buffy_wallpaper.dart';
 import '../widgets/buffy_wallpaper_form.dart';
 import '../widgets/buffy_settings_dialog.dart';
@@ -26,7 +26,7 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final cmsState = ref.watch(buffyCmsProvider);
-    final settings = ref.watch(buffySettingsProvider);
+    final isLoaded = cmsState.generation != null;
 
     return Scaffold(
       appBar: AppBar(
@@ -46,19 +46,12 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
             ),
           ],
         ),
-        title: Text(settings.jsonFilePath.isNotEmpty
-            ? 'Dashboard - ${settings.jsonFilePath.split('\\').last.split('/').last}'
-            : 'Dashboard'),
+        title: Text(cmsState.isDirty ? 'Dashboard - unpublished changes' : 'Dashboard'),
         actions: [
           _AppBarBtn(
             icon: Icons.refresh_rounded,
-            tooltip: 'Refresh',
-            onPressed: () {
-              if (settings.jsonFilePath.isNotEmpty) {
-                ref.read(buffyCmsProvider.notifier).loadFile(settings.jsonFilePath);
-                ref.read(buffyAnalyticsStateProvider.notifier).refresh();
-              }
-            },
+            tooltip: 'Reload from Firebase',
+            onPressed: () => _reload(context),
           ),
           _AppBarBtn(
             icon: _showGitPanel ? Icons.view_sidebar : Icons.view_sidebar_outlined,
@@ -66,7 +59,7 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
             isActive: _showGitPanel,
             onPressed: () => setState(() => _showGitPanel = !_showGitPanel),
           ),
-          if (settings.jsonFilePath.isNotEmpty) ...[
+          if (isLoaded) ...[
             const _AppBarDivider(),
             _AppBarBtn(
               icon: Icons.add_photo_alternate_rounded,
@@ -79,9 +72,9 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
               onPressed: () => _showAddDialog(context, cmsState),
             ),
             _AppBarBtn(
-              icon: Icons.save_rounded,
-              tooltip: 'Save & Backup',
-              onPressed: () => _showSaveDialog(context),
+              icon: Icons.cloud_upload_rounded,
+              tooltip: 'Publish to Firebase',
+              onPressed: () => _publishToFirebase(context),
             ),
           ],
           const SizedBox(width: 8),
@@ -93,15 +86,15 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
           Expanded(
             child: cmsState.isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : settings.jsonFilePath.isEmpty
-                    ? _buildSetupView(context)
-                    : _buildMainContent(context, cmsState, ref),
+                : isLoaded
+                    ? _buildMainContent(context, cmsState, ref)
+                    : _buildSetupView(context, cmsState.error),
           ),
           if (_showGitPanel) 
             const BuffyGitPanel(),
         ],
       ),
-      floatingActionButton: settings.jsonFilePath.isNotEmpty
+      floatingActionButton: isLoaded
           ? FloatingActionButton(
               onPressed: () => _showAddDialog(context, cmsState),
               tooltip: 'Quick Add Single',
@@ -111,9 +104,9 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
     );
   }
 
-  Widget _buildSetupView(BuildContext context) {
+  Widget _buildSetupView(BuildContext context, String? error) {
     final colors = context.appColors;
-    
+
     return Container(
       width: double.infinity,
       height: double.infinity,
@@ -122,68 +115,32 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.folder_outlined, size: 80, color: colors.textDisabled),
+            Icon(Icons.cloud_off_rounded, size: 80, color: colors.textDisabled),
             const SizedBox(height: 24),
             Text(
-              'No JSON file loaded',
+              'Catalog not loaded',
               style: TextStyle(
                 fontSize: 22,
                 color: colors.textSecondary,
                 letterSpacing: 1.1,
               ),
             ),
-            const SizedBox(height: 64),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: InkWell(
-                    onTap: () => showDialog(context: context, builder: (_) => const BuffySettingsDialog()),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      width: 180,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: colors.bg,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: colors.border,
-                          width: 1,
-                        ),
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.add_circle_outline,
-                              size: 32,
-                              color: colors.border,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Empty Slot',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: colors.textDisabled,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+            if (error != null) ...[
+              const SizedBox(height: 12),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: SelectableText(
+                  error,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 13, color: colors.textSecondary),
                 ),
-              ],
-            ),
-            const SizedBox(height: 80),
+              ),
+            ],
+            const SizedBox(height: 40),
             ElevatedButton.icon(
               onPressed: () => showDialog(context: context, builder: (_) => const BuffySettingsDialog()),
               icon: const Icon(Icons.settings_rounded),
-              label: const Text('Configure JSON Path'),
+              label: const Text('Open Settings'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.surface,
                 foregroundColor: colors.primary,
@@ -394,32 +351,106 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
     );
   }
 
-  void _showSaveDialog(BuildContext context) {
-    final ctrl = TextEditingController();
-    showDialog(
+  Future<void> _reload(BuildContext context) async {
+    if (ref.read(buffyCmsProvider).isDirty) {
+      final confirmed = await _confirm(
+        context,
+        title: 'Discard unpublished changes?',
+        message: 'Reloading replaces your edits with the live catalog.',
+        action: 'Discard',
+      );
+      if (!confirmed) return;
+    }
+    ref.read(buffyCmsProvider.notifier).load();
+    ref.read(buffyAnalyticsStateProvider.notifier).refresh();
+  }
+
+  Future<void> _publishToFirebase(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final notifier = ref.read(buffyCmsProvider.notifier);
+    try {
+      messenger.showSnackBar(const SnackBar(content: Text('Checking catalog...')));
+      final publisher = await ref.read(buffyCatalogPublisherProvider.future);
+      final localJson = await notifier.buildCatalogJson();
+      final preview = await publisher.preview(
+        localJson,
+        generation: ref.read(buffyCmsProvider).generation!,
+      );
+      messenger.hideCurrentSnackBar();
+      if (!context.mounted) return;
+
+      if (preview.problems.isNotEmpty) {
+        await _showPublishProblems(context, preview.problems);
+        return;
+      }
+
+      final confirmed = await _confirm(
+        context,
+        title: 'Publish to Firebase?',
+        message: 'All app users on Firebase will get this catalog within minutes.\n\n'
+            'Live now: ${preview.liveCount} wallpapers\n'
+            'After publishing: ${preview.localCount} wallpapers',
+        action: 'Publish',
+      );
+      if (!confirmed) return;
+
+      final generation = await publisher.publish(localJson, preview);
+      notifier.markPublished(localJson, generation);
+      messenger.showSnackBar(
+        SnackBar(content: Text('Published ${preview.localCount} wallpapers.')),
+      );
+    } catch (e) {
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(SnackBar(content: Text('Publish Error: $e')));
+    }
+  }
+
+  Future<bool> _confirm(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required String action,
+  }) async {
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Save Changes'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('This will update the local JSON file. You will still need to push changes to Git.'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: ctrl,
-              decoration: const InputDecoration(hintText: 'Describe changes (optional)'),
-            ),
-          ],
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: Text(action)),
+        ],
+      ),
+    );
+    return confirmed == true;
+  }
+
+  Future<void> _showPublishProblems(BuildContext context, List<String> problems) {
+    return showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Not published: ${problems.length} problems'),
+        content: SizedBox(
+          width: 560,
+          height: 320,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Fix these first. Nothing has been changed on Firebase.'),
+              const SizedBox(height: 12),
+              Expanded(
+                child: ListView(
+                  children: [
+                    for (final problem in problems)
+                      SelectableText(problem, style: const TextStyle(fontSize: 12)),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () async {
-              await ref.read(buffyCmsProvider.notifier).saveFile();
-              if (context.mounted) Navigator.pop(ctx);
-            },
-            child: const Text('Save'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
         ],
       ),
     );

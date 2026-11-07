@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import 'package:path/path.dart' as p;
 import '../../application/providers/buffy_cms_provider.dart';
+import '../../application/services/buffy_wallpaper_import_service.dart';
+import '../../domain/buffy_storage_layout.dart';
 import '../../domain/models/buffy_wallpaper.dart';
 import '../../shared/utils/constants.dart';
 
@@ -40,6 +42,7 @@ class _BuffyWallpaperFormState extends ConsumerState<BuffyWallpaperForm> {
   final _tagsFocusNode = FocusNode();
   final _colorsFocusNode = FocusNode();
   File? _localFile;
+  bool _isUploading = false;
 
   @override
   void initState() {
@@ -86,12 +89,10 @@ class _BuffyWallpaperFormState extends ConsumerState<BuffyWallpaperForm> {
     final name = _nameController.text.trim();
     final category = _categoryController.text.trim();
     if (name.isNotEmpty && category.isNotEmpty) {
-      final normalizedName = Uri.encodeComponent(name);
-      final normalizedCategory = Uri.encodeComponent(category);
-      
-      final expectedImg = 'https://gitlab.com/piyushkpv/buffy_wall_data/-/raw/main/$normalizedCategory/$normalizedName.jpg';
-      final expectedThumb = 'https://gitlab.com/piyushkpv/buffy_wall_data/-/raw/main/$normalizedCategory/Thumbnails/$normalizedName-small.jpg';
-      
+      final ext = _localFile == null ? '.jpg' : p.extension(_localFile!.path).toLowerCase();
+      final expectedImg = buffyDownloadUrl(buffyImageObject(category, '$name$ext'));
+      final expectedThumb = buffyDownloadUrl(buffyThumbObject(category, name));
+
       if (_imageUrlController.text != expectedImg) {
         _imageUrlController.text = expectedImg;
       }
@@ -544,9 +545,9 @@ class _BuffyWallpaperFormState extends ConsumerState<BuffyWallpaperForm> {
           SizedBox(
             height: 40,
             child: FilledButton.icon(
-              onPressed: _submit,
+              onPressed: _isUploading ? null : _submit,
               icon: const Icon(Icons.check_rounded, size: 17),
-              label: const Text('Save Wallpaper'),
+              label: Text(_isUploading ? 'Uploading...' : 'Save Wallpaper'),
             ),
           ),
         ],
@@ -554,9 +555,30 @@ class _BuffyWallpaperFormState extends ConsumerState<BuffyWallpaperForm> {
     );
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
+    if (_localFile != null) {
+      setState(() => _isUploading = true);
+      try {
+        final urls = await ref.read(buffyWallpaperImportServiceProvider.notifier).uploadMedia(
+              file: _localFile!,
+              category: _categoryController.text.trim(),
+              name: _nameController.text.trim(),
+            );
+        _imageUrlController.text = urls.imageUrl;
+        _compressUrlController.text = urls.thumbUrl;
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isUploading = false);
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Upload Error: $e')));
+        }
+        return;
+      }
+      if (!mounted) return;
+    }
+
+
     // We try to auto-calculate the ID if adding new
     int id = int.tryParse(_idController.text.trim()) ?? 0;
     if (id == 0 && widget.initialWallpaper == null) {

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 import '../../application/providers/buffy_settings_provider.dart';
-import '../../application/providers/buffy_cms_provider.dart';
 import '../../application/providers/buffy_credentials_provider.dart';
 import '../../application/providers/buffy_analytics_provider.dart';
 import '../../domain/models/buffy_credential_models.dart';
@@ -145,7 +144,7 @@ class _ProjectTab extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'BuffyWalls Project Paths',
+                'BuffyWalls Project',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: cs.primary,
@@ -153,7 +152,7 @@ class _ProjectTab extends ConsumerWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Configure the local repository and JSON data file.',
+                'The catalog loads from Firebase. Optionally keep a local copy of new wallpapers in a repository.',
                 style: Theme.of(context)
                     .textTheme
                     .bodySmall
@@ -161,7 +160,7 @@ class _ProjectTab extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
               _LabeledField(
-                label: 'Local Repo Path',
+                label: 'Local Repo Path (optional)',
                 child: _PickerField(
                   value: settings.localRepoPath,
                   hint: 'Select directory...',
@@ -169,25 +168,6 @@ class _ProjectTab extends ConsumerWidget {
                     String? result = await FilePicker.platform.getDirectoryPath();
                     if (result != null) {
                       ref.read(buffySettingsProvider.notifier).setLocalRepoPath(result);
-                    }
-                  },
-                ),
-              ),
-              const SizedBox(height: 20),
-              _LabeledField(
-                label: 'JSON File Path',
-                child: _PickerField(
-                  value: settings.jsonFilePath,
-                  hint: 'Select buffy.json...',
-                  onPick: () async {
-                    FilePickerResult? result = await FilePicker.platform.pickFiles(
-                      type: FileType.custom,
-                      allowedExtensions: ['json'],
-                    );
-                    if (result != null && result.files.single.path != null) {
-                      final path = result.files.single.path!;
-                      ref.read(buffySettingsProvider.notifier).setJsonFilePath(path);
-                      ref.read(buffyCmsProvider.notifier).loadFile(path);
                     }
                   },
                 ),
