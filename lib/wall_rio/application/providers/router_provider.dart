@@ -11,10 +11,7 @@ final wallRioRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
     routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const DashboardScreen(),
-      ),
+      GoRoute(path: '/', builder: (context, state) => const DashboardScreen()),
       GoRoute(
         path: '/history',
         builder: (context, state) => const HistoryScreen(),
@@ -23,10 +20,7 @@ final wallRioRouterProvider = Provider<GoRouter>((ref) {
         path: '/fields',
         builder: (context, state) => const CatalogFieldsScreen(),
       ),
-      GoRoute(
-        path: '/push',
-        builder: (context, state) => const PushScreen(),
-      ),
+      GoRoute(path: '/push', builder: (context, state) => const PushScreen()),
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),

@@ -10,10 +10,10 @@ import '../../domain/buffy_catalog_json.dart';
 import '../../domain/models/buffy_wallpaper.dart';
 
 Future<void> showBuffyPublishDialog(BuildContext context) => showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const _BuffyPublishDialog(),
-    );
+  context: context,
+  barrierDismissible: false,
+  builder: (_) => const _BuffyPublishDialog(),
+);
 
 enum _Phase { checking, ready, blocked, publishing, done, failed }
 
@@ -22,7 +22,8 @@ class _BuffyPublishDialog extends ConsumerStatefulWidget {
   const _BuffyPublishDialog();
 
   @override
-  ConsumerState<_BuffyPublishDialog> createState() => _BuffyPublishDialogState();
+  ConsumerState<_BuffyPublishDialog> createState() =>
+      _BuffyPublishDialogState();
 }
 
 class _BuffyPublishDialogState extends ConsumerState<_BuffyPublishDialog> {
@@ -45,10 +46,18 @@ class _BuffyPublishDialogState extends ConsumerState<_BuffyPublishDialog> {
     });
     try {
       final state = ref.read(buffyCmsProvider);
-      final localJson = await ref.read(buffyCmsProvider.notifier).buildCatalogJson();
-      final diff = await compute(diffBuffyCatalog, (before: state.catalogJson!, after: localJson));
+      final localJson = await ref
+          .read(buffyCmsProvider.notifier)
+          .buildCatalogJson();
+      final diff = await compute(diffBuffyCatalog, (
+        before: state.catalogJson!,
+        after: localJson,
+      ));
       final publisher = await ref.read(buffyCatalogPublisherProvider.future);
-      final preview = await publisher.preview(localJson, generation: state.generation!);
+      final preview = await publisher.preview(
+        localJson,
+        generation: state.generation!,
+      );
       if (!mounted) return;
       setState(() {
         _localJson = localJson;
@@ -71,7 +80,9 @@ class _BuffyPublishDialogState extends ConsumerState<_BuffyPublishDialog> {
     try {
       final publisher = await ref.read(buffyCatalogPublisherProvider.future);
       final generation = await publisher.publish(_localJson!, _preview!);
-      ref.read(buffyCmsProvider.notifier).markPublished(_localJson!, generation);
+      ref
+          .read(buffyCmsProvider.notifier)
+          .markPublished(_localJson!, generation);
       if (mounted) setState(() => _phase = _Phase.done);
     } catch (e) {
       if (mounted) {
@@ -108,12 +119,19 @@ class _BuffyPublishDialogState extends ConsumerState<_BuffyPublishDialog> {
                       children: [
                         Text(
                           'Publish buffy.json',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: colors.textPrimary,
+                          ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           'The live catalog is backed up first. Apps pick it up within ~5 minutes.',
-                          style: TextStyle(fontSize: 12, color: colors.textSecondary),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: colors.textSecondary,
+                          ),
                         ),
                       ],
                     ),
@@ -125,7 +143,10 @@ class _BuffyPublishDialogState extends ConsumerState<_BuffyPublishDialog> {
                 ],
               ),
             ),
-            if (busy) const LinearProgressIndicator() else const SizedBox(height: 4),
+            if (busy)
+              const LinearProgressIndicator()
+            else
+              const SizedBox(height: 4),
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
@@ -149,29 +170,41 @@ class _BuffyPublishDialogState extends ConsumerState<_BuffyPublishDialog> {
   List<Widget> _buildActions() {
     return switch (_phase) {
       _Phase.checking || _Phase.publishing => [
-          TextButton(onPressed: null, child: Text(_phase == _Phase.checking ? 'Checking…' : 'Publishing…')),
-        ],
+        TextButton(
+          onPressed: null,
+          child: Text(_phase == _Phase.checking ? 'Checking…' : 'Publishing…'),
+        ),
+      ],
       _Phase.ready => [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          const SizedBox(width: 12),
-          FilledButton.icon(
-            onPressed: _publish,
-            icon: const Icon(Icons.cloud_upload_rounded, size: 18),
-            label: const Text('Publish'),
-          ),
-        ],
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        const SizedBox(width: 12),
+        FilledButton.icon(
+          onPressed: _publish,
+          icon: const Icon(Icons.cloud_upload_rounded, size: 18),
+          label: const Text('Publish'),
+        ),
+      ],
       _Phase.blocked || _Phase.failed => [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
-          const SizedBox(width: 12),
-          OutlinedButton.icon(
-            onPressed: _check,
-            icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: const Text('Check again'),
-          ),
-        ],
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Close'),
+        ),
+        const SizedBox(width: 12),
+        OutlinedButton.icon(
+          onPressed: _check,
+          icon: const Icon(Icons.refresh_rounded, size: 18),
+          label: const Text('Check again'),
+        ),
+      ],
       _Phase.done => [
-          FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Done')),
-        ],
+        FilledButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Done'),
+        ),
+      ],
     };
   }
 
@@ -199,7 +232,8 @@ class _BuffyPublishDialogState extends ConsumerState<_BuffyPublishDialog> {
       return _Message(
         icon: Icons.check_circle_rounded,
         color: colors.success,
-        text: 'Published ${preview!.localCount} wallpapers. '
+        text:
+            'Published ${preview!.localCount} wallpapers. '
             'The previous catalog is saved in buffyjson/history/.',
       );
     }
@@ -211,12 +245,42 @@ class _BuffyPublishDialogState extends ConsumerState<_BuffyPublishDialog> {
           spacing: 12,
           runSpacing: 12,
           children: [
-            _Tile('Live now', '${preview!.liveCount}', Icons.cloud_outlined, colors.textSecondary),
-            _Tile('After publish', '${preview.localCount}', Icons.cloud_done_outlined, colors.primary),
-            _Tile('Added', '${diff!.added.length}', Icons.add_circle_outline, colors.success),
-            _Tile('Edited', '${diff.edited.length}', Icons.edit_outlined, colors.warning),
-            _Tile('Removed', '${diff.removed.length}', Icons.remove_circle_outline, colors.error),
-            _Tile('Fields', '${diff.fieldsChanged.length}', Icons.data_object_rounded, colors.primary),
+            _Tile(
+              'Live now',
+              '${preview!.liveCount}',
+              Icons.cloud_outlined,
+              colors.textSecondary,
+            ),
+            _Tile(
+              'After publish',
+              '${preview.localCount}',
+              Icons.cloud_done_outlined,
+              colors.primary,
+            ),
+            _Tile(
+              'Added',
+              '${diff!.added.length}',
+              Icons.add_circle_outline,
+              colors.success,
+            ),
+            _Tile(
+              'Edited',
+              '${diff.edited.length}',
+              Icons.edit_outlined,
+              colors.warning,
+            ),
+            _Tile(
+              'Removed',
+              '${diff.removed.length}',
+              Icons.remove_circle_outline,
+              colors.error,
+            ),
+            _Tile(
+              'Fields',
+              '${diff.fieldsChanged.length}',
+              Icons.data_object_rounded,
+              colors.primary,
+            ),
           ],
         ),
         const SizedBox(height: 20),
@@ -233,18 +297,27 @@ class _BuffyPublishDialogState extends ConsumerState<_BuffyPublishDialog> {
               children: [
                 Text(
                   '${preview.problems.length} problems — fix these first. Nothing has been changed on Firebase.',
-                  style: TextStyle(fontWeight: FontWeight.w700, color: colors.error),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: colors.error,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 for (final p in preview.problems)
-                  SelectableText(p, style: TextStyle(fontSize: 12, color: colors.textPrimary)),
+                  SelectableText(
+                    p,
+                    style: TextStyle(fontSize: 12, color: colors.textPrimary),
+                  ),
               ],
             ),
           ),
           const SizedBox(height: 20),
         ],
         if (diff.isEmpty)
-          Text('No changes from the live catalog.', style: TextStyle(color: colors.textSecondary)),
+          Text(
+            'No changes from the live catalog.',
+            style: TextStyle(color: colors.textSecondary),
+          ),
         _ChangeSection('Added', colors.success, diff.added),
         _ChangeSection('Edited', colors.warning, diff.edited),
         _ChangeSection('Removed', colors.error, diff.removed),
@@ -253,7 +326,9 @@ class _BuffyPublishDialogState extends ConsumerState<_BuffyPublishDialog> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [for (final f in diff.fieldsChanged) Chip(label: Text(f))],
+            children: [
+              for (final f in diff.fieldsChanged) Chip(label: Text(f)),
+            ],
           ),
         ],
       ],
@@ -285,8 +360,18 @@ class _Tile extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: color),
           const SizedBox(height: 8),
-          Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colors.textPrimary)),
-          Text(label, style: TextStyle(fontSize: 11, color: colors.textSecondary)),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: colors.textPrimary,
+            ),
+          ),
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: colors.textSecondary),
+          ),
         ],
       ),
     );
@@ -301,9 +386,12 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(top: 8, bottom: 8),
-        child: Text(text, style: TextStyle(fontWeight: FontWeight.w700, color: color)),
-      );
+    padding: const EdgeInsets.only(top: 8, bottom: 8),
+    child: Text(
+      text,
+      style: TextStyle(fontWeight: FontWeight.w700, color: color),
+    ),
+  );
 }
 
 class _ChangeSection extends StatelessWidget {
@@ -334,7 +422,8 @@ class _ChangeSection extends StatelessWidget {
                     child: Image.network(
                       w.compressUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => ColoredBox(color: colors.bgSubtle),
+                      errorBuilder: (_, _, _) =>
+                          ColoredBox(color: colors.bgSubtle),
                     ),
                   ),
                 ),
@@ -346,7 +435,10 @@ class _ChangeSection extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                Text(w.category, style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+                Text(
+                  w.category,
+                  style: TextStyle(fontSize: 12, color: colors.textSecondary),
+                ),
               ],
             ),
           ),
@@ -364,17 +456,17 @@ class _Message extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24),
-        child: Column(
-          children: [
-            Icon(icon, size: 48, color: color),
-            const SizedBox(height: 16),
-            SelectableText(
-              text,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: context.appColors.textSecondary),
-            ),
-          ],
+    padding: const EdgeInsets.symmetric(vertical: 24),
+    child: Column(
+      children: [
+        Icon(icon, size: 48, color: color),
+        const SizedBox(height: 16),
+        SelectableText(
+          text,
+          textAlign: TextAlign.center,
+          style: TextStyle(color: context.appColors.textSecondary),
         ),
-      );
+      ],
+    ),
+  );
 }

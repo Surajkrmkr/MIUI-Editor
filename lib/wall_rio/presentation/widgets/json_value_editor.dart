@@ -16,33 +16,36 @@ const prettyJson = JsonEncoder.withIndent('  ');
 dynamic jsonCopy(Object? value) => jsonDecode(jsonEncode(value));
 
 String jsonTypeLabel(Object? value) => switch (value) {
-      List() => 'List · ${value.length} items',
-      Map() => 'Object · ${value.length} keys',
-      String() => 'Text',
-      bool() => 'Boolean',
-      num() => 'Number',
-      null => 'null',
-      _ => '${value.runtimeType}',
-    };
+  List() => 'List · ${value.length} items',
+  Map() => 'Object · ${value.length} keys',
+  String() => 'Text',
+  bool() => 'Boolean',
+  num() => 'Number',
+  null => 'null',
+  _ => '${value.runtimeType}',
+};
 
 IconData jsonTypeIcon(Object? value) => switch (value) {
-      List() => Icons.view_list_rounded,
-      Map() => Icons.data_object_rounded,
-      bool() => Icons.toggle_on_outlined,
-      num() => Icons.tag_rounded,
-      _ => Icons.text_fields_rounded,
-    };
+  List() => Icons.view_list_rounded,
+  Map() => Icons.data_object_rounded,
+  bool() => Icons.toggle_on_outlined,
+  num() => Icons.tag_rounded,
+  _ => Icons.text_fields_rounded,
+};
 
 /// Lists of objects (like `banners`) get a card per item; empty lists too.
-bool isObjectList(Object? value) => value is List && value.every((e) => e is Map);
+bool isObjectList(Object? value) =>
+    value is List && value.every((e) => e is Map);
 
-bool isImageUrl(String value) =>
-    RegExp(r'\.(jpe?g|png|webp|gif)$', caseSensitive: false)
-        .hasMatch(Uri.tryParse(value)?.path ?? '');
+bool isImageUrl(String value) => RegExp(
+  r'\.(jpe?g|png|webp|gif)$',
+  caseSensitive: false,
+).hasMatch(Uri.tryParse(value)?.path ?? '');
 
-bool _isImageKey(String key) =>
-    RegExp(r'image|img|banner|thumb|icon|poster|cover|photo|url', caseSensitive: false)
-        .hasMatch(key);
+bool _isImageKey(String key) => RegExp(
+  r'image|img|banner|thumb|icon|poster|cover|photo|url',
+  caseSensitive: false,
+).hasMatch(key);
 
 enum JsonType {
   text('Text'),
@@ -55,22 +58,22 @@ enum JsonType {
   final String label;
 
   Object get initial => switch (this) {
-        text => '',
-        number => 0,
-        boolean => false,
-        object => <String, dynamic>{},
-        list => <dynamic>[],
-      };
+    text => '',
+    number => 0,
+    boolean => false,
+    object => <String, dynamic>{},
+    list => <dynamic>[],
+  };
 }
 
 Object? _blankLike(Object? value) => switch (value) {
-      String() => '',
-      bool() => false,
-      num() => 0,
-      List() => <dynamic>[],
-      Map() => <String, dynamic>{},
-      _ => null,
-    };
+  String() => '',
+  bool() => false,
+  num() => 0,
+  List() => <dynamic>[],
+  Map() => <String, dynamic>{},
+  _ => null,
+};
 
 /// Asks for a key name not in [taken] and the type of its starting value.
 Future<(String, Object)?> showAddKeyDialog(
@@ -88,7 +91,8 @@ Future<(String, Object)?> showAddKeyDialog(
         void submit() {
           final key = name.text.trim();
           if (key.isEmpty) return setState(() => error = 'Enter a name');
-          if (taken.contains(key)) return setState(() => error = '"$key" already exists');
+          if (taken.contains(key))
+            return setState(() => error = '"$key" already exists');
           Navigator.pop(context, (key, type.initial));
         }
 
@@ -102,7 +106,10 @@ Future<(String, Object)?> showAddKeyDialog(
                 TextField(
                   controller: name,
                   autofocus: true,
-                  decoration: InputDecoration(labelText: 'Name', errorText: error),
+                  decoration: InputDecoration(
+                    labelText: 'Name',
+                    errorText: error,
+                  ),
                   onSubmitted: (_) => submit(),
                 ),
                 const SizedBox(height: 12),
@@ -110,7 +117,8 @@ Future<(String, Object)?> showAddKeyDialog(
                   initialValue: type,
                   decoration: const InputDecoration(labelText: 'Type'),
                   items: [
-                    for (final t in JsonType.values) DropdownMenuItem(value: t, child: Text(t.label)),
+                    for (final t in JsonType.values)
+                      DropdownMenuItem(value: t, child: Text(t.label)),
                   ],
                   onChanged: (t) => setState(() => type = t ?? type),
                 ),
@@ -118,7 +126,10 @@ Future<(String, Object)?> showAddKeyDialog(
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
             FilledButton(onPressed: submit, child: const Text('Add')),
           ],
         );
@@ -155,9 +166,12 @@ class UrlPreview extends ConsumerWidget {
     }
     final broken = ColoredBox(
       color: colors.bgSubtle,
-      child: Center(child: Icon(Icons.broken_image_outlined, color: colors.textDisabled)),
+      child: Center(
+        child: Icon(Icons.broken_image_outlined, color: colors.textDisabled),
+      ),
     );
-    if (!url.startsWith('https://') && !url.startsWith('http://')) return broken;
+    if (!url.startsWith('https://') && !url.startsWith('http://'))
+      return broken;
     return Image.network(url, fit: fit, errorBuilder: (_, __, ___) => broken);
   }
 }
@@ -188,14 +202,15 @@ class _JsonObjectListEditorState extends State<JsonObjectListEditor> {
   }
 
   void _add() => _changed(() {
-        final first = _items.isEmpty ? null : _items.first as Map;
-        _items.add(<String, dynamic>{
-          if (first != null)
-            for (final e in first.entries) '${e.key}': _blankLike(e.value),
-        });
-      });
+    final first = _items.isEmpty ? null : _items.first as Map;
+    _items.add(<String, dynamic>{
+      if (first != null)
+        for (final e in first.entries) '${e.key}': _blankLike(e.value),
+    });
+  });
 
-  void _move(int from, int to) => _changed(() => _items.insert(to, _items.removeAt(from)));
+  void _move(int from, int to) =>
+      _changed(() => _items.insert(to, _items.removeAt(from)));
 
   String _titleOf(Map item) {
     for (final key in const ['title', 'name', 'id', 'type']) {
@@ -213,7 +228,10 @@ class _JsonObjectListEditorState extends State<JsonObjectListEditor> {
       children: [
         Row(
           children: [
-            Text('${_items.length} items', style: TextStyle(color: colors.textSecondary)),
+            Text(
+              '${_items.length} items',
+              style: TextStyle(color: colors.textSecondary),
+            ),
             const Spacer(),
             FilledButton.tonalIcon(
               onPressed: _add,
@@ -234,12 +252,21 @@ class _JsonObjectListEditorState extends State<JsonObjectListEditor> {
                 children: [
                   Row(
                     children: [
-                      Text('#${i + 1}', style: TextStyle(fontWeight: FontWeight.w700, color: colors.primary)),
+                      Text(
+                        '#${i + 1}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: colors.primary,
+                        ),
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _titleOf(item as Map),
-                          style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            color: colors.textPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -250,17 +277,28 @@ class _JsonObjectListEditorState extends State<JsonObjectListEditor> {
                       ),
                       IconButton(
                         tooltip: 'Move down',
-                        icon: const Icon(Icons.arrow_downward_rounded, size: 18),
-                        onPressed: i == _items.length - 1 ? null : () => _move(i, i + 1),
+                        icon: const Icon(
+                          Icons.arrow_downward_rounded,
+                          size: 18,
+                        ),
+                        onPressed: i == _items.length - 1
+                            ? null
+                            : () => _move(i, i + 1),
                       ),
                       IconButton(
                         tooltip: 'Duplicate',
                         icon: const Icon(Icons.copy_rounded, size: 18),
-                        onPressed: () => _changed(() => _items.insert(i + 1, jsonCopy(item))),
+                        onPressed: () => _changed(
+                          () => _items.insert(i + 1, jsonCopy(item)),
+                        ),
                       ),
                       IconButton(
                         tooltip: 'Remove',
-                        icon: Icon(Icons.delete_outline, size: 18, color: colors.error),
+                        icon: Icon(
+                          Icons.delete_outline,
+                          size: 18,
+                          color: colors.error,
+                        ),
                         onPressed: () => _changed(() => _items.removeAt(i)),
                       ),
                     ],
@@ -320,31 +358,39 @@ class _JsonObjectEditorState extends State<JsonObjectEditor> {
     final colors = context.appColors;
     return switch (value) {
       bool() => Row(
-          children: [
-            Text(key, style: TextStyle(color: colors.textPrimary)),
-            const Spacer(),
-            Switch(value: value, onChanged: (v) => setState(() => _set(key, v))),
-          ],
-        ),
+        children: [
+          Text(key, style: TextStyle(color: colors.textPrimary)),
+          const Spacer(),
+          Switch(value: value, onChanged: (v) => setState(() => _set(key, v))),
+        ],
+      ),
       num() => TextFormField(
-          initialValue: '$value',
-          decoration: InputDecoration(labelText: key, isDense: true),
-          keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          validator: (t) => num.tryParse(t?.trim() ?? '') == null ? 'Not a number' : null,
-          onChanged: (t) {
-            final n = num.tryParse(t.trim());
-            if (n != null) _set(key, n);
-          },
+        initialValue: '$value',
+        decoration: InputDecoration(labelText: key, isDense: true),
+        keyboardType: const TextInputType.numberWithOptions(
+          decimal: true,
+          signed: true,
         ),
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        validator: (t) =>
+            num.tryParse(t?.trim() ?? '') == null ? 'Not a number' : null,
+        onChanged: (t) {
+          final n = num.tryParse(t.trim());
+          if (n != null) _set(key, n);
+        },
+      ),
       String() || null => _StringField(
-          label: key,
-          initial: value as String?,
-          canUpload: _isImageKey(key) || isImageUrl(value ?? ''),
-          uploadFolder: widget.uploadFolder,
-          onChanged: (t) => _set(key, t),
-        ),
-      _ => JsonTextField(label: key, value: value, onParsed: (v) => _set(key, v)),
+        label: key,
+        initial: value as String?,
+        canUpload: _isImageKey(key) || isImageUrl(value ?? ''),
+        uploadFolder: widget.uploadFolder,
+        onChanged: (t) => _set(key, t),
+      ),
+      _ => JsonTextField(
+        label: key,
+        value: value,
+        onParsed: (v) => _set(key, v),
+      ),
     };
   }
 
@@ -365,7 +411,11 @@ class _JsonObjectEditorState extends State<JsonObjectEditor> {
                 if (!widget.fixedKeys)
                   IconButton(
                     tooltip: 'Remove "$key"',
-                    icon: Icon(Icons.close_rounded, size: 18, color: colors.textSecondary),
+                    icon: Icon(
+                      Icons.close_rounded,
+                      size: 18,
+                      color: colors.textSecondary,
+                    ),
                     onPressed: () {
                       setState(() => _map.remove(key));
                       widget.onChanged();
@@ -463,15 +513,18 @@ class _StringFieldState extends ConsumerState<_StringField> {
               suffixIcon: !widget.canUpload
                   ? null
                   : _uploading
-                      ? const Padding(
-                          padding: EdgeInsets.all(12),
-                          child: SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2)),
-                        )
-                      : IconButton(
-                          tooltip: 'Upload image',
-                          icon: const Icon(Icons.upload_file_rounded, size: 18),
-                          onPressed: _upload,
-                        ),
+                  ? const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: SizedBox.square(
+                        dimension: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : IconButton(
+                      tooltip: 'Upload image',
+                      icon: const Icon(Icons.upload_file_rounded, size: 18),
+                      onPressed: _upload,
+                    ),
             ),
             onChanged: _changed,
           ),
@@ -491,7 +544,12 @@ class _StringFieldState extends ConsumerState<_StringField> {
 
 /// Nested values edited as JSON text; [onParsed] gets each valid version.
 class JsonTextField extends StatefulWidget {
-  const JsonTextField({super.key, required this.label, required this.value, required this.onParsed});
+  const JsonTextField({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.onParsed,
+  });
 
   final String label;
   final Object? value;
@@ -502,7 +560,9 @@ class JsonTextField extends StatefulWidget {
 }
 
 class _JsonTextFieldState extends State<JsonTextField> {
-  late final _controller = TextEditingController(text: prettyJson.convert(widget.value));
+  late final _controller = TextEditingController(
+    text: prettyJson.convert(widget.value),
+  );
   String? _error;
 
   @override

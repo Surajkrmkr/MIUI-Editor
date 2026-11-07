@@ -34,7 +34,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final doc = catalog.valueOrNull;
     final collectionId = doc == null ? null : _collectionIdFor(doc);
     // Collections: uploading needs a collection to upload into.
-    final canUpload = doc != null && (!kind.hasCollections || collectionId != null);
+    final canUpload =
+        doc != null && (!kind.hasCollections || collectionId != null);
 
     return Scaffold(
       appBar: AppBar(
@@ -70,7 +71,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           _AppBarBtn(
             icon: Icons.insights_rounded,
             tooltip: 'Refresh Analytics',
-            onPressed: () => ref.read(analyticsStateProvider.notifier).refresh(),
+            onPressed: () =>
+                ref.read(analyticsStateProvider.notifier).refresh(),
           ),
           _AppBarBtn(
             icon: Icons.refresh_rounded,
@@ -97,7 +99,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             icon: Icons.cloud_upload_outlined,
             tooltip: 'Upload Wallpapers',
             onPressed: canUpload
-                ? () => showUploadDialog(context, doc, collectionId: collectionId)
+                ? () =>
+                      showUploadDialog(context, doc, collectionId: collectionId)
                 : null,
           ),
           const SizedBox(width: 8),
@@ -115,7 +118,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       floatingActionButton: !canUpload
           ? null
           : FloatingActionButton.extended(
-              onPressed: () => showUploadDialog(context, doc, collectionId: collectionId),
+              onPressed: () =>
+                  showUploadDialog(context, doc, collectionId: collectionId),
               icon: const Icon(Icons.cloud_upload_outlined),
               label: const Text('Upload'),
             ),
@@ -138,13 +142,25 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     ref.read(selectedCollectionProvider.notifier).select(id);
   }
 
-  Widget _buildContent(BuildContext context, CatalogDocument doc, String? collectionId) {
+  Widget _buildContent(
+    BuildContext context,
+    CatalogDocument doc,
+    String? collectionId,
+  ) {
     final colors = context.appColors;
-    final collection = doc.kind.hasCollections ? doc.collection(collectionId) : null;
+    final collection = doc.kind.hasCollections
+        ? doc.collection(collectionId)
+        : null;
     final walls = doc.kind.hasCollections && collectionId == null
         ? <Map<String, dynamic>>[]
         : doc.wallsOf(collectionId);
-    final categories = walls.map((w) => '${w['category'] ?? ''}').where((c) => c.isNotEmpty).toSet().toList()..sort();
+    final categories =
+        walls
+            .map((w) => '${w['category'] ?? ''}')
+            .where((c) => c.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
     final premium = walls.where((w) => w['isPremium'] == true).length;
     final query = _query.toLowerCase();
     final visible = walls.where((w) {
@@ -155,22 +171,40 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           .contains(query);
     }).toList();
     final isDesktop = doc.kind == CatalogKind.desktop;
-    final title = collection == null ? doc.kind.jsonFile : '${collection['name']}';
+    final title = collection == null
+        ? doc.kind.jsonFile
+        : '${collection['name']}';
 
     return CustomScrollView(
       slivers: [
         _buildAnalytics(context),
-        if (doc.kind.hasCollections) _buildCollectionBar(context, doc, collection),
+        if (doc.kind.hasCollections)
+          _buildCollectionBar(context, doc, collection),
         SliverPadding(
           padding: const EdgeInsets.all(24),
           sliver: SliverToBoxAdapter(
             child: Row(
               children: [
-                StatCard(title: 'Wallpapers', value: '${walls.length}', icon: Icons.image, color: colors.primary),
+                StatCard(
+                  title: 'Wallpapers',
+                  value: '${walls.length}',
+                  icon: Icons.image,
+                  color: colors.primary,
+                ),
                 const SizedBox(width: 16),
-                StatCard(title: 'Categories', value: '${categories.length}', icon: Icons.category, color: colors.success),
+                StatCard(
+                  title: 'Categories',
+                  value: '${categories.length}',
+                  icon: Icons.category,
+                  color: colors.success,
+                ),
                 const SizedBox(width: 16),
-                StatCard(title: 'Premium', value: '$premium', icon: Icons.star, color: colors.warning),
+                StatCard(
+                  title: 'Premium',
+                  value: '$premium',
+                  icon: Icons.star,
+                  color: colors.warning,
+                ),
               ],
             ),
           ),
@@ -182,10 +216,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               children: [
                 Text(
                   title,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colors.textPrimary),
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: colors.textPrimary,
+                  ),
                 ),
                 const SizedBox(width: 12),
-                Text('${visible.length} shown', style: TextStyle(color: colors.textSecondary)),
+                Text(
+                  '${visible.length} shown',
+                  style: TextStyle(color: colors.textSecondary),
+                ),
                 const Spacer(),
                 SizedBox(
                   width: 220,
@@ -195,7 +236,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     isDense: true,
                     // Long category names get an ellipsis instead of overflowing.
                     isExpanded: true,
-                    decoration: const InputDecoration(labelText: 'Category', isDense: true),
+                    decoration: const InputDecoration(
+                      labelText: 'Category',
+                      isDense: true,
+                    ),
                     items: [
                       const DropdownMenuItem(value: null, child: Text('All')),
                       for (final c in categories)
@@ -214,7 +258,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     decoration: InputDecoration(
                       hintText: 'Search name, author, tags…',
                       prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       isDense: true,
                     ),
                     onChanged: (v) => setState(() => _query = v),
@@ -268,10 +314,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             SizedBox(
               width: 280,
               child: DropdownButtonFormField<String>(
-                key: ValueKey('collection-${collection?['id']}-${collections.length}'),
+                key: ValueKey(
+                  'collection-${collection?['id']}-${collections.length}',
+                ),
                 initialValue: collection == null ? null : '${collection['id']}',
                 isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Collection', isDense: true),
+                decoration: const InputDecoration(
+                  labelText: 'Collection',
+                  isDense: true,
+                ),
                 items: [
                   for (final c in collections)
                     DropdownMenuItem(
@@ -318,9 +369,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Widget _buildAnalytics(BuildContext context) {
     final colors = context.appColors;
-    return ref.watch(analyticsStateProvider).when(
+    return ref
+        .watch(analyticsStateProvider)
+        .when(
           data: (analytics) {
-            if (analytics == null) return const SliverToBoxAdapter(child: SizedBox.shrink());
+            if (analytics == null)
+              return const SliverToBoxAdapter(child: SizedBox.shrink());
             final admob = analytics.admob;
             final play = analytics.play;
             return SliverPadding(
@@ -331,7 +385,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     Expanded(
                       child: _AnalyticsCard(
                         title: 'Yesterday AdMob Earnings',
-                        value: admob == null ? '—' : '\$${admob.earnings.toStringAsFixed(2)}',
+                        value: admob == null
+                            ? '—'
+                            : '\$${admob.earnings.toStringAsFixed(2)}',
                         icon: Icons.monetization_on,
                         color: colors.primary,
                         metrics: admob == null
@@ -339,7 +395,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             : [
                                 ('Impressions', '${admob.impressions}'),
                                 ('Requests', '${admob.requests}'),
-                                ('Match Rate', '${(admob.matchRate * 100).toStringAsFixed(1)}%'),
+                                (
+                                  'Match Rate',
+                                  '${(admob.matchRate * 100).toStringAsFixed(1)}%',
+                                ),
                                 ('eCPM', '\$${admob.ecpm.toStringAsFixed(3)}'),
                               ],
                       ),
@@ -354,9 +413,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         metrics: play == null
                             ? []
                             : [
-                                ('Crash Rate', '${(play.crashRate * 100).toStringAsFixed(2)}%'),
-                                ('ANR Rate', '${(play.anrRate * 100).toStringAsFixed(2)}%'),
-                                ('Rating', play.averageRating > 0 ? play.averageRating.toStringAsFixed(1) : '—'),
+                                (
+                                  'Crash Rate',
+                                  '${(play.crashRate * 100).toStringAsFixed(2)}%',
+                                ),
+                                (
+                                  'ANR Rate',
+                                  '${(play.anrRate * 100).toStringAsFixed(2)}%',
+                                ),
+                                (
+                                  'Rating',
+                                  play.averageRating > 0
+                                      ? play.averageRating.toStringAsFixed(1)
+                                      : '—',
+                                ),
                                 ('Revenue', 'GCS export only'),
                               ],
                       ),
@@ -366,10 +436,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ),
             );
           },
-          loading: () => const SliverToBoxAdapter(child: LinearProgressIndicator()),
+          loading: () =>
+              const SliverToBoxAdapter(child: LinearProgressIndicator()),
           error: (err, _) => SliverToBoxAdapter(
             child: Center(
-              child: Text('Analytics Error: $err', style: TextStyle(color: colors.error, fontSize: 10)),
+              child: Text(
+                'Analytics Error: $err',
+                style: TextStyle(color: colors.error, fontSize: 10),
+              ),
             ),
           ),
         );
@@ -389,19 +463,20 @@ class _CatalogError extends StatelessWidget {
     final notSignedIn = error is NotSignedInException;
     // Google rejected the saved refresh token (expired or revoked).
     final expired = '$error'.contains('invalid_grant');
-    final missingScope = error is StorageException &&
+    final missingScope =
+        error is StorageException &&
         ((error as StorageException).statusCode == 403 ||
             (error as StorageException).statusCode == 401);
     final needsSignIn = notSignedIn || expired || missingScope;
     final message = notSignedIn
         ? 'Sign in with Google in Settings to load the catalogs.'
         : expired
-            ? 'Your Google sign-in has expired. In Settings → Credentials, '
-                'click Switch next to Google Cloud and sign in again.'
-            : missingScope
-            ? 'Your Google sign-in has no Storage access yet. In Settings → '
-                'Credentials, click Switch next to Google Cloud and sign in again to grant it.'
-            : '$error';
+        ? 'Your Google sign-in has expired. In Settings → Credentials, '
+              'click Switch next to Google Cloud and sign in again.'
+        : missingScope
+        ? 'Your Google sign-in has no Storage access yet. In Settings → '
+              'Credentials, click Switch next to Google Cloud and sign in again to grant it.'
+        : '$error';
 
     return Center(
       child: ConstrainedBox(
@@ -409,10 +484,17 @@ class _CatalogError extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(needsSignIn ? Icons.lock_outline : Icons.error_outline,
-                size: 48, color: colors.textDisabled),
+            Icon(
+              needsSignIn ? Icons.lock_outline : Icons.error_outline,
+              size: 48,
+              color: colors.textDisabled,
+            ),
             const SizedBox(height: 16),
-            SelectableText(message, textAlign: TextAlign.center, style: TextStyle(color: colors.textSecondary)),
+            SelectableText(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: colors.textSecondary),
+            ),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -434,7 +516,11 @@ class _CatalogError extends StatelessWidget {
 }
 
 class _WallpaperCard extends StatelessWidget {
-  const _WallpaperCard({required this.entry, required this.kind, required this.onTap});
+  const _WallpaperCard({
+    required this.entry,
+    required this.kind,
+    required this.onTap,
+  });
 
   final Map<String, dynamic> entry;
   final CatalogKind kind;
@@ -460,13 +546,19 @@ class _WallpaperCard extends StatelessWidget {
                     children: [
                       Text(
                         '${entry['name']}',
-                        style: TextStyle(fontWeight: FontWeight.bold, color: colors.textPrimary),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: colors.textPrimary,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         '#${entry['id']} · ${entry['category']} · ${entry['author']}',
-                        style: TextStyle(fontSize: 11, color: colors.textSecondary),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: colors.textSecondary,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -480,7 +572,10 @@ class _WallpaperCard extends StatelessWidget {
                 top: 8,
                 left: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: colors.surface.withValues(alpha: 0.85),
                     borderRadius: BorderRadius.circular(10),
@@ -488,8 +583,19 @@ class _WallpaperCard extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.play_arrow_rounded, size: 14, color: colors.textPrimary),
-                      Text('LIVE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+                      Icon(
+                        Icons.play_arrow_rounded,
+                        size: 14,
+                        color: colors.textPrimary,
+                      ),
+                      Text(
+                        'LIVE',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: colors.textPrimary,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -574,28 +680,32 @@ class _AnalyticsCard extends StatelessWidget {
             Wrap(
               spacing: 16,
               runSpacing: 4,
-              children: metrics.map((m) => RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '${m.$1}  ',
-                      style: TextStyle(
-                        color: colors.textSecondary,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
+              children: metrics
+                  .map(
+                    (m) => RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '${m.$1}  ',
+                            style: TextStyle(
+                              color: colors.textSecondary,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          TextSpan(
+                            text: m.$2,
+                            style: TextStyle(
+                              color: color,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    TextSpan(
-                      text: m.$2,
-                      style: TextStyle(
-                        color: color,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              )).toList(),
+                  )
+                  .toList(),
             ),
           ],
         ],
@@ -629,9 +739,7 @@ class _AppBarBtn extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 3),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
           child: Material(
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(12),
@@ -643,7 +751,9 @@ class _AppBarBtn extends StatelessWidget {
                 child: Icon(
                   icon,
                   size: 17,
-                  color: onPressed == null ? colors.textDisabled : colors.textSecondary,
+                  color: onPressed == null
+                      ? colors.textDisabled
+                      : colors.textSecondary,
                 ),
               ),
             ),
@@ -661,10 +771,7 @@ class _AppBarDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 2),
-      child: VerticalDivider(
-        width: 1,
-        color: context.appColors.borderSubtle,
-      ),
+      child: VerticalDivider(width: 1, color: context.appColors.borderSubtle),
     );
   }
 }

@@ -9,7 +9,8 @@ class StoragePreconditionFailed implements Exception {
   StoragePreconditionFailed(this.path);
   final String path;
   @override
-  String toString() => 'StoragePreconditionFailed: $path changed or already exists';
+  String toString() =>
+      'StoragePreconditionFailed: $path changed or already exists';
 }
 
 class StorageException implements Exception {
@@ -38,13 +39,16 @@ class StorageObject {
   final String? downloadToken;
 
   factory StorageObject.fromJson(Map<String, dynamic> json) {
-    final tokens = (json['metadata'] as Map?)?['firebaseStorageDownloadTokens'] as String?;
+    final tokens =
+        (json['metadata'] as Map?)?['firebaseStorageDownloadTokens'] as String?;
     return StorageObject(
       path: json['name'] as String,
       generation: '${json['generation']}',
       size: int.tryParse('${json['size']}') ?? 0,
       updated: DateTime.tryParse('${json['updated']}'),
-      downloadToken: tokens == null || tokens.isEmpty ? null : tokens.split(',').first,
+      downloadToken: tokens == null || tokens.isEmpty
+          ? null
+          : tokens.split(',').first,
     );
   }
 }
@@ -102,7 +106,9 @@ class StorageClient {
       'uploadType': 'multipart',
       if (ifGenerationMatch != null) 'ifGenerationMatch': ifGenerationMatch,
     };
-    final uri = Uri.parse('$_upload/b/$bucket/o').replace(queryParameters: query);
+    final uri = Uri.parse(
+      '$_upload/b/$bucket/o',
+    ).replace(queryParameters: query);
     final resource = jsonEncode({
       'name': path,
       'contentType': contentType,
@@ -113,11 +119,15 @@ class StorageClient {
 
     const boundary = 'wallrio_cms_boundary';
     final body = BytesBuilder(copy: false)
-      ..add(utf8.encode('--$boundary\r\n'
+      ..add(
+        utf8.encode(
+          '--$boundary\r\n'
           'Content-Type: application/json; charset=UTF-8\r\n\r\n'
           '$resource\r\n'
           '--$boundary\r\n'
-          'Content-Type: $contentType\r\n\r\n'))
+          'Content-Type: $contentType\r\n\r\n',
+        ),
+      )
       ..add(bytes)
       ..add(utf8.encode('\r\n--$boundary--'));
 
@@ -133,13 +143,20 @@ class StorageClient {
 
   /// Server-side copy of [source] to [dest]. With [ifSourceGenerationMatch],
   /// throws [StoragePreconditionFailed] if [source] has changed since then.
-  Future<void> copy(String source, String dest, {String? ifSourceGenerationMatch}) async {
-    final uri = Uri.parse(
-      '${_objectUrl(source)}/copyTo/b/$bucket/o/${Uri.encodeComponent(dest)}',
-    ).replace(queryParameters: {
-      if (ifSourceGenerationMatch != null)
-        'ifSourceGenerationMatch': ifSourceGenerationMatch,
-    });
+  Future<void> copy(
+    String source,
+    String dest, {
+    String? ifSourceGenerationMatch,
+  }) async {
+    final uri =
+        Uri.parse(
+          '${_objectUrl(source)}/copyTo/b/$bucket/o/${Uri.encodeComponent(dest)}',
+        ).replace(
+          queryParameters: {
+            if (ifSourceGenerationMatch != null)
+              'ifSourceGenerationMatch': ifSourceGenerationMatch,
+          },
+        );
     final res = await _client.post(uri);
     if (res.statusCode == 412) throw StoragePreconditionFailed(source);
     _check(res, 'copy $source → $dest');
@@ -156,11 +173,14 @@ class StorageClient {
     final objects = <StorageObject>[];
     String? pageToken;
     do {
-      final uri = Uri.parse('$_api/b/$bucket/o').replace(queryParameters: {
-        'prefix': prefix,
-        'fields': 'items(name,generation,size,updated,metadata),nextPageToken',
-        if (pageToken != null) 'pageToken': pageToken,
-      });
+      final uri = Uri.parse('$_api/b/$bucket/o').replace(
+        queryParameters: {
+          'prefix': prefix,
+          'fields':
+              'items(name,generation,size,updated,metadata),nextPageToken',
+          if (pageToken != null) 'pageToken': pageToken,
+        },
+      );
       final res = await _client.get(uri);
       _check(res, 'list $prefix');
       final json = jsonDecode(res.body) as Map<String, dynamic>;
@@ -174,7 +194,9 @@ class StorageClient {
 
   void _check(http.Response res, String action) {
     if (res.statusCode >= 200 && res.statusCode < 300) return;
-    final detail = res.body.length > 300 ? res.body.substring(0, 300) : res.body;
+    final detail = res.body.length > 300
+        ? res.body.substring(0, 300)
+        : res.body;
     throw StorageException('$action failed: $detail', res.statusCode);
   }
 }

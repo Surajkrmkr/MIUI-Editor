@@ -25,7 +25,11 @@ class Sidebar extends ConsumerWidget {
       required VoidCallback onTap,
     }) {
       return ListTile(
-        leading: Icon(icon, size: 18, color: selected ? colors.primary : colors.textSecondary),
+        leading: Icon(
+          icon,
+          size: 18,
+          color: selected ? colors.primary : colors.textSecondary,
+        ),
         title: Text(
           label,
           style: TextStyle(
@@ -63,12 +67,20 @@ class Sidebar extends ConsumerWidget {
                     color: colors.primary.withAlpha(25),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(Icons.wallpaper_rounded, size: 24, color: colors.primary),
+                  child: Icon(
+                    Icons.wallpaper_rounded,
+                    size: 24,
+                    color: colors.primary,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   'WallRio CMS',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: colors.textPrimary,
+                  ),
                 ),
                 if (settings != null)
                   Text(
@@ -121,8 +133,15 @@ class Sidebar extends ConsumerWidget {
           // ── Footer ──────────────────────────────────────────────────────────
           Divider(color: colors.borderSubtle),
           ListTile(
-            leading: Icon(Icons.settings_rounded, color: colors.textSecondary, size: 18),
-            title: Text('Settings', style: TextStyle(color: colors.textPrimary, fontSize: 13)),
+            leading: Icon(
+              Icons.settings_rounded,
+              color: colors.textSecondary,
+              size: 18,
+            ),
+            title: Text(
+              'Settings',
+              style: TextStyle(color: colors.textPrimary, fontSize: 13),
+            ),
             onTap: () {
               Navigator.pop(context);
               showWallRioSettings(context);

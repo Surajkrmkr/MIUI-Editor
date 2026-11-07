@@ -17,8 +17,8 @@ class CatalogRules {
   /// it (FCM, browsers) without signing in.
   static String downloadUrl(String bucket, String objectPath, String? token) =>
       token == null
-          ? storageUrl(bucket, objectPath)
-          : '${storageUrl(bucket, objectPath)}&token=$token';
+      ? storageUrl(bucket, objectPath)
+      : '${storageUrl(bucket, objectPath)}&token=$token';
 
   /// Object path for a Firebase Storage URL in [bucket], or null if it is not one.
   static String? objectPathFromUrl(String bucket, String url) {

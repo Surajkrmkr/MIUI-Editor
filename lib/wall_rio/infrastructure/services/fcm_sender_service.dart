@@ -15,7 +15,8 @@ class FCMSenderService extends GoogleApiService {
     Map<String, String>? data,
   }) async {
     final client = await getAuthenticatedClient([_scope]);
-    if (client == null) throw StateError('Sign in with Google in Settings first');
+    if (client == null)
+      throw StateError('Sign in with Google in Settings first');
 
     final config = await SecureStorageService().getOAuthConfig();
     final projectId = config['projectId'];
@@ -25,7 +26,8 @@ class FCMSenderService extends GoogleApiService {
     }
 
     try {
-      final url = 'https://fcm.googleapis.com/v1/projects/$projectId/messages:send';
+      final url =
+          'https://fcm.googleapis.com/v1/projects/$projectId/messages:send';
       final hasImage = imageUrl != null && imageUrl.isNotEmpty;
       final hasLink = deepLink != null && deepLink.isNotEmpty;
 
@@ -37,15 +39,15 @@ class FCMSenderService extends GoogleApiService {
             "body": body,
             if (hasImage) "image": imageUrl,
           },
-          "data": {
-            if (hasLink) "click_action": deepLink,
-            ...?data,
-          },
-          if (hasImage) "apns": {
-            "payload": {"aps": {"mutable-content": 1}},
-            "fcm_options": {"image": imageUrl},
-          },
-        }
+          "data": {if (hasLink) "click_action": deepLink, ...?data},
+          if (hasImage)
+            "apns": {
+              "payload": {
+                "aps": {"mutable-content": 1},
+              },
+              "fcm_options": {"image": imageUrl},
+            },
+        },
       };
 
       final response = await client.post(

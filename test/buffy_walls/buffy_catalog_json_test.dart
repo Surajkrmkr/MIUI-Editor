@@ -5,17 +5,17 @@ import 'package:miui_icon_generator/buffy_walls/domain/buffy_catalog_json.dart';
 import 'package:miui_icon_generator/buffy_walls/domain/buffy_storage_layout.dart';
 
 Map<String, dynamic> _wall(int id, {String name = 'A'}) => {
-      'id': id,
-      'name': name,
-      'designer': 'Buffy',
-      'category': 'Nature',
-      'imageUrl': 'https://x/$id.jpg',
-      'compressUrl': 'https://x/$id-small.jpg',
-      'isHot': false,
-      'isPremium': false,
-      'colors': <String>[],
-      'tags': <String>[],
-    };
+  'id': id,
+  'name': name,
+  'designer': 'Buffy',
+  'category': 'Nature',
+  'imageUrl': 'https://x/$id.jpg',
+  'compressUrl': 'https://x/$id-small.jpg',
+  'isHot': false,
+  'isPremium': false,
+  'colors': <String>[],
+  'tags': <String>[],
+};
 
 void main() {
   final catalog = jsonEncode({
@@ -28,7 +28,11 @@ void main() {
   });
 
   test('fields exclude the wallpaper list and keep order', () {
-    expect(parseBuffyCatalogFields(catalog).keys, ['titles', 'banners', 'adBanners']);
+    expect(parseBuffyCatalogFields(catalog).keys, [
+      'titles',
+      'banners',
+      'adBanners',
+    ]);
   });
 
   test('encode applies edited, removed and new fields in place', () {
@@ -36,11 +40,15 @@ void main() {
       ..remove('titles')
       ..['banners'] = {'free': 'https://a/new.png'}
       ..['hotColors'] = ['Black'];
-    final out = jsonDecode(encodeBuffyCatalog((
-      catalog: catalog,
-      fields: fields,
-      wallpapers: [_wall(1)],
-    ))) as Map<String, dynamic>;
+    final out =
+        jsonDecode(
+              encodeBuffyCatalog((
+                catalog: catalog,
+                fields: fields,
+                wallpapers: [_wall(1)],
+              )),
+            )
+            as Map<String, dynamic>;
 
     expect(out.keys, ['banners', 'popular', 'adBanners', 'hotColors']);
     expect(out['banners'], {'free': 'https://a/new.png'});
@@ -50,8 +58,14 @@ void main() {
   test('diff reports added, removed, edited wallpapers and changed fields', () {
     final after = encodeBuffyCatalog((
       catalog: catalog,
-      fields: {...parseBuffyCatalogFields(catalog), 'titles': ['New']},
-      wallpapers: [_wall(1, name: 'B'), _wall(3)],
+      fields: {
+        ...parseBuffyCatalogFields(catalog),
+        'titles': ['New'],
+      },
+      wallpapers: [
+        _wall(1, name: 'B'),
+        _wall(3),
+      ],
     ));
     final diff = diffBuffyCatalog((before: catalog, after: after));
 
@@ -64,7 +78,11 @@ void main() {
 
   test('upload objects get a safe, unique name', () {
     expect(
-      buffyUploadObject('PushBanners', 'Diwali Sale!.PNG', DateTime.utc(2026, 11, 7, 8, 9, 10)),
+      buffyUploadObject(
+        'PushBanners',
+        'Diwali Sale!.PNG',
+        DateTime.utc(2026, 11, 7, 8, 9, 10),
+      ),
       'buffy_wall_data/PushBanners/Diwali_Sale_-20261107080910.png',
     );
   });

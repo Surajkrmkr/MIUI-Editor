@@ -17,7 +17,8 @@ class CatalogFieldsScreen extends ConsumerStatefulWidget {
   const CatalogFieldsScreen({super.key});
 
   @override
-  ConsumerState<CatalogFieldsScreen> createState() => _CatalogFieldsScreenState();
+  ConsumerState<CatalogFieldsScreen> createState() =>
+      _CatalogFieldsScreenState();
 }
 
 class _CatalogFieldsScreenState extends ConsumerState<CatalogFieldsScreen> {
@@ -53,7 +54,8 @@ class _CatalogFieldsScreenState extends ConsumerState<CatalogFieldsScreen> {
           SegmentedButton<CatalogKind>(
             showSelectedIcon: false,
             segments: [
-              for (final k in CatalogKind.values) ButtonSegment(value: k, label: Text(k.label)),
+              for (final k in CatalogKind.values)
+                ButtonSegment(value: k, label: Text(k.label)),
             ],
             selected: {kind},
             onSelectionChanged: (s) {
@@ -74,7 +76,9 @@ class _CatalogFieldsScreenState extends ConsumerState<CatalogFieldsScreen> {
       ),
       body: catalog.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: SelectableText('$err', style: TextStyle(color: colors.error))),
+        error: (err, _) => Center(
+          child: SelectableText('$err', style: TextStyle(color: colors.error)),
+        ),
         data: (doc) => _buildBody(context, doc),
       ),
     );
@@ -90,8 +94,8 @@ class _CatalogFieldsScreenState extends ConsumerState<CatalogFieldsScreen> {
     final selected = fields.containsKey(_selected)
         ? _selected
         : fields.containsKey('banners')
-            ? 'banners'
-            : fields.keys.firstOrNull;
+        ? 'banners'
+        : fields.keys.firstOrNull;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -110,10 +114,18 @@ class _CatalogFieldsScreenState extends ConsumerState<CatalogFieldsScreen> {
                         dense: true,
                         selected: key == selected,
                         leading: Icon(jsonTypeIcon(value), size: 18),
-                        title: Text(key, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        title: Text(
+                          key,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
                         subtitle: Text(
-                          doc.root.containsKey(key) ? jsonTypeLabel(value) : 'New · not saved',
-                          style: TextStyle(fontSize: 11, color: colors.textSecondary),
+                          doc.root.containsKey(key)
+                              ? jsonTypeLabel(value)
+                              : 'New · not saved',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colors.textSecondary,
+                          ),
                         ),
                         onTap: () => setState(() => _selected = key),
                       ),
@@ -135,8 +147,10 @@ class _CatalogFieldsScreenState extends ConsumerState<CatalogFieldsScreen> {
         Expanded(
           child: selected == null
               ? Center(
-                  child: Text('${doc.kind.jsonFile} has no fields besides "${doc.kind.listKey}"',
-                      style: TextStyle(color: colors.textSecondary)),
+                  child: Text(
+                    '${doc.kind.jsonFile} has no fields besides "${doc.kind.listKey}"',
+                    style: TextStyle(color: colors.textSecondary),
+                  ),
                 )
               : _FieldEditor(
                   key: ValueKey('${doc.kind.name}/$selected/${doc.generation}'),
@@ -219,12 +233,12 @@ class _FieldEditorState extends ConsumerState<_FieldEditor> {
   }
 
   void _discard() => setState(() {
-        _holder = {widget.field: jsonCopy(widget.value)};
-        _dirty = widget.isNew;
-        _raw = false;
-        _rawError = null;
-        _revision++;
-      });
+    _holder = {widget.field: jsonCopy(widget.value)};
+    _dirty = widget.isNew;
+    _raw = false;
+    _rawError = null;
+    _revision++;
+  });
 
   Future<void> _run(Future<void> Function() action, String done) async {
     final messenger = ScaffoldMessenger.of(context);
@@ -243,7 +257,9 @@ class _FieldEditorState extends ConsumerState<_FieldEditor> {
   Future<void> _save() async {
     if (_raw && !_applyRaw()) return;
     await _run(
-      () => ref.read(catalogProvider(widget.kind).notifier).updateFields({widget.field: _value}),
+      () => ref.read(catalogProvider(widget.kind).notifier).updateFields({
+        widget.field: _value,
+      }),
       'Saved "${widget.field}" to ${widget.kind.jsonFile}. The app shows it within ~5 minutes.',
     );
   }
@@ -257,12 +273,19 @@ class _FieldEditorState extends ConsumerState<_FieldEditor> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Remove "${widget.field}"?'),
-        content: Text('It is removed from ${widget.kind.jsonFile}. '
-            'The current version is backed up first, so this can be undone from History.'),
+        content: Text(
+          'It is removed from ${widget.kind.jsonFile}. '
+          'The current version is backed up first, so this can be undone from History.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: context.appColors.error),
+            style: FilledButton.styleFrom(
+              backgroundColor: context.appColors.error,
+            ),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Remove'),
           ),
@@ -310,7 +333,10 @@ class _FieldEditorState extends ConsumerState<_FieldEditor> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Edit the value below.', style: TextStyle(color: colors.textSecondary, fontSize: 12)),
+        Text(
+          'Edit the value below.',
+          style: TextStyle(color: colors.textSecondary, fontSize: 12),
+        ),
         JsonObjectEditor(
           map: _holder,
           onChanged: _changed,
@@ -331,18 +357,33 @@ class _FieldEditorState extends ConsumerState<_FieldEditor> {
           padding: const EdgeInsets.fromLTRB(24, 16, 16, 12),
           child: Row(
             children: [
-              Text(widget.field,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colors.textPrimary)),
+              Text(
+                widget.field,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: colors.textPrimary,
+                ),
+              ),
               const SizedBox(width: 12),
-              Text(jsonTypeLabel(_value), style: TextStyle(color: colors.textSecondary, fontSize: 12)),
+              Text(
+                jsonTypeLabel(_value),
+                style: TextStyle(color: colors.textSecondary, fontSize: 12),
+              ),
               if (_dirty) ...[
                 const SizedBox(width: 12),
-                Text('Unsaved changes', style: TextStyle(color: colors.warning, fontSize: 12)),
+                Text(
+                  'Unsaved changes',
+                  style: TextStyle(color: colors.warning, fontSize: 12),
+                ),
               ],
               const Spacer(),
               TextButton.icon(
                 onPressed: _busy ? null : _toggleRaw,
-                icon: Icon(_raw ? Icons.view_agenda_outlined : Icons.code_rounded, size: 18),
+                icon: Icon(
+                  _raw ? Icons.view_agenda_outlined : Icons.code_rounded,
+                  size: 18,
+                ),
                 label: Text(_raw ? 'Form' : 'Raw JSON'),
               ),
               TextButton(
@@ -352,13 +393,19 @@ class _FieldEditorState extends ConsumerState<_FieldEditor> {
               TextButton.icon(
                 onPressed: _busy ? null : _delete,
                 icon: Icon(Icons.delete_outline, size: 18, color: colors.error),
-                label: Text('Remove field', style: TextStyle(color: colors.error)),
+                label: Text(
+                  'Remove field',
+                  style: TextStyle(color: colors.error),
+                ),
               ),
               const SizedBox(width: 8),
               FilledButton.icon(
                 onPressed: _busy || !_dirty ? null : _save,
                 icon: _busy
-                    ? const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox.square(
+                        dimension: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : const Icon(Icons.cloud_upload_outlined, size: 18),
                 label: const Text('Save'),
               ),

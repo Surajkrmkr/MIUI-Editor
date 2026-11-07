@@ -23,7 +23,8 @@ class BuffyCatalogFieldsView extends ConsumerWidget {
     final colors = context.appColors;
     final state = ref.watch(buffyCmsProvider);
     final notifier = ref.read(buffyCmsProvider.notifier);
-    final categories = state.wallpapers.map((w) => w.category).toSet().toList()..sort();
+    final categories = state.wallpapers.map((w) => w.category).toSet().toList()
+      ..sort();
     final wallNames = {for (final w in state.wallpapers) w.id: w.name};
 
     return ListView(
@@ -33,7 +34,11 @@ class BuffyCatalogFieldsView extends ConsumerWidget {
           children: [
             Text(
               'Catalog fields',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colors.textPrimary),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: colors.textPrimary,
+              ),
             ),
             const SizedBox(width: 12),
             Text(
@@ -43,7 +48,10 @@ class BuffyCatalogFieldsView extends ConsumerWidget {
             const Spacer(),
             OutlinedButton.icon(
               onPressed: () async {
-                final added = await _showJsonDialog(context, existingKeys: state.fields.keys.toSet());
+                final added = await _showJsonDialog(
+                  context,
+                  existingKeys: state.fields.keys.toSet(),
+                );
                 if (added != null) notifier.setField(added.key, added.value);
               },
               icon: const Icon(Icons.add_rounded, size: 18),
@@ -91,7 +99,9 @@ class BuffyCatalogFieldsView extends ConsumerWidget {
       );
       messenger
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text('Uploaded. Publish to make it live.')));
+        ..showSnackBar(
+          const SnackBar(content: Text('Uploaded. Publish to make it live.')),
+        );
       return url;
     } catch (e) {
       messenger
@@ -102,9 +112,17 @@ class BuffyCatalogFieldsView extends ConsumerWidget {
   }
 }
 
-bool _isUrl(Object? v) => v is String && (v.startsWith('https://') || v.startsWith('http://'));
+bool _isUrl(Object? v) =>
+    v is String && (v.startsWith('https://') || v.startsWith('http://'));
 
-const _imageKeys = {'url', 'image', 'imageUrl', 'banner', 'thumbnail', 'compressUrl'};
+const _imageKeys = {
+  'url',
+  'image',
+  'imageUrl',
+  'banner',
+  'thumbnail',
+  'compressUrl',
+};
 
 class _FieldCard extends StatelessWidget {
   const _FieldCard({
@@ -163,28 +181,47 @@ class _FieldCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              Text(type, style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+              Text(
+                type,
+                style: TextStyle(fontSize: 12, color: colors.textSecondary),
+              ),
               const Spacer(),
               IconButton(
                 tooltip: 'Edit JSON',
                 icon: const Icon(Icons.code_rounded, size: 18),
                 onPressed: () async {
-                  final edited = await _showJsonDialog(context, key: fieldKey, value: value);
+                  final edited = await _showJsonDialog(
+                    context,
+                    key: fieldKey,
+                    value: value,
+                  );
                   if (edited != null) onChanged(edited.value);
                 },
               ),
               IconButton(
                 tooltip: 'Remove field',
-                icon: Icon(Icons.delete_outline_rounded, size: 18, color: colors.error),
+                icon: Icon(
+                  Icons.delete_outline_rounded,
+                  size: 18,
+                  color: colors.error,
+                ),
                 onPressed: () async {
                   final ok = await showDialog<bool>(
                     context: context,
                     builder: (ctx) => AlertDialog(
                       title: Text('Remove "$fieldKey"?'),
-                      content: const Text('The app may rely on it. You can reload to undo before publishing.'),
+                      content: const Text(
+                        'The app may rely on it. You can reload to undo before publishing.',
+                      ),
                       actions: [
-                        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-                        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Remove')),
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('Cancel'),
+                        ),
+                        FilledButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: const Text('Remove'),
+                        ),
                       ],
                     ),
                   );
@@ -217,7 +254,11 @@ class _FieldCard extends StatelessWidget {
       );
     }
     if (value is List && value.every((e) => e is String || e is num)) {
-      return _ChipListEditor(items: value, wallNames: wallNames, onChanged: onChanged);
+      return _ChipListEditor(
+        items: value,
+        wallNames: wallNames,
+        onChanged: onChanged,
+      );
     }
     if (value is String || value is num || value is bool) {
       return _ScalarField(value: value, onChanged: onChanged);
@@ -228,7 +269,11 @@ class _FieldCard extends StatelessWidget {
 
 /// `{"free": "https://…", "paid": "https://…"}`: one image tile per key.
 class _StringMapEditor extends StatelessWidget {
-  const _StringMapEditor({required this.map, required this.onChanged, required this.onUpload});
+  const _StringMapEditor({
+    required this.map,
+    required this.onChanged,
+    required this.onUpload,
+  });
 
   final Map<String, String> map;
   final ValueChanged<Object?> onChanged;
@@ -260,7 +305,8 @@ class _StringMapEditor extends StatelessWidget {
         OutlinedButton.icon(
           onPressed: () async {
             final key = await _promptText(context, 'New key');
-            if (key != null && key.isNotEmpty && !map.containsKey(key)) _set(key, '');
+            if (key != null && key.isNotEmpty && !map.containsKey(key))
+              _set(key, '');
           },
           icon: const Icon(Icons.add_rounded, size: 18),
           label: const Text('Add entry'),
@@ -299,7 +345,8 @@ class _MapListEditor extends StatelessWidget {
     return {
       for (final e in items.first.entries)
         e.key: switch (e.value) {
-          int() when e.key == 'id' => ids.isEmpty ? 1 : ids.reduce((a, b) => a > b ? a : b) + 1,
+          int() when e.key == 'id' =>
+            ids.isEmpty ? 1 : ids.reduce((a, b) => a > b ? a : b) + 1,
           String() => '',
           bool() => false,
           num() => 0,
@@ -382,12 +429,28 @@ class _MapItemCard extends StatelessWidget {
             children: [
               Text(
                 '#${index + 1}${item['id'] == null ? '' : '  ·  id ${item['id']}'}',
-                style: TextStyle(fontWeight: FontWeight.w700, color: colors.textPrimary),
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: colors.textPrimary,
+                ),
               ),
               const Spacer(),
-              _SmallIcon(Icons.arrow_back_rounded, 'Move earlier', index == 0 ? null : () => onMove(index - 1)),
-              _SmallIcon(Icons.arrow_forward_rounded, 'Move later', index == count - 1 ? null : () => onMove(index + 1)),
-              _SmallIcon(Icons.close_rounded, 'Remove item', onRemove, color: colors.error),
+              _SmallIcon(
+                Icons.arrow_back_rounded,
+                'Move earlier',
+                index == 0 ? null : () => onMove(index - 1),
+              ),
+              _SmallIcon(
+                Icons.arrow_forward_rounded,
+                'Move later',
+                index == count - 1 ? null : () => onMove(index + 1),
+              ),
+              _SmallIcon(
+                Icons.close_rounded,
+                'Remove item',
+                onRemove,
+                color: colors.error,
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -415,15 +478,18 @@ class _MapItemCard extends StatelessWidget {
                         onChanged: (v) => _set(e.key, v),
                       )
                     : e.value is String || e.value is num || e.value is bool
-                        ? _ScalarField(
-                            label: e.key,
-                            value: e.value,
-                            onChanged: (v) => _set(e.key, v),
-                          )
-                        : Text(
-                            '${e.key}: ${jsonEncode(e.value)}',
-                            style: TextStyle(fontSize: 12, color: colors.textSecondary),
-                          ),
+                    ? _ScalarField(
+                        label: e.key,
+                        value: e.value,
+                        onChanged: (v) => _set(e.key, v),
+                      )
+                    : Text(
+                        '${e.key}: ${jsonEncode(e.value)}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colors.textSecondary,
+                        ),
+                      ),
               ),
         ],
       ),
@@ -432,7 +498,12 @@ class _MapItemCard extends StatelessWidget {
 }
 
 class _CategoryField extends StatelessWidget {
-  const _CategoryField({super.key, required this.value, required this.categories, required this.onChanged});
+  const _CategoryField({
+    super.key,
+    required this.value,
+    required this.categories,
+    required this.onChanged,
+  });
 
   final String value;
   final List<String> categories;
@@ -450,7 +521,10 @@ class _CategoryField extends StatelessWidget {
         for (final c in options)
           DropdownMenuItem(
             value: c,
-            child: Text(c.isEmpty ? 'None' : c, overflow: TextOverflow.ellipsis),
+            child: Text(
+              c.isEmpty ? 'None' : c,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
       ],
       onChanged: (v) => onChanged(v ?? ''),
@@ -489,10 +563,19 @@ class _ImageSlot extends StatelessWidget {
                 ? Image.network(
                     url,
                     fit: BoxFit.contain,
-                    errorBuilder: (_, _, _) =>
-                        Center(child: Icon(Icons.broken_image_outlined, color: colors.textDisabled)),
+                    errorBuilder: (_, _, _) => Center(
+                      child: Icon(
+                        Icons.broken_image_outlined,
+                        color: colors.textDisabled,
+                      ),
+                    ),
                   )
-                : Center(child: Icon(Icons.image_outlined, color: colors.textDisabled)),
+                : Center(
+                    child: Icon(
+                      Icons.image_outlined,
+                      color: colors.textDisabled,
+                    ),
+                  ),
           ),
         ),
         const SizedBox(height: 8),
@@ -506,11 +589,20 @@ class _ImageSlot extends StatelessWidget {
               ),
             ),
             _SmallIcon(Icons.upload_rounded, 'Upload image', onUpload),
-            _SmallIcon(Icons.copy_rounded, 'Copy URL', url.isEmpty
-                ? null
-                : () => Clipboard.setData(ClipboardData(text: url))),
+            _SmallIcon(
+              Icons.copy_rounded,
+              'Copy URL',
+              url.isEmpty
+                  ? null
+                  : () => Clipboard.setData(ClipboardData(text: url)),
+            ),
             if (onRemove != null)
-              _SmallIcon(Icons.close_rounded, 'Remove', onRemove, color: colors.error),
+              _SmallIcon(
+                Icons.close_rounded,
+                'Remove',
+                onRemove,
+                color: colors.error,
+              ),
           ],
         ),
       ],
@@ -520,7 +612,11 @@ class _ImageSlot extends StatelessWidget {
 
 /// A list of strings / numbers as chips, e.g. `trendingTags` or `topWallpapers`.
 class _ChipListEditor extends StatefulWidget {
-  const _ChipListEditor({required this.items, required this.wallNames, required this.onChanged});
+  const _ChipListEditor({
+    required this.items,
+    required this.wallNames,
+    required this.onChanged,
+  });
 
   final List items;
   final Map<int, String> wallNames;
@@ -542,7 +638,10 @@ class _ChipListEditorState extends State<_ChipListEditor> {
   void _add() {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
-    widget.onChanged([...widget.items, int.tryParse(text) ?? double.tryParse(text) ?? text]);
+    widget.onChanged([
+      ...widget.items,
+      int.tryParse(text) ?? double.tryParse(text) ?? text,
+    ]);
     _controller.clear();
   }
 
@@ -570,7 +669,10 @@ class _ChipListEditorState extends State<_ChipListEditor> {
             decoration: InputDecoration(
               hintText: 'Add and press Enter',
               isDense: true,
-              suffixIcon: IconButton(icon: const Icon(Icons.add_rounded, size: 18), onPressed: _add),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.add_rounded, size: 18),
+                onPressed: _add,
+              ),
             ),
             onSubmitted: (_) => _add(),
           ),
@@ -582,7 +684,11 @@ class _ChipListEditorState extends State<_ChipListEditor> {
 
 /// Text, number or switch, keeping the value's JSON type.
 class _ScalarField extends StatelessWidget {
-  const _ScalarField({required this.value, required this.onChanged, this.label});
+  const _ScalarField({
+    required this.value,
+    required this.onChanged,
+    this.label,
+  });
 
   final Object? value;
   final ValueChanged<Object?> onChanged;
@@ -625,11 +731,18 @@ class _JsonPreview extends StatelessWidget {
     return Container(
       constraints: const BoxConstraints(maxHeight: 220),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: colors.bgSubtle, borderRadius: BorderRadius.circular(10)),
+      decoration: BoxDecoration(
+        color: colors.bgSubtle,
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: SingleChildScrollView(
         child: SelectableText(
           text,
-          style: TextStyle(fontFamily: 'monospace', fontSize: 12, color: colors.textSecondary),
+          style: TextStyle(
+            fontFamily: 'monospace',
+            fontSize: 12,
+            color: colors.textSecondary,
+          ),
         ),
       ),
     );
@@ -690,11 +803,11 @@ class _SmallIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => IconButton(
-        tooltip: tooltip,
-        visualDensity: VisualDensity.compact,
-        icon: Icon(icon, size: 18, color: onPressed == null ? null : color),
-        onPressed: onPressed,
-      );
+    tooltip: tooltip,
+    visualDensity: VisualDensity.compact,
+    icon: Icon(icon, size: 18, color: onPressed == null ? null : color),
+    onPressed: onPressed,
+  );
 }
 
 Future<String?> _promptText(BuildContext context, String label) {
@@ -709,8 +822,14 @@ Future<String?> _promptText(BuildContext context, String label) {
         onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-        FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('Add')),
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+          child: const Text('Add'),
+        ),
       ],
     ),
   ).whenComplete(controller.dispose);
@@ -725,12 +844,17 @@ Future<MapEntry<String, Object?>?> _showJsonDialog(
 }) {
   return showDialog<MapEntry<String, Object?>>(
     context: context,
-    builder: (_) => _JsonDialog(fieldKey: key, value: value, existingKeys: existingKeys),
+    builder: (_) =>
+        _JsonDialog(fieldKey: key, value: value, existingKeys: existingKeys),
   );
 }
 
 class _JsonDialog extends StatefulWidget {
-  const _JsonDialog({required this.fieldKey, required this.value, required this.existingKeys});
+  const _JsonDialog({
+    required this.fieldKey,
+    required this.value,
+    required this.existingKeys,
+  });
 
   final String? fieldKey;
   final Object? value;
@@ -743,7 +867,9 @@ class _JsonDialog extends StatefulWidget {
 class _JsonDialogState extends State<_JsonDialog> {
   late final _key = TextEditingController(text: widget.fieldKey ?? '');
   late final _json = TextEditingController(
-    text: widget.fieldKey == null ? '""' : const JsonEncoder.withIndent('  ').convert(widget.value),
+    text: widget.fieldKey == null
+        ? '""'
+        : const JsonEncoder.withIndent('  ').convert(widget.value),
   );
   String? _error;
 
@@ -759,7 +885,9 @@ class _JsonDialogState extends State<_JsonDialog> {
     if (widget.fieldKey == null) {
       if (key.isEmpty) return setState(() => _error = 'Enter a key.');
       if (key == kBuffyWallpapersKey) {
-        return setState(() => _error = '"$key" is edited in the Wallpapers tab.');
+        return setState(
+          () => _error = '"$key" is edited in the Wallpapers tab.',
+        );
       }
       if (widget.existingKeys.contains(key)) {
         return setState(() => _error = '"$key" already exists.');
@@ -776,7 +904,9 @@ class _JsonDialogState extends State<_JsonDialog> {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return AlertDialog(
-      title: Text(widget.fieldKey == null ? 'Add field' : 'Edit "${widget.fieldKey}"'),
+      title: Text(
+        widget.fieldKey == null ? 'Add field' : 'Edit "${widget.fieldKey}"',
+      ),
       content: SizedBox(
         width: 640,
         child: Column(
@@ -787,7 +917,10 @@ class _JsonDialogState extends State<_JsonDialog> {
               TextField(
                 controller: _key,
                 autofocus: true,
-                decoration: const InputDecoration(labelText: 'Key', isDense: true),
+                decoration: const InputDecoration(
+                  labelText: 'Key',
+                  isDense: true,
+                ),
               ),
               const SizedBox(height: 12),
             ],
@@ -804,14 +937,23 @@ class _JsonDialogState extends State<_JsonDialog> {
             ),
             if (_error != null) ...[
               const SizedBox(height: 8),
-              Text(_error!, style: TextStyle(color: colors.error, fontSize: 12)),
+              Text(
+                _error!,
+                style: TextStyle(color: colors.error, fontSize: 12),
+              ),
             ],
           ],
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-        FilledButton(onPressed: _save, child: Text(widget.fieldKey == null ? 'Add' : 'Apply')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _save,
+          child: Text(widget.fieldKey == null ? 'Add' : 'Apply'),
+        ),
       ],
     );
   }

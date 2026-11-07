@@ -67,7 +67,11 @@ class BuffyCatalogPublisher {
   }
 
   /// Uploads an image to a new object in [folder]; returns its download URL.
-  Future<String> uploadImage(String folder, String fileName, List<int> bytes) async {
+  Future<String> uploadImage(
+    String folder,
+    String fileName,
+    List<int> bytes,
+  ) async {
     final object = buffyUploadObject(folder, fileName, DateTime.now());
     await uploadNewMedia(object, bytes);
     return buffyDownloadUrl(object);
@@ -162,8 +166,7 @@ class BuffyCatalogPublisher {
         final object = buffyObjectFromUrl(node);
         if (object == null) {
           problems.add('Points at another bucket: $node');
-        } else if (object != kBuffyCatalogObject &&
-            !objects.contains(object)) {
+        } else if (object != kBuffyCatalogObject && !objects.contains(object)) {
           problems.add('Missing from the bucket: $object');
         }
       }

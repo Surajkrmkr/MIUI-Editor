@@ -479,7 +479,13 @@ void main() {
         generation: '1',
       );
       expect(doc.extraFields.keys, ['banners', 'pop-up']);
-      final next = doc.copyWithFields({'banners': [2], 'search': 'x'}, removed: {'pop-up'});
+      final next = doc.copyWithFields(
+        {
+          'banners': [2],
+          'search': 'x',
+        },
+        removed: {'pop-up'},
+      );
       expect(next.root.keys, ['banners', 'walls', 'search']);
       expect(next.root['banners'], [2]);
       expect(next.wallsOf(), [
@@ -491,7 +497,10 @@ void main() {
         root: {'collections': []},
         generation: '1',
       );
-      expect(() => collections.copyWithFields({}, removed: {'collections'}), throwsArgumentError);
+      expect(
+        () => collections.copyWithFields({}, removed: {'collections'}),
+        throwsArgumentError,
+      );
     });
 
     test('downloadUrl adds the token', () {
@@ -499,7 +508,10 @@ void main() {
         CatalogRules.downloadUrl('b', 'wallrio_push/a b.png', 't1'),
         'https://firebasestorage.googleapis.com/v0/b/b/o/wallrio_push%2Fa%20b.png?alt=media&token=t1',
       );
-      expect(CatalogRules.downloadUrl('b', 'x.png', null), CatalogRules.storageUrl('b', 'x.png'));
+      expect(
+        CatalogRules.downloadUrl('b', 'x.png', null),
+        CatalogRules.storageUrl('b', 'x.png'),
+      );
     });
   });
 }

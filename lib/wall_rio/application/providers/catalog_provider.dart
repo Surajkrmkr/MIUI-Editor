@@ -29,8 +29,8 @@ class StorageSettingsNotifier extends AsyncNotifier<StorageSettings> {
 
 final storageSettingsProvider =
     AsyncNotifierProvider<StorageSettingsNotifier, StorageSettings>(
-  StorageSettingsNotifier.new,
-);
+      StorageSettingsNotifier.new,
+    );
 
 /// Storage client for the signed-in account; rebuilt when sign-in changes.
 final storageClientProvider = FutureProvider<StorageClient>((ref) async {
@@ -57,7 +57,9 @@ class SelectedKindNotifier extends Notifier<CatalogKind> {
 }
 
 final selectedKindProvider =
-    NotifierProvider<SelectedKindNotifier, CatalogKind>(SelectedKindNotifier.new);
+    NotifierProvider<SelectedKindNotifier, CatalogKind>(
+      SelectedKindNotifier.new,
+    );
 
 /// The collection shown in the Collections tab; null means "the first one".
 class SelectedCollectionNotifier extends Notifier<String?> {
@@ -68,18 +70,22 @@ class SelectedCollectionNotifier extends Notifier<String?> {
 }
 
 final selectedCollectionProvider =
-    NotifierProvider<SelectedCollectionNotifier, String?>(SelectedCollectionNotifier.new);
+    NotifierProvider<SelectedCollectionNotifier, String?>(
+      SelectedCollectionNotifier.new,
+    );
 
 /// The live catalog for one kind, plus the actions that change it. Each action
 /// saves to Storage and then replaces the state with what was saved.
-class CatalogNotifier extends FamilyAsyncNotifier<CatalogDocument, CatalogKind> {
+class CatalogNotifier
+    extends FamilyAsyncNotifier<CatalogDocument, CatalogKind> {
   @override
   FutureOr<CatalogDocument> build(CatalogKind kind) async {
     final service = await ref.watch(catalogServiceProvider.future);
     return service.load(kind);
   }
 
-  Future<CatalogService> get _service => ref.read(catalogServiceProvider.future);
+  Future<CatalogService> get _service =>
+      ref.read(catalogServiceProvider.future);
 
   Future<void> reload() async {
     state = const AsyncValue.loading();
@@ -92,14 +98,24 @@ class CatalogNotifier extends FamilyAsyncNotifier<CatalogDocument, CatalogKind> 
     void Function(String status)? onProgress,
   }) async {
     final doc = await future;
-    final saved = await (await _service)
-        .publish(doc, drafts, collectionId: collectionId, onProgress: onProgress);
+    final saved = await (await _service).publish(
+      doc,
+      drafts,
+      collectionId: collectionId,
+      onProgress: onProgress,
+    );
     state = AsyncValue.data(saved);
   }
 
-  Future<void> updateEntry(Map<String, dynamic> entry, {String? collectionId}) async {
-    final saved = await (await _service)
-        .updateEntry(await future, entry, collectionId: collectionId);
+  Future<void> updateEntry(
+    Map<String, dynamic> entry, {
+    String? collectionId,
+  }) async {
+    final saved = await (await _service).updateEntry(
+      await future,
+      entry,
+      collectionId: collectionId,
+    );
     state = AsyncValue.data(saved);
   }
 
@@ -158,27 +174,32 @@ class CatalogNotifier extends FamilyAsyncNotifier<CatalogDocument, CatalogKind> 
     Map<String, dynamic> fields, {
     Set<String> removed = const {},
   }) async {
-    final saved = await (await _service)
-        .updateFields(await future, fields, removed: removed);
+    final saved = await (await _service).updateFields(
+      await future,
+      fields,
+      removed: removed,
+    );
     state = AsyncValue.data(saved);
   }
 }
 
 final catalogProvider =
     AsyncNotifierProvider.family<CatalogNotifier, CatalogDocument, CatalogKind>(
-  CatalogNotifier.new,
-);
+      CatalogNotifier.new,
+    );
 
 final catalogHistoryProvider =
     FutureProvider.family<List<StorageObject>, CatalogKind>((ref, kind) async {
-  ref.watch(catalogProvider(kind)); // refresh after every save
-  final service = await ref.watch(catalogServiceProvider.future);
-  return service.history(kind);
-});
+      ref.watch(catalogProvider(kind)); // refresh after every save
+      final service = await ref.watch(catalogServiceProvider.future);
+      return service.history(kind);
+    });
 
 /// Images uploaded for push notifications.
 final pushImagesProvider =
-    FutureProvider.autoDispose<List<({StorageObject object, String url})>>((ref) async {
-  final service = await ref.watch(catalogServiceProvider.future);
-  return service.listImages(CatalogService.pushFolder);
-});
+    FutureProvider.autoDispose<List<({StorageObject object, String url})>>((
+      ref,
+    ) async {
+      final service = await ref.watch(catalogServiceProvider.future);
+      return service.listImages(CatalogService.pushFolder);
+    });

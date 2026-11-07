@@ -64,8 +64,9 @@ enum CatalogKind {
   bool get hasCollections => this == collections;
 
   /// Fields holding Storage URLs; all must point to existing files.
-  List<String> get mediaFields =>
-      isVideo ? const ['videoUrl', 'previewVideo', 'thumbnail'] : const ['url', 'thumbnail'];
+  List<String> get mediaFields => isVideo
+      ? const ['videoUrl', 'previewVideo', 'thumbnail']
+      : const ['url', 'thumbnail'];
 
   /// The field that identifies an entry (ids are not unique in the data).
   String get identityField => isVideo ? 'videoUrl' : 'url';
@@ -76,7 +77,8 @@ enum CatalogKind {
   /// Root key of the wallpaper list, which only the wallpaper actions change.
   String get listKey => hasCollections ? 'collections' : 'walls';
 
-  List<String> get uploadExtensions => isVideo ? const ['mp4'] : const ['jpg', 'jpeg', 'png'];
+  List<String> get uploadExtensions =>
+      isVideo ? const ['mp4'] : const ['jpg', 'jpeg', 'png'];
 }
 
 /// A catalog JSON as downloaded, plus the Storage generation it was read at.
@@ -99,7 +101,8 @@ class CatalogDocument {
   /// The collections (with their `walls`), for [CatalogKind.collections].
   List<Map<String, dynamic>> get collections {
     final list = root['collections'];
-    if (list is! List) throw const FormatException('Catalog has no "collections" list');
+    if (list is! List)
+      throw const FormatException('Catalog has no "collections" list');
     return list.cast<Map<String, dynamic>>();
   }
 
@@ -118,14 +121,16 @@ class CatalogDocument {
   List<Map<String, dynamic>> wallsOf([String? collectionId]) {
     if (kind.hasCollections) {
       final c = collection(collectionId);
-      if (c == null) throw FormatException('No collection with id $collectionId');
+      if (c == null)
+        throw FormatException('No collection with id $collectionId');
       return (c['walls'] as List? ?? const []).cast<Map<String, dynamic>>();
     }
     final walls = root['walls'];
     if (walls is! List) {
       throw const FormatException('Catalog has no "walls" list');
     }
-    final list = kind == CatalogKind.desktop && walls.isNotEmpty && walls.first is List
+    final list =
+        kind == CatalogKind.desktop && walls.isNotEmpty && walls.first is List
         ? walls.first as List
         : walls;
     return list.cast<Map<String, dynamic>>();
@@ -136,7 +141,10 @@ class CatalogDocument {
       ? [for (final c in collections) ...wallsOf('${c['id']}')]
       : wallsOf();
 
-  CatalogDocument copyWithWalls(List<Map<String, dynamic>> walls, [String? collectionId]) {
+  CatalogDocument copyWithWalls(
+    List<Map<String, dynamic>> walls, [
+    String? collectionId,
+  ]) {
     final newRoot = Map<String, dynamic>.from(root);
     if (kind.hasCollections) {
       newRoot['collections'] = [
@@ -145,8 +153,11 @@ class CatalogDocument {
       ];
     } else {
       final current = root['walls'];
-      newRoot['walls'] = kind == CatalogKind.desktop && current is List &&
-              current.isNotEmpty && current.first is List
+      newRoot['walls'] =
+          kind == CatalogKind.desktop &&
+              current is List &&
+              current.isNotEmpty &&
+              current.first is List
           ? [walls, ...current.skip(1)]
           : walls;
     }
@@ -155,9 +166,9 @@ class CatalogDocument {
 
   /// Root fields other than the wallpaper list (banners, subscription, …).
   Map<String, dynamic> get extraFields => {
-        for (final e in root.entries)
-          if (e.key != kind.listKey) e.key: e.value,
-      };
+    for (final e in root.entries)
+      if (e.key != kind.listKey) e.key: e.value,
+  };
 
   /// Sets [fields] and drops [removed], keeping the key order; new keys go last.
   CatalogDocument copyWithFields(
@@ -166,7 +177,9 @@ class CatalogDocument {
   }) {
     final listKey = kind.listKey;
     if (fields.containsKey(listKey) || removed.contains(listKey)) {
-      throw ArgumentError('"$listKey" is changed through the wallpaper actions');
+      throw ArgumentError(
+        '"$listKey" is changed through the wallpaper actions',
+      );
     }
     return CatalogDocument(
       kind: kind,

@@ -20,9 +20,10 @@ class ActiveBuffyGitTargetNotifier extends Notifier<BuffyGitRepoTarget> {
   void set(BuffyGitRepoTarget target) => state = target;
 }
 
-final activeBuffyGitTargetProvider = NotifierProvider<ActiveBuffyGitTargetNotifier, BuffyGitRepoTarget>(
-  ActiveBuffyGitTargetNotifier.new,
-);
+final activeBuffyGitTargetProvider =
+    NotifierProvider<ActiveBuffyGitTargetNotifier, BuffyGitRepoTarget>(
+      ActiveBuffyGitTargetNotifier.new,
+    );
 
 class BuffyCmsState {
   final List<BuffyWallpaper> wallpapers;
@@ -31,6 +32,7 @@ class BuffyCmsState {
   final Map<String, dynamic> fields;
   final bool isLoading;
   final String? error;
+
   /// The catalog as loaded from Firebase, and its generation. Null until loaded.
   final String? catalogJson;
   final String? generation;
@@ -91,7 +93,9 @@ class BuffyCmsNotifier extends Notifier<BuffyCmsState> {
     final target = ref.read(activeBuffyGitTargetProvider);
     final settings = ref.read(buffySettingsProvider);
     if (target == BuffyGitRepoTarget.json) {
-      return settings.jsonFilePath.isNotEmpty ? File(settings.jsonFilePath).parent.path : null;
+      return settings.jsonFilePath.isNotEmpty
+          ? File(settings.jsonFilePath).parent.path
+          : null;
     } else {
       return settings.localRepoPath.isNotEmpty ? settings.localRepoPath : null;
     }
@@ -125,17 +129,20 @@ class BuffyCmsNotifier extends Notifier<BuffyCmsState> {
 
   /// The catalog with the current edits applied.
   Future<String> buildCatalogJson() => compute(encodeBuffyCatalog, (
-        catalog: state.catalogJson!,
-        fields: state.fields,
-        wallpapers: state.wallpapers.map((w) => w.toJson()).toList(),
-      ));
+    catalog: state.catalogJson!,
+    fields: state.fields,
+    wallpapers: state.wallpapers.map((w) => w.toJson()).toList(),
+  ));
 
   /// Sets a root field; new keys go last.
   void setField(String key, Object? value) {
     if (key == kBuffyWallpapersKey) {
       throw ArgumentError('"$key" is edited through the wallpaper actions');
     }
-    state = state.copyWith(fields: {...state.fields, key: value}, isDirty: true);
+    state = state.copyWith(
+      fields: {...state.fields, key: value},
+      isDirty: true,
+    );
   }
 
   void removeField(String key) {
@@ -172,7 +179,9 @@ class BuffyCmsNotifier extends Notifier<BuffyCmsState> {
 
   void updateWallpaper(BuffyWallpaper wallpaper) {
     state = state.copyWith(
-      wallpapers: state.wallpapers.map((w) => w.id == wallpaper.id ? wallpaper : w).toList(),
+      wallpapers: state.wallpapers
+          .map((w) => w.id == wallpaper.id ? wallpaper : w)
+          .toList(),
       isDirty: true,
     );
   }
@@ -195,7 +204,11 @@ class BuffyCmsNotifier extends Notifier<BuffyCmsState> {
   Future<void> unstageFile(String file) async {
     final workingDir = _getWorkingDir();
     if (workingDir != null) {
-      await Process.run('git', ['reset', 'HEAD', file], workingDirectory: workingDir);
+      await Process.run('git', [
+        'reset',
+        'HEAD',
+        file,
+      ], workingDirectory: workingDir);
       await refreshGitStatus();
     }
   }
@@ -203,7 +216,10 @@ class BuffyCmsNotifier extends Notifier<BuffyCmsState> {
   Future<GitOperationResult> pull() async {
     final workingDir = _getWorkingDir();
     if (workingDir == null) {
-      return const GitOperationResult(success: false, message: 'No repo configured');
+      return const GitOperationResult(
+        success: false,
+        message: 'No repo configured',
+      );
     }
     state = state.copyWith(isLoading: true);
     final result = await _gitRepository.pull(workingDir);
@@ -219,7 +235,10 @@ class BuffyCmsNotifier extends Notifier<BuffyCmsState> {
   Future<GitCommitResult> commit(String message) async {
     final workingDir = _getWorkingDir();
     if (workingDir == null) {
-      return const GitCommitResult(success: false, message: 'No repo configured');
+      return const GitCommitResult(
+        success: false,
+        message: 'No repo configured',
+      );
     }
     state = state.copyWith(isLoading: true);
     final result = await _gitRepository.commit(workingDir, message);
@@ -231,15 +250,18 @@ class BuffyCmsNotifier extends Notifier<BuffyCmsState> {
   Future<GitOperationResult> push([String? message]) async {
     final workingDir = _getWorkingDir();
     if (workingDir == null) {
-      return const GitOperationResult(success: false, message: 'No repo configured');
+      return const GitOperationResult(
+        success: false,
+        message: 'No repo configured',
+      );
     }
     state = state.copyWith(isLoading: true);
-    
+
     if (message != null && message.isNotEmpty) {
       await Process.run('git', ['add', '.'], workingDirectory: workingDir);
       await _gitRepository.commit(workingDir, message);
     }
-    
+
     final result = await _gitRepository.push(workingDir);
     await refreshGitStatus();
     state = state.copyWith(isLoading: false);

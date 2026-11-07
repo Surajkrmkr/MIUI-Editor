@@ -28,10 +28,9 @@ class NameTakenException implements Exception {
 }
 
 /// Returns the new wall list and the entries that changed (for validation).
-typedef CatalogEdit = ({
-  List<Map<String, dynamic>> walls,
-  List<Map<String, dynamic>> changed,
-}) Function(List<Map<String, dynamic>> walls);
+typedef CatalogEdit =
+    ({List<Map<String, dynamic>> walls, List<Map<String, dynamic>> changed})
+    Function(List<Map<String, dynamic>> walls);
 
 /// Reads and writes the WallRio catalogs in Firebase Storage.
 ///
@@ -72,8 +71,9 @@ class CatalogService {
     void Function(String status)? onProgress,
   }) async {
     final kind = doc.kind;
-    final collectionName =
-        kind.hasCollections ? '${doc.collection(collectionId)?['name'] ?? ''}' : null;
+    final collectionName = kind.hasCollections
+        ? '${doc.collection(collectionId)?['name'] ?? ''}'
+        : null;
     if (kind.hasCollections && (collectionName ?? '').isEmpty) {
       throw CatalogValidationException(['Pick a collection to upload into']);
     }
@@ -96,7 +96,9 @@ class CatalogService {
     final mainField = kind.identityField;
     final mainPaths = planned.map((p) => p.paths[mainField]!).toList();
     final taken = <String>{
-      ...mainPaths.where((p) => mainPaths.indexOf(p) != mainPaths.lastIndexOf(p)),
+      ...mainPaths.where(
+        (p) => mainPaths.indexOf(p) != mainPaths.lastIndexOf(p),
+      ),
     };
     for (final path in mainPaths) {
       if (await _storage.stat(path) != null) taken.add(path);
@@ -184,7 +186,9 @@ class CatalogService {
     return save(doc, collectionId: collectionId, (walls) {
       final index = walls.indexWhere((w) => w[key] == updated[key]);
       if (index == -1) {
-        throw CatalogValidationException(['"${updated['name']}" is no longer in the catalog']);
+        throw CatalogValidationException([
+          '"${updated['name']}" is no longer in the catalog',
+        ]);
       }
       final next = [...walls]..[index] = updated;
       return (walls: next, changed: [updated]);
@@ -209,7 +213,8 @@ class CatalogService {
       for (final field in doc.kind.mediaFields) {
         final url = '${entry[field] ?? ''}';
         final path = CatalogRules.objectPathFromUrl(settings.bucket, url);
-        if (path != null && !referenced.contains(url)) await _storage.delete(path);
+        if (path != null && !referenced.contains(url))
+          await _storage.delete(path);
       }
     }
     return saved;
@@ -254,7 +259,9 @@ class CatalogService {
     return _saveRoot(doc, (current) {
       final collections = current.collections;
       if (current.collection(id) == null) {
-        throw CatalogValidationException(['Collection $id is no longer in the catalog']);
+        throw CatalogValidationException([
+          'Collection $id is no longer in the catalog',
+        ]);
       }
       final problems = CatalogRules.validateCollection(
         collections: collections,
@@ -285,19 +292,26 @@ class CatalogService {
     CatalogDocument doc,
     Map<String, dynamic> fields, {
     Set<String> removed = const {},
-  }) =>
-      _saveRoot(doc, (current) => current.copyWithFields(fields, removed: removed));
+  }) => _saveRoot(
+    doc,
+    (current) => current.copyWithFields(fields, removed: removed),
+  );
 
   /// Uploads an image to [folder] under a fresh name (files are cached as
   /// immutable) and returns its public download URL.
   Future<String> uploadImage(String localPath, String folder) async {
     final ext = CatalogRules.extensionOf(localPath);
     if (!imageExtensions.contains(ext)) {
-      throw CatalogValidationException(['Only ${imageExtensions.join(', ')} images']);
+      throw CatalogValidationException([
+        'Only ${imageExtensions.join(', ')} images',
+      ]);
     }
     final file = localPath.split(RegExp(r'[/\\]')).last;
-    final base = CatalogRules.pathSegment(file.substring(0, file.lastIndexOf('.')));
-    final path = '$folder/${base.isEmpty ? 'image' : base}_'
+    final base = CatalogRules.pathSegment(
+      file.substring(0, file.lastIndexOf('.')),
+    );
+    final path =
+        '$folder/${base.isEmpty ? 'image' : base}_'
         '${DateTime.now().millisecondsSinceEpoch}.$ext';
     final token = const Uuid().v4();
     await _storage.upload(
@@ -312,12 +326,23 @@ class CatalogService {
   }
 
   /// Images under [folder], newest first, with their download URLs.
-  Future<List<({StorageObject object, String url})>> listImages(String folder) async {
+  Future<List<({StorageObject object, String url})>> listImages(
+    String folder,
+  ) async {
     final items = await _storage.list('$folder/');
-    items.sort((a, b) => (b.updated ?? DateTime(0)).compareTo(a.updated ?? DateTime(0)));
+    items.sort(
+      (a, b) => (b.updated ?? DateTime(0)).compareTo(a.updated ?? DateTime(0)),
+    );
     return [
       for (final o in items)
-        (object: o, url: CatalogRules.downloadUrl(settings.bucket, o.path, o.downloadToken)),
+        (
+          object: o,
+          url: CatalogRules.downloadUrl(
+            settings.bucket,
+            o.path,
+            o.downloadToken,
+          ),
+        ),
     ];
   }
 
@@ -342,7 +367,10 @@ class CatalogService {
       );
       if (problems.isNotEmpty) throw CatalogValidationException(problems);
       try {
-        return await _writeRoot(current, current.copyWithWalls(result.walls, collectionId).root);
+        return await _writeRoot(
+          current,
+          current.copyWithWalls(result.walls, collectionId).root,
+        );
       } on StoragePreconditionFailed {
         if (attempt >= _maxSaveAttempts) rethrow;
         current = await load(kind);
@@ -372,11 +400,18 @@ class CatalogService {
   }
 
   /// Makes a backup the live catalog again (itself backed up first).
-  Future<CatalogDocument> restore(CatalogKind kind, StorageObject backup) async {
+  Future<CatalogDocument> restore(
+    CatalogKind kind,
+    StorageObject backup,
+  ) async {
     final file = await _storage.download(backup.path);
     final root = jsonDecode(utf8.decode(file.bytes)) as Map<String, dynamic>;
     // Make sure the backup is a usable catalog before it goes live.
-    CatalogDocument(kind: kind, root: root, generation: file.generation).allWalls;
+    CatalogDocument(
+      kind: kind,
+      root: root,
+      generation: file.generation,
+    ).allWalls;
     for (var attempt = 1; ; attempt++) {
       final current = await load(kind);
       try {
@@ -411,7 +446,11 @@ class CatalogService {
       cacheControl: _jsonCacheControl,
       ifGenerationMatch: current.generation,
     );
-    return CatalogDocument(kind: current.kind, root: root, generation: uploaded.generation);
+    return CatalogDocument(
+      kind: current.kind,
+      root: root,
+      generation: uploaded.generation,
+    );
   }
 
   Future<Set<String>> _existingObjects(
@@ -421,8 +460,12 @@ class CatalogService {
     final existing = <String>{};
     for (final entry in entries) {
       for (final field in kind.mediaFields) {
-        final path = CatalogRules.objectPathFromUrl(settings.bucket, '${entry[field] ?? ''}');
-        if (path != null && await _storage.stat(path) != null) existing.add(path);
+        final path = CatalogRules.objectPathFromUrl(
+          settings.bucket,
+          '${entry[field] ?? ''}',
+        );
+        if (path != null && await _storage.stat(path) != null)
+          existing.add(path);
       }
     }
     return existing;

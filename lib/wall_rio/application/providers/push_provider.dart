@@ -43,8 +43,8 @@ class PushCampaignsNotifier extends AsyncNotifier<List<PushCampaign>> {
 
 final pushCampaignsProvider =
     AsyncNotifierProvider<PushCampaignsNotifier, List<PushCampaign>>(
-  PushCampaignsNotifier.new,
-);
+      PushCampaignsNotifier.new,
+    );
 
 class PushTemplatesNotifier extends AsyncNotifier<List<PushTemplate>> {
   @override
@@ -72,8 +72,8 @@ class PushTemplatesNotifier extends AsyncNotifier<List<PushTemplate>> {
 
 final pushTemplatesProvider =
     AsyncNotifierProvider<PushTemplatesNotifier, List<PushTemplate>>(
-  PushTemplatesNotifier.new,
-);
+      PushTemplatesNotifier.new,
+    );
 
 class FCMTopicsNotifier extends AsyncNotifier<List<FCMTopic>> {
   @override
@@ -89,5 +89,5 @@ class FCMTopicsNotifier extends AsyncNotifier<List<FCMTopic>> {
 
 final fcmTopicsProvider =
     AsyncNotifierProvider<FCMTopicsNotifier, List<FCMTopic>>(
-  FCMTopicsNotifier.new,
-);
+      FCMTopicsNotifier.new,
+    );

@@ -44,8 +44,9 @@ class _PushScreenState extends ConsumerState<PushScreen> {
     super.dispose();
   }
 
-  void _toast(String message) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  void _toast(String message) => ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text(message)));
 
   void _copy(String url) {
     Clipboard.setData(ClipboardData(text: url));
@@ -84,18 +85,28 @@ class _PushScreenState extends ConsumerState<PushScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Send push notification?'),
-        content: Text('Everyone subscribed to "$topic" gets "${_title.text.trim()}" now. '
-            'This can\'t be undone.'),
+        content: Text(
+          'Everyone subscribed to "$topic" gets "${_title.text.trim()}" now. '
+          'This can\'t be undone.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Send')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Send'),
+          ),
         ],
       ),
     );
     if (confirmed != true) return;
     setState(() => _sending = true);
     try {
-      await ref.read(pushCampaignsProvider.notifier).sendCampaign(
+      await ref
+          .read(pushCampaignsProvider.notifier)
+          .sendCampaign(
             title: _title.text.trim(),
             body: _body.text.trim(),
             imageUrl: _image.text.trim().isEmpty ? null : _image.text.trim(),
@@ -116,7 +127,11 @@ class _PushScreenState extends ConsumerState<PushScreen> {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final topics = ref.watch(fcmTopicsProvider).valueOrNull ?? const [];
-    final sectionStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary);
+    final sectionStyle = TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w700,
+      color: colors.textPrimary,
+    );
     final hintStyle = TextStyle(fontSize: 12, color: colors.textSecondary);
 
     return Scaffold(
@@ -141,8 +156,10 @@ class _PushScreenState extends ConsumerState<PushScreen> {
                       children: [
                         Text('Banner', style: sectionStyle),
                         const SizedBox(height: 4),
-                        Text('JPG or PNG under 1 MB. 2:1 (e.g. 1024×512) shows best on Android.',
-                            style: hintStyle),
+                        Text(
+                          'JPG or PNG under 1 MB. 2:1 (e.g. 1024×512) shows best on Android.',
+                          style: hintStyle,
+                        ),
                         const SizedBox(height: 12),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
@@ -152,11 +169,19 @@ class _PushScreenState extends ConsumerState<PushScreen> {
                               color: colors.bgSubtle,
                               child: ValueListenableBuilder(
                                 valueListenable: _image,
-                                builder: (context, value, _) => value.text.trim().isEmpty
+                                builder: (context, value, _) =>
+                                    value.text.trim().isEmpty
                                     ? Center(
-                                        child: Icon(Icons.image_outlined, size: 48, color: colors.textDisabled),
+                                        child: Icon(
+                                          Icons.image_outlined,
+                                          size: 48,
+                                          color: colors.textDisabled,
+                                        ),
                                       )
-                                    : UrlPreview(value.text.trim(), fit: BoxFit.cover),
+                                    : UrlPreview(
+                                        value.text.trim(),
+                                        fit: BoxFit.cover,
+                                      ),
                               ),
                             ),
                           ),
@@ -168,7 +193,11 @@ class _PushScreenState extends ConsumerState<PushScreen> {
                               onPressed: _uploading ? null : _upload,
                               icon: _uploading
                                   ? const SizedBox.square(
-                                      dimension: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                                      dimension: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
                                   : const Icon(Icons.upload_rounded, size: 18),
                               label: const Text('Upload banner'),
                             ),
@@ -181,9 +210,13 @@ class _PushScreenState extends ConsumerState<PushScreen> {
                                   isDense: true,
                                   suffixIcon: IconButton(
                                     tooltip: 'Copy link',
-                                    icon: const Icon(Icons.copy_rounded, size: 18),
+                                    icon: const Icon(
+                                      Icons.copy_rounded,
+                                      size: 18,
+                                    ),
                                     onPressed: () {
-                                      if (_image.text.trim().isNotEmpty) _copy(_image.text.trim());
+                                      if (_image.text.trim().isNotEmpty)
+                                        _copy(_image.text.trim());
                                     },
                                   ),
                                 ),
@@ -192,8 +225,11 @@ class _PushScreenState extends ConsumerState<PushScreen> {
                           ],
                         ),
                         const SizedBox(height: 4),
-                        Text('Sending from the Firebase console? Paste this link into '
-                            '"Notification image".', style: hintStyle),
+                        Text(
+                          'Sending from the Firebase console? Paste this link into '
+                          '"Notification image".',
+                          style: hintStyle,
+                        ),
                         const SizedBox(height: 32),
                         Text('Notification', style: sectionStyle),
                         const SizedBox(height: 12),
@@ -223,11 +259,16 @@ class _PushScreenState extends ConsumerState<PushScreen> {
                                       ? null
                                       : PopupMenuButton<String>(
                                           tooltip: 'Pick a topic',
-                                          icon: const Icon(Icons.arrow_drop_down),
+                                          icon: const Icon(
+                                            Icons.arrow_drop_down,
+                                          ),
                                           onSelected: (t) => _topic.text = t,
                                           itemBuilder: (_) => [
                                             for (final t in topics)
-                                              PopupMenuItem(value: t.name, child: Text(t.name)),
+                                              PopupMenuItem(
+                                                value: t.name,
+                                                child: Text(t.name),
+                                              ),
                                           ],
                                         ),
                                 ),
@@ -238,7 +279,9 @@ class _PushScreenState extends ConsumerState<PushScreen> {
                             Expanded(
                               child: TextFormField(
                                 controller: _link,
-                                decoration: const InputDecoration(labelText: 'Deep link (optional)'),
+                                decoration: const InputDecoration(
+                                  labelText: 'Deep link (optional)',
+                                ),
                               ),
                             ),
                           ],
@@ -250,7 +293,11 @@ class _PushScreenState extends ConsumerState<PushScreen> {
                             onPressed: _sending ? null : _send,
                             icon: _sending
                                 ? const SizedBox.square(
-                                    dimension: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                                    dimension: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
                                 : const Icon(Icons.send_rounded, size: 18),
                             label: const Text('Send via FCM'),
                           ),
@@ -263,7 +310,13 @@ class _PushScreenState extends ConsumerState<PushScreen> {
             ),
           ),
           VerticalDivider(width: 1, color: colors.borderSubtle),
-          SizedBox(width: 360, child: _UploadedBanners(onCopy: _copy, onUse: (url) => _image.text = url)),
+          SizedBox(
+            width: 360,
+            child: _UploadedBanners(
+              onCopy: _copy,
+              onUse: (url) => _image.text = url,
+            ),
+          ),
         ],
       ),
     );
@@ -287,8 +340,13 @@ class _UploadedBanners extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
           child: Row(
             children: [
-              Text('Uploaded banners',
-                  style: TextStyle(fontWeight: FontWeight.w700, color: colors.textPrimary)),
+              Text(
+                'Uploaded banners',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: colors.textPrimary,
+                ),
+              ),
               const Spacer(),
               IconButton(
                 tooltip: 'Refresh',
@@ -299,14 +357,24 @@ class _UploadedBanners extends ConsumerWidget {
           ),
         ),
         Expanded(
-          child: ref.watch(pushImagesProvider).when(
+          child: ref
+              .watch(pushImagesProvider)
+              .when(
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (err, _) => Padding(
                   padding: const EdgeInsets.all(16),
-                  child: SelectableText('$err', style: TextStyle(color: colors.error, fontSize: 12)),
+                  child: SelectableText(
+                    '$err',
+                    style: TextStyle(color: colors.error, fontSize: 12),
+                  ),
                 ),
                 data: (images) => images.isEmpty
-                    ? Center(child: Text('None yet', style: TextStyle(color: colors.textSecondary)))
+                    ? Center(
+                        child: Text(
+                          'None yet',
+                          style: TextStyle(color: colors.textSecondary),
+                        ),
+                      )
                     : ListView.builder(
                         itemCount: images.length,
                         itemBuilder: (context, i) {
@@ -315,26 +383,42 @@ class _UploadedBanners extends ConsumerWidget {
                           return ListTile(
                             leading: ClipRRect(
                               borderRadius: BorderRadius.circular(6),
-                              child: SizedBox(width: 64, height: 32, child: UrlPreview(url, fit: BoxFit.cover)),
+                              child: SizedBox(
+                                width: 64,
+                                height: 32,
+                                child: UrlPreview(url, fit: BoxFit.cover),
+                              ),
                             ),
-                            title: Text(object.path.split('/').last,
-                                overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
+                            title: Text(
+                              object.path.split('/').last,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12),
+                            ),
                             subtitle: Text(
                               '${updated == null ? '' : format.format(updated)} · '
                               '${(object.size / 1024).toStringAsFixed(0)} KB',
-                              style: TextStyle(fontSize: 11, color: colors.textSecondary),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: colors.textSecondary,
+                              ),
                             ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
                                   tooltip: 'Copy link',
-                                  icon: const Icon(Icons.link_rounded, size: 18),
+                                  icon: const Icon(
+                                    Icons.link_rounded,
+                                    size: 18,
+                                  ),
                                   onPressed: () => onCopy(url),
                                 ),
                                 IconButton(
                                   tooltip: 'Use in this notification',
-                                  icon: const Icon(Icons.input_rounded, size: 18),
+                                  icon: const Icon(
+                                    Icons.input_rounded,
+                                    size: 18,
+                                  ),
                                   onPressed: () => onUse(url),
                                 ),
                               ],
