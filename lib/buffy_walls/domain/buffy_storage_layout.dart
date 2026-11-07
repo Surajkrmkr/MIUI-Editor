@@ -28,6 +28,27 @@ String buffyImageObject(String category, String fileName) =>
 String buffyThumbObject(String category, String name) =>
     '$kBuffyMediaRoot/$category/Thumbnails/$name-small.jpg';
 
+/// Folders for images uploaded from the CMS outside the wallpaper flow.
+const kBuffyBannersFolder = 'Banners';
+const kBuffyPushFolder = 'PushBanners';
+
+/// A new object in [folder] for [fileName]. The timestamp keeps names unique,
+/// since media is cached forever and can't be replaced.
+String buffyUploadObject(String folder, String fileName, DateTime now) {
+  final dot = fileName.lastIndexOf('.');
+  final ext = dot == -1 ? '' : fileName.substring(dot).toLowerCase();
+  final base = (dot == -1 ? fileName : fileName.substring(0, dot)).replaceAll(
+    RegExp(r'[^A-Za-z0-9_-]+'),
+    '_',
+  );
+  final stamp = now
+      .toUtc()
+      .toIso8601String()
+      .replaceAll(RegExp(r'[^0-9]'), '')
+      .substring(0, 14);
+  return '$kBuffyMediaRoot/$folder/$base-$stamp$ext';
+}
+
 String buffyDownloadUrl(String objectPath) =>
     '$_downloadBase${Uri.encodeComponent(objectPath)}?alt=media';
 

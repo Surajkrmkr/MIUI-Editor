@@ -10,36 +10,34 @@ class PushCampaignsNotifier extends AsyncNotifier<List<PushCampaign>> {
   @override
   FutureOr<List<PushCampaign>> build() async => [];
 
-  Future<bool> sendCampaign({
+  /// Throws with FCM's reason if the send fails.
+  Future<void> sendCampaign({
     required String title,
     required String body,
     String? imageUrl,
     String? deepLink,
     required String targetTopic,
   }) async {
-    final success = await _sender.sendToTopic(
+    await _sender.sendToTopic(
       topic: targetTopic,
       title: title,
       body: body,
       imageUrl: imageUrl,
-      deepLink: deepLink ?? '',
+      deepLink: deepLink,
     );
 
-    if (success) {
-      final newCampaign = PushCampaign(
-        id: const Uuid().v4(),
-        title: title,
-        body: body,
-        imageUrl: imageUrl,
-        deepLink: deepLink,
-        targetTopic: targetTopic,
-        createdAt: DateTime.now(),
-        status: 'sent',
-        sentCount: 1,
-      );
-      state = AsyncValue.data([newCampaign, ...state.value ?? []]);
-    }
-    return success;
+    final newCampaign = PushCampaign(
+      id: const Uuid().v4(),
+      title: title,
+      body: body,
+      imageUrl: imageUrl,
+      deepLink: deepLink,
+      targetTopic: targetTopic,
+      createdAt: DateTime.now(),
+      status: 'sent',
+      sentCount: 1,
+    );
+    state = AsyncValue.data([newCampaign, ...state.value ?? []]);
   }
 }
 

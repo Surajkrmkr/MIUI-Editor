@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
+import 'package:miui_icon_generator/wall_rio/presentation/widgets/stat_card.dart';
 import 'package:miui_icon_generator/widgets/app_icon_button.dart';
 import '../../application/providers/buffy_cms_provider.dart';
 import '../../application/providers/buffy_analytics_provider.dart';
-import '../../application/providers/buffy_storage_provider.dart';
 import '../../domain/models/buffy_wallpaper.dart';
+import '../widgets/buffy_catalog_fields_view.dart';
+import '../widgets/buffy_publish_dialog.dart';
+import '../widgets/buffy_push_banner_view.dart';
 import '../widgets/buffy_wallpaper_form.dart';
 import '../widgets/buffy_settings_dialog.dart';
 import '../widgets/buffy_git_panel.dart';
@@ -19,14 +22,27 @@ class BuffyDashboardScreen extends ConsumerStatefulWidget {
   ConsumerState<BuffyDashboardScreen> createState() => _BuffyDashboardScreenState();
 }
 
+enum _BuffyView {
+  wallpapers('Wallpapers', Icons.wallpaper_rounded),
+  fields('Catalog Fields', Icons.data_object_rounded),
+  push('Push Banners', Icons.notifications_active_outlined);
+
+  const _BuffyView(this.label, this.icon);
+  final String label;
+  final IconData icon;
+}
+
 class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
   bool _showGitPanel = false;
   String _searchQuery = '';
+  String? _category;
+  _BuffyView _view = _BuffyView.wallpapers;
 
   @override
   Widget build(BuildContext context) {
     final cmsState = ref.watch(buffyCmsProvider);
     final isLoaded = cmsState.generation != null;
+    final showWalls = isLoaded && _view == _BuffyView.wallpapers;
 
     return Scaffold(
       appBar: AppBar(
@@ -46,7 +62,17 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
             ),
           ],
         ),
-        title: Text(cmsState.isDirty ? 'Dashboard - unpublished changes' : 'Dashboard'),
+        title: isLoaded
+            ? SegmentedButton<_BuffyView>(
+                showSelectedIcon: false,
+                segments: [
+                  for (final v in _BuffyView.values)
+                    ButtonSegment(value: v, label: Text(v.label), icon: Icon(v.icon, size: 16)),
+                ],
+                selected: {_view},
+                onSelectionChanged: (s) => setState(() => _view = s.first),
+              )
+            : const Text('BuffyWalls CMS'),
         actions: [
           _AppBarBtn(
             icon: Icons.refresh_rounded,
@@ -59,7 +85,7 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
             isActive: _showGitPanel,
             onPressed: () => setState(() => _showGitPanel = !_showGitPanel),
           ),
-          if (isLoaded) ...[
+          if (showWalls) ...[
             const _AppBarDivider(),
             _AppBarBtn(
               icon: Icons.add_photo_alternate_rounded,
@@ -71,13 +97,23 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
               tooltip: 'Add Wallpaper',
               onPressed: () => _showAddDialog(context, cmsState),
             ),
-            _AppBarBtn(
-              icon: Icons.cloud_upload_rounded,
-              tooltip: 'Publish to Firebase',
-              onPressed: () => _publishToFirebase(context),
+          ],
+          if (isLoaded) ...[
+            const SizedBox(width: 8),
+            Tooltip(
+              message: cmsState.isDirty ? 'Unpublished changes' : 'No unpublished changes',
+              child: FilledButton.tonalIcon(
+                onPressed: () => showBuffyPublishDialog(context),
+                icon: Badge(
+                  isLabelVisible: cmsState.isDirty,
+                  smallSize: 8,
+                  child: const Icon(Icons.cloud_upload_rounded, size: 18),
+                ),
+                label: const Text('Publish'),
+              ),
             ),
           ],
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
         ],
       ),
       drawer: const BuffySidebar(),
@@ -86,19 +122,23 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
           Expanded(
             child: cmsState.isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : isLoaded
-                    ? _buildMainContent(context, cmsState, ref)
-                    : _buildSetupView(context, cmsState.error),
+                : !isLoaded
+                    ? _buildSetupView(context, cmsState.error)
+                    : switch (_view) {
+                        _BuffyView.wallpapers => _buildMainContent(context, cmsState, ref),
+                        _BuffyView.fields => const BuffyCatalogFieldsView(),
+                        _BuffyView.push => const BuffyPushBannerView(),
+                      },
           ),
           if (_showGitPanel) 
             const BuffyGitPanel(),
         ],
       ),
-      floatingActionButton: isLoaded
-          ? FloatingActionButton(
+      floatingActionButton: showWalls
+          ? FloatingActionButton.extended(
               onPressed: () => _showAddDialog(context, cmsState),
-              tooltip: 'Quick Add Single',
-              child: const Icon(Icons.add),
+              icon: const Icon(Icons.add),
+              label: const Text('Add'),
             )
           : null,
     );
@@ -157,12 +197,17 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
   }
 
   Widget _buildMainContent(BuildContext context, BuffyCmsState state, WidgetRef ref) {
+    final colors = context.appColors;
     final analyticsState = ref.watch(buffyAnalyticsStateProvider);
+    final categories = state.wallpapers.map((w) => w.category).toSet().toList()..sort();
+    final category = categories.contains(_category) ? _category : null;
+    final query = _searchQuery.toLowerCase();
     final filteredWalls = state.wallpapers.where((w) {
-      final query = _searchQuery.toLowerCase();
-      return w.name.toLowerCase().contains(query) || 
-             w.category.toLowerCase().contains(query) ||
-             w.id.toString().contains(query);
+      if (category != null && w.category != category) return false;
+      if (query.isEmpty) return true;
+      return '${w.id} ${w.name} ${w.category} ${w.designer} ${w.tags.join(' ')}'
+          .toLowerCase()
+          .contains(query);
     }).toList();
 
     return CustomScrollView(
@@ -221,32 +266,32 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
           sliver: SliverToBoxAdapter(
             child: Row(
               children: [
-                _StatCard(
-                  title: 'Total Wallpapers',
-                  value: state.wallpapers.length.toString(),
+                StatCard(
+                  title: 'Wallpapers',
+                  value: '${state.wallpapers.length}',
                   icon: Icons.image,
-                  color: Colors.blue,
+                  color: colors.primary,
                 ),
                 const SizedBox(width: 16),
-                _StatCard(
+                StatCard(
                   title: 'Categories',
-                  value: state.wallpapers.map((w) => w.category).toSet().length.toString(),
+                  value: '${categories.length}',
                   icon: Icons.category,
-                  color: Colors.green,
+                  color: colors.success,
                 ),
                 const SizedBox(width: 16),
-                _StatCard(
+                StatCard(
                   title: 'Premium',
-                  value: state.wallpapers.where((w) => w.isPremium).length.toString(),
+                  value: '${state.wallpapers.where((w) => w.isPremium).length}',
                   icon: Icons.star,
-                  color: Colors.orange,
+                  color: colors.warning,
                 ),
                 const SizedBox(width: 16),
-                _StatCard(
+                StatCard(
                   title: 'Hot',
-                  value: state.wallpapers.where((w) => w.isHot).length.toString(),
+                  value: '${state.wallpapers.where((w) => w.isHot).length}',
                   icon: Icons.whatshot_rounded,
-                  color: Colors.redAccent,
+                  color: colors.error,
                 ),
               ],
             ),
@@ -256,18 +301,40 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           sliver: SliverToBoxAdapter(
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Wallpapers',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                Text(
+                  'buffy.json',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colors.textPrimary),
                 ),
+                const SizedBox(width: 12),
+                Text('${filteredWalls.length} shown', style: TextStyle(color: colors.textSecondary)),
+                const Spacer(),
                 SizedBox(
-                  width: 300,
+                  width: 220,
+                  child: DropdownButtonFormField<String?>(
+                    key: ValueKey('category-$category'),
+                    initialValue: category,
+                    isDense: true,
+                    isExpanded: true,
+                    decoration: const InputDecoration(labelText: 'Category', isDense: true),
+                    items: [
+                      const DropdownMenuItem(value: null, child: Text('All')),
+                      for (final c in categories)
+                        DropdownMenuItem(
+                          value: c,
+                          child: Text(c, overflow: TextOverflow.ellipsis),
+                        ),
+                    ],
+                    onChanged: (v) => setState(() => _category = v),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                SizedBox(
+                  width: 280,
                   child: TextField(
                     onChanged: (v) => setState(() => _searchQuery = v),
                     decoration: InputDecoration(
-                      hintText: 'Search by name, category or ID...',
+                      hintText: 'Search name, ID, tags…',
                       prefixIcon: const Icon(Icons.search),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -281,13 +348,13 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
           ),
         ),
         SliverPadding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 96),
           sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 5,
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 200,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              childAspectRatio: 0.7,
+              childAspectRatio: 0.5,
             ),
             delegate: SliverChildBuilderDelegate(
               (context, index) {
@@ -365,46 +432,6 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
     ref.read(buffyAnalyticsStateProvider.notifier).refresh();
   }
 
-  Future<void> _publishToFirebase(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final notifier = ref.read(buffyCmsProvider.notifier);
-    try {
-      messenger.showSnackBar(const SnackBar(content: Text('Checking catalog...')));
-      final publisher = await ref.read(buffyCatalogPublisherProvider.future);
-      final localJson = await notifier.buildCatalogJson();
-      final preview = await publisher.preview(
-        localJson,
-        generation: ref.read(buffyCmsProvider).generation!,
-      );
-      messenger.hideCurrentSnackBar();
-      if (!context.mounted) return;
-
-      if (preview.problems.isNotEmpty) {
-        await _showPublishProblems(context, preview.problems);
-        return;
-      }
-
-      final confirmed = await _confirm(
-        context,
-        title: 'Publish to Firebase?',
-        message: 'All app users on Firebase will get this catalog within minutes.\n\n'
-            'Live now: ${preview.liveCount} wallpapers\n'
-            'After publishing: ${preview.localCount} wallpapers',
-        action: 'Publish',
-      );
-      if (!confirmed) return;
-
-      final generation = await publisher.publish(localJson, preview);
-      notifier.markPublished(localJson, generation);
-      messenger.showSnackBar(
-        SnackBar(content: Text('Published ${preview.localCount} wallpapers.')),
-      );
-    } catch (e) {
-      messenger.hideCurrentSnackBar();
-      messenger.showSnackBar(SnackBar(content: Text('Publish Error: $e')));
-    }
-  }
-
   Future<bool> _confirm(
     BuildContext context, {
     required String title,
@@ -423,37 +450,6 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
       ),
     );
     return confirmed == true;
-  }
-
-  Future<void> _showPublishProblems(BuildContext context, List<String> problems) {
-    return showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Not published: ${problems.length} problems'),
-        content: SizedBox(
-          width: 560,
-          height: 320,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Fix these first. Nothing has been changed on Firebase.'),
-              const SizedBox(height: 12),
-              Expanded(
-                child: ListView(
-                  children: [
-                    for (final problem in problems)
-                      SelectableText(problem, style: const TextStyle(fontSize: 12)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
-        ],
-      ),
-    );
   }
 
   void _showBatchAddDialog(BuildContext context, BuffyCmsState state) {
@@ -625,78 +621,6 @@ class _AppBarDivider extends StatelessWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final IconData icon;
-  final Color color;
-
-  const _StatCard({
-    required this.title,
-    required this.value,
-    required this.icon,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 28),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    value,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _WallpaperCard extends StatelessWidget {
   final BuffyWallpaper wall;
   final VoidCallback onEdit;
@@ -710,79 +634,96 @@ class _WallpaperCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Card(
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Stack(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: InkWell(
-                  onTap: onEdit,
+      child: InkWell(
+        onTap: onEdit,
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
                   child: Image.network(
                     wall.compressUrl,
                     fit: BoxFit.cover,
                     width: double.infinity,
-                    errorBuilder: (context, error, stackTrace) => Center(
-                      child: Icon(Icons.broken_image, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    gaplessPlayback: true,
+                    frameBuilder: (_, child, frame, sync) => sync || frame != null
+                        ? child
+                        : ColoredBox(color: colors.bgSubtle),
+                    errorBuilder: (_, _, _) => ColoredBox(
+                      color: colors.bgSubtle,
+                      child: Center(child: Icon(Icons.broken_image_outlined, color: colors.textDisabled)),
                     ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      wall.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          wall.category,
-                          style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 2, 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              wall.name,
+                              style: TextStyle(fontWeight: FontWeight.bold, color: colors.textPrimary),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              '#${wall.id} · ${wall.category} · ${wall.designer}',
+                              style: TextStyle(fontSize: 11, color: colors.textSecondary),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
-                        IconButton(
-                          icon: Icon(Icons.delete_outline, size: 16, color: Theme.of(context).colorScheme.error),
-                          onPressed: onDelete,
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                      IconButton(
+                        tooltip: 'Delete',
+                        visualDensity: VisualDensity.compact,
+                        icon: Icon(Icons.delete_outline, size: 16, color: colors.textDisabled),
+                        onPressed: onDelete,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (wall.isHot)
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: colors.surface.withValues(alpha: 0.85),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.whatshot_rounded, size: 14, color: colors.error),
+                      Text('HOT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+                    ],
+                  ),
                 ),
               ),
-            ],
-          ),
-          if (wall.isPremium)
-            const Positioned(
-              top: 8,
-              right: 8,
-              child: CircleAvatar(
-                backgroundColor: Colors.orange,
-                radius: 12,
-                child: Icon(Icons.star, size: 16, color: Colors.white),
+            if (wall.isPremium)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: CircleAvatar(
+                  backgroundColor: colors.warning,
+                  radius: 12,
+                  child: Icon(Icons.star, size: 16, color: colors.onPrimary),
+                ),
               ),
-            ),
-          if (wall.isHot && !wall.isPremium)
-            const Positioned(
-              top: 8,
-              right: 8,
-              child: CircleAvatar(
-                backgroundColor: Colors.redAccent,
-                radius: 12,
-                child: Icon(Icons.whatshot_rounded, size: 16, color: Colors.white),
-              ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

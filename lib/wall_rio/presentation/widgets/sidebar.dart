@@ -103,6 +103,18 @@ class Sidebar extends ConsumerWidget {
             selected: location == '/history',
             onTap: () => context.go('/history'),
           ),
+          item(
+            icon: Icons.data_object_rounded,
+            label: 'JSON Fields · banners & more',
+            selected: location == '/fields',
+            onTap: () => context.go('/fields'),
+          ),
+          item(
+            icon: Icons.notifications_active_outlined,
+            label: 'Push Notification',
+            selected: location == '/push',
+            onTap: () => context.go('/push'),
+          ),
 
           const Spacer(),
 

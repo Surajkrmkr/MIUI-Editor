@@ -82,6 +82,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             tooltip: 'History & Restore',
             onPressed: () => context.go('/history'),
           ),
+          _AppBarBtn(
+            icon: Icons.data_object_rounded,
+            tooltip: 'JSON Fields (banners, pop-up…)',
+            onPressed: () => context.go('/fields'),
+          ),
+          _AppBarBtn(
+            icon: Icons.notifications_active_outlined,
+            tooltip: 'Push Notification',
+            onPressed: () => context.go('/push'),
+          ),
           const _AppBarDivider(),
           _AppBarBtn(
             icon: Icons.cloud_upload_outlined,

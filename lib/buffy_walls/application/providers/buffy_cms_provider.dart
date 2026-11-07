@@ -26,6 +26,9 @@ final activeBuffyGitTargetProvider = NotifierProvider<ActiveBuffyGitTargetNotifi
 
 class BuffyCmsState {
   final List<BuffyWallpaper> wallpapers;
+
+  /// Root fields of the catalog other than the wallpapers (banners, titles, …).
+  final Map<String, dynamic> fields;
   final bool isLoading;
   final String? error;
   /// The catalog as loaded from Firebase, and its generation. Null until loaded.
@@ -38,6 +41,7 @@ class BuffyCmsState {
 
   BuffyCmsState({
     this.wallpapers = const [],
+    this.fields = const {},
     this.isLoading = false,
     this.error,
     this.catalogJson,
@@ -48,6 +52,7 @@ class BuffyCmsState {
 
   BuffyCmsState copyWith({
     List<BuffyWallpaper>? wallpapers,
+    Map<String, dynamic>? fields,
     bool? isLoading,
     String? error,
     String? catalogJson,
@@ -57,6 +62,7 @@ class BuffyCmsState {
   }) {
     return BuffyCmsState(
       wallpapers: wallpapers ?? this.wallpapers,
+      fields: fields ?? this.fields,
       isLoading: isLoading ?? this.isLoading,
       error: error,
       catalogJson: catalogJson ?? this.catalogJson,
@@ -101,8 +107,10 @@ class BuffyCmsNotifier extends Notifier<BuffyCmsState> {
       final publisher = await ref.read(buffyCatalogPublisherProvider.future);
       final live = await publisher.load();
       final walls = await compute(parseBuffyCatalog, live.json);
+      final fields = await compute(parseBuffyCatalogFields, live.json);
       state = state.copyWith(
         wallpapers: walls,
+        fields: fields,
         isLoading: false,
         catalogJson: live.json,
         generation: live.generation,
@@ -118,8 +126,24 @@ class BuffyCmsNotifier extends Notifier<BuffyCmsState> {
   /// The catalog with the current edits applied.
   Future<String> buildCatalogJson() => compute(encodeBuffyCatalog, (
         catalog: state.catalogJson!,
+        fields: state.fields,
         wallpapers: state.wallpapers.map((w) => w.toJson()).toList(),
       ));
+
+  /// Sets a root field; new keys go last.
+  void setField(String key, Object? value) {
+    if (key == kBuffyWallpapersKey) {
+      throw ArgumentError('"$key" is edited through the wallpaper actions');
+    }
+    state = state.copyWith(fields: {...state.fields, key: value}, isDirty: true);
+  }
+
+  void removeField(String key) {
+    state = state.copyWith(
+      fields: {...state.fields}..remove(key),
+      isDirty: true,
+    );
+  }
 
   void markPublished(String json, String generation) {
     state = state.copyWith(

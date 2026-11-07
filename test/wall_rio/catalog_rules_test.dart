@@ -465,5 +465,41 @@ void main() {
       expect(next.root['banners'], [1]);
       expect(next.root['walls'], isEmpty);
     });
+
+    test('copyWithFields edits root fields in place and appends new ones', () {
+      final doc = CatalogDocument(
+        kind: CatalogKind.mobile,
+        root: {
+          'banners': [1],
+          'walls': [
+            {'id': 1},
+          ],
+          'pop-up': {'show': true},
+        },
+        generation: '1',
+      );
+      expect(doc.extraFields.keys, ['banners', 'pop-up']);
+      final next = doc.copyWithFields({'banners': [2], 'search': 'x'}, removed: {'pop-up'});
+      expect(next.root.keys, ['banners', 'walls', 'search']);
+      expect(next.root['banners'], [2]);
+      expect(next.wallsOf(), [
+        {'id': 1},
+      ]);
+      expect(() => doc.copyWithFields({'walls': []}), throwsArgumentError);
+      final collections = CatalogDocument(
+        kind: CatalogKind.collections,
+        root: {'collections': []},
+        generation: '1',
+      );
+      expect(() => collections.copyWithFields({}, removed: {'collections'}), throwsArgumentError);
+    });
+
+    test('downloadUrl adds the token', () {
+      expect(
+        CatalogRules.downloadUrl('b', 'wallrio_push/a b.png', 't1'),
+        'https://firebasestorage.googleapis.com/v0/b/b/o/wallrio_push%2Fa%20b.png?alt=media&token=t1',
+      );
+      expect(CatalogRules.downloadUrl('b', 'x.png', null), CatalogRules.storageUrl('b', 'x.png'));
+    });
   });
 }

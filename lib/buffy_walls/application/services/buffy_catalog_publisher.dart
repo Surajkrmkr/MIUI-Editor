@@ -66,6 +66,21 @@ class BuffyCatalogPublisher {
     return (json: utf8.decode(live.bytes), generation: live.generation);
   }
 
+  /// Uploads an image to a new object in [folder]; returns its download URL.
+  Future<String> uploadImage(String folder, String fileName, List<int> bytes) async {
+    final object = buffyUploadObject(folder, fileName, DateTime.now());
+    await uploadNewMedia(object, bytes);
+    return buffyDownloadUrl(object);
+  }
+
+  /// The objects in [folder], newest first.
+  Future<List<StorageObject>> listFolder(String folder) async {
+    final objects = await _storage.list('$kBuffyMediaRoot/$folder/');
+    final epoch = DateTime.fromMillisecondsSinceEpoch(0);
+    return objects
+      ..sort((a, b) => (b.updated ?? epoch).compareTo(a.updated ?? epoch));
+  }
+
   /// Checks [localJson], which was edited from the catalog at [generation].
   Future<BuffyPublishPreview> preview(
     String localJson, {

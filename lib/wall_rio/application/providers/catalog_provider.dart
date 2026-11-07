@@ -153,6 +153,15 @@ class CatalogNotifier extends FamilyAsyncNotifier<CatalogDocument, CatalogKind> 
     final saved = await (await _service).restore(arg, backup);
     state = AsyncValue.data(saved);
   }
+
+  Future<void> updateFields(
+    Map<String, dynamic> fields, {
+    Set<String> removed = const {},
+  }) async {
+    final saved = await (await _service)
+        .updateFields(await future, fields, removed: removed);
+    state = AsyncValue.data(saved);
+  }
 }
 
 final catalogProvider =
@@ -165,4 +174,11 @@ final catalogHistoryProvider =
   ref.watch(catalogProvider(kind)); // refresh after every save
   final service = await ref.watch(catalogServiceProvider.future);
   return service.history(kind);
+});
+
+/// Images uploaded for push notifications.
+final pushImagesProvider =
+    FutureProvider.autoDispose<List<({StorageObject object, String url})>>((ref) async {
+  final service = await ref.watch(catalogServiceProvider.future);
+  return service.listImages(CatalogService.pushFolder);
 });

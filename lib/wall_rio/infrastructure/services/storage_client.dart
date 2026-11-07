@@ -26,6 +26,7 @@ class StorageObject {
     required this.generation,
     required this.size,
     this.updated,
+    this.downloadToken,
   });
 
   final String path;
@@ -33,12 +34,19 @@ class StorageObject {
   final int size;
   final DateTime? updated;
 
-  factory StorageObject.fromJson(Map<String, dynamic> json) => StorageObject(
-        path: json['name'] as String,
-        generation: '${json['generation']}',
-        size: int.tryParse('${json['size']}') ?? 0,
-        updated: DateTime.tryParse('${json['updated']}'),
-      );
+  /// Firebase download token, if the object has one.
+  final String? downloadToken;
+
+  factory StorageObject.fromJson(Map<String, dynamic> json) {
+    final tokens = (json['metadata'] as Map?)?['firebaseStorageDownloadTokens'] as String?;
+    return StorageObject(
+      path: json['name'] as String,
+      generation: '${json['generation']}',
+      size: int.tryParse('${json['size']}') ?? 0,
+      updated: DateTime.tryParse('${json['updated']}'),
+      downloadToken: tokens == null || tokens.isEmpty ? null : tokens.split(',').first,
+    );
+  }
 }
 
 /// Minimal Google Cloud Storage JSON API client.
@@ -88,24 +96,26 @@ class StorageClient {
     String? cacheControl,
     String? contentEncoding,
     String? ifGenerationMatch,
+    Map<String, String>? metadata,
   }) async {
     final query = {
       'uploadType': 'multipart',
       if (ifGenerationMatch != null) 'ifGenerationMatch': ifGenerationMatch,
     };
     final uri = Uri.parse('$_upload/b/$bucket/o').replace(queryParameters: query);
-    final metadata = jsonEncode({
+    final resource = jsonEncode({
       'name': path,
       'contentType': contentType,
       if (cacheControl != null) 'cacheControl': cacheControl,
       if (contentEncoding != null) 'contentEncoding': contentEncoding,
+      if (metadata != null) 'metadata': metadata,
     });
 
     const boundary = 'wallrio_cms_boundary';
     final body = BytesBuilder(copy: false)
       ..add(utf8.encode('--$boundary\r\n'
           'Content-Type: application/json; charset=UTF-8\r\n\r\n'
-          '$metadata\r\n'
+          '$resource\r\n'
           '--$boundary\r\n'
           'Content-Type: $contentType\r\n\r\n'))
       ..add(bytes)
@@ -148,7 +158,7 @@ class StorageClient {
     do {
       final uri = Uri.parse('$_api/b/$bucket/o').replace(queryParameters: {
         'prefix': prefix,
-        'fields': 'items(name,generation,size,updated),nextPageToken',
+        'fields': 'items(name,generation,size,updated,metadata),nextPageToken',
         if (pageToken != null) 'pageToken': pageToken,
       });
       final res = await _client.get(uri);

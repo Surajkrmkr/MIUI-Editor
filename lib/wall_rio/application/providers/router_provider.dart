@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../presentation/screens/catalog_fields_screen.dart';
 import '../../presentation/screens/dashboard_screen.dart';
 import '../../presentation/screens/history_screen.dart';
+import '../../presentation/screens/push_screen.dart';
 import '../../presentation/screens/settings_screen.dart';
 
 // Renamed from routerProvider to avoid conflict with image_utility's routerProvider
@@ -16,6 +18,14 @@ final wallRioRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/history',
         builder: (context, state) => const HistoryScreen(),
+      ),
+      GoRoute(
+        path: '/fields',
+        builder: (context, state) => const CatalogFieldsScreen(),
+      ),
+      GoRoute(
+        path: '/push',
+        builder: (context, state) => const PushScreen(),
       ),
       GoRoute(
         path: '/settings',

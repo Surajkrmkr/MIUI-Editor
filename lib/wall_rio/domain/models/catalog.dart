@@ -73,6 +73,9 @@ enum CatalogKind {
   /// Collections store ids as strings, the others as ints.
   bool get stringIds => this == collections;
 
+  /// Root key of the wallpaper list, which only the wallpaper actions change.
+  String get listKey => hasCollections ? 'collections' : 'walls';
+
   List<String> get uploadExtensions => isVideo ? const ['mp4'] : const ['jpg', 'jpeg', 'png'];
 }
 
@@ -148,6 +151,34 @@ class CatalogDocument {
           : walls;
     }
     return CatalogDocument(kind: kind, root: newRoot, generation: generation);
+  }
+
+  /// Root fields other than the wallpaper list (banners, subscription, …).
+  Map<String, dynamic> get extraFields => {
+        for (final e in root.entries)
+          if (e.key != kind.listKey) e.key: e.value,
+      };
+
+  /// Sets [fields] and drops [removed], keeping the key order; new keys go last.
+  CatalogDocument copyWithFields(
+    Map<String, dynamic> fields, {
+    Set<String> removed = const {},
+  }) {
+    final listKey = kind.listKey;
+    if (fields.containsKey(listKey) || removed.contains(listKey)) {
+      throw ArgumentError('"$listKey" is changed through the wallpaper actions');
+    }
+    return CatalogDocument(
+      kind: kind,
+      root: {
+        for (final e in root.entries)
+          if (!removed.contains(e.key))
+            e.key: fields.containsKey(e.key) ? fields[e.key] : e.value,
+        for (final e in fields.entries)
+          if (!root.containsKey(e.key)) e.key: e.value,
+      },
+      generation: generation,
+    );
   }
 
   CatalogDocument copyWithCollections(List<Map<String, dynamic>> collections) =>

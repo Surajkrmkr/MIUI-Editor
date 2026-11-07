@@ -51,6 +51,11 @@ class CatalogService {
   static const _jsonCacheControl = 'public, max-age=300';
   static const _maxSaveAttempts = 3;
 
+  /// Bucket folders for images that aren't wallpapers.
+  static const bannersFolder = 'wallrio_banners';
+  static const pushFolder = 'wallrio_push';
+  static const imageExtensions = ['jpg', 'jpeg', 'png'];
+
   Future<CatalogDocument> load(CatalogKind kind) async {
     final file = await _storage.download(settings.jsonPath(kind));
     final root = jsonDecode(utf8.decode(file.bytes)) as Map<String, dynamic>;
@@ -272,6 +277,48 @@ class CatalogService {
             c,
       ]);
     });
+  }
+
+  /// Sets root fields other than the wallpaper list (banners, pop-up, …) and
+  /// drops [removed]; on a conflict only these fields are re-applied.
+  Future<CatalogDocument> updateFields(
+    CatalogDocument doc,
+    Map<String, dynamic> fields, {
+    Set<String> removed = const {},
+  }) =>
+      _saveRoot(doc, (current) => current.copyWithFields(fields, removed: removed));
+
+  /// Uploads an image to [folder] under a fresh name (files are cached as
+  /// immutable) and returns its public download URL.
+  Future<String> uploadImage(String localPath, String folder) async {
+    final ext = CatalogRules.extensionOf(localPath);
+    if (!imageExtensions.contains(ext)) {
+      throw CatalogValidationException(['Only ${imageExtensions.join(', ')} images']);
+    }
+    final file = localPath.split(RegExp(r'[/\\]')).last;
+    final base = CatalogRules.pathSegment(file.substring(0, file.lastIndexOf('.')));
+    final path = '$folder/${base.isEmpty ? 'image' : base}_'
+        '${DateTime.now().millisecondsSinceEpoch}.$ext';
+    final token = const Uuid().v4();
+    await _storage.upload(
+      path,
+      await File(localPath).readAsBytes(),
+      contentType: _imageContentType(localPath),
+      cacheControl: _mediaCacheControl,
+      ifGenerationMatch: '0',
+      metadata: {'firebaseStorageDownloadTokens': token},
+    );
+    return CatalogRules.downloadUrl(settings.bucket, path, token);
+  }
+
+  /// Images under [folder], newest first, with their download URLs.
+  Future<List<({StorageObject object, String url})>> listImages(String folder) async {
+    final items = await _storage.list('$folder/');
+    items.sort((a, b) => (b.updated ?? DateTime(0)).compareTo(a.updated ?? DateTime(0)));
+    return [
+      for (final o in items)
+        (object: o, url: CatalogRules.downloadUrl(settings.bucket, o.path, o.downloadToken)),
+    ];
   }
 
   /// Applies [edit] to the latest wall list (of [collectionId] for

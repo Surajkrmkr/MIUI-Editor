@@ -13,6 +13,13 @@ class CatalogRules {
   static String storageUrl(String bucket, String objectPath) =>
       '$_firebaseHost$bucket/o/${Uri.encodeComponent(objectPath)}?alt=media';
 
+  /// Like [storageUrl], plus a Firebase download [token] so anyone can fetch
+  /// it (FCM, browsers) without signing in.
+  static String downloadUrl(String bucket, String objectPath, String? token) =>
+      token == null
+          ? storageUrl(bucket, objectPath)
+          : '${storageUrl(bucket, objectPath)}&token=$token';
+
   /// Object path for a Firebase Storage URL in [bucket], or null if it is not one.
   static String? objectPathFromUrl(String bucket, String url) {
     final prefix = '$_firebaseHost$bucket/o/';
