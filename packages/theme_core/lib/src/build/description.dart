@@ -19,10 +19,10 @@ class ThemeDescription {
   <author>${_esc(authorTag)}</author>
   <version>1.0</version>
   <uiVersion>${_esc(uiVersion)}</uiVersion>
-  <editorVersion>2.0.5</editorVersion>
+  <editorVersion>2.0.8</editorVersion>
   <resourceType>theme</resourceType>
   <moduleVersion>com.android.contacts:0.0.2;com.android.mms:0.0.2;com.android.settings:0.0.2;com.android.systemui:0.0.2;</moduleVersion>
-  <miuiAdapterVersion>3.2</miuiAdapterVersion>
+  <miuiAdapterVersion>3.3</miuiAdapterVersion>
 </MIUI-Theme>''';
 
   static const String pluginConfig = '''<?xml version="1.0" encoding="utf-8"?>
