@@ -167,6 +167,7 @@ class BatchRunner {
     List<String> specPaths,
     BatchOptions options, {
     void Function(BatchEntry entry)? onEntry,
+    void Function(BatchEntry entry)? onStart,
   }) async {
     final clock = Stopwatch()..start();
     Directory? scratchDir;
@@ -192,7 +193,7 @@ class BatchRunner {
             'No Flutter project found. Run from the repo, or pass --project '
             '<dir> (a folder containing $sidecarEntry).';
       } else {
-        sidecarError = await _build(s, pending, options, onEntry);
+        sidecarError = await _build(s, pending, options, onEntry, onStart);
       }
     }
     final leftovers = scratchDir;
@@ -387,10 +388,22 @@ class BatchRunner {
     List<BatchEntry> pending,
     BatchOptions options,
     void Function(BatchEntry)? onEntry,
+    void Function(BatchEntry)? onStart,
   ) async {
     final byId = {for (final e in pending) e.spec: e};
     final size = options.chunkSize < 1 ? 1 : options.chunkSize;
     var emptyRuns = 0;
+
+    // Results arrive in order, so the first unfinished theme is the one rendering.
+    void announce() {
+      if (onStart == null) return;
+      for (final e in pending) {
+        if (e.status == BatchStatus.notRun) {
+          onStart(e);
+          return;
+        }
+      }
+    }
 
     void finish(BuildJobResult r) {
       final e = byId[r.id];
@@ -435,6 +448,7 @@ class BatchRunner {
         }
       }
       onEntry?.call(e);
+      announce();
     }
 
     for (var start = 0; start < pending.length; start += size) {
@@ -443,6 +457,7 @@ class BatchRunner {
         (start + size).clamp(0, pending.length),
       );
       while (todo.isNotEmpty) {
+        announce();
         final outcome = await sidecar.run([
           for (final e in todo)
             BuildJob(

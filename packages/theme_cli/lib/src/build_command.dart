@@ -5,16 +5,25 @@ import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
 import 'package:theme_core/theme_core.dart';
 
+import 'batch_runner.dart' show discoverSpecs;
 import 'exit_codes.dart';
 import 'fonts_dirs.dart';
 import 'preview_command.dart';
 import 'sidecar.dart';
 import 'sidecar_options.dart';
+import 'ui/terminal_ui.dart';
+import 'ui/wizard.dart';
 
 /// `theme build <spec>... --out <dir>`: validates each spec, then builds the
 /// valid ones in a single Flutter render process.
 class BuildCommand extends Command<int> {
-  BuildCommand(this._out, this._err, this._cwd, this._sidecarOverride) {
+  BuildCommand(
+    this._out,
+    this._err,
+    this._cwd,
+    this._sidecarOverride,
+    this._ui,
+  ) {
     argParser
       ..addOption(
         'out',
@@ -46,6 +55,7 @@ class BuildCommand extends Command<int> {
   final StringSink _out, _err;
   final Directory _cwd;
   final Sidecar? _sidecarOverride;
+  final TerminalUi _ui;
 
   @override
   String get name => 'build';
@@ -59,11 +69,21 @@ class BuildCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final specs = argResults!.rest;
-    if (specs.isEmpty) usageException('Give at least one spec file.');
-    final outOption = argResults!['out'] as String?;
-    if (outOption == null) usageException('Missing --out <dir>.');
+    var specs = argResults!.rest;
+    var outOption = argResults!['out'] as String?;
+    var withPreview = argResults!['preview'] as bool;
     final json = argResults!['json'] as bool;
+    if (specs.isEmpty && !json && _ui.canPrompt) {
+      specs = discoverSpecs(askSpecs(_ui, _cwd) ?? const [], _cwd);
+      if (specs.isNotEmpty && outOption == null) {
+        outOption = _ui.prompt('Output folder', defaultValue: 'out');
+      }
+      if (specs.isNotEmpty) {
+        withPreview = _ui.confirm('Also write preview images?');
+      }
+    }
+    if (specs.isEmpty) usageException('Give at least one spec file.');
+    if (outOption == null) usageException('Missing --out <dir>.');
     final outDir = p.normalize(p.absolute(_cwd.path, outOption));
 
     final specPaths = [
@@ -104,7 +124,7 @@ class BuildCommand extends Command<int> {
             id: e.path,
             spec: e.path,
             outDir: outDir,
-            preview: argResults!['preview'] as bool,
+            preview: withPreview,
             fontsDirs: fontsDirs,
           ),
     ];
@@ -115,7 +135,26 @@ class BuildCommand extends Command<int> {
       if (sidecar == null) {
         sidecarError = noProjectMessage;
       } else {
-        final outcome = await sidecar.run(jobs);
+        final bar = json ? _ui.bar() : _ui.bar(total: jobs.length);
+        if (!json) bar.start('starting the render process');
+        final SidecarOutcome outcome;
+        try {
+          var finished = 0;
+          outcome = await sidecar.run(
+            jobs,
+            onResult: (r) {
+              finished++;
+              bar.update(
+                done: finished,
+                current: finished < jobs.length
+                    ? 'building ${p.basename(jobs[finished].spec)}'
+                    : 'finishing',
+              );
+            },
+          );
+        } finally {
+          bar.finish();
+        }
         sidecarError = outcome.launchError;
         final byId = {for (final r in outcome.results) r.id: r};
         for (final e in entries.where((e) => e.valid)) {
@@ -130,7 +169,7 @@ class BuildCommand extends Command<int> {
       }
     }
 
-    if (argResults!['preview'] as bool) {
+    if (withPreview) {
       for (final e in entries) {
         final r = e.result;
         final workspace = r?.workspace;
@@ -186,19 +225,24 @@ class BuildCommand extends Command<int> {
     }
     final report = e.report!;
     for (final i in report.issues) {
-      final sev = i.severity == IssueSeverity.error ? 'error  ' : 'warning';
+      final sev = i.severity == IssueSeverity.error
+          ? _ui.bad('error  ')
+          : _ui.warn('warning');
       _out.writeln(
-        '$name: $sev ${i.path.isEmpty ? '/' : i.path}: ${i.message} [${i.code}]',
+        '$name: $sev ${i.path.isEmpty ? '/' : i.path}: ${i.message} '
+        '${_ui.dim('[${i.code}]')}',
       );
-      if (i.hint != null) _out.writeln('        ${i.hint}');
+      if (i.hint != null) _out.writeln('        ${_ui.dim(i.hint!)}');
     }
     if (!report.ok) {
-      _out.writeln('$name: invalid (${report.errorCount} error(s))');
+      _out.writeln(
+        '$name: ${_ui.bad('invalid')} (${report.errorCount} error(s))',
+      );
     } else if (e.result == null) {
-      _out.writeln('$name: not built');
+      _out.writeln('$name: ${_ui.warn('not built')}');
     } else if (e.result!.ok) {
       _out.writeln(
-        '$name: built ${e.result!.mtz} (${e.result!.seconds.toStringAsFixed(1)}s)',
+        '$name: ${_ui.ok('built')} ${e.result!.mtz} (${e.result!.seconds.toStringAsFixed(1)}s)',
       );
       if (e.preview != null) _out.writeln('$name: preview ${e.preview}');
       if (e.lockscreenPreview != null) {
@@ -209,7 +253,7 @@ class BuildCommand extends Command<int> {
       }
     } else {
       _out.writeln(
-        '$name: build failed [${e.result!.errorCode}] ${e.result!.message}',
+        '$name: ${_ui.bad('build failed')} [${e.result!.errorCode}] ${e.result!.message}',
       );
     }
   }

@@ -9,10 +9,13 @@ import 'exit_codes.dart';
 import 'fonts_dirs.dart';
 import 'root_config.dart';
 import 'root_option.dart';
+import 'ui/terminal_ui.dart';
+import 'ui/wizard.dart';
+import 'batch_runner.dart' show discoverSpecs;
 
 /// `theme validate <spec>`: checks a theme spec without building anything.
 class ValidateCommand extends Command<int> {
-  ValidateCommand(this._out, this._err, this._cwd) {
+  ValidateCommand(this._out, this._err, this._cwd, this._ui) {
     argParser
       ..addFlag(
         'json',
@@ -49,6 +52,7 @@ class ValidateCommand extends Command<int> {
 
   final StringSink _out, _err;
   final Directory _cwd;
+  final TerminalUi _ui;
 
   @override
   String get name => 'validate';
@@ -61,7 +65,14 @@ class ValidateCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final rest = argResults!.rest;
+    var rest = argResults!.rest;
+    if (rest.isEmpty && !(argResults!['json'] as bool) && _ui.canPrompt) {
+      final picked = discoverSpecs(
+        askSpecs(_ui, _cwd, what: 'spec') ?? const [],
+        _cwd,
+      );
+      if (picked.length == 1) rest = picked;
+    }
     if (rest.length != 1) {
       usageException('Expected exactly one spec file, got ${rest.length}.');
     }
@@ -154,18 +165,21 @@ class ValidateCommand extends Command<int> {
 
   void _printText(ValidationReport report, String specPath) {
     for (final i in report.issues) {
-      final sev = i.severity == IssueSeverity.error ? 'error  ' : 'warning';
+      final sev = i.severity == IssueSeverity.error
+          ? _ui.bad('error  ')
+          : _ui.warn('warning');
       _out.writeln(
-        '$sev ${i.path.isEmpty ? '/' : i.path}: ${i.message} [${i.code}]',
+        '$sev ${i.path.isEmpty ? '/' : i.path}: ${i.message} '
+        '${_ui.dim('[${i.code}]')}',
       );
-      if (i.hint != null) _out.writeln('        ${i.hint}');
+      if (i.hint != null) _out.writeln('        ${_ui.dim(i.hint!)}');
     }
     final summary =
         '${report.errorCount} error(s), ${report.warningCount} warning(s)';
     _out.writeln(
       report.ok
-          ? '${p.basename(specPath)}: valid ($summary)'
-          : '${p.basename(specPath)}: invalid ($summary)',
+          ? '${p.basename(specPath)}: ${_ui.ok('valid')} ($summary)'
+          : '${p.basename(specPath)}: ${_ui.bad('invalid')} ($summary)',
     );
   }
 }

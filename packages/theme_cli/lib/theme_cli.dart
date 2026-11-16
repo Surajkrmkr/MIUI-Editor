@@ -9,6 +9,7 @@ import 'src/mcp_command.dart';
 import 'src/preview_command.dart';
 import 'src/schema_command.dart';
 import 'src/sidecar.dart';
+import 'src/ui/terminal_ui.dart';
 import 'src/validate_command.dart';
 
 export 'src/exit_codes.dart';
@@ -31,16 +32,17 @@ Future<int> runCli(
   final o = out ?? stdout;
   final e = err ?? stderr;
   final dir = cwd ?? Directory.current;
+  final ui = TerminalUi.detect(o);
   final runner =
       CommandRunner<int>(
           'theme',
           'Validate, build and preview MIUI/HyperOS themes.',
         )
-        ..addCommand(ValidateCommand(o, e, dir))
-        ..addCommand(BatchCommand(o, e, dir, sidecar))
-        ..addCommand(BuildCommand(o, e, dir, sidecar))
+        ..addCommand(ValidateCommand(o, e, dir, ui))
+        ..addCommand(BatchCommand(o, e, dir, sidecar, ui))
+        ..addCommand(BuildCommand(o, e, dir, sidecar, ui))
         ..addCommand(McpCommand(o, e, dir, sidecar, input ?? stdin))
-        ..addCommand(PreviewCommand(o, e, dir))
+        ..addCommand(PreviewCommand(o, e, dir, ui))
         ..addCommand(SchemaCommand(o, e, dir));
 
   try {

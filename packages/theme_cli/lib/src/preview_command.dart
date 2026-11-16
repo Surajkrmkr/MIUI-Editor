@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:theme_core/theme_core.dart';
 
 import 'exit_codes.dart';
+import 'ui/terminal_ui.dart';
 
 /// Writes `<outDir>/<workspace name>.preview.png` and returns its path.
 String writeHomePreview(String workspace, String outDir, {int width = 540}) {
@@ -20,7 +21,7 @@ String writeHomePreview(String workspace, String outDir, {int width = 540}) {
 /// `theme preview <workspace>...`: draws a home-screen image from theme
 /// folders that `theme build` already produced. Needs no Flutter.
 class PreviewCommand extends Command<int> {
-  PreviewCommand(this._out, this._err, this._cwd) {
+  PreviewCommand(this._out, this._err, this._cwd, this._ui) {
     argParser
       ..addOption(
         'out',
@@ -39,6 +40,7 @@ class PreviewCommand extends Command<int> {
 
   final StringSink _out, _err;
   final Directory _cwd;
+  final TerminalUi _ui;
 
   @override
   String get name => 'preview';
@@ -62,8 +64,13 @@ class PreviewCommand extends Command<int> {
 
     final results = <Map<String, Object?>>[];
     var code = ExitCodes.ok;
+    final json = argResults!['json'] as bool;
+    final bar = json ? _ui.bar() : _ui.bar(total: dirs.length);
+    if (!json) bar.start();
+    var finished = 0;
     for (final d in dirs) {
       final workspace = p.normalize(p.absolute(_cwd.path, d));
+      bar.update(current: p.basename(workspace));
       final outDir = outOption == null
           ? p.dirname(workspace)
           : p.normalize(p.absolute(_cwd.path, outOption));
@@ -78,9 +85,11 @@ class PreviewCommand extends Command<int> {
           'error': {'code': 'preview.failed', 'message': e.message},
         });
       }
+      bar.update(done: ++finished);
     }
+    bar.finish();
 
-    if (argResults!['json'] as bool) {
+    if (json) {
       _out.writeln(
         const JsonEncoder.withIndent('  ').convert({
           'command': 'preview',

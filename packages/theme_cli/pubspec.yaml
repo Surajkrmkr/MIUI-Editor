@@ -9,6 +9,7 @@ environment:
 dependencies:
   args: ^2.5.0
   image: ^4.8.0
+  mason_logger: ^0.3.3
   path: ^1.8.3
   theme_core: any
 
