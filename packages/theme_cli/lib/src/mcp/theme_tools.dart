@@ -12,6 +12,7 @@ import 'widget_tools.dart';
 import 'tool_args.dart';
 import 'tool_context.dart';
 import '../root_config.dart';
+import '../tags.dart';
 
 export 'tool_context.dart';
 
@@ -50,7 +51,11 @@ const _instructions =
     'a display font for the clock with a quieter one for the date and '
     'texts instead of Roboto everywhere. Other fonts need a .ttf/.otf: list '
     'it in the spec\'s fonts or pass fonts_dirs. Use build_batch for many '
-    'specs; it skips themes that are already built.';
+    'specs; it skips themes that are already built. Every build into a '
+    'week also writes THEMES/Week<week>/1tags/<name>.txt with up to 6 '
+    'store tags picked automatically; after looking at the lockscreen '
+    'preview, call write_tags with the tags that really fit it (from the '
+    'catalog it returns) to replace them.';
 
 const _rulesNote =
     ' The designer keeps rules for themes: call get_rules before designing '
@@ -297,6 +302,7 @@ List<McpTool> themeTools(ThemeToolContext ctx) {
                 assetsRoot: ctx.project,
                 baseDir: input.baseDir ?? (temp == null ? null : ctx.cwd.path),
                 presetsDir: ctx.root?.presetsDir,
+                tagCatalog: TagCatalog.ofProject(ctx.project),
               ),
             ),
           );
@@ -420,6 +426,7 @@ List<McpTool> themeTools(ThemeToolContext ctx) {
               fontsDirs: argFontsDirs(args, ctx),
               assetsRoot: ctx.project,
               presetsDir: ctx.root?.presetsDir,
+              tagCatalog: TagCatalog.ofProject(ctx.project),
             ),
             onEntry: (e) {
               done++;
@@ -437,7 +444,12 @@ List<McpTool> themeTools(ThemeToolContext ctx) {
           for (final e in report.entries)
             if (e.status == BatchStatus.built ||
                 e.status == BatchStatus.skipped)
-              {'name': e.name, 'status': e.status.name, 'mtz': e.mtz}
+              {
+                'name': e.name,
+                'status': e.status.name,
+                'mtz': e.mtz,
+                if (e.tags != null) 'tags': e.tags,
+              }
             else
               e.toJson(),
         ];
@@ -486,6 +498,93 @@ List<McpTool> themeTools(ThemeToolContext ctx) {
         } on AppException catch (e) {
           throw ToolException(e.message);
         }
+      },
+    ),
+    McpTool(
+      name: 'write_tags',
+      description:
+          'Writes the store tags of a built theme to '
+          '<week folder>/1tags/<name>.txt: up to 6 tags, comma separated, '
+          'each from the tag catalog (assets/tags/tags.json). Without tags '
+          'it picks them from the lockscreen (clock, unlock control, '
+          'wallpaper colour, name). Better: look at the lockscreen preview, '
+          'then give the tags that describe what it shows (subject, colour, '
+          'style, clock type, Slide for swipe-up unlock). Returns the tags '
+          'written and, with include_catalog, every allowed tag by category.',
+      inputSchema: {
+        'type': 'object',
+        'properties': {
+          'workspace': {
+            'type': 'string',
+            'description':
+                'The <name>/ folder build_theme produced. Or give week and '
+                'name instead.',
+          },
+          'week': _weekProp,
+          'name': {
+            'type': 'string',
+            'description': 'Theme name inside THEMES/Week<week>.',
+          },
+          'tags': {
+            'type': 'array',
+            'items': {'type': 'string'},
+            'maxItems': maxTags,
+            'description':
+                'Up to $maxTags catalog tags, most important first. Leave out '
+                'to pick them automatically.',
+          },
+          'include_catalog': {
+            'type': 'boolean',
+            'description': 'Also return the whole catalog. Default false.',
+          },
+          'dry_run': {
+            'type': 'boolean',
+            'description': 'Return the tags without writing. Default false.',
+          },
+        },
+      },
+      handler: (args, progress) async {
+        final workspace = _workspaceOf(args, ctx);
+        final catalog = TagCatalog.ofProject(ctx.project);
+        if (catalog == null) {
+          throw const ToolException(
+            'No tag catalog: assets/tags/tags.json is missing from the '
+            'project.',
+          );
+        }
+        final TagInput input;
+        try {
+          input = TagInput.ofWorkspace(workspace);
+        } on FileSystemException {
+          throw ToolException('$workspace is not a built theme folder.');
+        }
+        final given = argStringList(args, 'tags');
+        final List<String> tags;
+        try {
+          tags = given == null || given.isEmpty
+              ? suggestTags(input, catalog)
+              : normalizeTags(given, catalog);
+        } on FormatException catch (e) {
+          throw ToolException(
+            '${e.message} Call with include_catalog to see the allowed tags.',
+          );
+        }
+        final dir = p.join(p.dirname(workspace), tagsFolderName);
+        final dryRun = argBool(args, 'dry_run') ?? false;
+        final file = dryRun
+            ? p.join(dir, '${input.title}.txt')
+            : writeTagsFile(dir, input.title, tags);
+        return ToolResult(
+          jsonEncode({
+            'ok': true,
+            'theme': input.title,
+            'tags': tags,
+            'file': file,
+            if (dryRun) 'written': false,
+            if (argBool(args, 'include_catalog') ?? false)
+              'catalog': catalog.categories,
+          }),
+        );
       },
     ),
     ...libraryTools(ctx),

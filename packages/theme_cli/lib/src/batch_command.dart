@@ -12,6 +12,7 @@ import 'root_config.dart';
 import 'root_option.dart';
 import 'sidecar.dart';
 import 'sidecar_options.dart';
+import 'tags.dart';
 import 'ui/terminal_ui.dart';
 import 'ui/wizard.dart';
 
@@ -69,6 +70,13 @@ class BatchCommand extends Command<int> {
         'json',
         negatable: false,
         help: 'Print one JSON object per line as themes finish.',
+      )
+      ..addFlag(
+        'tags',
+        defaultsTo: true,
+        help:
+            'Write <out>/$tagsFolderName/<name>.txt with tags picked from each '
+            'lockscreen.',
       );
     argParser
       ..addOption(
@@ -184,6 +192,9 @@ class BatchCommand extends Command<int> {
           assetsRoot: project,
           prepare: specPreparer(root: root, week: week, folder: folder),
           presetsDir: root?.presetsDir,
+          tagCatalog: args['tags'] as bool
+              ? TagCatalog.ofProject(project)
+              : null,
         ),
         onStart: (e) =>
             bar.update(current: 'building ${e.name ?? p.basename(e.spec)}'),

@@ -11,6 +11,7 @@ import 'fonts_dirs.dart';
 import 'preview_command.dart';
 import 'sidecar.dart';
 import 'sidecar_options.dart';
+import 'tags.dart';
 import 'ui/terminal_ui.dart';
 import 'ui/wizard.dart';
 
@@ -47,6 +48,13 @@ class BuildCommand extends Command<int> {
         help:
             'Also write <out>/<name>.preview.png (home screen) and '
             '<name>.lockscreen.png.',
+      )
+      ..addFlag(
+        'tags',
+        defaultsTo: true,
+        help:
+            'Write <out>/$tagsFolderName/<name>.txt with tags picked from each '
+            'lockscreen.',
       );
     addSidecarOptions(argParser);
     addFontsDirOption(argParser);
@@ -184,6 +192,27 @@ class BuildCommand extends Command<int> {
       }
     }
 
+    final catalog = argResults!['tags'] as bool
+        ? TagCatalog.ofProject(project)
+        : null;
+    if (catalog != null) {
+      for (final e in entries) {
+        final workspace = e.result?.workspace;
+        if (e.result?.ok != true || workspace == null) continue;
+        try {
+          final input = TagInput.ofWorkspace(workspace);
+          e.tags = suggestTags(input, catalog);
+          e.tagsFile = writeTagsFile(
+            p.join(outDir, tagsFolderName),
+            input.title,
+            e.tags!,
+          );
+        } on Object {
+          // Tags are a convenience; the theme itself is fine.
+        }
+      }
+    }
+
     final code = sidecarError != null
         ? ExitCodes.sidecar
         : entries.any((e) => e.readError != null)
@@ -248,6 +277,9 @@ class BuildCommand extends Command<int> {
       if (e.lockscreenPreview != null) {
         _out.writeln('$name: preview ${e.lockscreenPreview}');
       }
+      if (e.tagsFile != null) {
+        _out.writeln('$name: tags ${e.tags!.join(',')} -> ${e.tagsFile}');
+      }
       if (e.previewError != null) {
         _out.writeln('$name: preview failed: ${e.previewError}');
       }
@@ -267,6 +299,8 @@ class _Entry {
   ValidationReport? report;
   BuildJobResult? result;
   String? preview, lockscreenPreview, previewError;
+  List<String>? tags;
+  String? tagsFile;
 
   bool get valid => readError == null && report != null && report!.ok;
 
@@ -286,6 +320,8 @@ class _Entry {
     if (result?.workspace != null) 'workspace': result!.workspace,
     if (preview != null) 'preview': preview,
     if (lockscreenPreview != null) 'lockscreenPreview': lockscreenPreview,
+    if (tags != null) 'tags': tags,
+    if (tagsFile != null) 'tagsFile': tagsFile,
     if (result != null && !result!.ok)
       'error': {'code': result!.errorCode, 'message': result!.message}
     else if (previewError != null)

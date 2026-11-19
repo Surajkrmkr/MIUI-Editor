@@ -136,6 +136,7 @@ void main() {
       'preview_icons',
       'build_batch',
       'preview_theme',
+      'write_tags',
       'list_fonts',
       'list_wallpapers',
       'view_wallpaper',

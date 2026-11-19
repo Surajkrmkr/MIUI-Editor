@@ -6,6 +6,7 @@ import 'package:theme_core/theme_core.dart';
 
 import 'preview_command.dart';
 import 'sidecar.dart';
+import 'tags.dart';
 
 enum BatchStatus {
   /// Built now.
@@ -38,6 +39,10 @@ class BatchEntry {
   String? mtz, workspace, preview, lockscreenPreview;
   String? errorCode, message;
 
+  /// The tags written for this theme, and where.
+  List<String>? tags;
+  String? tagsFile;
+
   /// A rewritten copy of the spec that the render process reads instead.
   String? preparedSpec;
   double seconds = 0;
@@ -53,6 +58,8 @@ class BatchEntry {
     if (workspace != null) 'workspace': workspace,
     if (preview != null) 'preview': preview,
     if (lockscreenPreview != null) 'lockscreenPreview': lockscreenPreview,
+    if (tags != null) 'tags': tags,
+    if (tagsFile != null) 'tagsFile': tagsFile,
     if (issues.isNotEmpty) 'issues': [for (final i in issues) i.toJson()],
     if (errorCode != null) 'error': {'code': errorCode, 'message': message},
     if (seconds > 0) 'seconds': seconds,
@@ -76,6 +83,7 @@ class BatchOptions {
     this.baseDir,
     this.prepare,
     this.presetsDir,
+    this.tagCatalog,
   });
 
   final String outDir;
@@ -116,6 +124,10 @@ class BatchOptions {
   /// `<presetsDir>/<name>/` (`preset.json`, `preview.png` for the
   /// lockscreen, `home.png`) instead of the theme folder.
   final String? presetsDir;
+
+  /// When set, every built theme gets `<outDir>/1tags/<name>.txt` with tags
+  /// picked from its lockscreen; a skipped theme gets one only if missing.
+  final TagCatalog? tagCatalog;
 }
 
 class BatchReport {
@@ -285,6 +297,7 @@ class BatchRunner {
         ..status = BatchStatus.skipped
         ..mtz = '$out.mtz'
         ..workspace = out;
+      _writeTags(e, options, onlyIfMissing: true);
       if (options.preview) {
         final shots = _previewFiles(out, spec, options);
         e.preview = shots.home;
@@ -330,6 +343,32 @@ class BatchRunner {
     final shots = _previewFiles(out, spec, options);
     return File(shots.home).existsSync() &&
         (spec.lockscreen.elements.isEmpty || File(shots.lock).existsSync());
+  }
+
+  /// Writes the tag file of a built theme; a failure only skips the tags.
+  static void _writeTags(
+    BatchEntry e,
+    BatchOptions options, {
+    bool onlyIfMissing = false,
+  }) {
+    final catalog = options.tagCatalog;
+    final ws = e.workspace;
+    if (catalog == null || ws == null || e.name == null) return;
+    final dir = p.join(p.absolute(options.outDir), tagsFolderName);
+    final title = p.basename(e.name!);
+    final file = p.join(dir, '$title.txt');
+    if (onlyIfMissing && File(file).existsSync()) {
+      e.tagsFile = file;
+      return;
+    }
+    try {
+      final tags = suggestTags(TagInput.ofWorkspace(ws), catalog);
+      e
+        ..tags = tags
+        ..tagsFile = writeTagsFile(dir, title, tags);
+    } on Object {
+      // Tags are a convenience; the theme itself is fine.
+    }
   }
 
   /// Copies the spec the build left in the theme folder into the theme's
@@ -446,6 +485,7 @@ class BatchRunner {
               ..message = 'Cannot save to the preset folder: ${ex.message}';
           }
         }
+        if (options.mode == BuildMode.build) _writeTags(e, options);
       }
       onEntry?.call(e);
       announce();

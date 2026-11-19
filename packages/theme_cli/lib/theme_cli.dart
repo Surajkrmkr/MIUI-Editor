@@ -9,6 +9,7 @@ import 'src/mcp_command.dart';
 import 'src/preview_command.dart';
 import 'src/schema_command.dart';
 import 'src/sidecar.dart';
+import 'src/tags_command.dart';
 import 'src/ui/terminal_ui.dart';
 import 'src/validate_command.dart';
 
@@ -43,7 +44,8 @@ Future<int> runCli(
         ..addCommand(BuildCommand(o, e, dir, sidecar, ui))
         ..addCommand(McpCommand(o, e, dir, sidecar, input ?? stdin))
         ..addCommand(PreviewCommand(o, e, dir, ui))
-        ..addCommand(SchemaCommand(o, e, dir));
+        ..addCommand(SchemaCommand(o, e, dir))
+        ..addCommand(TagsCommand(o, e, dir));
 
   try {
     return await runner.run(args) ?? ExitCodes.ok;
