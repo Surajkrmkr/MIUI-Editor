@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 
@@ -117,11 +116,11 @@ class BuffyCatalogPublisher {
         '$kBuffyCatalogHistoryPrefix$stamp.json',
         ifSourceGenerationMatch: preview.liveGeneration,
       );
+      // Stored uncompressed; Cloudflare compresses it for the apps.
       final uploaded = await _storage.upload(
         kBuffyCatalogObject,
-        gzip.encode(utf8.encode(localJson)),
+        utf8.encode(localJson),
         contentType: 'application/json',
-        contentEncoding: 'gzip',
         cacheControl: kBuffyCatalogCacheControl,
         ifGenerationMatch: preview.liveGeneration,
       );
@@ -162,7 +161,7 @@ class BuffyCatalogPublisher {
           problems.add('Still on $host: $node');
           return;
         }
-        if (host != 'firebasestorage.googleapis.com') return;
+        if (host != kBuffyPublicHost) return;
         final object = buffyObjectFromUrl(node);
         if (object == null) {
           problems.add('Points at another bucket: $node');

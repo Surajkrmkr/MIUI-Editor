@@ -32,7 +32,7 @@ typedef CatalogEdit =
     ({List<Map<String, dynamic>> walls, List<Map<String, dynamic>> changed})
     Function(List<Map<String, dynamic>> walls);
 
-/// Reads and writes the WallRio catalogs in Firebase Storage.
+/// Reads and writes the WallRio catalogs in Cloudflare R2.
 ///
 /// Every save backs up the previous version to `<jsonFolder>/history/` and is
 /// conditional on the generation it was read at, so two editors can't silently
@@ -132,7 +132,7 @@ class CatalogService {
             draft: p.draft,
             media: {
               for (final e in p.paths.entries)
-                e.key: CatalogRules.storageUrl(settings.bucket, e.value),
+                e.key: CatalogRules.storageUrl(settings.publicBaseUrl, e.value),
             },
             subjectId: p.subjectId,
           ),
@@ -212,7 +212,7 @@ class CatalogService {
       final referenced = await _allCatalogText();
       for (final field in doc.kind.mediaFields) {
         final url = '${entry[field] ?? ''}';
-        final path = CatalogRules.objectPathFromUrl(settings.bucket, url);
+        final path = CatalogRules.objectPathFromUrl(settings.publicBaseUrl, url);
         if (path != null && !referenced.contains(url))
           await _storage.delete(path);
       }
@@ -313,16 +313,14 @@ class CatalogService {
     final path =
         '$folder/${base.isEmpty ? 'image' : base}_'
         '${DateTime.now().millisecondsSinceEpoch}.$ext';
-    final token = const Uuid().v4();
     await _storage.upload(
       path,
       await File(localPath).readAsBytes(),
       contentType: _imageContentType(localPath),
       cacheControl: _mediaCacheControl,
       ifGenerationMatch: '0',
-      metadata: {'firebaseStorageDownloadTokens': token},
     );
-    return CatalogRules.downloadUrl(settings.bucket, path, token);
+    return CatalogRules.storageUrl(settings.publicBaseUrl, path);
   }
 
   /// Images under [folder], newest first, with their download URLs.
@@ -337,11 +335,7 @@ class CatalogService {
       for (final o in items)
         (
           object: o,
-          url: CatalogRules.downloadUrl(
-            settings.bucket,
-            o.path,
-            o.downloadToken,
-          ),
+          url: CatalogRules.storageUrl(settings.publicBaseUrl, o.path),
         ),
     ];
   }
@@ -359,7 +353,7 @@ class CatalogService {
     for (var attempt = 1; ; attempt++) {
       final result = edit(List.of(current.wallsOf(collectionId)));
       final problems = CatalogRules.validate(
-        bucket: settings.bucket,
+        baseUrl: settings.publicBaseUrl,
         kind: kind,
         walls: result.walls,
         changed: result.changed,
@@ -422,8 +416,9 @@ class CatalogService {
     }
   }
 
-  /// Backs up [current], then uploads [root] gzipped, only if the catalog is
-  /// still at [current]'s generation.
+  /// Backs up [current], then uploads [root], only if the catalog is still at
+  /// [current]'s generation. Stored uncompressed; Cloudflare compresses it for
+  /// the apps.
   Future<CatalogDocument> _writeRoot(
     CatalogDocument current,
     Map<String, dynamic> root,
@@ -440,9 +435,8 @@ class CatalogService {
     final json = '${const JsonEncoder.withIndent('  ').convert(root)}\n';
     final uploaded = await _storage.upload(
       path,
-      gzip.encode(utf8.encode(json)),
+      utf8.encode(json),
       contentType: 'application/json',
-      contentEncoding: 'gzip',
       cacheControl: _jsonCacheControl,
       ifGenerationMatch: current.generation,
     );
@@ -461,7 +455,7 @@ class CatalogService {
     for (final entry in entries) {
       for (final field in kind.mediaFields) {
         final path = CatalogRules.objectPathFromUrl(
-          settings.bucket,
+          settings.publicBaseUrl,
           '${entry[field] ?? ''}',
         );
         if (path != null && await _storage.stat(path) != null)

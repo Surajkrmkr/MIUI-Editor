@@ -2,13 +2,11 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import 'package:miui_icon_generator/core/theme/theme_extensions.dart';
 
-import '../../application/providers/catalog_provider.dart';
-import '../../domain/catalog_rules.dart';
-
-/// Shows a catalog image URL. The app's Firebase URLs need a Firebase user
-/// token, so the CMS fetches the object through its signed-in Storage client.
+/// Shows a catalog image URL. Catalog images are public on Cloudflare, so they
+/// are fetched directly; anything that fails to load shows the error tile.
 class StorageImage extends ConsumerStatefulWidget {
   const StorageImage(this.url, {super.key, this.fit = BoxFit.cover});
 
@@ -42,10 +40,10 @@ class _StorageImageState extends ConsumerState<StorageImage> {
     final cached = _cache.remove(widget.url);
     if (cached != null) return _cache[widget.url] = cached;
     final future = () async {
-      final storage = await ref.read(storageClientProvider.future);
-      final path = CatalogRules.objectPathFromUrl(storage.bucket, widget.url);
-      if (path == null) return null;
-      return (await storage.download(path)).bytes;
+      final uri = Uri.tryParse(widget.url);
+      if (uri == null || !uri.hasScheme) return null;
+      final res = await http.get(uri);
+      return res.statusCode == 200 ? res.bodyBytes : null;
     }();
     _cache[widget.url] = future;
     // Failed loads are retried next time instead of being cached.

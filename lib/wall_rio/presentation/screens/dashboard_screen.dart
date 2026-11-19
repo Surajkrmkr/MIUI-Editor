@@ -461,21 +461,17 @@ class _CatalogError extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final notSignedIn = error is NotSignedInException;
-    // Google rejected the saved refresh token (expired or revoked).
-    final expired = '$error'.contains('invalid_grant');
-    final missingScope =
+    // R2 refused the keys (wrong, revoked, or no access to this bucket).
+    final rejected =
         error is StorageException &&
         ((error as StorageException).statusCode == 403 ||
             (error as StorageException).statusCode == 401);
-    final needsSignIn = notSignedIn || expired || missingScope;
+    final needsSignIn = notSignedIn || rejected;
     final message = notSignedIn
-        ? 'Sign in with Google in Settings to load the catalogs.'
-        : expired
-        ? 'Your Google sign-in has expired. In Settings → Credentials, '
-              'click Switch next to Google Cloud and sign in again.'
-        : missingScope
-        ? 'Your Google sign-in has no Storage access yet. In Settings → '
-              'Credentials, click Switch next to Google Cloud and sign in again to grant it.'
+        ? 'Add the Cloudflare R2 keys in Settings → Storage to load the catalogs.'
+        : rejected
+        ? 'Cloudflare R2 refused the keys. In Settings → Storage, check the '
+              'account ID, keys and bucket, and that the token has Object Read & Write.'
         : '$error';
 
     return Center(

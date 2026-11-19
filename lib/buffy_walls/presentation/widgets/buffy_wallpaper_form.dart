@@ -132,15 +132,17 @@ class _BuffyWallpaperFormState extends ConsumerState<BuffyWallpaperForm> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildDialogHeader(colors),
-            SizedBox(
-              height: 540,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildPreviewPanel(colors),
-                  VerticalDivider(width: 1, color: colors.borderSubtle),
-                  Expanded(child: _buildFormPanel(colors)),
-                ],
+            Flexible(
+              child: SizedBox(
+                height: 540,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildPreviewPanel(colors),
+                    VerticalDivider(width: 1, color: colors.borderSubtle),
+                    Expanded(child: _buildFormPanel(colors)),
+                  ],
+                ),
               ),
             ),
             _buildDialogFooter(colors),

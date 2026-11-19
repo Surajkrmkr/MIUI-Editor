@@ -81,7 +81,7 @@ class BuffySidebar extends ConsumerWidget {
               ),
             ),
             subtitle: Text(
-              'Firebase: $kBuffyBucket',
+              'Cloudflare: $kBuffyPublicHost',
               style: TextStyle(fontSize: 10, color: colors.textDisabled),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

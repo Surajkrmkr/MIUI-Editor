@@ -7,25 +7,27 @@ import 'models/catalog.dart';
 class CatalogRules {
   const CatalogRules._();
 
-  static const _firebaseHost = 'https://firebasestorage.googleapis.com/v0/b/';
+  /// The public URL the app loads for [objectPath] in the R2 bucket served at
+  /// [baseUrl] (ending with `/`). Each path segment is percent-encoded except
+  /// unreserved characters, matching the links already in the catalogs.
+  static String storageUrl(String baseUrl, String objectPath) =>
+      '$baseUrl${objectPath.split('/').map(_encodeSegment).join('/')}';
 
-  /// The URL format the app loads (Firebase Storage, token-authenticated).
-  static String storageUrl(String bucket, String objectPath) =>
-      '$_firebaseHost$bucket/o/${Uri.encodeComponent(objectPath)}?alt=media';
+  static String _encodeSegment(String segment) =>
+      Uri.encodeComponent(segment).replaceAllMapped(
+        RegExp(r"[!'()*]"),
+        (m) => '%${m[0]!.codeUnitAt(0).toRadixString(16).toUpperCase()}',
+      );
 
-  /// Like [storageUrl], plus a Firebase download [token] so anyone can fetch
-  /// it (FCM, browsers) without signing in.
-  static String downloadUrl(String bucket, String objectPath, String? token) =>
-      token == null
-      ? storageUrl(bucket, objectPath)
-      : '${storageUrl(bucket, objectPath)}&token=$token';
-
-  /// Object path for a Firebase Storage URL in [bucket], or null if it is not one.
-  static String? objectPathFromUrl(String bucket, String url) {
-    final prefix = '$_firebaseHost$bucket/o/';
-    if (!url.startsWith(prefix)) return null;
-    final encoded = url.substring(prefix.length).split('?').first;
-    return Uri.decodeComponent(encoded);
+  /// Object path for a URL under [baseUrl], or null if it is not one.
+  static String? objectPathFromUrl(String baseUrl, String url) {
+    if (!url.startsWith(baseUrl)) return null;
+    final encoded = url.substring(baseUrl.length).split('?').first;
+    try {
+      return Uri.decodeComponent(encoded);
+    } on ArgumentError {
+      return null;
+    }
   }
 
   /// Ids are numbers (ints, or strings in collections); some are duplicated,
@@ -190,7 +192,7 @@ class CatalogRules {
   /// Problems that must block a save. [existingObjects] are the object paths
   /// known to exist; entries pointing anywhere else in the bucket are flagged.
   static List<String> validate({
-    required String bucket,
+    required String baseUrl,
     required CatalogKind kind,
     required List<Map<String, dynamic>> walls,
     required List<Map<String, dynamic>> changed,
@@ -213,7 +215,7 @@ class CatalogRules {
       }
       if (existingObjects == null) continue;
       for (final field in kind.mediaFields) {
-        final path = objectPathFromUrl(bucket, '${entry[field] ?? ''}');
+        final path = objectPathFromUrl(baseUrl, '${entry[field] ?? ''}');
         if (path != null && !existingObjects.contains(path)) {
           problems.add('$label $field points to a missing file: $path');
         }

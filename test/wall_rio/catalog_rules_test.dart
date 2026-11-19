@@ -3,27 +3,39 @@ import 'package:miui_icon_generator/wall_rio/domain/catalog_rules.dart';
 import 'package:miui_icon_generator/wall_rio/domain/models/catalog.dart';
 
 void main() {
-  const bucket = 'wallrio-e551b.firebasestorage.app';
+  const base = 'https://wallrio.teamshadow.tech/';
   const settings = StorageSettings();
 
   group('storage URLs', () {
     test('match the format the app already loads', () {
+      expect(settings.publicBaseUrl, base);
+      expect(settings.bucket, 'wallrio');
       expect(
         CatalogRules.storageUrl(
-          bucket,
-          'wallrio_wall_data/Nature/Golden Fields.jpg',
+          base,
+          'wallrio_wall_data/Superheroes/Sup Vs Bat.jpg',
         ),
-        'https://firebasestorage.googleapis.com/v0/b/$bucket/o/'
-        'wallrio_wall_data%2FNature%2FGolden%20Fields.jpg?alt=media',
+        '${base}wallrio_wall_data/Superheroes/Sup%20Vs%20Bat.jpg',
+      );
+      expect(
+        CatalogRules.storageUrl(base, 'wallrio_push/a (1) 🌅.png'),
+        '${base}wallrio_push/a%20%281%29%20%F0%9F%8C%85.png',
       );
     });
 
     test('round-trip back to the object path', () {
-      const path = 'wallrio_wall_data/Desktop/Thumbnail/GTA-small.jpg';
-      final url = CatalogRules.storageUrl(bucket, path);
-      expect(CatalogRules.objectPathFromUrl(bucket, url), path);
+      const path = 'wallrio_wall_data/Desktop/Thumbnail/GTA (2)-small.jpg';
+      final url = CatalogRules.storageUrl(base, path);
+      expect(CatalogRules.objectPathFromUrl(base, url), path);
       expect(
-        CatalogRules.objectPathFromUrl(bucket, 'https://gitlab.com/x.png'),
+        CatalogRules.objectPathFromUrl(base, 'https://gitlab.com/x.png'),
+        isNull,
+      );
+      expect(
+        CatalogRules.objectPathFromUrl(
+          base,
+          'https://firebasestorage.googleapis.com/v0/b/x/o/a?alt=media',
+        ),
         isNull,
       );
     });
@@ -333,14 +345,14 @@ void main() {
       'name': 'A',
       'author': 'WallRio',
       'category': 'Nature',
-      'url': CatalogRules.storageUrl(bucket, 'p/a.jpg'),
-      'thumbnail': CatalogRules.storageUrl(bucket, 'p/a-small.jpg'),
+      'url': CatalogRules.storageUrl(base, 'p/a.jpg'),
+      'thumbnail': CatalogRules.storageUrl(base, 'p/a-small.jpg'),
     };
 
     test('passes a complete entry whose files exist', () {
       expect(
         CatalogRules.validate(
-          bucket: bucket,
+          baseUrl: base,
           kind: CatalogKind.mobile,
           walls: [good],
           changed: [good],
@@ -353,7 +365,7 @@ void main() {
     test('flags missing fields, missing files and duplicate new ids', () {
       final bad = {...good, 'author': ''};
       final problems = CatalogRules.validate(
-        bucket: bucket,
+        baseUrl: base,
         kind: CatalogKind.mobile,
         walls: [
           bad,
@@ -373,7 +385,7 @@ void main() {
     test('ignores old duplicate ids the edit did not touch', () {
       expect(
         CatalogRules.validate(
-          bucket: bucket,
+          baseUrl: base,
           kind: CatalogKind.mobile,
           walls: [
             {'id': 1},
@@ -500,17 +512,6 @@ void main() {
       expect(
         () => collections.copyWithFields({}, removed: {'collections'}),
         throwsArgumentError,
-      );
-    });
-
-    test('downloadUrl adds the token', () {
-      expect(
-        CatalogRules.downloadUrl('b', 'wallrio_push/a b.png', 't1'),
-        'https://firebasestorage.googleapis.com/v0/b/b/o/wallrio_push%2Fa%20b.png?alt=media&token=t1',
-      );
-      expect(
-        CatalogRules.downloadUrl('b', 'x.png', null),
-        CatalogRules.storageUrl('b', 'x.png'),
       );
     });
   });

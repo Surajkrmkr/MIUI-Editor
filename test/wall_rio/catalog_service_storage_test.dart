@@ -1,7 +1,8 @@
-// Runs CatalogService against the real bucket, inside a throwaway folder.
-// Skipped unless WALLRIO_TEST_TOKEN is set:
+// Runs CatalogService against the real R2 bucket, inside a throwaway folder.
+// Skipped unless the R2 keys are set:
 //
-//   WALLRIO_TEST_TOKEN=$(gcloud auth print-access-token) \
+//   WALLRIO_R2_ACCOUNT_ID=… WALLRIO_R2_ACCESS_KEY_ID=… \
+//   WALLRIO_R2_SECRET_ACCESS_KEY=… \
 //     flutter test test/wall_rio/catalog_service_storage_test.dart
 //
 // Each test seeds a catalog under a unique prefix, exercises the service and
@@ -14,22 +15,20 @@ import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
 import 'package:miui_icon_generator/wall_rio/application/services/catalog_service.dart';
 import 'package:miui_icon_generator/wall_rio/domain/models/catalog.dart';
+import 'package:miui_icon_generator/wall_rio/infrastructure/services/r2_storage_client.dart';
 import 'package:miui_icon_generator/wall_rio/infrastructure/services/storage_client.dart';
 import 'package:miui_icon_generator/wall_rio/infrastructure/services/video_engine.dart';
 
-class _BearerClient extends http.BaseClient {
-  _BearerClient(this._token);
-  final String _token;
-  final _inner = http.Client();
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) {
-    request.headers['Authorization'] = 'Bearer $_token';
-    return _inner.send(request);
-  }
-}
-
 void main() {
-  final token = Platform.environment['WALLRIO_TEST_TOKEN'];
+  final env = Platform.environment;
+  final token = env['WALLRIO_R2_SECRET_ACCESS_KEY'];
+  StorageClient r2(String bucket) => R2StorageClient(
+        http.Client(),
+        accountId: env['WALLRIO_R2_ACCOUNT_ID']!,
+        accessKeyId: env['WALLRIO_R2_ACCESS_KEY_ID']!,
+        secretAccessKey: token!,
+        bucket: bucket,
+      );
   final prefix = 'cms_test_${DateTime.now().millisecondsSinceEpoch}';
   final settings = StorageSettings(
     jsonFolder: '$prefix/wallriojson',
@@ -37,7 +36,7 @@ void main() {
   );
 
   test('publish → edit → conflict → delete → restore', () async {
-    final storage = StorageClient(_BearerClient(token!), settings.bucket);
+    final storage = r2(settings.bucket);
     final service = CatalogService(storage, settings);
     final tmp = await Directory.systemTemp.createTemp('wallrio_cms_test');
 
@@ -45,8 +44,8 @@ void main() {
       // Seed a small desktop catalog in the nested walls: [[...]] shape.
       final seed = {'walls': [[{'id': 7, 'name': 'Old', 'author': 'Team Shadow', 'url': 'x', 'thumbnail': 'y', 'category': 'Gaming'}]]};
       await storage.upload(settings.jsonPath(CatalogKind.desktop),
-          gzip.encode(utf8.encode(jsonEncode(seed))),
-          contentType: 'application/json', contentEncoding: 'gzip');
+          utf8.encode(jsonEncode(seed)),
+          contentType: 'application/json');
 
       final image = File('${tmp.path}/neon_city.png')
         ..writeAsBytesSync(img.encodePng(img.Image(width: 3840, height: 2160)));
@@ -62,7 +61,7 @@ void main() {
       expect(added['type'], 'desktop');
       expect(doc.wallsOf().length, 2);
 
-      // Files exist, thumbnail is 640×360 JPEG, JSON is stored gzipped.
+      // Files exist, thumbnail is 640×360 JPEG, JSON reads back.
       final thumbPath = '${settings.imagesRoot}/Desktop/Thumbnail/Neon City-small.jpg';
       final thumb = img.decodeJpg((await storage.download(thumbPath)).bytes)!;
       expect([thumb.width, thumb.height], [640, 360]);
@@ -100,14 +99,13 @@ void main() {
       }
       await tmp.delete(recursive: true);
     }
-  }, skip: token == null ? 'Set WALLRIO_TEST_TOKEN to run against the bucket' : false,
+  }, skip: token == null ? 'Set the WALLRIO_R2_* keys to run against the bucket' : false,
      timeout: const Timeout(Duration(minutes: 3)));
 
   Future<void> seed(StorageClient storage, CatalogKind kind, Object json) => storage.upload(
         settings.jsonPath(kind),
-        gzip.encode(utf8.encode(jsonEncode(json))),
+        utf8.encode(jsonEncode(json)),
         contentType: 'application/json',
-        contentEncoding: 'gzip',
       );
 
   Future<void> cleanUp(StorageClient storage) async {
@@ -117,7 +115,7 @@ void main() {
   }
 
   test('live: MP4 → preview clip + thumbnail + live_wall.json entry', () async {
-    final storage = StorageClient(_BearerClient(token!), settings.bucket);
+    final storage = r2(settings.bucket);
     final service = CatalogService(storage, settings);
     final tmp = await Directory.systemTemp.createTemp('wallrio_cms_live');
     try {
@@ -153,11 +151,11 @@ void main() {
       await cleanUp(storage);
       await tmp.delete(recursive: true);
     }
-  }, skip: token == null ? 'Set WALLRIO_TEST_TOKEN to run against the bucket' : false,
+  }, skip: token == null ? 'Set the WALLRIO_R2_* keys to run against the bucket' : false,
      timeout: const Timeout(Duration(minutes: 3)));
 
   test('collections: create, upload into one, keep its order', () async {
-    final storage = StorageClient(_BearerClient(token!), settings.bucket);
+    final storage = r2(settings.bucket);
     final service = CatalogService(storage, settings);
     final tmp = await Directory.systemTemp.createTemp('wallrio_cms_coll');
     try {
@@ -200,6 +198,6 @@ void main() {
       await cleanUp(storage);
       await tmp.delete(recursive: true);
     }
-  }, skip: token == null ? 'Set WALLRIO_TEST_TOKEN to run against the bucket' : false,
+  }, skip: token == null ? 'Set the WALLRIO_R2_* keys to run against the bucket' : false,
      timeout: const Timeout(Duration(minutes: 3)));
 }

@@ -15,12 +15,14 @@ class BuffyCredentialsStateNotifier extends AsyncNotifier<BuffyCredentialStatus>
     debugPrint('[Buffy] BuffyCredentialsStateNotifier.build: loading…');
     final config = await _storage.getOAuthConfig();
     final credentials = await _storage.getCredentials();
+    final r2 = await _storage.getR2Config();
 
     final status = BuffyCredentialStatus(
       isSignedIn: credentials != null,
       clientId: config['clientId'],
       clientSecret: config['clientSecret'],
       firebaseProjectId: config['projectId'],
+      r2: r2,
     );
     return status;
   }
@@ -42,6 +44,14 @@ class BuffyCredentialsStateNotifier extends AsyncNotifier<BuffyCredentialStatus>
         clientSecret: clientSecret,
         firebaseProjectId: projectId,
       ));
+    }
+  }
+
+  Future<void> saveR2Config(Map<String, String> config) async {
+    await _storage.saveR2Config(config);
+    final current = state.value;
+    if (current != null) {
+      state = AsyncValue.data(current.copyWith(r2: Map.of(config)));
     }
   }
 

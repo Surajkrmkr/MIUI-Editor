@@ -2,27 +2,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../theme_editor/presentation/providers/service_providers.dart';
 
 class BuffySettings {
-  final String localRepoPath;
-  final String jsonFilePath;
   final String admobPublisherId;
   final String playPackageName;
 
   BuffySettings({
-    this.localRepoPath = '',
-    this.jsonFilePath = '',
     this.admobPublisherId = '',
     this.playPackageName = '',
   });
 
   BuffySettings copyWith({
-    String? localRepoPath,
-    String? jsonFilePath,
     String? admobPublisherId,
     String? playPackageName,
   }) {
     return BuffySettings(
-      localRepoPath: localRepoPath ?? this.localRepoPath,
-      jsonFilePath: jsonFilePath ?? this.jsonFilePath,
       admobPublisherId: admobPublisherId ?? this.admobPublisherId,
       playPackageName: playPackageName ?? this.playPackageName,
     );
@@ -34,17 +26,9 @@ class BuffySettingsNotifier extends Notifier<BuffySettings> {
   BuffySettings build() {
     final prefs = ref.watch(sharedPrefsProvider);
     return BuffySettings(
-      localRepoPath: prefs.getString('buffy_local_repo_path') ?? '',
-      jsonFilePath: prefs.getString('buffy_json_file_path') ?? '',
       admobPublisherId: prefs.getString('buffy_admob_publisher_id') ?? '',
       playPackageName: prefs.getString('buffy_play_package_name') ?? '',
     );
-  }
-
-  Future<void> setLocalRepoPath(String path) async {
-    final prefs = ref.read(sharedPrefsProvider);
-    await prefs.setString('buffy_local_repo_path', path);
-    state = state.copyWith(localRepoPath: path);
   }
 
   Future<void> setAdMobPublisherId(String id) async {

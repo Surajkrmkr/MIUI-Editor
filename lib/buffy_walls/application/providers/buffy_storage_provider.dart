@@ -1,35 +1,31 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:googleapis_auth/auth_io.dart';
+import 'package:http/http.dart' as http;
 
-import '../../../wall_rio/application/providers/credentials_provider.dart';
-import '../../../wall_rio/infrastructure/services/google_api_service.dart';
-import '../../../wall_rio/infrastructure/services/storage_client.dart';
-import '../../domain/buffy_storage_layout.dart';
-import '../../infrastructure/services/buffy_secure_storage_service.dart';
+import '../../../wall_rio/infrastructure/services/r2_storage_client.dart';
 import '../services/buffy_catalog_publisher.dart';
 import 'buffy_credentials_provider.dart';
 
 class BuffyStorageSignInRequired implements Exception {
   @override
   String toString() =>
-      'Sign in with Google in Buffy Settings to allow Firebase Storage access.';
+      'Add the Cloudflare R2 keys in Buffy Settings → Credentials.';
 }
 
-/// Uses the signed-in Google account, which bypasses the bucket's client rules.
+/// Talks to the R2 bucket with the S3 API keys saved in Buffy Settings.
 final buffyCatalogPublisherProvider =
     FutureProvider<BuffyCatalogPublisher>((ref) async {
-  await ref.watch(buffyCredentialsProvider.future);
-  final secureStorage = BuffySecureStorageService();
+  final status = await ref.watch(buffyCredentialsProvider.future);
+  if (!status.hasR2) throw BuffyStorageSignInRequired();
 
-  final saved = await secureStorage.getCredentials();
-  if (saved == null ||
-      !AccessCredentials.fromJson(saved).scopes.contains(storageScope)) {
-    throw BuffyStorageSignInRequired();
-  }
-
-  final client = await GoogleApiService(secureStorage)
-      .getAuthenticatedClient([storageScope]);
-  if (client == null) throw BuffyStorageSignInRequired();
+  final client = http.Client();
   ref.onDispose(client.close);
-  return BuffyCatalogPublisher(StorageClient(client, kBuffyBucket));
+  return BuffyCatalogPublisher(
+    R2StorageClient(
+      client,
+      accountId: status.r2['accountId']!,
+      accessKeyId: status.r2['accessKeyId']!,
+      secretAccessKey: status.r2['secretAccessKey']!,
+      bucket: status.r2['bucket']!,
+    ),
+  );
 });

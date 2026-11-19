@@ -32,12 +32,16 @@ class WallpaperFields extends StatefulWidget {
     required this.suggestions,
     required this.onChanged,
     this.showCategory = true,
+    this.authorLabel = 'Author',
   });
 
   final WallpaperDraft draft;
   final CatalogSuggestions suggestions;
   final VoidCallback onChanged;
   final bool showCategory;
+
+  /// Label for [WallpaperDraft.author]; Buffy calls it "Designer".
+  final String authorLabel;
 
   @override
   State<WallpaperFields> createState() => _WallpaperFieldsState();
@@ -89,7 +93,7 @@ class _WallpaperFieldsState extends State<WallpaperFields> {
             Expanded(
               child: TextFormField(
                 controller: _author,
-                decoration: const InputDecoration(labelText: 'Author', isDense: true),
+                decoration: InputDecoration(labelText: widget.authorLabel, isDense: true),
                 validator: (v) => (v ?? '').trim().isEmpty ? 'Required' : null,
                 onChanged: (v) => _update(() => _draft.author = v),
               ),

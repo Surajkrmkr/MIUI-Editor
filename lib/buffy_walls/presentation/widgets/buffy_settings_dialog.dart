@@ -21,7 +21,7 @@ class _BuffySettingsDialogState extends ConsumerState<BuffySettingsDialog>
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 3, vsync: this);
+    _tabCtrl = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -73,7 +73,6 @@ class _BuffySettingsDialogState extends ConsumerState<BuffySettingsDialog>
                   TabBar(
                     controller: _tabCtrl,
                     tabs: const [
-                      Tab(icon: Icon(Icons.folder_special_rounded, size: 16), text: 'Project'),
                       Tab(icon: Icon(Icons.vpn_key_rounded, size: 16), text: 'Credentials'),
                       Tab(icon: Icon(Icons.analytics_rounded, size: 16), text: 'Analytics'),
                     ],
@@ -92,7 +91,6 @@ class _BuffySettingsDialogState extends ConsumerState<BuffySettingsDialog>
               child: TabBarView(
                 controller: _tabCtrl,
                 children: const [
-                  _ProjectTab(),
                   _CredentialsTab(),
                   _AnalyticsTab(),
                 ],
@@ -124,63 +122,6 @@ class _BuffySettingsDialogState extends ConsumerState<BuffySettingsDialog>
 }
 
 // =============================================================================
-// Tab — Project
-// =============================================================================
-
-class _ProjectTab extends ConsumerWidget {
-  const _ProjectTab();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(buffySettingsProvider);
-    final cs = Theme.of(context).colorScheme;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'BuffyWalls Project',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: cs.primary,
-                    ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'The catalog loads from Firebase. Optionally keep a local copy of new wallpapers in a repository.',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: cs.onSurfaceVariant),
-              ),
-              const SizedBox(height: 24),
-              _LabeledField(
-                label: 'Local Repo Path (optional)',
-                child: _PickerField(
-                  value: settings.localRepoPath,
-                  hint: 'Select directory...',
-                  onPick: () async {
-                    String? result = await FilePicker.platform.getDirectoryPath();
-                    if (result != null) {
-                      ref.read(buffySettingsProvider.notifier).setLocalRepoPath(result);
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// =============================================================================
 // Tab — Credentials
 // =============================================================================
 
@@ -195,6 +136,12 @@ class _CredentialsTabState extends ConsumerState<_CredentialsTab> {
   final _clientIdCtrl = TextEditingController();
   final _clientSecretCtrl = TextEditingController();
   final _fcmProjectIdCtrl = TextEditingController();
+  final _r2Ctrls = {
+    for (final k in ['accountId', 'accessKeyId', 'secretAccessKey', 'bucket'])
+      k: TextEditingController(),
+  };
+  bool _showR2Secret = false;
+  bool _savingR2 = false;
   bool _loaded = false;
   bool _showSecret = false;
   bool _savingOAuth = false;
@@ -205,6 +152,9 @@ class _CredentialsTabState extends ConsumerState<_CredentialsTab> {
     _clientIdCtrl.dispose();
     _clientSecretCtrl.dispose();
     _fcmProjectIdCtrl.dispose();
+    for (final c in _r2Ctrls.values) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -214,6 +164,25 @@ class _CredentialsTabState extends ConsumerState<_CredentialsTab> {
     _clientIdCtrl.text = status.clientId ?? '';
     _clientSecretCtrl.text = status.clientSecret ?? '';
     _fcmProjectIdCtrl.text = status.firebaseProjectId ?? '';
+    for (final e in _r2Ctrls.entries) {
+      e.value.text = status.r2[e.key] ?? '';
+    }
+  }
+
+  Future<void> _saveR2(BuildContext context) async {
+    setState(() => _savingR2 = true);
+    try {
+      await ref.read(buffyCredentialsProvider.notifier).saveR2Config({
+        for (final e in _r2Ctrls.entries) e.key: e.value.text.trim(),
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cloudflare R2 keys saved')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _savingR2 = false);
+    }
   }
 
   Future<void> _saveOAuth(BuildContext context) async {
@@ -318,6 +287,79 @@ class _CredentialsTabState extends ConsumerState<_CredentialsTab> {
                             : const Icon(Icons.save_rounded, size: 18),
                         label: Text(_savingOAuth ? 'Saving…' : 'Save OAuth Configuration'),
                         onPressed: _savingOAuth ? null : () => _saveOAuth(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Cloudflare R2 (storage)',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: cs.primary,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Catalog and images are read and published here. Create an R2 API token with Object Read & Write on the Buffy bucket.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                    ),
+                    const SizedBox(height: 20),
+                    _LabeledField(
+                      label: 'Account ID',
+                      child: TextField(
+                        controller: _r2Ctrls['accountId'],
+                        decoration: const InputDecoration(hintText: 'Cloudflare account ID'),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    _LabeledField(
+                      label: 'Bucket',
+                      child: TextField(
+                        controller: _r2Ctrls['bucket'],
+                        decoration: const InputDecoration(hintText: 'R2 bucket name'),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    _LabeledField(
+                      label: 'Access Key ID',
+                      child: TextField(
+                        controller: _r2Ctrls['accessKeyId'],
+                        decoration: const InputDecoration(hintText: 'R2 access key ID'),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    _LabeledField(
+                      label: 'Secret Access Key',
+                      child: TextField(
+                        controller: _r2Ctrls['secretAccessKey'],
+                        obscureText: !_showR2Secret,
+                        decoration: InputDecoration(
+                          hintText: 'R2 secret access key',
+                          suffixIcon: IconButton(
+                            icon: Icon(_showR2Secret ? Icons.visibility_off_rounded : Icons.visibility_rounded, size: 18),
+                            onPressed: () => setState(() => _showR2Secret = !_showR2Secret),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      height: 44,
+                      child: FilledButton.icon(
+                        icon: _savingR2
+                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : const Icon(Icons.save_rounded, size: 18),
+                        label: Text(_savingR2 ? 'Saving…' : 'Save R2 Keys'),
+                        onPressed: _savingR2 ? null : () => _saveR2(context),
                       ),
                     ),
                   ],

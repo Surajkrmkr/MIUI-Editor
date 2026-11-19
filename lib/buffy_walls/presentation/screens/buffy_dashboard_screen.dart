@@ -11,9 +11,8 @@ import '../widgets/buffy_publish_dialog.dart';
 import '../widgets/buffy_push_banner_view.dart';
 import '../widgets/buffy_wallpaper_form.dart';
 import '../widgets/buffy_settings_dialog.dart';
-import '../widgets/buffy_git_panel.dart';
 import '../widgets/buffy_sidebar.dart';
-import '../widgets/buffy_batch_add_dialog.dart';
+import '../widgets/buffy_upload_dialog.dart';
 
 class BuffyDashboardScreen extends ConsumerStatefulWidget {
   const BuffyDashboardScreen({super.key});
@@ -34,7 +33,6 @@ enum _BuffyView {
 }
 
 class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
-  bool _showGitPanel = false;
   String _searchQuery = '';
   String? _category;
   _BuffyView _view = _BuffyView.wallpapers;
@@ -81,28 +79,15 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
         actions: [
           _AppBarBtn(
             icon: Icons.refresh_rounded,
-            tooltip: 'Reload from Firebase',
+            tooltip: 'Reload from Cloudflare',
             onPressed: () => _reload(context),
-          ),
-          _AppBarBtn(
-            icon: _showGitPanel
-                ? Icons.view_sidebar
-                : Icons.view_sidebar_outlined,
-            tooltip: 'Toggle Source Control',
-            isActive: _showGitPanel,
-            onPressed: () => setState(() => _showGitPanel = !_showGitPanel),
           ),
           if (showWalls) ...[
             const _AppBarDivider(),
             _AppBarBtn(
               icon: Icons.add_photo_alternate_rounded,
-              tooltip: 'Batch Add',
-              onPressed: () => _showBatchAddDialog(context, cmsState),
-            ),
-            _AppBarBtn(
-              icon: Icons.add_circle_outline_rounded,
-              tooltip: 'Add Wallpaper',
-              onPressed: () => _showAddDialog(context, cmsState),
+              tooltip: 'Add Wallpapers',
+              onPressed: () => showBuffyUploadDialog(context),
             ),
           ],
           if (isLoaded) ...[
@@ -143,12 +128,11 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
                     _BuffyView.push => const BuffyPushBannerView(),
                   },
           ),
-          if (_showGitPanel) const BuffyGitPanel(),
         ],
       ),
       floatingActionButton: showWalls
           ? FloatingActionButton.extended(
-              onPressed: () => _showAddDialog(context, cmsState),
+              onPressed: () => showBuffyUploadDialog(context),
               icon: const Icon(Icons.add),
               label: const Text('Add'),
             )
@@ -425,20 +409,6 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
     );
   }
 
-  void _showAddDialog(BuildContext context, BuffyCmsState state) {
-    showDialog(
-      context: context,
-      builder: (_) => Dialog(
-        child: BuffyWallpaperForm(
-          existingTags: state.wallpapers.expand((w) => w.tags).toSet().toList()
-            ..sort(),
-          existingColors:
-              state.wallpapers.expand((w) => w.colors).toSet().toList()..sort(),
-        ),
-      ),
-    );
-  }
-
   void _showEditDialog(
     BuildContext context,
     BuffyCmsState state,
@@ -519,20 +489,6 @@ class _BuffyDashboardScreenState extends ConsumerState<BuffyDashboardScreen> {
       ),
     );
     return confirmed == true;
-  }
-
-  void _showBatchAddDialog(BuildContext context, BuffyCmsState state) {
-    showDialog(
-      context: context,
-      builder: (context) => BuffyBatchAddDialog(
-        existingCategories:
-            state.wallpapers.map((w) => w.category).toSet().toList()..sort(),
-        existingTags: state.wallpapers.expand((w) => w.tags).toSet().toList()
-          ..sort(),
-        existingColors:
-            state.wallpapers.expand((w) => w.colors).toSet().toList()..sort(),
-      ),
-    );
   }
 }
 

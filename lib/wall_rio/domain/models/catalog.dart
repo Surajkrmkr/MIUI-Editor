@@ -1,4 +1,4 @@
-/// The wallpaper catalogs the WallRio app reads from Firebase Storage.
+/// The wallpaper catalogs the WallRio app reads from Cloudflare R2.
 ///
 /// Each catalog is one JSON file under the JSON folder (default `wallriojson/`).
 /// Images live under the images root (default `wallrio_wall_data/`), live
@@ -227,16 +227,21 @@ class WallpaperDraft {
   bool isPremium;
 }
 
-/// Where the CMS reads and writes in the bucket.
+/// Where the CMS reads and writes in the R2 bucket, and the public address
+/// the app loads that bucket from.
 class StorageSettings {
   const StorageSettings({
-    this.bucket = 'wallrio-e551b.firebasestorage.app',
+    this.bucket = 'wallrio',
+    this.publicBaseUrl = 'https://wallrio.teamshadow.tech/',
     this.jsonFolder = 'wallriojson',
     this.imagesRoot = 'wallrio_wall_data',
     this.liveRoot = 'wallrio_live',
   });
 
   final String bucket;
+
+  /// Ends with `/`; object paths are appended to it.
+  final String publicBaseUrl;
   final String jsonFolder;
   final String imagesRoot;
   final String liveRoot;

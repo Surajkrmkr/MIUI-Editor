@@ -22,7 +22,7 @@ class _PickedImage {
   final int height;
 }
 
-/// Uploads push notification banners to Firebase Storage and gives their links.
+/// Uploads push notification banners to Cloudflare R2 and gives their links.
 class BuffyPushBannerView extends ConsumerStatefulWidget {
   const BuffyPushBannerView({super.key});
 

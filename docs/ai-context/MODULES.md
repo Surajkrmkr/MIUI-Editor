@@ -10,7 +10,7 @@ RootApp (Launcher)
 ├── Image Utility (MaterialApp.router - GoRouter)
 ├── Themes Deployment (MaterialApp)
 ├── WallRio CMS (MaterialApp.router - GoRouter)
-│   └── Firebase Storage catalogs
+│   └── Cloudflare R2 catalogs
 ├── BuffyWalls CMS (MaterialApp)
 
 Core Shared
@@ -263,7 +263,8 @@ Simple Navigator (single page app)
 
 ### Purpose
 
-CMS for the WallRio app's wallpaper catalogs in **Firebase Storage**: upload
+CMS for the WallRio app's wallpaper catalogs in **Cloudflare R2** (served at
+`wallrio.teamshadow.tech`): upload
 wallpapers (with automatic thumbnails), edit/delete entries, and restore
 earlier catalog versions. Also shows AdMob / Play analytics and sends FCM pushes.
 
@@ -321,15 +322,16 @@ wall_rio/
 
 ### Auth
 
-The signed-in Google account (OAuth client in Settings → Credentials) calls the GCS
-JSON API directly, so Firebase Storage rules don't apply to the CMS. Accounts signed
-in before Storage was added must click **Switch** to grant the new scope.
+Catalogs and media go through the R2 S3 API (`infrastructure/services/r2_storage_client.dart`)
+with the keys from Settings → Storage (an R2 API token with Object Read & Write). The
+signed-in Google account (Settings → Credentials) is still used for AdMob, Play and FCM.
 
 ### Tests
 
 - `test/wall_rio/catalog_rules_test.dart` — pure rules.
 - `test/wall_rio/catalog_service_storage_test.dart` — real bucket, throwaway folder;
-  skipped unless `WALLRIO_TEST_TOKEN=$(gcloud auth print-access-token)` is set.
+  skipped unless `WALLRIO_R2_ACCOUNT_ID`, `WALLRIO_R2_ACCESS_KEY_ID` and
+  `WALLRIO_R2_SECRET_ACCESS_KEY` are set.
 
 ### Key Files to Update When Adding Features
 
@@ -346,7 +348,7 @@ in before Storage was added must click **Switch** to grant the new scope.
 
 ### Purpose
 
-Wallpaper CMS with categorization. Loads the catalog from Firebase Storage (`buffywalls.appspot.com`) and publishes media and catalog there; the Git panel remains for the local repos.
+Wallpaper CMS with categorization. Loads the catalog from a Cloudflare R2 bucket (served at `buffywalls.teamshadow.tech`) and publishes media and catalog there through the S3 API (`wall_rio/infrastructure/services/r2_storage_client.dart`), with the R2 keys from Buffy Settings → Credentials. Wallpapers are added in `presentation/widgets/buffy_upload_dialog.dart`, which reuses Wall Rio's upload layout, `WallpaperFields` and JSON bulk fill (`wall_rio/domain/bulk_details.dart`); the author field is Buffy's designer.
 
 ### Structure
 

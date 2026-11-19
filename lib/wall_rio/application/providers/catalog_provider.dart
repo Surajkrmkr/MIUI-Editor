@@ -3,17 +3,37 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/models/catalog.dart';
+import 'package:http/http.dart' as http;
+
 import '../../infrastructure/services/app_settings_service.dart';
-import '../../infrastructure/services/google_api_service.dart';
+import '../../infrastructure/services/r2_storage_client.dart';
 import '../../infrastructure/services/storage_client.dart';
 import '../services/catalog_service.dart';
-import 'credentials_provider.dart';
 
-/// Thrown when there is no signed-in Google account to publish with.
+/// Thrown when the Cloudflare R2 keys haven't been entered yet.
 class NotSignedInException implements Exception {
   @override
-  String toString() => 'Sign in with Google in Settings to load the catalogs.';
+  String toString() =>
+      'Add the Cloudflare R2 keys in Settings → Storage to load the catalogs.';
 }
+
+/// Cloudflare R2 S3 API keys: accountId, accessKeyId, secretAccessKey.
+class R2KeysNotifier extends AsyncNotifier<Map<String, String>> {
+  final _service = AppSettingsService();
+
+  @override
+  FutureOr<Map<String, String>> build() => _service.getR2Keys();
+
+  Future<void> save(Map<String, String> keys) async {
+    await _service.setR2Keys(keys);
+    state = AsyncValue.data(Map.of(keys));
+  }
+}
+
+final r2KeysProvider =
+    AsyncNotifierProvider<R2KeysNotifier, Map<String, String>>(
+      R2KeysNotifier.new,
+    );
 
 class StorageSettingsNotifier extends AsyncNotifier<StorageSettings> {
   final _service = AppSettingsService();
@@ -32,15 +52,22 @@ final storageSettingsProvider =
       StorageSettingsNotifier.new,
     );
 
-/// Storage client for the signed-in account; rebuilt when sign-in changes.
+/// R2 client for the saved keys; rebuilt when the keys or bucket change.
 final storageClientProvider = FutureProvider<StorageClient>((ref) async {
-  final credentials = await ref.watch(credentialsStateProvider.future);
+  final keys = await ref.watch(r2KeysProvider.future);
   final settings = await ref.watch(storageSettingsProvider.future);
-  if (!credentials.isSignedIn) throw NotSignedInException();
-  final client = await GoogleApiService().getAuthenticatedClient(wallRioScopes);
-  if (client == null) throw NotSignedInException();
+  if (keys.values.any((v) => v.isEmpty) || keys.length < 3) {
+    throw NotSignedInException();
+  }
+  final client = http.Client();
   ref.onDispose(client.close);
-  return StorageClient(client, settings.bucket);
+  return R2StorageClient(
+    client,
+    accountId: keys['accountId']!,
+    accessKeyId: keys['accessKeyId']!,
+    secretAccessKey: keys['secretAccessKey']!,
+    bucket: settings.bucket,
+  );
 });
 
 final catalogServiceProvider = FutureProvider<CatalogService>((ref) async {

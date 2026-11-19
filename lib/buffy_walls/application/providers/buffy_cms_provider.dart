@@ -1,29 +1,10 @@
 import 'dart:async';
 
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:miui_icon_generator/wall_rio/domain/models/git_models.dart';
-import 'package:miui_icon_generator/wall_rio/domain/repositories/git_repository.dart';
-import 'package:miui_icon_generator/wall_rio/infrastructure/repositories/cli_git_repository.dart';
 import '../../domain/buffy_catalog_json.dart';
 import '../../domain/models/buffy_wallpaper.dart';
-import 'buffy_settings_provider.dart';
 import 'buffy_storage_provider.dart';
-
-enum BuffyGitRepoTarget { json, wallpapers }
-
-class ActiveBuffyGitTargetNotifier extends Notifier<BuffyGitRepoTarget> {
-  @override
-  BuffyGitRepoTarget build() => BuffyGitRepoTarget.json;
-
-  void set(BuffyGitRepoTarget target) => state = target;
-}
-
-final activeBuffyGitTargetProvider =
-    NotifierProvider<ActiveBuffyGitTargetNotifier, BuffyGitRepoTarget>(
-      ActiveBuffyGitTargetNotifier.new,
-    );
 
 class BuffyCmsState {
   final List<BuffyWallpaper> wallpapers;
@@ -33,13 +14,12 @@ class BuffyCmsState {
   final bool isLoading;
   final String? error;
 
-  /// The catalog as loaded from Firebase, and its generation. Null until loaded.
+  /// The catalog as loaded from Cloudflare R2, and its generation. Null until loaded.
   final String? catalogJson;
   final String? generation;
 
   /// Edits not published yet; they exist only in memory.
   final bool isDirty;
-  final GitStatus? gitStatus;
 
   BuffyCmsState({
     this.wallpapers = const [],
@@ -49,7 +29,6 @@ class BuffyCmsState {
     this.catalogJson,
     this.generation,
     this.isDirty = false,
-    this.gitStatus,
   });
 
   BuffyCmsState copyWith({
@@ -60,7 +39,6 @@ class BuffyCmsState {
     String? catalogJson,
     String? generation,
     bool? isDirty,
-    GitStatus? gitStatus,
   }) {
     return BuffyCmsState(
       wallpapers: wallpapers ?? this.wallpapers,
@@ -70,7 +48,6 @@ class BuffyCmsState {
       catalogJson: catalogJson ?? this.catalogJson,
       generation: generation ?? this.generation,
       isDirty: isDirty ?? this.isDirty,
-      gitStatus: gitStatus ?? this.gitStatus,
     );
   }
 }
@@ -86,22 +63,9 @@ class BuffyCmsNotifier extends Notifier<BuffyCmsState> {
     return BuffyCmsState();
   }
 
-  final _gitRepository = CliGitRepository();
   Future<void>? _loading;
 
-  String? _getWorkingDir() {
-    final target = ref.read(activeBuffyGitTargetProvider);
-    final settings = ref.read(buffySettingsProvider);
-    if (target == BuffyGitRepoTarget.json) {
-      return settings.jsonFilePath.isNotEmpty
-          ? File(settings.jsonFilePath).parent.path
-          : null;
-    } else {
-      return settings.localRepoPath.isNotEmpty ? settings.localRepoPath : null;
-    }
-  }
-
-  /// Loads the live catalog from Firebase, dropping unpublished edits.
+  /// Loads the live catalog from Cloudflare R2, dropping unpublished edits.
   Future<void> load() =>
       _loading ??= _load().whenComplete(() => _loading = null);
 
@@ -122,9 +86,7 @@ class BuffyCmsNotifier extends Notifier<BuffyCmsState> {
       );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
-      return;
     }
-    await refreshGitStatus();
   }
 
   /// The catalog with the current edits applied.
@@ -160,16 +122,6 @@ class BuffyCmsNotifier extends Notifier<BuffyCmsState> {
     );
   }
 
-  Future<void> refreshGitStatus() async {
-    final workingDir = _getWorkingDir();
-    if (workingDir != null) {
-      final status = await _gitRepository.getStatus(workingDir);
-      state = state.copyWith(gitStatus: status);
-    } else {
-      state = state.copyWith(gitStatus: null);
-    }
-  }
-
   void addWallpaper(BuffyWallpaper wallpaper) {
     state = state.copyWith(
       wallpapers: [wallpaper, ...state.wallpapers],
@@ -191,81 +143,6 @@ class BuffyCmsNotifier extends Notifier<BuffyCmsState> {
       wallpapers: state.wallpapers.where((w) => w.id != id).toList(),
       isDirty: true,
     );
-  }
-
-  Future<void> stageFile(String file) async {
-    final workingDir = _getWorkingDir();
-    if (workingDir != null) {
-      await Process.run('git', ['add', file], workingDirectory: workingDir);
-      await refreshGitStatus();
-    }
-  }
-
-  Future<void> unstageFile(String file) async {
-    final workingDir = _getWorkingDir();
-    if (workingDir != null) {
-      await Process.run('git', [
-        'reset',
-        'HEAD',
-        file,
-      ], workingDirectory: workingDir);
-      await refreshGitStatus();
-    }
-  }
-
-  Future<GitOperationResult> pull() async {
-    final workingDir = _getWorkingDir();
-    if (workingDir == null) {
-      return const GitOperationResult(
-        success: false,
-        message: 'No repo configured',
-      );
-    }
-    state = state.copyWith(isLoading: true);
-    final result = await _gitRepository.pull(workingDir);
-    if (result.success) {
-      await refreshGitStatus();
-      state = state.copyWith(isLoading: false);
-    } else {
-      state = state.copyWith(isLoading: false, error: result.message);
-    }
-    return result;
-  }
-
-  Future<GitCommitResult> commit(String message) async {
-    final workingDir = _getWorkingDir();
-    if (workingDir == null) {
-      return const GitCommitResult(
-        success: false,
-        message: 'No repo configured',
-      );
-    }
-    state = state.copyWith(isLoading: true);
-    final result = await _gitRepository.commit(workingDir, message);
-    await refreshGitStatus();
-    state = state.copyWith(isLoading: false);
-    return result;
-  }
-
-  Future<GitOperationResult> push([String? message]) async {
-    final workingDir = _getWorkingDir();
-    if (workingDir == null) {
-      return const GitOperationResult(
-        success: false,
-        message: 'No repo configured',
-      );
-    }
-    state = state.copyWith(isLoading: true);
-
-    if (message != null && message.isNotEmpty) {
-      await Process.run('git', ['add', '.'], workingDirectory: workingDir);
-      await _gitRepository.commit(workingDir, message);
-    }
-
-    final result = await _gitRepository.push(workingDir);
-    await refreshGitStatus();
-    state = state.copyWith(isLoading: false);
-    return result;
   }
 }
 

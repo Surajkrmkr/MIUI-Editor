@@ -175,10 +175,31 @@ class _StorageTabState extends ConsumerState<_StorageTab> {
   final _jsonFolderCtrl = TextEditingController();
   final _imagesRootCtrl = TextEditingController();
   final _liveRootCtrl = TextEditingController();
+  final _publicBaseCtrl = TextEditingController();
+  final _r2Ctrls = {
+    for (final k in ['accountId', 'accessKeyId', 'secretAccessKey'])
+      k: TextEditingController(),
+  };
+  bool _showSecret = false;
   bool _loaded = false;
 
   @override
+  void initState() {
+    super.initState();
+    ref.read(r2KeysProvider.future).then((keys) {
+      if (!mounted) return;
+      for (final e in _r2Ctrls.entries) {
+        e.value.text = keys[e.key] ?? '';
+      }
+    });
+  }
+
+  @override
   void dispose() {
+    _publicBaseCtrl.dispose();
+    for (final c in _r2Ctrls.values) {
+      c.dispose();
+    }
     _bucketCtrl.dispose();
     _jsonFolderCtrl.dispose();
     _imagesRootCtrl.dispose();
@@ -189,13 +210,18 @@ class _StorageTabState extends ConsumerState<_StorageTab> {
   Future<void> _save() async {
     String clean(TextEditingController c) =>
         c.text.trim().replaceAll(RegExp(r'^/+|/+$'), '');
+    final base = _publicBaseCtrl.text.trim().replaceAll(RegExp(r'/+$'), '');
     final settings = StorageSettings(
       bucket: clean(_bucketCtrl),
+      publicBaseUrl: '$base/',
       jsonFolder: clean(_jsonFolderCtrl),
       imagesRoot: clean(_imagesRootCtrl),
       liveRoot: clean(_liveRootCtrl),
     );
     await ref.read(storageSettingsProvider.notifier).save(settings);
+    await ref.read(r2KeysProvider.notifier).save({
+      for (final e in _r2Ctrls.entries) e.key: e.value.text.trim(),
+    });
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Storage settings saved')),
@@ -206,6 +232,7 @@ class _StorageTabState extends ConsumerState<_StorageTab> {
     const defaults = StorageSettings();
     setState(() {
       _bucketCtrl.text = defaults.bucket;
+      _publicBaseCtrl.text = defaults.publicBaseUrl;
       _jsonFolderCtrl.text = defaults.jsonFolder;
       _imagesRootCtrl.text = defaults.imagesRoot;
       _liveRootCtrl.text = defaults.liveRoot;
@@ -222,6 +249,7 @@ class _StorageTabState extends ConsumerState<_StorageTab> {
             if (!_loaded) {
               _loaded = true;
               _bucketCtrl.text = settings.bucket;
+              _publicBaseCtrl.text = settings.publicBaseUrl;
               _jsonFolderCtrl.text = settings.jsonFolder;
               _imagesRootCtrl.text = settings.imagesRoot;
               _liveRootCtrl.text = settings.liveRoot;
@@ -236,7 +264,7 @@ class _StorageTabState extends ConsumerState<_StorageTab> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Firebase Storage',
+                        'Cloudflare R2',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                               color: cs.primary,
@@ -246,7 +274,9 @@ class _StorageTabState extends ConsumerState<_StorageTab> {
                       Text(
                         'Where the catalogs and wallpapers live. The defaults are the live '
                         'app data. To try things out safely, point both folders at a test '
-                        'prefix (e.g. cms_test/wallriojson) holding a copy of the JSON.',
+                        'prefix (e.g. cms_test/wallriojson) holding a copy of the JSON. '
+                        'The keys come from an R2 API token with Object Read & Write on '
+                        'the bucket.',
                         style: Theme.of(context)
                             .textTheme
                             .bodySmall
@@ -254,8 +284,43 @@ class _StorageTabState extends ConsumerState<_StorageTab> {
                       ),
                       const SizedBox(height: 20),
                       _LabeledField(
+                        label: 'Account ID',
+                        child: TextField(controller: _r2Ctrls['accountId']),
+                      ),
+                      const SizedBox(height: 14),
+                      _LabeledField(
+                        label: 'Access Key ID',
+                        child: TextField(controller: _r2Ctrls['accessKeyId']),
+                      ),
+                      const SizedBox(height: 14),
+                      _LabeledField(
+                        label: 'Secret Access Key',
+                        child: TextField(
+                          controller: _r2Ctrls['secretAccessKey'],
+                          obscureText: !_showSecret,
+                          decoration: InputDecoration(
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _showSecret
+                                    ? Icons.visibility_off_rounded
+                                    : Icons.visibility_rounded,
+                                size: 18,
+                              ),
+                              onPressed: () =>
+                                  setState(() => _showSecret = !_showSecret),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      _LabeledField(
                         label: 'Bucket',
                         child: TextField(controller: _bucketCtrl),
+                      ),
+                      const SizedBox(height: 14),
+                      _LabeledField(
+                        label: 'Public URL (what the app loads, e.g. https://wallrio.teamshadow.tech/)',
+                        child: TextField(controller: _publicBaseCtrl),
                       ),
                       const SizedBox(height: 14),
                       _LabeledField(
@@ -554,7 +619,7 @@ class _CredentialsTabState extends ConsumerState<_CredentialsTab> {
                     ),
                     const SizedBox(height: 10),
                     _ServiceAccountRow(
-                      title: 'Google Cloud (AdMob / Play / Storage)',
+                      title: 'Google Cloud (AdMob / Play)',
                       isSignedIn: status.isSignedIn,
                       disabled: status.clientId?.isEmpty ?? true,
                       loading: _signingIn,

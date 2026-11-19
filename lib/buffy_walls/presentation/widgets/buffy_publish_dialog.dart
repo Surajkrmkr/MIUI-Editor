@@ -296,7 +296,7 @@ class _BuffyPublishDialogState extends ConsumerState<_BuffyPublishDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${preview.problems.length} problems — fix these first. Nothing has been changed on Firebase.',
+                  '${preview.problems.length} problems — fix these first. Nothing has been changed on Cloudflare.',
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     color: colors.error,
