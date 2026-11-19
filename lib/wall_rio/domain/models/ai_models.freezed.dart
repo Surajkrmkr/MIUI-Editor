@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'ai_models.dart';
@@ -9,6 +9,7 @@ part of 'ai_models.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $AIAnalysisResultCopyWith<AIAnalysisResult> get copyWith => _$AIAnalysisResultCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AIAnalysisResult&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.tags, tags)&&const DeepCollectionEquality().equals(other.colors, colors)&&(identical(other.category, category) || other.category == category));
+  final _this = this as AIAnalysisResult;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AIAnalysisResult&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.tags, _this.tags)&&const DeepCollectionEquality().equals(other.colors, _this.colors)&&(identical(other.category, _this.category) || other.category == _this.category));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,const DeepCollectionEquality().hash(tags),const DeepCollectionEquality().hash(colors),category);
+int get hashCode {
+  final _this = this as AIAnalysisResult;
+  return Object.hash(runtimeType,_this.name,const DeepCollectionEquality().hash(_this.tags),const DeepCollectionEquality().hash(_this.colors),_this.category);
+}
 
 @override
 String toString() {
-  return 'AIAnalysisResult(name: $name, tags: $tags, colors: $colors, category: $category)';
+  final _this = this as AIAnalysisResult;
+  return 'AIAnalysisResult(name: ${_this.name}, tags: ${_this.tags}, colors: ${_this.colors}, category: ${_this.category})';
 }
 
 
@@ -66,7 +72,7 @@ class _$AIAnalysisResultCopyWithImpl<$Res>
 /// Create a copy of AIAnalysisResult
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? tags = null,Object? colors = null,Object? category = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(AIAnalysisResult(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
 as List<String>,colors: null == colors ? _self.colors : colors // ignore: cast_nullable_to_non_nullable
@@ -212,7 +218,7 @@ return $default(_that.name,_that.tags,_that.colors,_that.category);case _:
 @JsonSerializable()
 
 class _AIAnalysisResult implements AIAnalysisResult {
-  const _AIAnalysisResult({required this.name, required final  List<String> tags, required final  List<String> colors, this.category}): _tags = tags,_colors = colors;
+  const _AIAnalysisResult({required this.name, required  List<String> tags, required  List<String> colors, this.category}): _tags = tags,_colors = colors;
   factory _AIAnalysisResult.fromJson(Map<String, dynamic> json) => _$AIAnalysisResultFromJson(json);
 
 @override final  String name;
@@ -245,16 +251,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AIAnalysisResult&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._tags, _tags)&&const DeepCollectionEquality().equals(other._colors, _colors)&&(identical(other.category, category) || other.category == category));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AIAnalysisResult&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.tags, _tags)&&const DeepCollectionEquality().equals(other.colors, _colors)&&(identical(other.category, category) || other.category == category));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_colors),category);
+int get hashCode {
+    return Object.hash(runtimeType,name,const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_colors),category);
+}
 
 @override
 String toString() {
-  return 'AIAnalysisResult(name: $name, tags: $tags, colors: $colors, category: $category)';
+    return 'AIAnalysisResult(name: $name, tags: $tags, colors: $colors, category: $category)';
 }
 
 
@@ -309,16 +317,21 @@ $AITaskCopyWith<AITask> get copyWith => _$AITaskCopyWithImpl<AITask>(this as AIT
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AITask&&(identical(other.id, id) || other.id == id)&&(identical(other.filePath, filePath) || other.filePath == filePath)&&(identical(other.status, status) || other.status == status)&&(identical(other.result, result) || other.result == result)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  final _this = this as AITask;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AITask&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.filePath, _this.filePath) || other.filePath == _this.filePath)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.result, _this.result) || other.result == _this.result)&&(identical(other.errorMessage, _this.errorMessage) || other.errorMessage == _this.errorMessage));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,filePath,status,result,errorMessage);
+int get hashCode {
+  final _this = this as AITask;
+  return Object.hash(runtimeType,_this.id,_this.filePath,_this.status,_this.result,_this.errorMessage);
+}
 
 @override
 String toString() {
-  return 'AITask(id: $id, filePath: $filePath, status: $status, result: $result, errorMessage: $errorMessage)';
+  final _this = this as AITask;
+  return 'AITask(id: ${_this.id}, filePath: ${_this.filePath}, status: ${_this.status}, result: ${_this.result}, errorMessage: ${_this.errorMessage})';
 }
 
 
@@ -347,7 +360,7 @@ class _$AITaskCopyWithImpl<$Res>
 /// Create a copy of AITask
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? filePath = null,Object? status = null,Object? result = freezed,Object? errorMessage = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(AITask(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,filePath: null == filePath ? _self.filePath : filePath // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
@@ -525,16 +538,18 @@ _$AITaskCopyWith<_AITask> get copyWith => __$AITaskCopyWithImpl<_AITask>(this, _
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AITask&&(identical(other.id, id) || other.id == id)&&(identical(other.filePath, filePath) || other.filePath == filePath)&&(identical(other.status, status) || other.status == status)&&(identical(other.result, result) || other.result == result)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AITask&&(identical(other.id, id) || other.id == id)&&(identical(other.filePath, filePath) || other.filePath == filePath)&&(identical(other.status, status) || other.status == status)&&(identical(other.result, result) || other.result == result)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,filePath,status,result,errorMessage);
+int get hashCode {
+    return Object.hash(runtimeType,id,filePath,status,result,errorMessage);
+}
 
 @override
 String toString() {
-  return 'AITask(id: $id, filePath: $filePath, status: $status, result: $result, errorMessage: $errorMessage)';
+    return 'AITask(id: $id, filePath: $filePath, status: $status, result: $result, errorMessage: $errorMessage)';
 }
 
 

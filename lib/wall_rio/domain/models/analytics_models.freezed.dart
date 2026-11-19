@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'analytics_models.dart';
@@ -9,6 +9,7 @@ part of 'analytics_models.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $AdMobMetricsCopyWith<AdMobMetrics> get copyWith => _$AdMobMetricsCopyWithImpl<A
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdMobMetrics&&(identical(other.earnings, earnings) || other.earnings == earnings)&&(identical(other.impressions, impressions) || other.impressions == impressions)&&(identical(other.ecpm, ecpm) || other.ecpm == ecpm)&&(identical(other.matchRate, matchRate) || other.matchRate == matchRate)&&(identical(other.requests, requests) || other.requests == requests)&&(identical(other.date, date) || other.date == date));
+  final _this = this as AdMobMetrics;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdMobMetrics&&(identical(other.earnings, _this.earnings) || other.earnings == _this.earnings)&&(identical(other.impressions, _this.impressions) || other.impressions == _this.impressions)&&(identical(other.ecpm, _this.ecpm) || other.ecpm == _this.ecpm)&&(identical(other.matchRate, _this.matchRate) || other.matchRate == _this.matchRate)&&(identical(other.requests, _this.requests) || other.requests == _this.requests)&&(identical(other.date, _this.date) || other.date == _this.date));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,earnings,impressions,ecpm,matchRate,requests,date);
+int get hashCode {
+  final _this = this as AdMobMetrics;
+  return Object.hash(runtimeType,_this.earnings,_this.impressions,_this.ecpm,_this.matchRate,_this.requests,_this.date);
+}
 
 @override
 String toString() {
-  return 'AdMobMetrics(earnings: $earnings, impressions: $impressions, ecpm: $ecpm, matchRate: $matchRate, requests: $requests, date: $date)';
+  final _this = this as AdMobMetrics;
+  return 'AdMobMetrics(earnings: ${_this.earnings}, impressions: ${_this.impressions}, ecpm: ${_this.ecpm}, matchRate: ${_this.matchRate}, requests: ${_this.requests}, date: ${_this.date})';
 }
 
 
@@ -66,7 +72,7 @@ class _$AdMobMetricsCopyWithImpl<$Res>
 /// Create a copy of AdMobMetrics
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? earnings = null,Object? impressions = null,Object? ecpm = null,Object? matchRate = null,Object? requests = null,Object? date = null,}) {
-  return _then(_self.copyWith(
+  return _then(AdMobMetrics(
 earnings: null == earnings ? _self.earnings : earnings // ignore: cast_nullable_to_non_nullable
 as double,impressions: null == impressions ? _self.impressions : impressions // ignore: cast_nullable_to_non_nullable
 as int,ecpm: null == ecpm ? _self.ecpm : ecpm // ignore: cast_nullable_to_non_nullable
@@ -237,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdMobMetrics&&(identical(other.earnings, earnings) || other.earnings == earnings)&&(identical(other.impressions, impressions) || other.impressions == impressions)&&(identical(other.ecpm, ecpm) || other.ecpm == ecpm)&&(identical(other.matchRate, matchRate) || other.matchRate == matchRate)&&(identical(other.requests, requests) || other.requests == requests)&&(identical(other.date, date) || other.date == date));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdMobMetrics&&(identical(other.earnings, earnings) || other.earnings == earnings)&&(identical(other.impressions, impressions) || other.impressions == impressions)&&(identical(other.ecpm, ecpm) || other.ecpm == ecpm)&&(identical(other.matchRate, matchRate) || other.matchRate == matchRate)&&(identical(other.requests, requests) || other.requests == requests)&&(identical(other.date, date) || other.date == date));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,earnings,impressions,ecpm,matchRate,requests,date);
+int get hashCode {
+    return Object.hash(runtimeType,earnings,impressions,ecpm,matchRate,requests,date);
+}
 
 @override
 String toString() {
-  return 'AdMobMetrics(earnings: $earnings, impressions: $impressions, ecpm: $ecpm, matchRate: $matchRate, requests: $requests, date: $date)';
+    return 'AdMobMetrics(earnings: $earnings, impressions: $impressions, ecpm: $ecpm, matchRate: $matchRate, requests: $requests, date: $date)';
 }
 
 
@@ -306,16 +314,21 @@ $PlayConsoleMetricsCopyWith<PlayConsoleMetrics> get copyWith => _$PlayConsoleMet
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlayConsoleMetrics&&(identical(other.revenue, revenue) || other.revenue == revenue)&&(identical(other.installs, installs) || other.installs == installs)&&(identical(other.activeDevices, activeDevices) || other.activeDevices == activeDevices)&&(identical(other.averageRating, averageRating) || other.averageRating == averageRating)&&(identical(other.crashRate, crashRate) || other.crashRate == crashRate)&&(identical(other.anrRate, anrRate) || other.anrRate == anrRate)&&(identical(other.date, date) || other.date == date));
+  final _this = this as PlayConsoleMetrics;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlayConsoleMetrics&&(identical(other.revenue, _this.revenue) || other.revenue == _this.revenue)&&(identical(other.installs, _this.installs) || other.installs == _this.installs)&&(identical(other.activeDevices, _this.activeDevices) || other.activeDevices == _this.activeDevices)&&(identical(other.averageRating, _this.averageRating) || other.averageRating == _this.averageRating)&&(identical(other.crashRate, _this.crashRate) || other.crashRate == _this.crashRate)&&(identical(other.anrRate, _this.anrRate) || other.anrRate == _this.anrRate)&&(identical(other.date, _this.date) || other.date == _this.date));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,revenue,installs,activeDevices,averageRating,crashRate,anrRate,date);
+int get hashCode {
+  final _this = this as PlayConsoleMetrics;
+  return Object.hash(runtimeType,_this.revenue,_this.installs,_this.activeDevices,_this.averageRating,_this.crashRate,_this.anrRate,_this.date);
+}
 
 @override
 String toString() {
-  return 'PlayConsoleMetrics(revenue: $revenue, installs: $installs, activeDevices: $activeDevices, averageRating: $averageRating, crashRate: $crashRate, anrRate: $anrRate, date: $date)';
+  final _this = this as PlayConsoleMetrics;
+  return 'PlayConsoleMetrics(revenue: ${_this.revenue}, installs: ${_this.installs}, activeDevices: ${_this.activeDevices}, averageRating: ${_this.averageRating}, crashRate: ${_this.crashRate}, anrRate: ${_this.anrRate}, date: ${_this.date})';
 }
 
 
@@ -344,7 +357,7 @@ class _$PlayConsoleMetricsCopyWithImpl<$Res>
 /// Create a copy of PlayConsoleMetrics
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? revenue = null,Object? installs = null,Object? activeDevices = null,Object? averageRating = null,Object? crashRate = null,Object? anrRate = null,Object? date = null,}) {
-  return _then(_self.copyWith(
+  return _then(PlayConsoleMetrics(
 revenue: null == revenue ? _self.revenue : revenue // ignore: cast_nullable_to_non_nullable
 as double,installs: null == installs ? _self.installs : installs // ignore: cast_nullable_to_non_nullable
 as int,activeDevices: null == activeDevices ? _self.activeDevices : activeDevices // ignore: cast_nullable_to_non_nullable
@@ -517,16 +530,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlayConsoleMetrics&&(identical(other.revenue, revenue) || other.revenue == revenue)&&(identical(other.installs, installs) || other.installs == installs)&&(identical(other.activeDevices, activeDevices) || other.activeDevices == activeDevices)&&(identical(other.averageRating, averageRating) || other.averageRating == averageRating)&&(identical(other.crashRate, crashRate) || other.crashRate == crashRate)&&(identical(other.anrRate, anrRate) || other.anrRate == anrRate)&&(identical(other.date, date) || other.date == date));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlayConsoleMetrics&&(identical(other.revenue, revenue) || other.revenue == revenue)&&(identical(other.installs, installs) || other.installs == installs)&&(identical(other.activeDevices, activeDevices) || other.activeDevices == activeDevices)&&(identical(other.averageRating, averageRating) || other.averageRating == averageRating)&&(identical(other.crashRate, crashRate) || other.crashRate == crashRate)&&(identical(other.anrRate, anrRate) || other.anrRate == anrRate)&&(identical(other.date, date) || other.date == date));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,revenue,installs,activeDevices,averageRating,crashRate,anrRate,date);
+int get hashCode {
+    return Object.hash(runtimeType,revenue,installs,activeDevices,averageRating,crashRate,anrRate,date);
+}
 
 @override
 String toString() {
-  return 'PlayConsoleMetrics(revenue: $revenue, installs: $installs, activeDevices: $activeDevices, averageRating: $averageRating, crashRate: $crashRate, anrRate: $anrRate, date: $date)';
+    return 'PlayConsoleMetrics(revenue: $revenue, installs: $installs, activeDevices: $activeDevices, averageRating: $averageRating, crashRate: $crashRate, anrRate: $anrRate, date: $date)';
 }
 
 
@@ -584,16 +599,21 @@ $CombinedAnalyticsCopyWith<CombinedAnalytics> get copyWith => _$CombinedAnalytic
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CombinedAnalytics&&(identical(other.admob, admob) || other.admob == admob)&&(identical(other.play, play) || other.play == play)&&(identical(other.lastRefreshed, lastRefreshed) || other.lastRefreshed == lastRefreshed));
+  final _this = this as CombinedAnalytics;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CombinedAnalytics&&(identical(other.admob, _this.admob) || other.admob == _this.admob)&&(identical(other.play, _this.play) || other.play == _this.play)&&(identical(other.lastRefreshed, _this.lastRefreshed) || other.lastRefreshed == _this.lastRefreshed));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,admob,play,lastRefreshed);
+int get hashCode {
+  final _this = this as CombinedAnalytics;
+  return Object.hash(runtimeType,_this.admob,_this.play,_this.lastRefreshed);
+}
 
 @override
 String toString() {
-  return 'CombinedAnalytics(admob: $admob, play: $play, lastRefreshed: $lastRefreshed)';
+  final _this = this as CombinedAnalytics;
+  return 'CombinedAnalytics(admob: ${_this.admob}, play: ${_this.play}, lastRefreshed: ${_this.lastRefreshed})';
 }
 
 
@@ -622,7 +642,7 @@ class _$CombinedAnalyticsCopyWithImpl<$Res>
 /// Create a copy of CombinedAnalytics
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? admob = freezed,Object? play = freezed,Object? lastRefreshed = null,}) {
-  return _then(_self.copyWith(
+  return _then(CombinedAnalytics(
 admob: freezed == admob ? _self.admob : admob // ignore: cast_nullable_to_non_nullable
 as AdMobMetrics?,play: freezed == play ? _self.play : play // ignore: cast_nullable_to_non_nullable
 as PlayConsoleMetrics?,lastRefreshed: null == lastRefreshed ? _self.lastRefreshed : lastRefreshed // ignore: cast_nullable_to_non_nullable
@@ -808,16 +828,18 @@ _$CombinedAnalyticsCopyWith<_CombinedAnalytics> get copyWith => __$CombinedAnaly
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CombinedAnalytics&&(identical(other.admob, admob) || other.admob == admob)&&(identical(other.play, play) || other.play == play)&&(identical(other.lastRefreshed, lastRefreshed) || other.lastRefreshed == lastRefreshed));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CombinedAnalytics&&(identical(other.admob, admob) || other.admob == admob)&&(identical(other.play, play) || other.play == play)&&(identical(other.lastRefreshed, lastRefreshed) || other.lastRefreshed == lastRefreshed));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,admob,play,lastRefreshed);
+int get hashCode {
+    return Object.hash(runtimeType,admob,play,lastRefreshed);
+}
 
 @override
 String toString() {
-  return 'CombinedAnalytics(admob: $admob, play: $play, lastRefreshed: $lastRefreshed)';
+    return 'CombinedAnalytics(admob: $admob, play: $play, lastRefreshed: $lastRefreshed)';
 }
 
 

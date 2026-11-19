@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'git_models.dart';
@@ -9,6 +9,7 @@ part of 'git_models.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -25,16 +26,21 @@ $GitStatusCopyWith<GitStatus> get copyWith => _$GitStatusCopyWithImpl<GitStatus>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitStatus&&(identical(other.isRepository, isRepository) || other.isRepository == isRepository)&&const DeepCollectionEquality().equals(other.modifiedFiles, modifiedFiles)&&const DeepCollectionEquality().equals(other.untrackedFiles, untrackedFiles)&&const DeepCollectionEquality().equals(other.stagedFiles, stagedFiles)&&(identical(other.currentBranch, currentBranch) || other.currentBranch == currentBranch)&&(identical(other.ahead, ahead) || other.ahead == ahead)&&(identical(other.behind, behind) || other.behind == behind));
+  final _this = this as GitStatus;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitStatus&&(identical(other.isRepository, _this.isRepository) || other.isRepository == _this.isRepository)&&const DeepCollectionEquality().equals(other.modifiedFiles, _this.modifiedFiles)&&const DeepCollectionEquality().equals(other.untrackedFiles, _this.untrackedFiles)&&const DeepCollectionEquality().equals(other.stagedFiles, _this.stagedFiles)&&(identical(other.currentBranch, _this.currentBranch) || other.currentBranch == _this.currentBranch)&&(identical(other.ahead, _this.ahead) || other.ahead == _this.ahead)&&(identical(other.behind, _this.behind) || other.behind == _this.behind));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,isRepository,const DeepCollectionEquality().hash(modifiedFiles),const DeepCollectionEquality().hash(untrackedFiles),const DeepCollectionEquality().hash(stagedFiles),currentBranch,ahead,behind);
+int get hashCode {
+  final _this = this as GitStatus;
+  return Object.hash(runtimeType,_this.isRepository,const DeepCollectionEquality().hash(_this.modifiedFiles),const DeepCollectionEquality().hash(_this.untrackedFiles),const DeepCollectionEquality().hash(_this.stagedFiles),_this.currentBranch,_this.ahead,_this.behind);
+}
 
 @override
 String toString() {
-  return 'GitStatus(isRepository: $isRepository, modifiedFiles: $modifiedFiles, untrackedFiles: $untrackedFiles, stagedFiles: $stagedFiles, currentBranch: $currentBranch, ahead: $ahead, behind: $behind)';
+  final _this = this as GitStatus;
+  return 'GitStatus(isRepository: ${_this.isRepository}, modifiedFiles: ${_this.modifiedFiles}, untrackedFiles: ${_this.untrackedFiles}, stagedFiles: ${_this.stagedFiles}, currentBranch: ${_this.currentBranch}, ahead: ${_this.ahead}, behind: ${_this.behind})';
 }
 
 
@@ -63,7 +69,7 @@ class _$GitStatusCopyWithImpl<$Res>
 /// Create a copy of GitStatus
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? isRepository = null,Object? modifiedFiles = null,Object? untrackedFiles = null,Object? stagedFiles = null,Object? currentBranch = freezed,Object? ahead = null,Object? behind = null,}) {
-  return _then(_self.copyWith(
+  return _then(GitStatus(
 isRepository: null == isRepository ? _self.isRepository : isRepository // ignore: cast_nullable_to_non_nullable
 as bool,modifiedFiles: null == modifiedFiles ? _self.modifiedFiles : modifiedFiles // ignore: cast_nullable_to_non_nullable
 as List<String>,untrackedFiles: null == untrackedFiles ? _self.untrackedFiles : untrackedFiles // ignore: cast_nullable_to_non_nullable
@@ -212,7 +218,7 @@ return $default(_that.isRepository,_that.modifiedFiles,_that.untrackedFiles,_tha
 
 
 class _GitStatus implements GitStatus {
-  const _GitStatus({required this.isRepository, required final  List<String> modifiedFiles, required final  List<String> untrackedFiles, required final  List<String> stagedFiles, this.currentBranch, this.ahead = 0, this.behind = 0}): _modifiedFiles = modifiedFiles,_untrackedFiles = untrackedFiles,_stagedFiles = stagedFiles;
+  const _GitStatus({required this.isRepository, required  List<String> modifiedFiles, required  List<String> untrackedFiles, required  List<String> stagedFiles, this.currentBranch, this.ahead = 0, this.behind = 0}): _modifiedFiles = modifiedFiles,_untrackedFiles = untrackedFiles,_stagedFiles = stagedFiles;
   
 
 @override final  bool isRepository;
@@ -251,16 +257,18 @@ _$GitStatusCopyWith<_GitStatus> get copyWith => __$GitStatusCopyWithImpl<_GitSta
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitStatus&&(identical(other.isRepository, isRepository) || other.isRepository == isRepository)&&const DeepCollectionEquality().equals(other._modifiedFiles, _modifiedFiles)&&const DeepCollectionEquality().equals(other._untrackedFiles, _untrackedFiles)&&const DeepCollectionEquality().equals(other._stagedFiles, _stagedFiles)&&(identical(other.currentBranch, currentBranch) || other.currentBranch == currentBranch)&&(identical(other.ahead, ahead) || other.ahead == ahead)&&(identical(other.behind, behind) || other.behind == behind));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitStatus&&(identical(other.isRepository, isRepository) || other.isRepository == isRepository)&&const DeepCollectionEquality().equals(other.modifiedFiles, _modifiedFiles)&&const DeepCollectionEquality().equals(other.untrackedFiles, _untrackedFiles)&&const DeepCollectionEquality().equals(other.stagedFiles, _stagedFiles)&&(identical(other.currentBranch, currentBranch) || other.currentBranch == currentBranch)&&(identical(other.ahead, ahead) || other.ahead == ahead)&&(identical(other.behind, behind) || other.behind == behind));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,isRepository,const DeepCollectionEquality().hash(_modifiedFiles),const DeepCollectionEquality().hash(_untrackedFiles),const DeepCollectionEquality().hash(_stagedFiles),currentBranch,ahead,behind);
+int get hashCode {
+    return Object.hash(runtimeType,isRepository,const DeepCollectionEquality().hash(_modifiedFiles),const DeepCollectionEquality().hash(_untrackedFiles),const DeepCollectionEquality().hash(_stagedFiles),currentBranch,ahead,behind);
+}
 
 @override
 String toString() {
-  return 'GitStatus(isRepository: $isRepository, modifiedFiles: $modifiedFiles, untrackedFiles: $untrackedFiles, stagedFiles: $stagedFiles, currentBranch: $currentBranch, ahead: $ahead, behind: $behind)';
+    return 'GitStatus(isRepository: $isRepository, modifiedFiles: $modifiedFiles, untrackedFiles: $untrackedFiles, stagedFiles: $stagedFiles, currentBranch: $currentBranch, ahead: $ahead, behind: $behind)';
 }
 
 
@@ -318,16 +326,21 @@ $GitCommitResultCopyWith<GitCommitResult> get copyWith => _$GitCommitResultCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitCommitResult&&(identical(other.success, success) || other.success == success)&&(identical(other.message, message) || other.message == message)&&(identical(other.commitHash, commitHash) || other.commitHash == commitHash));
+  final _this = this as GitCommitResult;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GitCommitResult&&(identical(other.success, _this.success) || other.success == _this.success)&&(identical(other.message, _this.message) || other.message == _this.message)&&(identical(other.commitHash, _this.commitHash) || other.commitHash == _this.commitHash));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,success,message,commitHash);
+int get hashCode {
+  final _this = this as GitCommitResult;
+  return Object.hash(runtimeType,_this.success,_this.message,_this.commitHash);
+}
 
 @override
 String toString() {
-  return 'GitCommitResult(success: $success, message: $message, commitHash: $commitHash)';
+  final _this = this as GitCommitResult;
+  return 'GitCommitResult(success: ${_this.success}, message: ${_this.message}, commitHash: ${_this.commitHash})';
 }
 
 
@@ -356,7 +369,7 @@ class _$GitCommitResultCopyWithImpl<$Res>
 /// Create a copy of GitCommitResult
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? success = null,Object? message = null,Object? commitHash = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(GitCommitResult(
 success: null == success ? _self.success : success // ignore: cast_nullable_to_non_nullable
 as bool,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String,commitHash: freezed == commitHash ? _self.commitHash : commitHash // ignore: cast_nullable_to_non_nullable
@@ -518,16 +531,18 @@ _$GitCommitResultCopyWith<_GitCommitResult> get copyWith => __$GitCommitResultCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitCommitResult&&(identical(other.success, success) || other.success == success)&&(identical(other.message, message) || other.message == message)&&(identical(other.commitHash, commitHash) || other.commitHash == commitHash));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GitCommitResult&&(identical(other.success, success) || other.success == success)&&(identical(other.message, message) || other.message == message)&&(identical(other.commitHash, commitHash) || other.commitHash == commitHash));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,success,message,commitHash);
+int get hashCode {
+    return Object.hash(runtimeType,success,message,commitHash);
+}
 
 @override
 String toString() {
-  return 'GitCommitResult(success: $success, message: $message, commitHash: $commitHash)';
+    return 'GitCommitResult(success: $success, message: $message, commitHash: $commitHash)';
 }
 
 

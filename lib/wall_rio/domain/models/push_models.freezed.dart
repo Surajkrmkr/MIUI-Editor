@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'push_models.dart';
@@ -9,14 +9,14 @@ part of 'push_models.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$PushCampaign {
 
- String get id; String get title; String get body; String? get imageUrl; String? get deepLink; String get targetTopic; DateTime get createdAt; DateTime? get scheduledFor; String get status;// pending, sent, failed, scheduled
- int? get sentCount; String? get errorMessage;
+ String get id; String get title; String get body; String? get imageUrl; String? get deepLink; String get targetTopic; DateTime get createdAt; DateTime? get scheduledFor; String get status; int? get sentCount; String? get errorMessage;
 /// Create a copy of PushCampaign
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,21 @@ $PushCampaignCopyWith<PushCampaign> get copyWith => _$PushCampaignCopyWithImpl<P
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PushCampaign&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.body, body) || other.body == body)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.deepLink, deepLink) || other.deepLink == deepLink)&&(identical(other.targetTopic, targetTopic) || other.targetTopic == targetTopic)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.scheduledFor, scheduledFor) || other.scheduledFor == scheduledFor)&&(identical(other.status, status) || other.status == status)&&(identical(other.sentCount, sentCount) || other.sentCount == sentCount)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  final _this = this as PushCampaign;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PushCampaign&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.body, _this.body) || other.body == _this.body)&&(identical(other.imageUrl, _this.imageUrl) || other.imageUrl == _this.imageUrl)&&(identical(other.deepLink, _this.deepLink) || other.deepLink == _this.deepLink)&&(identical(other.targetTopic, _this.targetTopic) || other.targetTopic == _this.targetTopic)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.scheduledFor, _this.scheduledFor) || other.scheduledFor == _this.scheduledFor)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.sentCount, _this.sentCount) || other.sentCount == _this.sentCount)&&(identical(other.errorMessage, _this.errorMessage) || other.errorMessage == _this.errorMessage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,body,imageUrl,deepLink,targetTopic,createdAt,scheduledFor,status,sentCount,errorMessage);
+int get hashCode {
+  final _this = this as PushCampaign;
+  return Object.hash(runtimeType,_this.id,_this.title,_this.body,_this.imageUrl,_this.deepLink,_this.targetTopic,_this.createdAt,_this.scheduledFor,_this.status,_this.sentCount,_this.errorMessage);
+}
 
 @override
 String toString() {
-  return 'PushCampaign(id: $id, title: $title, body: $body, imageUrl: $imageUrl, deepLink: $deepLink, targetTopic: $targetTopic, createdAt: $createdAt, scheduledFor: $scheduledFor, status: $status, sentCount: $sentCount, errorMessage: $errorMessage)';
+  final _this = this as PushCampaign;
+  return 'PushCampaign(id: ${_this.id}, title: ${_this.title}, body: ${_this.body}, imageUrl: ${_this.imageUrl}, deepLink: ${_this.deepLink}, targetTopic: ${_this.targetTopic}, createdAt: ${_this.createdAt}, scheduledFor: ${_this.scheduledFor}, status: ${_this.status}, sentCount: ${_this.sentCount}, errorMessage: ${_this.errorMessage})';
 }
 
 
@@ -67,7 +72,7 @@ class _$PushCampaignCopyWithImpl<$Res>
 /// Create a copy of PushCampaign
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? body = null,Object? imageUrl = freezed,Object? deepLink = freezed,Object? targetTopic = null,Object? createdAt = null,Object? scheduledFor = freezed,Object? status = null,Object? sentCount = freezed,Object? errorMessage = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(PushCampaign(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,body: null == body ? _self.body : body // ignore: cast_nullable_to_non_nullable
@@ -232,7 +237,6 @@ class _PushCampaign implements PushCampaign {
 @override final  DateTime createdAt;
 @override final  DateTime? scheduledFor;
 @override@JsonKey() final  String status;
-// pending, sent, failed, scheduled
 @override final  int? sentCount;
 @override final  String? errorMessage;
 
@@ -249,16 +253,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PushCampaign&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.body, body) || other.body == body)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.deepLink, deepLink) || other.deepLink == deepLink)&&(identical(other.targetTopic, targetTopic) || other.targetTopic == targetTopic)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.scheduledFor, scheduledFor) || other.scheduledFor == scheduledFor)&&(identical(other.status, status) || other.status == status)&&(identical(other.sentCount, sentCount) || other.sentCount == sentCount)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PushCampaign&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.body, body) || other.body == body)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.deepLink, deepLink) || other.deepLink == deepLink)&&(identical(other.targetTopic, targetTopic) || other.targetTopic == targetTopic)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.scheduledFor, scheduledFor) || other.scheduledFor == scheduledFor)&&(identical(other.status, status) || other.status == status)&&(identical(other.sentCount, sentCount) || other.sentCount == sentCount)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,body,imageUrl,deepLink,targetTopic,createdAt,scheduledFor,status,sentCount,errorMessage);
+int get hashCode {
+    return Object.hash(runtimeType,id,title,body,imageUrl,deepLink,targetTopic,createdAt,scheduledFor,status,sentCount,errorMessage);
+}
 
 @override
 String toString() {
-  return 'PushCampaign(id: $id, title: $title, body: $body, imageUrl: $imageUrl, deepLink: $deepLink, targetTopic: $targetTopic, createdAt: $createdAt, scheduledFor: $scheduledFor, status: $status, sentCount: $sentCount, errorMessage: $errorMessage)';
+    return 'PushCampaign(id: $id, title: $title, body: $body, imageUrl: $imageUrl, deepLink: $deepLink, targetTopic: $targetTopic, createdAt: $createdAt, scheduledFor: $scheduledFor, status: $status, sentCount: $sentCount, errorMessage: $errorMessage)';
 }
 
 
@@ -323,16 +329,21 @@ $PushTemplateCopyWith<PushTemplate> get copyWith => _$PushTemplateCopyWithImpl<P
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PushTemplate&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.title, title) || other.title == title)&&(identical(other.body, body) || other.body == body)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.deepLink, deepLink) || other.deepLink == deepLink)&&(identical(other.category, category) || other.category == category));
+  final _this = this as PushTemplate;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PushTemplate&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.body, _this.body) || other.body == _this.body)&&(identical(other.imageUrl, _this.imageUrl) || other.imageUrl == _this.imageUrl)&&(identical(other.deepLink, _this.deepLink) || other.deepLink == _this.deepLink)&&(identical(other.category, _this.category) || other.category == _this.category));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,title,body,imageUrl,deepLink,category);
+int get hashCode {
+  final _this = this as PushTemplate;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.title,_this.body,_this.imageUrl,_this.deepLink,_this.category);
+}
 
 @override
 String toString() {
-  return 'PushTemplate(id: $id, name: $name, title: $title, body: $body, imageUrl: $imageUrl, deepLink: $deepLink, category: $category)';
+  final _this = this as PushTemplate;
+  return 'PushTemplate(id: ${_this.id}, name: ${_this.name}, title: ${_this.title}, body: ${_this.body}, imageUrl: ${_this.imageUrl}, deepLink: ${_this.deepLink}, category: ${_this.category})';
 }
 
 
@@ -361,7 +372,7 @@ class _$PushTemplateCopyWithImpl<$Res>
 /// Create a copy of PushTemplate
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? title = null,Object? body = null,Object? imageUrl = freezed,Object? deepLink = freezed,Object? category = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(PushTemplate(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -534,16 +545,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PushTemplate&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.title, title) || other.title == title)&&(identical(other.body, body) || other.body == body)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.deepLink, deepLink) || other.deepLink == deepLink)&&(identical(other.category, category) || other.category == category));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PushTemplate&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.title, title) || other.title == title)&&(identical(other.body, body) || other.body == body)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.deepLink, deepLink) || other.deepLink == deepLink)&&(identical(other.category, category) || other.category == category));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,title,body,imageUrl,deepLink,category);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,title,body,imageUrl,deepLink,category);
+}
 
 @override
 String toString() {
-  return 'PushTemplate(id: $id, name: $name, title: $title, body: $body, imageUrl: $imageUrl, deepLink: $deepLink, category: $category)';
+    return 'PushTemplate(id: $id, name: $name, title: $title, body: $body, imageUrl: $imageUrl, deepLink: $deepLink, category: $category)';
 }
 
 
@@ -601,16 +614,21 @@ $FCMTopicCopyWith<FCMTopic> get copyWith => _$FCMTopicCopyWithImpl<FCMTopic>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FCMTopic&&(identical(other.name, name) || other.name == name)&&(identical(other.subscriberCount, subscriberCount) || other.subscriberCount == subscriberCount)&&(identical(other.lastUsed, lastUsed) || other.lastUsed == lastUsed));
+  final _this = this as FCMTopic;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FCMTopic&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.subscriberCount, _this.subscriberCount) || other.subscriberCount == _this.subscriberCount)&&(identical(other.lastUsed, _this.lastUsed) || other.lastUsed == _this.lastUsed));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,name,subscriberCount,lastUsed);
+int get hashCode {
+  final _this = this as FCMTopic;
+  return Object.hash(runtimeType,_this.name,_this.subscriberCount,_this.lastUsed);
+}
 
 @override
 String toString() {
-  return 'FCMTopic(name: $name, subscriberCount: $subscriberCount, lastUsed: $lastUsed)';
+  final _this = this as FCMTopic;
+  return 'FCMTopic(name: ${_this.name}, subscriberCount: ${_this.subscriberCount}, lastUsed: ${_this.lastUsed})';
 }
 
 
@@ -639,7 +657,7 @@ class _$FCMTopicCopyWithImpl<$Res>
 /// Create a copy of FCMTopic
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? subscriberCount = null,Object? lastUsed = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(FCMTopic(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,subscriberCount: null == subscriberCount ? _self.subscriberCount : subscriberCount // ignore: cast_nullable_to_non_nullable
 as int,lastUsed: freezed == lastUsed ? _self.lastUsed : lastUsed // ignore: cast_nullable_to_non_nullable
@@ -801,16 +819,18 @@ _$FCMTopicCopyWith<_FCMTopic> get copyWith => __$FCMTopicCopyWithImpl<_FCMTopic>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _FCMTopic&&(identical(other.name, name) || other.name == name)&&(identical(other.subscriberCount, subscriberCount) || other.subscriberCount == subscriberCount)&&(identical(other.lastUsed, lastUsed) || other.lastUsed == lastUsed));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FCMTopic&&(identical(other.name, name) || other.name == name)&&(identical(other.subscriberCount, subscriberCount) || other.subscriberCount == subscriberCount)&&(identical(other.lastUsed, lastUsed) || other.lastUsed == lastUsed));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,name,subscriberCount,lastUsed);
+int get hashCode {
+    return Object.hash(runtimeType,name,subscriberCount,lastUsed);
+}
 
 @override
 String toString() {
-  return 'FCMTopic(name: $name, subscriberCount: $subscriberCount, lastUsed: $lastUsed)';
+    return 'FCMTopic(name: $name, subscriberCount: $subscriberCount, lastUsed: $lastUsed)';
 }
 
 
